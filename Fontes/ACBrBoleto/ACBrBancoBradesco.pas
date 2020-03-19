@@ -1294,6 +1294,8 @@ begin
          17: Result := '17-Data de vencimento anterior a data de emissão';
          21: Result := '21-Espécie do Título inválido';
          24: Result := '24-Data da emissão inválida';
+         25: Result := '25-Data da Emissão Posterior a Data de Entrada';
+         27: Result := '27-Valor/Taxa de Juros de Mora Inválido';
          38: Result := '38-Prazo para protesto inválido';
          39: Result := '39-Pedido para protesto não permitido para título';
          43: Result := '43-Prazo para baixa e devolução inválido';
@@ -1312,7 +1314,6 @@ begin
          72: Result := '72-Débito não agendado - Código de moeda diferente de R$';
          73: Result := '73-Débito não agendado - Data de vencimento inválida';
          75: Result := '75-Débito não agendado - Tipo do número de inscrição do sacado debitado inválido';
-         76: Result := '76-Pagador Eletrônico DDA (NOVO)- Esse motivo somente será disponibilizado no arquivo retorno para as empresas cadastradas nessa condição';
          86: Result := '86-Seu número do documento inválido';
          89: Result := '89-Email sacado nao enviado - Titulo com debito automatico';
          90: Result := '90-Email sacado nao enviado - Titulo com cobranca sem registro';
@@ -1336,6 +1337,8 @@ begin
          21: Result:= 'Especie do titulo invalida';
          22: Result:= 'Especie nao permitida para a carteira';
          24: Result:= 'Data de emissao invalida';
+         25: Result:= 'Data da Emissão Posterior a Data de Entrada';
+         27: Result:= 'Valor/Taxa de Juros de Mora Inválido';
          28: Result:= 'Codigo de desconto invalido';
          38: Result:= 'Prazo para protesto invalido';
          44: Result:= 'Agencia cedente nao prevista';

@@ -73,6 +73,8 @@ end;
 
 function TACBrBALMicheletti.InterpretarRepostaPeso(const aResposta: AnsiString): Double;
 var
+  wPos: integer;
+  wQtd: integer;
   wResposta: AnsiString;
 begin
   Result := 0;
@@ -80,14 +82,14 @@ begin
   if (aResposta = EmptyStr) then
     Exit;
 
-  (* Corta o peso bruto da resposta e substitui o . ou , pelo separador de
-     decimais configurado no Windows. *)
-  wResposta   := Copy(aResposta, 1, 10);
-  wResposta   := Trim(Copy(wResposta, 4, 7));
+  wPos  := Pos('<SB>3:', aResposta) - 1;
+  wResposta := Copy(aResposta, wPos + 7, 10);
+  wQtd      := (Pos('kg', wResposta));
+  wResposta := Copy(wResposta, 1, wQtd-1);
   wResposta := StringReplace(wResposta, '.', DecimalSeparator, [rfReplaceAll]);
   wResposta := StringReplace(wResposta, ',', DecimalSeparator, [rfReplaceAll]);
 
-  Result := StrToFloatDef(wResposta, 0);
+  Result    := StrToFloatDef(wResposta, 0);
 end;
 
 end.
