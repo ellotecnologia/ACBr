@@ -29,12 +29,6 @@
 { Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
 {       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
-{******************************************************************************
-|* Historico
-|*
-|* 25/05/2013: Primeira Versao
-|*    Fernando - fernando-mm@hotmail.com
-******************************************************************************}
 
 {$I ACBr.inc}
 
@@ -219,10 +213,8 @@ end;
 function TACBrConsultaCNPJ.Consulta(const ACNPJ, ACaptcha: String;
   ARemoverEspacosDuplos: Boolean): Boolean;
 var
-  Erro: String;
+  Erro, StrAux, PostStr:String;
   Resposta : TStringList;
-  StrAux: String;
-  sMun, PostStr:String;
   CountCid, Tentativas:Integer;
   Retentar: Boolean;
 begin
@@ -300,40 +292,50 @@ begin
     FMotivoSituacaoCad := LerCampo(Resposta, ACBrStr('MOTIVO DE SITUAÇÃO CADASTRAL'));
 
     FCNAE2.Clear;
-    StrAux := LerCampo(Resposta,ACBrStr('CÓDIGO E DESCRIÇÃO DAS ATIVIDADES ECONÔMICAS SECUNDÁRIAS'));
-    FCNAE2.Add(ACBrUtil.RemoverEspacosDuplos(StrAux));
     repeat
-      StrAux := LerCampo(Resposta, StrAux);
-      if StrAux <> '' then
-        FCNAE2.Add(ACBrUtil.RemoverEspacosDuplos(StrAux));
-    until StrAux = '';
+      StrAux := LerCampo(Resposta,ACBrStr('CÓDIGO E DESCRIÇÃO DAS ATIVIDADES ECONÔMICAS SECUNDÁRIAS'));
+      if trim(StrAux) = '' then
+        Break;
 
+      FCNAE2.Add(ACBrUtil.RemoverEspacosDuplos(StrAux));
+
+      repeat
+        StrAux := LerCampo(Resposta, StrAux);
+        if trim(StrAux) = '' then
+          Break;
+
+        FCNAE2.Add(ACBrUtil.RemoverEspacosDuplos(StrAux));
+      until False;
+    until False;
   finally
     Resposta.Free;
   end ;
 
+  // Removendo astrísticos do inicio do nome da Cidade e UF..
+  while (Length(FCidade) > 0) and (FCidade[1] = '*') do
+    Delete(FCidade,1,1);
+
+  while (Length(FUF) > 0) and (FUF[1] = '*') do
+    Delete(FUF,1,1);
 
   // Consulta Codigo da Cidade ACBrIBGE
   fCodigoIBGE := '';
-  if (FCidade <> '') and
-     (FPesquisarIBGE) then
+  if FPesquisarIBGE and (FCidade <> '') and (FUF <> '') then
   begin
-    if (sMun <> FCidade) then  // Evita buscar municipio já encontrado
-    begin
-      FACBrIBGE.BuscarPorNome( FCidade, FUF, False);
-      sMun := FCidade;
-    end ;
+    FACBrIBGE.BuscarPorNome( FCidade, FUF, False);
 
     if FACBrIBGE.Cidades.Count > 0 then  // Achou ?
-    for CountCid := 0 to FACBrIBGE.Cidades.Count -1 do
-    Begin
-       if (UpperCase(TiraAcentos(FCidade)) = UpperCase(TiraAcentos(FACBrIBGE.Cidades[CountCid].Municipio))) And
-          (FUF = FACBrIBGE.Cidades[CountCid].UF) then
-       Begin
-         FCodigoIBGE := IntToStr( FACBrIBGE.Cidades[CountCid].CodMunicipio );
-         Break;
-       End;
-    End;
+    begin
+      for CountCid := 0 to FACBrIBGE.Cidades.Count -1 do
+      Begin
+         if (UpperCase(TiraAcentos(FCidade)) = UpperCase(TiraAcentos(FACBrIBGE.Cidades[CountCid].Municipio))) And
+            (FUF = FACBrIBGE.Cidades[CountCid].UF) then
+         Begin
+           FCodigoIBGE := IntToStr( FACBrIBGE.Cidades[CountCid].CodMunicipio );
+           Break;
+         End;
+      end;
+    end;
   end ;
 
   if Trim(FRazaoSocial) = '' then

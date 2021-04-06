@@ -42,6 +42,38 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+19/11/2020
+-- ACBrMDFeDAMDFeRLRetrato --
+[*] https://www.projetoacbr.com.br/forum/topic/59645-atualiza%C3%A7%C3%A3o-do-layout-do-damdfe/
+   Por: Chico Lopes
+
+18/11/2020
+-- ACBrMDFeDAMDFeRLRetrato --
+[*] Possível correção para a emissão do numero do protocolo de um MDF-e emitido
+    em contingência.
+   Por: Italo Giurizzato Junior
+
+28/07/2020
+-- ACBrMDFeDAEventoRLRetrato --
+[*] https://www.projetoacbr.com.br/forum/topic/58634-c%C3%B3digo-de-barras-na-impress%C3%A3o-do-evento-de-cancelamento/
+   Por: Fábio dos Santos Amorim
+
+14/05/2020
+-- ACBrMDFeDAMDFeRLRetrato --
+[*] A variável CarregouLogo estava sendo atribuida mas não estava sendo
+    utilizada. Incluido as linhas que estavam faltando.
+   Por: Italo Jurisato Junior
+
+09/04/2020
+-- ACBrMDFeDAEventoRLRetrato --
+[-] https://www.projetoacbr.com.br/forum/topic/56891-impressão-mdfe-fortes/
+   Por: Ronie Oliveira
+
+01/04/2020
+-- ACBrMDFeDAEventoRLRetrato --
+[+] Inclusão do evento de Pagamento da Operação de Transporte
+   Por: Italo Jurisato Junior
+
 25/10/2019
 -- ACBrMDFeDAMDFeRLRetrato --
 [*] Ajustes de alinhamento de alguns campos no arquivo .lfm

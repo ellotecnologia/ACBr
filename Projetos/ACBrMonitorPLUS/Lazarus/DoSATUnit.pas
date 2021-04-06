@@ -1,11 +1,9 @@
 {*******************************************************************************}
-{ Projeto: ACBrMonitor                                                         }
+{ Projeto: ACBrMonitor                                                          }
 {  Executavel multiplataforma que faz uso do conjunto de componentes ACBr para  }
 { criar uma interface de comunicação com equipamentos de automacao comercial.   }
 {                                                                               }
-{ Direitos Autorais Reservados (c) 2010 Daniel Simoes de Almeida                }
-{                                                                               }
-{ Colaboradores nesse arquivo:                                  }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida                }
 {                                                                               }
 {  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr     }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr       }
@@ -61,11 +59,11 @@ public
   procedure RespostaCancelarVenda( Resultado: String);
   procedure RespostaTesteFimaFim( Resultado: String );
   procedure RespostaPadrao;
+  procedure RespostaPadraoCancelamento;
   procedure RespostaIntegrador;
 
   procedure CarregarDadosVenda(aStr: String; aNomePDF : String = '');
   procedure CarregarDadosCancelamento(aStr: String);
-  function ParamAsXML(AParam: String): String;
 
   procedure GerarIniCFe( AStr: String);
 
@@ -233,6 +231,13 @@ public
   procedure Executar; override;
 end;
 
+{ TMetodoGerarPDFExtratoCancelamento }
+
+TMetodoGerarPDFExtratoCancelamento = class(TACBrMetodo)
+public
+  procedure Executar; override;
+end;
+
 { TMetodoExtrairLog }
 
 TMetodoExtrairLog = class(TACBrMetodo)
@@ -275,12 +280,108 @@ public
   procedure Executar; override;
 end;
 
+{ TMetodoConsultarModeloSAT }
+
+TMetodoConsultarModeloSAT = class(TACBrMetodo)
+public
+  procedure Executar; override;
+end;
+
 
 implementation
 
 uses
-  ACBrUtil,DoACBrUnit,IniFiles, pcnAuxiliar, typinfo,
+  ACBrUtil,DoACBrUnit,IniFiles, forms, pcnAuxiliar, typinfo,
   ACBrSATExtratoClass, UtilUnit;
+
+{ TMetodoGerarPDFExtratoCancelamento }
+
+{ Params: 0 - cXMLVenda: String com XML de Vendas o path do arquivo
+          1 - cXMLCancelamento: String com XML de Cancelamento o path do arquivo
+          2 - cNomeArq: String com nome do o Arquivo
+}
+procedure TMetodoGerarPDFExtratoCancelamento.Executar;
+var
+  cXMLVenda : String;
+  cXMLCancelamento: String;
+  cNomeArq : String;
+begin
+  cXMLVenda := fpCmd.Params(0);
+  cXMLCancelamento := fpCmd.Params(1);
+  cNomeArq := fpCmd.Params(2);
+
+  with TACBrObjetoSAT(fpObjetoDono) do
+  begin
+    DoPrepararImpressaoSAT('', True);
+    CarregarDadosVenda(cXMLVenda, cNomeArq);
+    CarregarDadosCancelamento(cXMLCancelamento);
+    ACBrSAT.ImprimirExtratoCancelamento;
+
+    RespostaPadraoCancelamento;
+
+  end;
+
+end;
+
+{ TMetodoConsultarModeloSAT }
+
+procedure TMetodoConsultarModeloSAT.Executar;
+  function SectionSAT(N: Integer): String;
+  begin
+    Result := 'SAT'+IntToStr(N);
+  end;
+var
+  dfesat_ini, Marca: String;
+  {$IfNDef MSWINDOWS}
+  LibName: String;
+  {$Else}
+    {$IfDef CPU64}
+    LibNameWin64: String;
+    {$EndIf}
+  {$EndIf}
+  SL: TStringList;
+  Ini: TIniFile;
+  I: Integer;
+begin
+  dfesat_ini := PathWithDelim(ExtractFilePath(Application.ExeName)) + CDirSAT + PathDelim + CDFeSATIniFile;
+  if not FileExists(dfesat_ini) then
+    exit;
+
+  Ini := TIniFile.Create(dfesat_ini);
+  SL := TStringList.Create;
+  try
+    SL.LineBreak := '|';
+    I := 1;
+    while Ini.SectionExists(SectionSAT(I)) do
+    begin
+      Marca := Ini.ReadString(SectionSAT(I), CKeySATMarca, '');
+      if Marca <> '' then
+      begin
+        {$IfNDef MSWINDOWS}
+         LibName := Ini.ReadString(SectionSAT(I), CKeySATLibLinux, '');
+         if LibName <> '' then
+           SL.Add(Marca);
+        {$Else}
+          {$IfDef CPU64}
+          LibNameWin64 := Ini.ReadString(SectionSAT(I), CKeySATLibWin64, '');
+          if LibNameWin64 <> '' then
+            SL.Add(Marca);
+          {$Else}
+            SL.Add(Marca);
+          {$EndIf}
+        {$EndIf}
+
+      end;
+
+      Inc( I );
+    end;
+
+    fpCmd.Resposta := SL.Text;
+  finally
+    SL.Free;
+    Ini.Free;
+  end;
+end;
 
 procedure TACBrObjetoSAT.CarregarDadosVenda(aStr: String; aNomePDF: String);
 begin
@@ -309,26 +410,6 @@ begin
         CalcCFeNomeArq(ConfigArquivos.PastaCFeVenda,CFe.infCFe.ID,'','.pdf'));
   end;
 
-end;
-
-function TACBrObjetoSAT.ParamAsXML(AParam: String): String;
-var
-  SL : TStringList;
-begin
-  Result := '';
-
-  if (pos(#10,AParam) = 0) and FileExists(AParam) then
-  begin
-    SL := TStringList.Create;
-    try
-      SL.LoadFromFile( AParam );
-      Result := SL.Text;
-    finally
-      SL.Free;
-    end;
-  end
-  else
-    raise Exception.Create('Diretório ou Arquivo: '+AParam+' não encontrado! ');
 end;
 
 procedure TACBrObjetoSAT.CarregarDadosCancelamento(aStr: String);
@@ -759,7 +840,7 @@ end;
 }
 procedure TMetodoEnviarCFe.Executar;
 var
-  cArqXML, ArqCFe, Resultado: String;
+  cArqXML, Resultado: String;
 begin
   cArqXML := fpCmd.Params(0);
 
@@ -767,11 +848,18 @@ begin
   begin
     if NaoEstaVazio(cArqXML) then
     begin
-      ArqCFe := ParamAsXML(cArqXML);
-      if StringIsXML( ArqCFe ) then
-        Resultado := ACBrSAT.EnviarDadosVenda( ArqCFe )
+      ACBrSAT.CFe.Clear;
+      if (pos(#10,cArqXML) = 0) and FileExists(cArqXML) then
+      begin
+        if not(ACBrSAT.CFe.LoadFromFile(cArqXML)) then
+          raise Exception.Create('Falha ao carregar o arquivo '+cArqXML+'. XML inválido! ');
+        Resultado := ACBrSAT.EnviarDadosVenda;
+      end
       else
-        raise Exception.Create('XML em: '+cArqXML+' é inválido! ');
+      if StringIsXML( cArqXML ) then
+        Resultado := ACBrSAT.EnviarDadosVenda( cArqXML )
+      else
+        raise Exception.Create('Diretório ou XML: '+cArqXML+' inválido! ');
 
     end
     else if (ACBrSAT.CFe.ide.signAC <> '') then
@@ -1140,6 +1228,9 @@ begin
   ListaDeMetodos.Add(CMetodoSetlogomarcaSAT);
   ListaDeMetodos.Add(CMetodoGerarAssinaturaSAT);
   ListaDeMetodos.Add(CMetodoEnviarEmailCFe);
+  ListaDeMetodos.Add(CMetodoConsultarModeloSAT);
+  ListaDeMetodos.Add(CMetodoGerarPDFExtratoCancelamento);
+
 
   // DoACBr
   ListaDeMetodos.Add(CMetodoSavetofile);
@@ -1205,6 +1296,8 @@ begin
     29 : AMetodoClass := TMetodoSetLogoMarca;
     30 : AMetodoClass := TMetodoGerarAssinaturaSAT;
     31 : AMetodoClass := TMetodoEnviarEmailCFe;
+    32 : AMetodoClass := TMetodoConsultarModeloSAT;
+    33 : AMetodoClass := TMetodoGerarPDFExtratoCancelamento;
 
     else
       begin
@@ -1422,6 +1515,27 @@ begin
     begin
       Resp.Arquivo:= Extrato.NomeDocumento;
       Resp.XML:= Extrato.CFe.XMLOriginal;
+
+      fpCmd.Resposta := sLineBreak + Resp.Gerar;
+
+    end;
+
+  finally
+    Resp.Free;
+  end;
+
+end;
+
+procedure TACBrObjetoSAT.RespostaPadraoCancelamento;
+var
+  Resp: TPadraoSATResposta;
+begin
+  Resp := TPadraoSATResposta.Create('CFe',TpResp, codUTF8);
+  try
+    with fACBrSAT do
+    begin
+      Resp.Arquivo:= Extrato.NomeDocumento;
+      Resp.XML:= Extrato.CFeCanc.XMLOriginal;
 
       fpCmd.Resposta := sLineBreak + Resp.Gerar;
 

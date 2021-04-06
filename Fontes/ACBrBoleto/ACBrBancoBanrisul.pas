@@ -38,7 +38,7 @@ interface
 
 uses
   Classes, SysUtils,
-  ACBrBoleto;
+  ACBrBoleto, ACBrBoletoConversao;
 
 type
 
@@ -567,7 +567,7 @@ function TACBrBanrisul.GerarRegistroTransacao240(
   ACBrTitulo: TACBrTitulo): String;
 var
     aAceite, DiasProt, Juros, TipoInscSacado, Ocorrencia: String;
-    sDiasBaixaDevol, ACaracTitulo: String;
+    sDiasBaixaDevol, ACaracTitulo, ATipoBoleto : String;
 begin
    with ACBrTitulo do begin
       case Aceite of
@@ -597,7 +597,7 @@ begin
       else // Se a instrução estiver preenchida
         begin
           // Validar se a instrução passada é válida
-          if not MatchText(Instrucao2, ['0', '1', '2']) then
+          if not MatchText(Trim(Instrucao2), ['0', '1', '2']) then
             raise Exception.Create('Código de Baixa/Devolução informado incorretamente!');
         end;
       // Número de dias para baixa/devolução
@@ -626,6 +626,13 @@ begin
          Ocorrencia := '01'; {Remessa}
       end;
 
+     {Pegando Tipo de Boleto}
+     ATipoBoleto := '1';
+     case ACBrBoleto.Cedente.ResponEmissao of
+       tbCliEmite : ATipoBoleto := '2';
+       tbBancoEmite : ATipoBoleto := '1';
+     end;
+
       ACaracTitulo := '1';
       case CaracTitulo of
         tcSimples     : ACaracTitulo  := '1';
@@ -642,11 +649,11 @@ begin
                 //Agência mantenedora da conta 18 - 22
                 PadLeft(OnlyNumber(ACBrBanco.ACBrBoleto.Cedente.Agencia), 5, '0') +
                 // Dígito verificador da agência 23 - 23
-                ACBrBanco.ACBrBoleto.Cedente.AgenciaDigito +
+               PadLeft( ACBrBanco.ACBrBoleto.Cedente.AgenciaDigito, 1, ' ') +
                 // Número da conta corrente 24 - 35
                 PadLeft(OnlyNumber(ACBrBanco.ACBrBoleto.Cedente.Conta), 12, '0') +
                 // Dígito verificador da conta 36 - 36
-                ACBrBanco.ACBrBoleto.Cedente.ContaDigito +
+                PadLeft( ACBrBanco.ACBrBoleto.Cedente.ContaDigito, 1, ' ') +
                 // Dígito verificador da ag/conta 37 - 37
                 Space(1) +
 
@@ -654,7 +661,7 @@ begin
                 PadLeft(OnlyNumber(MontarCampoNossoNumero(ACBrTitulo)), 10, '0') +
                 DupeString(' ', 10) +
                 ACaracTitulo +
-                '1020' +
+                '10' + ATipoBoleto + '0' +
                 PadRight(NumeroDocumento, 15) +
                 FormatDateTime('ddmmyyyy', Vencimento) +
                 PadLeft(StringReplace(FormatFloat('#####0.00', ValorDocumento), ',', '', []), 15, '0') +
@@ -670,7 +677,7 @@ begin
                 PadRight(NumeroDocumento, 15) +
                 DupeString(' ', 10) +
                 DiasProt +
-                Instrucao2 +
+                PadRight(Trim(Instrucao2), 1, ' ') +
                 sDiasBaixaDevol +
                 '09' +
                 DupeString('0', 10) +' ';
@@ -704,7 +711,7 @@ begin
                    DupeString('0', 48) +
                    '1' +
                    FormatDateTime('ddmmyyyy', DataMulta) +
-                   PadLeft(StringReplace(FormatFloat('#####0.00', PercentualMulta * ValorDocumento / 100), ',', '', []), 15, '0') +
+                   PadLeft(StringReplace(FormatFloat('#####0.00', TruncTo(((PercentualMulta * ValorDocumento) / 100),2)), ',', '', []), 15, '0') +
                    DupeString(' ', 90) +
                    DupeString('0', 28) +
                    DupeString(' ', 33);
@@ -956,7 +963,7 @@ begin
     with Titulo do
     begin
       NossoNumero          := Copy(Linha,63,10);
-      SeuNumero            := copy(Linha,117,10);
+      SeuNumero            := copy(Linha,38,25);
       NumeroDocumento      := copy(Linha,117,10);
 
       ValorDocumento       := StrToFloatDef(Copy(Linha,153,13),0)/100;

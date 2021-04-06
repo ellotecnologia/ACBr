@@ -37,7 +37,8 @@ library ACBrLibSat;
 
 uses
   Interfaces, sysutils, Classes, Forms,
-  ACBrLibComum, ACBrLibSATClass;
+  {$IFDEF MT}ACBrLibSATMT{$ELSE}ACBrLibSATST{$ENDIF},
+  ACBrLibComum;
 
 {$R *.res}
 
@@ -53,6 +54,8 @@ exports
   SAT_Nome,
   SAT_Versao,
   SAT_UltimoRetorno,
+  SAT_ConfigImportar,
+  SAT_ConfigExportar,
   SAT_ConfigLer,
   SAT_ConfigGravar,
   SAT_ConfigLerValor,
@@ -61,12 +64,14 @@ exports
   SAT_InicializarSAT,
   SAT_DesInicializar,
 
+  SAT_AtivarSAT,
   SAT_AssociarAssinatura,
   SAT_BloquearSAT,
   SAT_DesbloquearSAT,
   SAT_TrocarCodigoDeAtivacao,
   SAT_ConsultarSAT,
   SAT_ConsultarStatusOperacional,
+  SAT_ConsultarNumeroSessao,
   SAT_AtualizarSoftwareSAT,
   SAT_ComunicarCertificadoICPBRASIL,
   SAT_ExtrairLogs,
@@ -93,7 +98,6 @@ begin
    SetHeapTraceOutput( HeapTraceFile );
   {$ENDIF}
 
-  pLibClass := TACBrLibSAT; // Ajusta a classe a ser criada
   MainThreadID := GetCurrentThreadId();
   Application.Initialize;
 end.

@@ -44,6 +44,65 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+31/03/2021
+-- pcteCTeW --
+[*] Alterado os campos UF para opcional por conta da placa Mercosul.
+   Por: Italo Giurizzato Junior
+
+13/11/2020
+-- ACBrCTeConhecimentos --
+[*] Uso da função ObterDFeXML nos métodos Validar e VerificarAssinatura
+   Por: Italo Giurizzato Junior
+
+10/08/2020
+-- Diversos --
+[*] Ajustes para gerar enviar e ler o retorno do GTVe.
+    Ambiente de Homologação já liberado para testes.
+   Por: Italo Jurisato Junior
+
+03/08/2020
+-- pcteCTeW --
+[*] Ajuste nas condições para gerar ou não o grupo referente ao
+    ICMSUFFim quando se tratar de transporte interestadual e 
+    tomador não contribuinte do ICMS.
+   Por: Dailon Parisotto
+
+31/07/2020
+-- ACBrCTeConhecimentos --
+[*] Ajuste e padronização na leitura do .ini ref campo autXML
+
+23/07/2020
+-- Diversos --
+[+] Acrescentado a unit pcnConsts em algumas units do componente.
+    Por conta da migração de algumas constantes de pcnGerador para
+    pcnConsts.
+   Por: Italo Jurisato Junior
+
+17/06/2020
+-- pcteEnvEventoCTe --
+[-] Corrigido o tamanho máximo das tags latitude e longitude.
+  Por: Italo Jurisato Junior
+
+30/04/2020
+-- Diversos --
+[*] Alterações no modal ferroviário para deixar em conformidade com o manual.
+  Por: Italo Jurisato junior
+
+24/04/2020
+-- ACBrCTeConhecimentos --
+[-] Correção o nome do campo não é Chave e sim chave na seção [infNFexxx].
+  Por: Italo Jurisato junior
+
+22/04/2020
+-- pcteCTeW --
+[-] Correção nas tags a ignorar na geração dos alertas.
+  Por: BigWings
+
+13/04/2020
+-- Diversos --
+[*] Melhorias no método EnviarEmailEvento e ImprimirEventoPDF.
+   Por: Italo Jurisato Junior
+
 10/03/2020
 -- ACBrCTe --
 [*] Ao enviar o evento por e-mail não estava sendo informado o nome do XML do 

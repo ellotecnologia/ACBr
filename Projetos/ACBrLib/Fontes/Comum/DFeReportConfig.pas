@@ -1,35 +1,34 @@
-{*******************************************************************************}
-{ Projeto: Componentes ACBr                                                     }
-{  Biblioteca multiplataforma de componentes Delphi para interação com equipa-  }
-{ mentos de Automação Comercial utilizados no Brasil                            }
-{                                                                               }
-{ Direitos Autorais Reservados (c) 2018 Daniel Simoes de Almeida                }
-{                                                                               }
-{ Colaboradores nesse arquivo: Rafael Teno Dias                                 }
-{                                                                               }
-{  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr     }
-{ Componentes localizado em      http://www.sourceforge.net/projects/acbr       }
-{                                                                               }
-{  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la  }
-{ sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela   }
-{ Free Software Foundation; tanto a versão 2.1 da Licença, ou (a seu critério)  }
-{ qualquer versão posterior.                                                    }
-{                                                                               }
-{  Esta biblioteca é distribuída na expectativa de que seja útil, porém, SEM    }
-{ NENHUMA GARANTIA; nem mesmo a garantia implícita de COMERCIABILIDADE OU       }
-{ ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA. Consulte a Licença Pública Geral Menor }
-{ do GNU para mais detalhes. (Arquivo LICENÇA.TXT ou LICENSE.TXT)               }
-{                                                                               }
-{  Você deve ter recebido uma cópia da Licença Pública Geral Menor do GNU junto }
-{ com esta biblioteca; se não, escreva para a Free Software Foundation, Inc.,   }
-{ no endereço 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.           }
-{ Você também pode obter uma copia da licença em:                               }
-{ http://www.opensource.org/licenses/gpl-license.php                            }
-{                                                                               }
-{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br }
-{        Rua Cel.Aureliano de Camargo, 963 - Tatuí - SP - 18270-170             }
-{                                                                               }
-{*******************************************************************************}
+{******************************************************************************}
+{ Projeto: Componentes ACBr                                                    }
+{  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
+{ mentos de Automação Comercial utilizados no Brasil                           }
+{                                                                              }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{                                                                              }
+{ Colaboradores nesse arquivo: Rafael Teno Dias                                }
+{                                                                              }
+{  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
+{ Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
+{                                                                              }
+{  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la }
+{ sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela  }
+{ Free Software Foundation; tanto a versão 2.1 da Licença, ou (a seu critério) }
+{ qualquer versão posterior.                                                   }
+{                                                                              }
+{  Esta biblioteca é distribuída na expectativa de que seja útil, porém, SEM   }
+{ NENHUMA GARANTIA; nem mesmo a garantia implícita de COMERCIABILIDADE OU      }
+{ ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA. Consulte a Licença Pública Geral Menor}
+{ do GNU para mais detalhes. (Arquivo LICENÇA.TXT ou LICENSE.TXT)              }
+{                                                                              }
+{  Você deve ter recebido uma cópia da Licença Pública Geral Menor do GNU junto}
+{ com esta biblioteca; se não, escreva para a Free Software Foundation, Inc.,  }
+{ no endereço 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.          }
+{ Você também pode obter uma copia da licença em:                              }
+{ http://www.opensource.org/licenses/lgpl-license.php                          }
+{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
+{******************************************************************************}
 
 {$I ACBr.inc}
 
@@ -70,20 +69,18 @@ type
 
  protected
     procedure DefinirValoresPadroesChild; virtual; abstract;
-    procedure ImportChild(const AIni: TCustomIniFile); virtual; abstract;
     procedure LerIniChild(const AIni: TCustomIniFile); virtual; abstract;
     procedure GravarIniChild(const AIni: TCustomIniFile); virtual; abstract;
-    procedure ApplyChild(const DFeReport: T); virtual; abstract;
+    procedure ApplyChild(const DFeReport: T; const Lib: TACBrLib); virtual; abstract;
 
  public
    constructor Create(ASessao: String);
    destructor Destroy; override;
 
    procedure DefinirValoresPadroes;
-   procedure Import(const AIni: TCustomIniFile);
    procedure LerIni(const AIni: TCustomIniFile);
    procedure GravarIni(const AIni: TCustomIniFile);
-   procedure Apply(const DFeReport: T);
+   procedure Apply(const DFeReport: T; const Lib: TACBrLib);
 
    property Sessao: String read FSessao;
    property Impressora: String read FImpressora write FImpressora;
@@ -107,9 +104,6 @@ type
  end;
 
 implementation
-
-uses
-  ACBrMonitorConsts;
 
 constructor TDFeReportConfig<T>.Create(ASessao: String);
 begin
@@ -156,29 +150,6 @@ begin
   FCasasDecimais := TCasasDecimais.Create(nil);
 
   DefinirValoresPadroesChild;
-end;
-
-procedure TDFeReportConfig<T>.Import(const AIni: TCustomIniFile);
-begin
-  //Arquivos
-  UsaSeparadorPathPDF := AIni.ReadBool(CSecArquivos, CKeyArquivosUsarSeparadorPathPDF, UsaSeparadorPathPDF);
-
-  //Geral
-  Impressora := AIni.ReadString(CSecGeral, CKeyImpressora, Impressora);
-  Logo := AIni.ReadString(CSecGeral, CKeyLogomarca, Logo);
-
-  //DANFe
-  PathPDF := AIni.ReadString(CSecDANFE, CKeyDANFEPathPDF, PathPDF);
-  MargemInferior := AIni.ReadFloat(CSecDANFE, CKeyDANFEMargem, MargemInferior);
-  MargemSuperior := AIni.ReadFloat(CSecDANFE, CKeyDANFEMargemSup, MargemSuperior);
-  MargemEsquerda := AIni.ReadFloat(CSecDANFE, CKeyDANFEMargemEsq, MargemEsquerda);
-  MargemDireita := AIni.ReadFloat(CSecDANFE, CKeyDANFEMargemDir, MargemDireita);
-  NumCopias := AIni.ReadInteger(CSecDANFE, CKeyDANFECopias, NumCopias);
-  MostraPreview := AIni.ReadBool(CSecDANFE, CKeyDANFEMostrarPreview, MostraPreview);
-  MostraStatus := AIni.ReadBool(CSecDANFE, CKeyDANFEMostrarStatus, MostraStatus);
-  ExpandeLogoMarca := AIni.ReadBool(CSecDANFE, CKeyDANFEExpandirLogo, ExpandeLogoMarca);
-
-  ImportChild(AIni);
 end;
 
 procedure TDFeReportConfig<T>.LerIni(const AIni: TCustomIniFile);
@@ -263,9 +234,9 @@ begin
   GravarIniChild(AIni);
 end;
 
-procedure TDFeReportConfig<T>.Apply(const DFeReport: T);
+procedure TDFeReportConfig<T>.Apply(const DFeReport: T; const Lib: TACBrLib);
 begin
-  if not Assigned(DFeReport) or (DFeReport = nil) then Exit;
+  if not Assigned(DFeReport) then Exit;
 
   DFeReport.PathPDF := FPathPDF;
   DFeReport.UsaSeparadorPathPDF := FUsaSeparadorPathPDF;
@@ -293,12 +264,12 @@ begin
     vUnCom := FCasasDecimais.vUnCom;
   end;
 
-  DFeReport.Sistema := pLib.Config.Sistema.Nome;
-  DFeReport.Site := pLib.Config.Emissor.WebSite;
-  DFeReport.Email := pLib.Config.Emissor.Email;
-  DFeReport.Fax := pLib.Config.Emissor.Telefone;
+  DFeReport.Sistema := Lib.Config.Sistema.Nome;
+  DFeReport.Site := Lib.Config.Emissor.WebSite;
+  DFeReport.Email := Lib.Config.Emissor.Email;
+  DFeReport.Fax := Lib.Config.Emissor.Telefone;
 
-  ApplyChild(DFeReport);
+  ApplyChild(DFeReport, Lib);
 end;
 
 end.

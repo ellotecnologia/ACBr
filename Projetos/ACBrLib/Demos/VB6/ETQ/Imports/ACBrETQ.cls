@@ -32,7 +32,14 @@ Private Declare Function ETQ_Versao _
 Private Declare Function ETQ_UltimoRetorno _
                 Lib "ACBrETQ32.dll" (ByVal buffer As String, _
                                             ByRef bufferLen As Long) As Long
+
+Private Declare Function ETQ_ConfigImportar _
+                Lib "ACBrETQ32.dll" (ByVal eArqConfig As String) As Long
                    
+Private Declare Function ETQ_ConfigExportar _
+                Lib "ACBrETQ32.dll" (ByVal buffer As String, _
+                                     ByRef bufferLen As Long) As Long
+
 Private Declare Function ETQ_ConfigLer _
                 Lib "ACBrETQ32.dll" (ByVal eArqConfig As String) As Long
 
@@ -122,6 +129,14 @@ Private Declare Function ETQ_ImprimirImagem _
                                      ByVal Horizontal As Long, _
                                      ByVal eNomeImagem As String) As Long
                                      
+Private Declare Function ETQ_ImprimirQRCode _
+                Lib "ACBrETQ32.dll" (ByVal Vertical As Long, _
+                                     ByVal Horizontal As Long, _
+                                     ByVal Texto As String, _
+                                     ByVal LarguraModulo As Long, _
+                                     ByVal ErrorLevel As Long, _
+                                     ByVal Tipo As Long) As Long
+                                     
 
 Public Sub InicializarLib(Optional ByVal eArqConfig As String = "", _
                           Optional ByVal eChaveCrypt As String = "")
@@ -141,6 +156,32 @@ Public Sub FinalizarLib()
     retorno = ETQ_Finalizar
     CheckResult (retorno)
 End Sub
+
+Public Sub ConfigImportar(ByVal eArqConfig As String)
+
+    Dim retorno As Long
+
+    retorno = ETQ_ConfigImportar(eArqConfig)
+    CheckResult (retorno)
+    
+End Sub
+    
+Public Function ConfigExportar() As String
+
+    Dim retorno   As Long
+    Dim buffer    As String
+    Dim bufferLen As Long
+
+    bufferLen = BUFFER_LENGTH
+    
+    buffer = String$(bufferLen, " ")
+    
+    retorno = ETQ_ConfigExportar(buffer, bufferLen)
+    CheckResult retorno
+    
+    ConfigExportar = processResult(buffer, bufferLen)
+    
+End Function
 
 Public Sub ConfigLer(Optional eArqConfig As String = "")
 
@@ -348,6 +389,15 @@ Public Sub ImprimirImagem(ByVal MultiplicadorImagem As Long, _
      Dim retorno As Long
     
     retorno = ETQ_ImprimirImagem(MultiplicadorImagem, Vertical, Horizontal, eNomeImagem)
+    CheckResult (retorno)
+End Sub
+
+Public Sub ImprimirQRCode(ByVal Vertical As Long, ByVal Horizontal As Long, _
+                          ByVal Texto As String, ByVal LarguraModulo As Long, _
+                          ByVal ErrorLevel As Long, ByVal Tipo As Long)
+     Dim retorno As Long
+    
+    retorno = ETQ_ImprimirQRCode(Vertical, Horizontal, Texto, LarguraModulo, ErrorLevel, Tipo)
     CheckResult (retorno)
 End Sub
 

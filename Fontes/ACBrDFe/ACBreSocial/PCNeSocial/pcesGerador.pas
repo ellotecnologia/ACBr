@@ -34,6 +34,15 @@
 {       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
+{******************************************************************************
+|* Historico
+|*
+|* 27/10/2015: Jean Carlo Cantu, Tiago Ravache
+|*  - Doação do componente para o Projeto ACBr
+|* 28/08/2017: Leivio Fontenele - leivio@yahoo.com.br
+|*  - Implementação comunicação, envelope, status e retorno do componente com webservice.
+******************************************************************************}
+
 {$I ACBr.inc}
 
 unit pcesGerador;
@@ -43,7 +52,7 @@ interface
 uses
   SysUtils, Classes, StrUtils, variants,
   ACBrUtil,
-  pcnGerador, pcnLeitor, pcnConversao, pcnAuxiliar,
+  pcnGerador, pcnLeitor, pcnConversao, pcnAuxiliar, pcnConsts,
   pcesCommon, pcesConversaoeSocial;
 
 type
@@ -137,7 +146,6 @@ type
     procedure GerarInfoEstatutario(pInfoEstatutario: TInfoEstatutario);
     procedure GerarIdeTrabalhador(pideTrabalhador: TideTrabalhador; const GeraGrupo: boolean = True);
     procedure GerarIdeTrabalhador2(pideTrabalhador: TideTrabalhador2; const GeraGrupo: boolean);
-//    procedure GerarIdeTrabalhador3(pideTrabalhador: TideTrabalhador3);
     procedure GerarIdeFolhaPagto(pIdeFolhaPagto: TIdeFolhaPagto);
     procedure GerarEmitente(pEmitente: TEmitente; ATipoEvento: TTipoEvento);
     procedure GerarEndExt(pEndExt: TEndExt);
@@ -432,7 +440,7 @@ begin
 
     Gerador.wCampo(tcStr, '', 'nrRegCnh',      1, 12, 1, pCnh.nrRegCnh);
     Gerador.wCampo(tcDat, '', 'dtExped',      10, 10, 0, pCnh.DtExped);
-    Gerador.wCampo(tcStr, '', 'ufCnh',         2,  2, 1, eSufToStr(pCnh.ufCnh));
+    Gerador.wCampo(tcStr, '', 'ufCnh',         2,  2, 1, pCnh.ufCnh);
     Gerador.wCampo(tcDat, '', 'dtValid',      10, 10, 1, pCnh.DtValid);
     Gerador.wCampo(tcDat, '', 'dtPriHab',     10, 10, 0, pCnh.dtPriHab);
     Gerador.wCampo(tcStr, '', 'categoriaCnh',  1,  2, 1, eSCnhToStr(pCnh.categoriaCnh));
@@ -605,7 +613,7 @@ begin
   Gerador.wCampo(tcStr, '', 'bairro',      1, 60, 0, pEndereco.Bairro);
   Gerador.wCampo(tcStr, '', 'cep',         1,  8, 1, pEndereco.Cep);
   Gerador.wCampo(tcInt, '', 'codMunic',    7,  7, 1, pEndereco.CodMunic);
-  Gerador.wCampo(tcStr, '', 'uf',          2,  2, 1, eSufToStr(pEndereco.UF));
+  Gerador.wCampo(tcStr, '', 'uf',          2,  2, 1, pEndereco.UF);
 
   Gerador.wGrupo('/' + GroupName);
 end;
@@ -1205,7 +1213,7 @@ begin
 
   Gerador.wCampo(tcDat, '', 'dtAsoAdm', 0, 0, 0, pInfoASO.DtAso);
   Gerador.wCampo(tcStr, '', 'nrCRM',    0, 0, 0, pInfoASO.NrCRM);
-  Gerador.wCampo(tcStr, '', 'ufCRM',    0, 0, 0, eSufToStr(pInfoASO.UfCRM));
+  Gerador.wCampo(tcStr, '', 'ufCRM',    0, 0, 0, pInfoASO.UfCRM);
 
   Gerador.wGrupo('/infoASO');
 end;
@@ -1375,7 +1383,7 @@ begin
     Gerador.wCampo(tcStr, '', 'bairro',      0, 60, 0, pLocalTrabDom.Bairro);
     Gerador.wCampo(tcStr, '', 'cep',         1,  8, 1, pLocalTrabDom.Cep);
     Gerador.wCampo(tcInt, '', 'codMunic',    7,  7, 1, pLocalTrabDom.CodMunic);
-    Gerador.wCampo(tcStr, '', 'uf',          2,  2, 1, eSufToStr(pLocalTrabDom.Uf));
+    Gerador.wCampo(tcStr, '', 'uf',          2,  2, 1, pLocalTrabDom.Uf);
 
     Gerador.wGrupo('/localTrabDom');
   end;
@@ -1544,17 +1552,6 @@ begin
   if GeraGrupo then
     Gerador.wGrupo('/ideTrabalhador');
 end;
-
-//procedure TeSocialEvento.GerarIdeTrabalhador3(pideTrabalhador: TideTrabalhador3: boolean);
-//begin
-//  Gerador.wGrupo('ideTrabalhador');
-//
-//  Gerador.wCampo(tcStr, '', 'cpfTrab', 11, 11, 1, pideTrabalhador.CpfTrab);
-//
-//  GerarProcJudTrab(pideTrabalhador.procJudTrab, False);
-//
-//  Gerador.wGrupo('/ideTrabalhador');
-//end;
 
 procedure TeSocialEvento.GerarIdeFolhaPagto(
   pIdeFolhaPagto: TIdeFolhaPagto);
@@ -1824,7 +1821,7 @@ begin
     Gerador.wCampo(tcStr, '', 'bairro',    0, 60, 0, pEndereco.Bairro);
     Gerador.wCampo(tcStr, '', 'cep',       1,  8, 1, pEndereco.Cep);
     Gerador.wCampo(tcInt, '', 'codMunic',  7,  7, 1, pEndereco.CodMunic);
-    Gerador.wCampo(tcStr, '', 'uf',        2,  2, 1, eSufToStr(pEndereco.Uf));
+    Gerador.wCampo(tcStr, '', 'uf',        2,  2, 1, pEndereco.Uf);
 
     Gerador.wGrupo('/localTrabInterm');
   end;

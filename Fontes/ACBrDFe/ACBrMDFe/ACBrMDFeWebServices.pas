@@ -494,7 +494,7 @@ implementation
 
 uses
   StrUtils, Math,
-  ACBrUtil, ACBrCompress, ACBrMDFe,
+  ACBrUtil, ACBrCompress, ACBrMDFe, pmdfeConsts, pcnConsts,
   pcnGerador, pcnLeitor, pcnConsStatServ, pcnRetConsStatServ,
   pmdfeConsSitMDFe, pcnConsReciDFe, pmdfeConsMDFeNaoEnc;
 
@@ -992,8 +992,8 @@ begin
                      [FMDFeRetornoSincrono.versao,
                       TpAmbToStr(FMDFeRetornoSincrono.TpAmb),
                       FMDFeRetornoSincrono.verAplic,
-                      IntToStr(FMDFeRetornoSincrono.protMDFe.cStat),
-                      FMDFeRetornoSincrono.protMDFe.xMotivo,
+                      IntToStr(FMDFeRetornoSincrono.cStat),
+                      FMDFeRetornoSincrono.xMotivo,
                       CodigoParaUF(FMDFeRetornoSincrono.cUF),
                       FormatDateTimeBr(FMDFeRetornoSincrono.protMDFe.dhRecbto),
                       FMDFeRetornoSincrono.chMDFe])
@@ -2190,11 +2190,12 @@ begin
 
                 for k := 0 to FEvento.Evento[i].InfEvento.detEvento.infPag[j].Comp.Count - 1 do
                 begin
-                  EventoMDFe.Evento[i].InfEvento.detEvento.infPag[j].Comp.New;
-
-                  Comp[k].tpComp := FEvento.Evento[i].InfEvento.detEvento.infPag[j].Comp[k].tpComp;
-                  Comp[k].vComp  := FEvento.Evento[i].InfEvento.detEvento.infPag[j].Comp[k].vComp;
-                  Comp[k].xComp  := FEvento.Evento[i].InfEvento.detEvento.infPag[j].Comp[k].xComp;
+                  with EventoMDFe.Evento[i].InfEvento.detEvento.infPag[j].Comp.New do
+                  begin
+                    tpComp := FEvento.Evento[i].InfEvento.detEvento.infPag[j].Comp[k].tpComp;
+                    vComp  := FEvento.Evento[i].InfEvento.detEvento.infPag[j].Comp[k].vComp;
+                    xComp  := FEvento.Evento[i].InfEvento.detEvento.infPag[j].Comp[k].xComp;
+                  end;
                 end;
 
                 vContrato := FEvento.Evento[i].InfEvento.detEvento.infPag[j].vContrato;
@@ -2204,14 +2205,16 @@ begin
                 begin
                   for k := 0 to FEvento.Evento[i].InfEvento.detEvento.infPag[j].infPrazo.Count - 1 do
                   begin
-                    EventoMDFe.Evento[i].InfEvento.detEvento.infPag[j].infPrazo.New;
-
-                    infPrazo[k].nParcela := FEvento.Evento[i].InfEvento.detEvento.infPag[j].infPrazo[k].nParcela;
-                    infPrazo[k].dVenc    := FEvento.Evento[i].InfEvento.detEvento.infPag[j].infPrazo[k].dVenc;
-                    infPrazo[k].vParcela := FEvento.Evento[i].InfEvento.detEvento.infPag[j].infPrazo[k].vParcela;
+                    with EventoMDFe.Evento[i].InfEvento.detEvento.infPag[j].infPrazo.New do
+                    begin
+                      nParcela := FEvento.Evento[i].InfEvento.detEvento.infPag[j].infPrazo[k].nParcela;
+                      dVenc    := FEvento.Evento[i].InfEvento.detEvento.infPag[j].infPrazo[k].dVenc;
+                      vParcela := FEvento.Evento[i].InfEvento.detEvento.infPag[j].infPrazo[k].vParcela;
+                    end;
                   end;
                 end;
 
+                infBanc.PIX        := FEvento.Evento[i].InfEvento.detEvento.infPag[j].infBanc.PIX;
                 infBanc.CNPJIPEF   := FEvento.Evento[i].InfEvento.detEvento.infPag[j].infBanc.CNPJIPEF;
                 infBanc.codBanco   := FEvento.Evento[i].InfEvento.detEvento.infPag[j].infBanc.codBanco;
                 infBanc.codAgencia := FEvento.Evento[i].InfEvento.detEvento.infPag[j].infBanc.codAgencia;

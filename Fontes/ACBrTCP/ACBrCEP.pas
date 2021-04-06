@@ -30,17 +30,6 @@
 {       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
-{******************************************************************************
-|* Historico
-|*
-|* 12/08/2010: Primeira Versao
-|*    Daniel Simoes de Almeida e André Moraes
-|*
-|* 24/05/2018: Versão X
-|*    Igor de Bastos Costa
-|*    Atualizacao dos comandos do CEPAberto que alterou a API para versao 3.0
-******************************************************************************}
-
 unit ACBrCEP ;
 
 {$I ACBr.inc}
@@ -49,7 +38,7 @@ interface
 
 uses
   Classes, SysUtils,
-  {$IF DEFINED(NEXTGEN)}
+  {$IF DEFINED(HAS_SYSTEM_GENERICS)}
    System.Generics.Collections, System.Generics.Defaults,
   {$ELSEIF DEFINED(DELPHICOMPILER16_UP)}
    System.Contnrs,
@@ -104,7 +93,7 @@ type
 
   { TACBrCEPEnderecos }
 
-  TACBrCEPEnderecos = class(TObjectList{$IfDef NEXTGEN}<TACBrCEPEndereco>{$EndIf})
+  TACBrCEPEnderecos = class(TObjectList{$IfDef HAS_SYSTEM_GENERICS}<TACBrCEPEndereco>{$EndIf})
     protected
       procedure SetObject (Index: Integer; Item: TACBrCEPEndereco);
       function GetObject (Index: Integer): TACBrCEPEndereco;
@@ -1700,6 +1689,9 @@ begin
         Municipio := AJson.O['cidade'].S['nome'];
         IBGE_Municipio := AJson.O['cidade'].S['ibge'];
         UF := AJson.O['estado'].S['sigla'];
+        Latitude := AJson.S['latitude'];
+        Longitude := AJson.S['longitude'];
+        Altitude := AJson.S['altitude'];
       end;
     finally
       AJSon.Free;
@@ -1719,6 +1711,9 @@ begin
           IBGE_Municipio := Values['ibge'].AsString;
         end;
         UF := AJson.Values['estado'].AsObject.Values['sigla'].AsString;
+        Latitude := AJson.Values['latitude'].AsString;
+        Longitude := AJson.Values['longitude'].AsString;
+        Altitude := AJson.Values['altitude'].AsString;
       end;
     finally
       AJson.Free;

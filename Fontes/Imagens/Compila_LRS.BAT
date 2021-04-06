@@ -43,7 +43,7 @@ echo "****************************************"
 echo.
 
 :TEFD
-%1\tools\lazres.exe ACBrTEFD.lrs TACBrTEFD.png
+%1\tools\lazres.exe ACBrTEFD.lrs TACBrTEFD.png TACBrPicPay.png TACBrPOS.png
 move ACBrTEFD.lrs ..\ACBrTEFD
 echo.
 echo "****************************************"
@@ -183,6 +183,16 @@ move ACBrNFSe.lrs ..\ACBrDFe\ACBrNFSe
 echo.
 echo "****************************************"
 echo "* Arquivo    ACBrNFSe.lrs     gerado    *"
+echo "****************************************"
+echo.
+
+:PagFor
+%1\tools\lazres.exe ACBrPagFor.lrs TACBrPagFor.png 
+move ACBrPagFor.lrs ..\ACBrPagFor\
+
+echo.
+echo "****************************************"
+echo "* Arquivo    ACBrPagFor.lrs     gerado    *"
 echo "****************************************"
 echo.
 

@@ -3,7 +3,8 @@
 library ACBrLibGNRe;
 
 uses
-  Interfaces, sysutils, Classes, Forms, ACBrLibGNReClass, ACBrLibConfig,
+  Interfaces, sysutils, Classes, Forms, ACBrLibConfig,
+  {$IFDEF MT}ACBrLibGNReMT{$ELSE}ACBrLibGNReST{$ENDIF},
   ACBrLibComum, ACBrLibConsts, ACBrLibGNReConfig, ACBrLibResposta,
   ACBrLibGNReRespostas, ACBrLibGNReConsts;
 
@@ -16,28 +17,37 @@ var
 
 exports
   // Importadas de ACBrLibComum
-  GNRe_Inicializar,
-  GNRe_Finalizar,
-  GNRe_Nome,
-  GNRe_Versao,
-  GNRe_UltimoRetorno,
-  GNRe_ConfigLer,
-  GNRe_ConfigGravar,
-  GNRe_ConfigLerValor,
-  GNRe_ConfigGravarValor,
+  GNRE_Inicializar,
+  GNRE_Finalizar,
+  GNRE_Nome,
+  GNRE_Versao,
+  GNRE_UltimoRetorno,
+  GNRE_ConfigImportar,
+  GNRE_ConfigExportar,
+  GNRE_ConfigLer,
+  GNRE_ConfigGravar,
+  GNRE_ConfigLerValor,
+  GNRE_ConfigGravarValor,
 
   // Servicos
-  GNRe_Enviar,
-  GNRe_Consultar,
-  GNRe_EnviarEmail,
-  GNRe_Imprimir,
-  GNRe_ImprimirPDF,
+  GNRE_Enviar,
+  GNRE_Consultar,
+  GNRE_EnviarEmail,
+  GNRE_Imprimir,
+  GNRE_ImprimirPDF,
 
   // Arquivos
-  GNRe_LimparLista,
-  GNRe_CarregarINI,
-  GNRe_LimparListaGuiaRetorno,
-  GNRe_CarregarGuiaRetorno;
+  GNRE_LimparLista,
+  GNRE_CarregarXML,
+  GNRE_CarregarINI,
+  GNRE_ObterXml,
+  GNRE_GravarXml,
+  GNRE_LimparListaGuiaRetorno,
+  GNRe_CarregarGuiaRetorno,
+  GNRE_Assinar,
+  GNRE_Validar,
+  GNRE_VerificarAssinatura,
+  GNRE_ObterCertificados;
 
 begin
   {$IFDEF DEBUG}
@@ -45,8 +55,6 @@ begin
    DeleteFile( HeapTraceFile );
    SetHeapTraceOutput( HeapTraceFile );
   {$ENDIF}
-
-  pLibClass := TACBrLibGNRe; // Ajusta a classe a ser criada
 
   MainThreadID := GetCurrentThreadId();
   Application.Initialize;

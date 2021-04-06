@@ -309,16 +309,16 @@ var
 //  VersaoDFe: TVersaoCTe;
 begin
 //  VersaoDFe := DblToVersaoCTe(ok, Versao);  // Deixado para usu futuro
-{
-  if ( (TipoEmissao in [teSVCRS]) and (CUF in [31,41,50,51]) ) then
+
+  if TipoAmbiente = taHomologacao then
   begin
-     urlUF := LerURLDeParams('CTe', CUFtoUF(CUF), TipoAmbiente, 'URL-QRCode', 0)
+    if ( (TipoEmissao in [teSVCSP]) and (CUF in [31,41,50,51]) ) then
+      urlUF := LerURLDeParams('CTe', GetUFFormaEmissao, TipoAmbiente, 'URL-QRCode', 0)
+    else
+      urlUF := LerURLDeParams('CTe', CUFtoUF(CUF), TipoAmbiente, 'URL-QRCode', 0);
   end
   else
-     urlUF := LerURLDeParams('CTe', GetUFFormaEmissao, TipoAmbiente, 'URL-QRCode', 0);
-}
-
-  urlUF := LerURLDeParams('CTe', CUFtoUF(CUF), TipoAmbiente, 'URL-QRCode', 0);
+    urlUF := LerURLDeParams('CTe', CUFtoUF(CUF), TipoAmbiente, 'URL-QRCode', 0);
 
   if Pos('?', urlUF) <= 0 then
     urlUF := urlUF + '?';
@@ -423,10 +423,12 @@ var
  I: Integer;
  Ok: Boolean;
 begin
-  if Configuracoes.Geral.ModeloDF = moCTe then
-    Result := schCTe
+  case Configuracoes.Geral.ModeloDF of
+    moCTeOS: Result := schCTeOS;
+    moGTVe: Result := schGTVe;
   else
-    Result := schCTeOS;
+    Result := schCTe;
+  end;
 
   I := pos('<infCte', AXML);
   if I = 0  then
@@ -972,12 +974,11 @@ begin
     GravarStream(StreamCTe);
 
     ImprimirEventoPDF;
-    NomeArq := OnlyNumber(EventoCTe.Evento[0].InfEvento.Id);
-    NomeArq := PathWithDelim(DACTE.PathPDF) + NomeArq + '-procEventoCTe.pdf';
-    AnexosEmail.Add(NomeArq);
+    AnexosEmail.Add(DACTE.ArquivoPDF);
 
-    EnviarEmail(sPara, sAssunto, sMensagem, sCC, AnexosEmail, StreamCTe, 
-	  NomeArq + '-procEventoCTe.xml', sReplyTo);
+    NomeArq := OnlyNumber(EventoCTe.Evento[0].InfEvento.Id);
+    EnviarEmail(sPara, sAssunto, sMensagem, sCC, AnexosEmail, StreamCTe,
+  	  NomeArq + '-procEventoCTe.xml', sReplyTo);
   finally
     AnexosEmail.Free;
     StreamCTe.Free;

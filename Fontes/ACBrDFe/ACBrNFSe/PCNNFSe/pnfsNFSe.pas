@@ -41,7 +41,7 @@ uses
   {$IFNDEF VER130}
     Variants,
   {$ENDIF}
-  {$IF DEFINED(NEXTGEN)}
+  {$IF DEFINED(HAS_SYSTEM_GENERICS)}
    System.Generics.Collections, System.Generics.Defaults,
   {$ELSEIF DEFINED(DELPHICOMPILER16_UP)}
    System.Contnrs,
@@ -450,6 +450,14 @@ type
     FEndereco: TEndereco;
     FTelefone: String;
     FEmail: String;
+    Fcrc_estado: string;
+    Fcrc: string;
+    FKey: String;
+    FAuth: String;
+    FRequestId: String;
+    FResposta: Integer;
+    procedure Setcrc(const Value: string);
+    procedure Setcrc_estado(const Value: string);
   public
     constructor Create;
     destructor Destroy; override;
@@ -468,12 +476,20 @@ type
     property CNPJ_Prefeitura: String read FCNPJ_Prefeitura write FCNPJ_Prefeitura;
     property ValorReceitaBruta: Currency read FValorReceitaBruta write FValorReceitaBruta;
     property DataInicioAtividade: TDateTime read FDataInicioAtividade write FDataInicioAtividade;
+    //usado por SIG-ISS
+    property crc : string read Fcrc write Setcrc;
+    property crc_estado: string read Fcrc_estado write Setcrc_estado;
     //usado por Elotech
     property RazaoSocial: String read FRazaoSocial write FRazaoSocial;
     property Fantasia: String read FFantasia write FFantasia;
     property Endereco: TEndereco read FEndereco write FEndereco;
     property Telefone: String read FTelefone write FTelefone;
     property Email: String read FEmail write FEmail;
+    // adm Notas
+    property Key: String read FKey write FKey;
+    property Auth: String read FAuth write FAuth;
+    property RequestId: String read FRequestId write FRequestId;
+    property Resposta: Integer read FResposta write FResposta;
   end;
 
  TEndereco = class(TObject)
@@ -769,6 +785,7 @@ type
     FNaturezaOperacao: TnfseNaturezaOperacao;
     FRegimeEspecialTributacao: TnfseRegimeEspecialTributacao;
     FOptanteSimplesNacional: TnfseSimNao;
+    FOptanteMEISimei: TnfseSimNao;
     //Provedor Conam
     FDataOptanteSimplesNacional: TDateTime;
     FLogradouroLocalPrestacaoServico: TnfseLogradouroLocalPrestacaoServico;
@@ -834,12 +851,15 @@ type
     FValorCargaTributariaMunicipal: Double;
     FPercentualCargaTributariaEstadual: Double;
     FValorCargaTributariaEstadual: Double;
+    Fid_sis_legado: integer;
+    FHoraEmissaoRps: TDateTime;
 
     procedure Setemail(const Value: TemailCollection);
     procedure SetInformacoesComplementares(const Value: String);
     procedure SetDespesa(const Value: TDespesaCollection);
     procedure SetAssinaComChaveParams(
       const Value: TAssinaComChaveParamsCollection);
+    procedure Setid_sis_legado(const Value: integer);
 
   public
     constructor Create;
@@ -851,9 +871,12 @@ type
     property IdentificacaoRps: TIdentificacaoRps read FIdentificacaoRps write FIdentificacaoRps;
     property DataEmissao: TDateTime read FDataEmissao write FDataEmissao;
     property DataEmissaoRps: TDateTime read FDataEmissaoRps write FDataEmissaoRps;
+    // provedor adm notas
+    property HoraEmissaoRps: TDateTime read FHoraEmissaoRps write FHoraEmissaoRps;
     property NaturezaOperacao: TnfseNaturezaOperacao read FNaturezaOperacao write FNaturezaOperacao;
     property RegimeEspecialTributacao: TnfseRegimeEspecialTributacao read FRegimeEspecialTributacao write FRegimeEspecialTributacao;
     property OptanteSimplesNacional: TnfseSimNao read FOptanteSimplesNacional write FOptanteSimplesNacional;
+    property OptanteMEISimei: TnfseSimNao read FOptanteMEISimei write FOptanteMEISimei;
     //Provedor Conam
     property DataOptanteSimplesNacional: TDateTime read FDataOptanteSimplesNacional write FDataOptanteSimplesNacional;
     property LogradouLocalPrestacaoServico: TnfseLogradouroLocalPrestacaoServico read FLogradouroLocalPrestacaoServico write FLogradouroLocalPrestacaoServico;
@@ -909,6 +932,9 @@ type
     property TipoTributacaoRPS: TnfseTTributacaoRPS read FTipoTributacaoRPS write FTipoTributacaoRPS;
 
     property AssinaComChaveParams: TAssinaComChaveParamsCollection read FAssinaComChaveParams write SetAssinaComChaveParams;
+
+    //usado por SIG-ISS
+    property id_sis_legado : integer read Fid_sis_legado write Setid_sis_legado; //Código da nota no sistema legado do contribuinte.
 
     // Provedor SP
     property Assinatura: String read FAssinatura write FAssinatura;
@@ -1102,6 +1128,7 @@ begin
   FNaturezaOperacao             := no1;
   FRegimeEspecialTributacao     := retNenhum;
   FOptanteSimplesNacional       := snNao;
+  FOptanteMEISimei              := snNao;
   FIncentivadorCultural         := snNao;
   FStatus                       := srNormal;
   FRpsSubstituido               := TIdentificacaoRps.Create;
@@ -1191,6 +1218,11 @@ procedure TNFSe.SetAssinaComChaveParams(
   const Value: TAssinaComChaveParamsCollection);
 begin
   FAssinaComChaveParams := Value;
+end;
+
+procedure TNFSe.Setid_sis_legado(const Value: integer);
+begin
+  Fid_sis_legado := Value;
 end;
 
 { TLoteRps }
@@ -1455,6 +1487,16 @@ begin
   FEndereco.Free;
 
   inherited Destroy;
+end;
+
+procedure TIdentificacaoPrestador.Setcrc(const Value: string);
+begin
+  Fcrc := Value;
+end;
+
+procedure TIdentificacaoPrestador.Setcrc_estado(const Value: string);
+begin
+  Fcrc_estado := Value;
 end;
 
 end.

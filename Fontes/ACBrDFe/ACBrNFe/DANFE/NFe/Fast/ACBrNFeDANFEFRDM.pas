@@ -1,17 +1,16 @@
 {******************************************************************************}
-{ Projeto: Componente ACBrNFe                                                  }
-{  Biblioteca multiplataforma de componentes Delphi para emissão de Nota Fiscal}
-{ eletrônica - NFe - http://www.nfe.fazenda.gov.br                          }
+{ Projeto: Componentes ACBr                                                    }
+{  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
+{ mentos de Automação Comercial utilizados no Brasil                           }
 {                                                                              }
-{ Direitos Autorais Reservados (c) 2008 Wemerson Souto                         }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{                                                                              }
+{ Colaboradores nesse arquivo: Wemerson Souto                                  }
 {                                       Daniel Simoes de Almeida               }
 {                                       André Ferreira de Moraes               }
 {                                                                              }
-{ Colaboradores nesse arquivo:                                                 }
-{                                                                              }
-{  Você pode obter a última versão desse arquivo na pagina do Projeto ACBr     }
-{ Componentes localizado em http://www.sourceforge.net/projects/acbr           }
-{                                                                              }
+{  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
+{ Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
 {                                                                              }
 {  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la }
 { sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela  }
@@ -29,42 +28,10 @@
 { Você também pode obter uma copia da licença em:                              }
 { http://www.opensource.org/licenses/lgpl-license.php                          }
 {                                                                              }
-{ Daniel Simões de Almeida  -  daniel@djsystem.com.br  -  www.djsystem.com.br  }
-{              Praça Anita Costa, 34 - Tatuí - SP - 18270-410                  }
-{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
-{******************************************************************************
-|* Historico
-|*
-|* 11/08/2010: Itamar Luiz Bermond
-|*  - Inicio do desenvolvimento
-|* 24/08/2010: Régys Silveira
-|*  - Acerto nas diretivas de compilação para Delphi 2009 e superior
-|*  - Acertos gerais no DANFE
-|        . Layout
-|        . Exibição da logomarca
-|        . Tamanho das colunas para conter valores grandes
-|        . marca d'agua para ambiente de homologação
-|        . Adicionado o complemento a descrição da mercadoria
-|        . Adicionado a origem no CST
-|        . Acerto para mostrar o CST corretamente quando for Simples Nacional
-|*  - Padronização da logomarca para utilizar o caminho como nos outros DANFEs
-|*  - Acerto no CST para o Simples Nacional
-|*  - Acertos no DANFE para o Simples Nacional
-|* 25/08/2010: Régys Silveira
-|*  - Configuração do preview do DANFE.
-|* 26/08/2010: Régys Silveira, Itamar Bermond
-|*  - Desmarcada a propriedade StoreInDFM do FastReport para não gravar
-|*    o relatório no DFM e evitar o erro de compilação em versão menores
-|*    do delphi, favor utilizar o arquivo externo.
-|* 26/02/2013: João Henrique de Souza
-|*  - Foi realizado inúmeras modificações para Normalizar o Danfe com o Manual
-|*    e ter uma versão que fosse possível imprimir com o FR que vem com o Delphi
-|* 02/04/2015: Isaque Pinheiro
-|*  - Criação de uma class, removendo o datamodule e os componentes não visuais
-|*    dele, sendo criado todos em tempo de execução.
-******************************************************************************}
 {$I ACBr.inc}
 
 unit ACBrNFeDANFEFRDM;
@@ -133,10 +100,13 @@ type
     FPrintOnSheet: Integer;
     FExibeCaptionButton: Boolean;
     FZoomModePadrao: TfrxZoomMode;
+    {$IFNDEF FMX}
     FBorderIcon : TBorderIcons;
+    {$ENDIF}
     FIncorporarFontesPdf: Boolean;
     FIncorporarBackgroundPdf: Boolean;
     FOtimizaImpressaoPdf: Boolean;
+    FThreadSafe: Boolean;
 
     procedure frxReportBeforePrint(Sender: TfrxReportComponent);
     procedure frxReportPreview(Sender: TObject);
@@ -185,10 +155,13 @@ type
     property PrintOnSheet: Integer read FPrintOnSheet write FPrintOnSheet default 0;
     property ExibeCaptionButton: Boolean read FExibeCaptionButton write FExibeCaptionButton default False;
     property ZoomModePadrao: TfrxZoomMode read FZoomModePadrao write FZoomModePadrao default ZMDEFAULT;
+    {$IFNDEF FMX}
     property BorderIcon: TBorderIcons read FBorderIcon write FBorderIcon;
+    {$ENDIF}
     property IncorporarBackgroundPdf: Boolean read FIncorporarBackgroundPdf write FIncorporarBackgroundPdf;
     property IncorporarFontesPdf: Boolean read FIncorporarFontesPdf write FIncorporarFontesPdf;
     property OtimizaImpressaoPdf: Boolean read FOtimizaImpressaoPdf write FOtimizaImpressaoPdf;
+    property ThreadSafe: Boolean read FThreadSafe write FThreadSafe;
 
     function PrepareReport(ANFE: TNFe = nil): Boolean;
     function PrepareReportEvento(ANFE: TNFe = nil): Boolean;
@@ -221,10 +194,13 @@ begin
   if not (AOwner is TACBrDFeDANFeReport) then
     raise EACBrNFeException.Create('AOwner deve ser do tipo TACBrDFeDANFeReport');
 
+  FThreadSafe := False;
   FFastFile := '';
   FExibeCaptionButton := False;
   FZoomModePadrao := ZMDEFAULT;
+  {$IFNDEF FMX}
   FBorderIcon := [biSystemMenu,biMaximize,biMinimize];
+  {$ENDIF}
   FIncorporarFontesPdf := True;
   FIncorporarBackgroundPdf := True;
   FOtimizaImpressaoPdf := True;
@@ -235,7 +211,7 @@ begin
   //Antes de alterar a linha abaixo, queira verificar o seguinte tópico:
   //https://www.projetoacbr.com.br/forum/topic/51505-travamento-preview-de-v%C3%A1rias-danfes/
   FfrxReport.EngineOptions.UseGlobalDataSetList := False;
-  FfrxReport.PreviewOptions.Buttons := [pbPrint, pbLoad, pbSave, pbExport, pbZoom, pbFind,
+  FfrxReport.PreviewOptions.Buttons := [pbPrint, pbLoad, pbSave, pbExport, pbZoom, {$IFNDEF FMX} pbFind,{$ENDIF}
     pbOutline, pbPageSetup, pbTools, pbNavigator, pbExportQuick];
 
   with FfrxReport do
@@ -327,7 +303,7 @@ begin
         FieldDefs.Add('CEP', ftString, 9);
         FieldDefs.Add('CPais', ftString, 4);
         FieldDefs.Add('XPais', ftString, 60);
-        FieldDefs.Add('Fone', ftString, 15);
+        FieldDefs.Add('Fone', ftString, 17);
         FieldDefs.Add('IE', ftString, 15);
         FieldDefs.Add('IM', ftString, 15);
         FieldDefs.Add('IEST', ftString, 15);
@@ -365,7 +341,7 @@ begin
         FieldDefs.Add('CEP', ftString, 9);
         FieldDefs.Add('CPais', ftString, 4);
         FieldDefs.Add('XPais', ftString, 60);
-        FieldDefs.Add('Fone', ftString, 15);
+        FieldDefs.Add('Fone', ftString, 17);
         FieldDefs.Add('IE', ftString, 18);
         FieldDefs.Add('Consumidor', ftString, 400);
         CreateDataSet;
@@ -413,6 +389,7 @@ begin
         FieldDefs.Add('pICMS'     , ftString, 18);
         FieldDefs.Add('vICMS'     , ftString, 18);
         FieldDefs.Add('vIPI'      , ftString, 18);
+        FieldDefs.Add('vIPIDevol'      , ftString, 18);
         FieldDefs.Add('pIPI'      , ftString, 18);
         FieldDefs.Add('VTotTrib'  , ftString, 18);
         FieldDefs.Add('ChaveNFe'  , ftString, 50);
@@ -426,8 +403,9 @@ begin
         FieldDefs.Add('Unidade'   , ftString, 14);
         FieldDefs.Add('Quantidade', ftString, 50);
         FieldDefs.Add('ValorUnitario'   , ftString, 50);
-        FieldDefs.Add('Valorliquido'    , ftString, 18);
+        FieldDefs.Add('ValorLiquido'    , ftString, 18);
         FieldDefs.Add('ValorAcrescimos' , ftString, 18);
+        FieldDefs.Add('ValorDescontos'  , ftString, 18);
 
         CreateDataSet;
      end;
@@ -719,7 +697,7 @@ begin
          FieldDefs.Add('CEP', ftString, 9);
          FieldDefs.Add('CPais', ftString, 4);
          FieldDefs.Add('XPais', ftString, 60);
-         FieldDefs.Add('Fone', ftString, 15);
+         FieldDefs.Add('Fone', ftString, 17);
          FieldDefs.Add('IE', ftString, 15);
          CreateDataSet;
       end;
@@ -752,7 +730,7 @@ begin
          FieldDefs.Add('CEP', ftString, 9);
          FieldDefs.Add('CPais', ftString, 4);
          FieldDefs.Add('XPais', ftString, 60);
-         FieldDefs.Add('Fone', ftString, 15);
+         FieldDefs.Add('Fone', ftString, 17);
          FieldDefs.Add('IE', ftString, 15);
          CreateDataSet;
       end;
@@ -926,6 +904,8 @@ begin
 end;
 
 procedure TACBrNFeFRClass.CarregaCalculoImposto;
+var
+  lvTroco: Currency;
 begin
   with cdsCalculoImposto do
   begin
@@ -961,17 +941,12 @@ begin
 
       if NaoEstaVazio(FDANFEClassOwner.FonteTributos) then
         FieldByName('VTribFonte').AsString := '(Fonte: '+FDANFEClassOwner.FonteTributos+')';
-    end;
 
-    if FNFe.pag.vTroco > 0 then
-    begin
-      FieldByName('vTroco').AsCurrency    := FNFe.pag.vTroco;
-      FieldByName('vTotPago').AsCurrency  := FNFe.pag.vTroco+FieldByName('VProd').AsFloat;
-    end
-    else if (FDANFEClassOwner is TACBrNFeDANFCEClass) then
-    begin
-      FieldByName('vTroco').AsCurrency    := TACBrNFeDANFCEClass(DANFEClassOwner).vTroco;
-      FieldByName('vTotPago').AsCurrency  := TACBrNFeDANFCEClass(DANFEClassOwner).vTroco + FieldByName('VProd').AsFloat;
+      lvTroco := FNFe.pag.vTroco;
+      if (lvTroco = 0) and (FDANFEClassOwner is TACBrNFeDANFCEClass) then
+        lvTroco := TACBrNFeDANFCEClass(FDANFEClassOwner).vTroco;
+      FieldByName('vTroco').AsCurrency    := lvTroco;
+      FieldByName('vTotPago').AsCurrency  := lvTroco + vNF;
     end;
 
     Post;
@@ -1014,7 +989,8 @@ begin
     CreateDataSet;
 
     // verificar se e DANFE detalhado
-    if ((FDANFEClassOwner is TACBrNFeDANFCEClass) and not TACBrNFeDANFCEClass(FDANFEClassOwner).ImprimeItens) then
+    if ((FDANFEClassOwner is TACBrNFeDANFCEClass) and not
+       TACBrNFeDANFCEClass(FDANFEClassOwner).ImprimeItens) then
       Exit;
 
     for inItem := 0 to (NFe.Det.Count - 1) do
@@ -1041,9 +1017,9 @@ begin
         FieldByName('UTrib').AsString             := Prod.uTrib;
         FieldByName('QTrib').AsFloat              := Prod.qTrib;
         FieldByName('VUnTrib').AsFloat            := Prod.vUnTrib;
-        FieldByName('vFrete').AsString            := FormatFloatBr( Prod.vFrete ,'###,###,##0.00');
-        FieldByName('vSeg').AsString              := FormatFloatBr( Prod.vSeg   ,'###,###,##0.00');
-        FieldByName('vOutro').AsString            := FormatFloatBr( Prod.vOutro ,'###,###,##0.00');
+        FieldByName('vFrete').AsString            := FormatFloatBr( Prod.vFrete ,',0.00');
+        FieldByName('vSeg').AsString              := FormatFloatBr( Prod.vSeg   ,',0.00');
+        FieldByName('vOutro').AsString            := FormatFloatBr( Prod.vOutro ,',0.00');
 
         if FDANFEClassOwner is TACBrNFeDANFEClass then
         begin
@@ -1076,32 +1052,33 @@ begin
               end;
             end;
           end;
-          FieldByName('vDesc').AsString           := FormatFloatBr( TACBrNFeDANFEClass(FDANFEClassOwner).ManterVDesc( Prod.vDesc , Prod.VUnCom , Prod.QCom),'###,###,##0.00');
+          FieldByName('vDesc').AsString           := FormatFloatBr( TACBrNFeDANFEClass(FDANFEClassOwner).ManterVDesc( Prod.vDesc , Prod.VUnCom , Prod.QCom),',0.00');
         end
         else
         begin
           FieldByName('Unidade').AsString       := FieldByName('Ucom').AsString;
           FieldByName('Quantidade').AsString    := FDANFEClassOwner.FormatarQuantidade( FieldByName('QCom').AsFloat );
           FieldByName('ValorUnitario').AsString := FDANFEClassOwner.FormatarValorUnitario( FieldByName('VUnCom').AsFloat );
-          FieldByName('vDesc').AsString         := FormatFloatBr( Prod.vDesc,'###,###,##0.00');
+          FieldByName('vDesc').AsString         := FormatFloatBr( Prod.vDesc,',0.00');
         end;
 
         FieldByName('ORIGEM').AsString            := OrigToStr( Imposto.ICMS.orig);
         FieldByName('CST').AsString               := FDANFEClassOwner.ManterCst( FNFe.Emit.CRT , Imposto.ICMS.CSOSN , Imposto.ICMS.CST );
-        FieldByName('VBC').AsString               := FormatFloatBr( Imposto.ICMS.vBC        ,'###,###,##0.00');
-        FieldByName('PICMS').AsString             := FormatFloatBr( Imposto.ICMS.pICMS      ,'###,###,##0.00');
-        FieldByName('VICMS').AsString             := FormatFloatBr( Imposto.ICMS.vICMS      ,'###,###,##0.00');
-        FieldByName('VBCST').AsString             := FormatFloatBr( Imposto.ICMS.vBcST      ,'###,###,##0.00');
-        FieldByName('pMVAST').AsString            := FormatFloatBr( Imposto.ICMS.pMVAST     ,'###,###,##0.00');
-        FieldByName('pICMSST').AsString           := FormatFloatBr( Imposto.ICMS.pICMSST    ,'###,###,##0.00');
-        FieldByName('VICMSST').AsString           := FormatFloatBr( Imposto.ICMS.vICMSST    ,'###,###,##0.00');
-        FieldByName('VIPI').AsString              := FormatFloatBr( Imposto.IPI.VIPI        ,'###,###,##0.00');
-        FieldByName('PIPI').AsString              := FormatFloatBr( Imposto.IPI.PIPI        ,'###,###,##0.00');
-        FieldByName('vISSQN').AsString            := FormatFloatBr( Imposto.ISSQN.vISSQN    ,'###,###,##0.00');
-        FieldByName('vBcISSQN').AsString          := FormatFloatBr( Imposto.ISSQN.vBC       ,'###,###,##0.00');
-        FieldByName('Valorliquido').AsString      := FormatFloatBr( Prod.vProd - Prod.vDesc ,'###,###,##0.00');
-        FieldByName('ValorAcrescimos').AsString   := FormatFloatBr( Prod.vProd + Prod.vOutro,'###,###,##0.00');
-
+        FieldByName('VBC').AsString               := FormatFloatBr( Imposto.ICMS.vBC        ,',0.00');
+        FieldByName('PICMS').AsString             := FormatFloatBr( Imposto.ICMS.pICMS      ,',0.00');
+        FieldByName('VICMS').AsString             := FormatFloatBr( Imposto.ICMS.vICMS      ,',0.00');
+        FieldByName('VBCST').AsString             := FormatFloatBr( Imposto.ICMS.vBcST      ,',0.00');
+        FieldByName('pMVAST').AsString            := FormatFloatBr( Imposto.ICMS.pMVAST     ,',0.00');
+        FieldByName('pICMSST').AsString           := FormatFloatBr( Imposto.ICMS.pICMSST    ,',0.00');
+        FieldByName('VICMSST').AsString           := FormatFloatBr( Imposto.ICMS.vICMSST    ,',0.00');
+        FieldByName('VIPI').AsString              := FormatFloatBr( Imposto.IPI.VIPI        ,',0.00');
+        FieldByName('vIPIDevol').AsString         := FormatFloatBr( vIPIDevol               ,',0.00');
+        FieldByName('PIPI').AsString              := FormatFloatBr( Imposto.IPI.PIPI        ,',0.00');
+        FieldByName('vISSQN').AsString            := FormatFloatBr( Imposto.ISSQN.vISSQN    ,',0.00');
+        FieldByName('vBcISSQN').AsString          := FormatFloatBr( Imposto.ISSQN.vBC       ,',0.00');
+        FieldByName('ValorDescontos').AsString    := FormatFloatBr( Prod.vDesc + Imposto.ICMS.vICMSDeson, ',0.00');
+        FieldByName('ValorAcrescimos').AsString   := FormatFloatBr( Prod.vOutro + Prod.vFrete + Prod.vSeg, ',0.00');
+        FieldByName('ValorLiquido').AsString      := FormatFloatBr( Prod.vProd - Prod.vDesc - Imposto.ICMS.vICMSDeson + Prod.vOutro + Prod.vFrete + Prod.vSeg, ',0.00');
         Post;
       end;
     end;
@@ -1156,7 +1133,7 @@ begin
               IfThen(Length(CNPJCPF) = 11, 'CONSUMIDOR CPF: ', 'CONSUMIDOR CNPJ: ') + Trim(FieldByName('CNPJCPF').AsString) + ' ' + trim(FieldByName('XNome').AsString);
         end;
 
-        if NaoEstaVazio(Trim(FieldByName('XNome').AsString)) then
+        if NaoEstaVazio(Trim(FieldByName('XLgr').AsString)) then
           FieldByName('Consumidor').AsString := FieldByName('Consumidor').AsString + #13 +
             Trim(FieldByName('XLgr').AsString) + ', ' + Trim(FieldByName('Nro').AsString);
         if NaoEstaVazio(Trim(FieldByName('XCpl').AsString)) then
@@ -1273,7 +1250,8 @@ begin
     Close;
     CreateDataSet;
 
-    if (FDANFEClassOwner is TACBrNFeDANFEClass) and TACBrNFeDANFEClass(FDANFEClassOwner).ExibeCampoFatura then
+    if (FDANFEClassOwner is TACBrNFeDANFEClass) and
+       TACBrNFeDANFEClass(FDANFEClassOwner).ExibeCampoFatura then
     begin
       Append;
 
@@ -1301,7 +1279,8 @@ begin
         end;
       end;
 
-      if ((FNFe.infNFe.Versao >= 4) or (FNFe.Ide.indPag = ipOutras)) and EstaVazio(FNFe.Cobr.Fat.nFat) then
+      if ((FNFe.infNFe.Versao >= 4) or (FNFe.Ide.indPag = ipOutras)) and
+         EstaVazio(FNFe.Cobr.Fat.nFat) then
         Cancel
       else
         Post;
@@ -1318,8 +1297,8 @@ begin
   cdsPagamento.Close;
   cdsPagamento.CreateDataSet;
 
-  if (FDANFEClassOwner is TACBrNFeDANFEFR)
-    and (TACBrNFeDANFEFR(FDANFEClassOwner).ExibeCampoDePagamento <> eipQuadro) then
+  if (FDANFEClassOwner is TACBrNFeDANFEFR) and
+     (TACBrNFeDANFEFR(FDANFEClassOwner).ExibeCampoDePagamento <> eipQuadro) then
   begin
     Exit;
   end;
@@ -1431,7 +1410,7 @@ begin
   wLinhasObs  := 0;
   BufferInfCpl:= '';
   vTemp       := TStringList.Create;
-  
+
   try
     if (FDANFEClassOwner is TACBrNFeDANFEClass) then
     begin
@@ -1452,7 +1431,7 @@ begin
               FDANFEClassOwner.ManterInfContr(FNFe) +
               FDANFEClassOwner.ManterInfCompl(FNFe);
     end;
-	
+
     if Trim(wObs) <> '' then
     begin
       Campos := Split(';', wObs);
@@ -1462,7 +1441,7 @@ begin
       wLinhasObs    := 1; //TotalObS(vTemp.Text);
       BufferInfCpl  := vTemp.Text;
     end;
-	
+
     with cdsInformacoesAdicionais do
     begin
       Close;
@@ -1473,7 +1452,7 @@ begin
       FieldByName('MensagemSEFAZ').AsString := FNFe.procNFe.xMsg;
       Post;
     end;
-	
+
   finally
     vTemp.Free;
   end;
@@ -1743,7 +1722,7 @@ begin
     FieldByName('TotalLiquido').AsString                := IfThen( FDANFEClassOwner.ImprimeTotalLiquido ,ACBrStr('LÍQUIDO') ,'TOTAL');
     FieldByName('LinhasPorPagina').AsInteger            := 0;
     FieldByName('ExpandirDadosAdicionaisAuto').AsString := IfThen(TACBrNFeDANFEFR(FDANFEClassOwner).ExpandirDadosAdicionaisAuto , 'S' , 'N');
-    FieldByName('sDisplayFormat').AsString              := '###,###,###,##0.%.*d';
+    FieldByName('sDisplayFormat').AsString              := ',0.%.*d';
     FieldByName('iFormato').AsInteger                   := integer( FDANFEClassOwner.CasasDecimais.Formato );
     FieldByName('Mask_qCom').AsString                   := FDANFEClassOwner.CasasDecimais.MaskqCom;
     FieldByName('Mask_vUnCom').AsString                 := FDANFEClassOwner.CasasDecimais.MaskvUnCom;
@@ -1934,8 +1913,9 @@ begin
           CondicoesUso := StringReplace(CondicoesUso, 'com: I', 'com:'+#13+' I', [rfReplaceAll]);
           CondicoesUso := StringReplace(CondicoesUso, ';', ';' + #13, [rfReplaceAll]);
 
-//          Correcao := InfEvento.detEvento.xCorrecao;
-          Correcao := StringReplace(InfEvento.detEvento.xCorrecao, ';', #13, [rfReplaceAll]);
+          Correcao := StringReplace(InfEvento.detEvento.xCorrecao,
+            TACBrNFe(DANFEClassOwner.ACBrNFe).Configuracoes.WebServices.QuebradeLinha, #13,
+             [rfReplaceAll]);
 
           FieldByName('xCondUso').AsString  := CondicoesUso;
           FieldByName('xCorrecao').AsString := Correcao;
@@ -2040,6 +2020,16 @@ begin
   frxReport.PreviewOptions.ShowCaptions := FExibeCaptionButton;
   frxReport.PreviewOptions.ZoomMode     := FZoomModePadrao;
   frxReport.OnPreview := frxReportPreview;
+
+  if FThreadSafe then
+  begin
+    // Desabilita todo e qualquer tipo de mensagem
+    frxReport.EngineOptions.SilentMode := True;
+    // Habilita o FR a trabalhar com multiplas threads com segurança
+    frxReport.EngineOptions.EnableThreadSafe := True;
+    // Desabilita o cache, que no caso de múltiplas threas pode dar conflito de conteúdo entre arquivos.
+    frxReport.EngineOptions.UseFileCache := false;
+  end;
 
   if NaoEstaVazio(DANFEClassOwner.NomeDocumento) then
     frxReport.FileName := DANFEClassOwner.NomeDocumento;
@@ -2263,7 +2253,7 @@ begin
                 qrcode := NFe.infNFeSupl.qrCode;
 
               if Assigned(Sender) and (LeftStr(Sender.Name, 9) = 'ImgQrCode') then
-                PintarQRCode(qrcode, TfrxPictureView(Sender).Picture.Bitmap, qrUTF8NoBOM);
+                PintarQRCode(qrcode, TfrxPictureView(Sender).Picture{$IFNDEF FMX}.Bitmap{$ENDIF}, qrUTF8NoBOM);
 
               CpDescrProtocolo := frxReport.FindObject('Memo25');
               if Assigned(CpDescrProtocolo) then
@@ -2288,7 +2278,9 @@ end;
 
 procedure TACBrNFeFRClass.frxReportPreview(Sender: TObject);
 begin
+ {$IFNDEF FMX}
  frxReport.PreviewForm.BorderIcons := FBorderIcon;
+ {$ENDIF}
 end;
 
 function TACBrNFeFRClass.GetPreparedReport: TfrxReport;

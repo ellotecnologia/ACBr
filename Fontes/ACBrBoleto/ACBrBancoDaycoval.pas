@@ -36,13 +36,15 @@ unit ACBrBancoDaycoval;
 interface
 
 uses
-  Classes, SysUtils, Contnrs, ACBrBoleto;
+  Classes, SysUtils, Contnrs, ACBrBoleto, ACBrBoletoConversao;
 
 type
   { TACBrBancoDaycoval }
 
   TACBrBancoDaycoval = class(TACBrBancoClass)
   protected
+  private
+    procedure GerarRegistrosNFe(ACBrTitulo : TACBrTitulo; aRemessa: TStringList);
   public
     Constructor create(AOwner: TACBrBanco);
     function CalcularDigitoVerificador(const ACBrTitulo: TACBrTitulo ): String; override ;
@@ -376,8 +378,8 @@ begin
       'REMESSA' +                       // Identificação do arquivo
       '01' +                            // Código do serviço
       PadRight('COBRANCA',15) +         // Identificação do serviço
-      PadRight(CodigoCedente, 12) +     // Código da empresa no banco
-      Space(8) +                        // Brancos
+      PadRight(CodigoCedente, 20) +     // Código da empresa no banco
+      //Space(8) +                        // Brancos
       PadRight(Nome, 30) +              // Nome da empresa
       '707' +                           // Código do banco: 707 = Banco Daycoval
       PadRight('BANCO DAYCOVAL', 15) +  // Nome do banco
@@ -387,6 +389,44 @@ begin
 
     ARemessa.Text:= ARemessa.Text + UpperCase(wLinha);
   end;
+end;
+
+procedure TACBrBancoDaycoval.GerarRegistrosNFe(ACBrTitulo: TACBrTitulo;  aRemessa: TStringList);
+var
+  wQtdRegNFes, J, I: Integer;
+  wLinha, NFeSemDados: String;
+  Continua: Boolean;
+begin  // Obrigatorio o envio da linha referente a nota fiscal 
+  NFeSemDados:= StringOfChar(' ',15) + StringOfChar('0', 65);
+  wQtdRegNFes:= trunc(ACBrTitulo.ListaDadosNFe.Count / 3);
+
+  if (ACBrTitulo.ListaDadosNFe.Count mod 3) <> 0 then
+     Inc(wQtdRegNFes);
+
+  J:= 0;
+  I:= 0;
+  repeat
+   begin
+      Continua:=  true;
+
+      wLinha:= '4';
+      while (Continua) and (J < ACBrTitulo.ListaDadosNFe.Count) do
+      begin
+         wLinha:= wLinha +
+                  PadRight(ACBrTitulo.ListaDadosNFe[J].NumNFe,15) +
+                  IntToStrZero( round(ACBrTitulo.ListaDadosNFe[J].ValorNFe  * 100 ), 13) +
+                  FormatDateTime('ddmmyyyy',ACBrTitulo.ListaDadosNFe[J].EmissaoNFe)      +
+                  PadLeft(ACBrTitulo.ListaDadosNFe[J].ChaveNFe, 44, '0');
+
+         Inc(J);
+         Continua:= (J mod 3) <> 0 ;
+      end;
+	  
+      wLinha:= PadRight(wLinha,81) + StringOfChar(' ', 313) +  IntToStrZero(aRemessa.Count + 1, 6);
+      aRemessa.Add(wLinha);
+      Inc(I);
+   end;
+  until (I = wQtdRegNFes) ;
 end;
 
 procedure TACBrBancoDaycoval.GerarRegistroTransacao400( ACBrTitulo: TACBrTitulo; aRemessa: TStringList);
@@ -442,13 +482,8 @@ begin
     // Conforme manual o aceite deve ser sempre 'N'
     ATipoAceite := 'N';
 
-    // Código de Remessa
-    // Se o boleto for emitido pelo banco, o código da remessa deve ser 3
-    // Se o boleto for emitido pelo cliente, o código da remessa deve ser 4
-    if ( ACBrBoleto.Cedente.ResponEmissao = tbCliEmite ) then
-      ACodigoRemessa := '4'
-    else
-      ACodigoRemessa := '3';
+    // Código de Remessa Fixo 6
+    ACodigoRemessa := '6';
 
     with ACBrBoleto do
     begin
@@ -459,10 +494,9 @@ begin
         PadRight(Cedente.CodigoCedente, 20) +                        // Código da empresa no banco
         PadRight(SeuNumero, 25) +                                    // Identificação do título na empresa
         PadRight(NossoNumero,8) +                                    // Nosso número
-        PadLeft('',5,'0')  +                                         // Zeros
-        PadRight(NossoNumero,8) +                                    // Nosso número correspondente
+        Space(13) +                                                  // Brancos
         Space(24) +                                                  // Brancos
-        ACodigoRemessa +                                             // Código da Remessa (3-Banco Emite / 4-Cliente emite)
+        ACodigoRemessa +                                             // Código da Remessa
         ATipoOcorrencia +                                            // Código da ocorrência
         PadLeft(RightStr(SeuNumero,10), 10, ' ') +                               // Identificação do título na empresa
         FormatDateTime('ddmmyy', Vencimento) +                       // Data de vencimento do título
@@ -499,6 +533,9 @@ begin
       ARemessa.Text := ARemessa.Text + UpperCase(wLinha);
     end;
   end;
+
+  if ACBrTitulo.ListaDadosNFe.Count > 0 then  //Informações da nota fiscal 
+    GerarRegistrosNFe(ACBrTitulo, aRemessa);
 end;
 
 procedure TACBrBancoDaycoval.GerarRegistroTrailler400(
@@ -530,7 +567,7 @@ begin
     raise Exception.Create(ACBrStr(ACBrBanco.ACBrBoleto.NomeArqRetorno +
       ' não é um arquivo de retorno do ' + Nome));
 
-  rCodEmpresa  := Trim(Copy(ARetorno[0], 27, 12));
+  rCodEmpresa  := Trim(Copy(ARetorno[0], 27, 20));
   rCedente     := Trim(Copy(ARetorno[0], 47, 30));
 
   ACBrBanco.ACBrBoleto.NumeroArquivo := StrToIntDef(Copy(ARetorno[0], 109, 5), 0);
@@ -550,7 +587,7 @@ begin
 
   with ACBrBanco.ACBrBoleto do
   begin
-    if (not LeCedenteRetorno) and (rCodEmpresa <> PadLeft(Cedente.CodigoCedente, 12, '0')) then
+    if (not LeCedenteRetorno) and (rCodEmpresa <> PadLeft(Cedente.CodigoCedente, 20, '0')) then
       raise Exception.Create(ACBrStr('Código da Empresa do arquivo inválido.'));
 
     case StrToIntDef(Copy(ARetorno[1], 2, 2), 0) of

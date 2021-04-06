@@ -81,7 +81,7 @@ Uses
   {$EndIf} ;
 
 const
-{$IFDEF CPU64}
+{$IFDEF WIN64}
   CINPOUTDLL = 'inpoutx64.dll';
 {$ELSE}
   CINPOUTDLL = 'inpout32.dll';
@@ -184,10 +184,16 @@ function StringToBinaryString(const AString: String): AnsiString;
 
 function PadRight(const AString : String; const nLen : Integer;
    const Caracter : Char = ' ') : String;
+function PadRightA(const AAnsiString : AnsiString; const nLen : Integer;
+   const Caracter : AnsiChar = ' ') : AnsiString;
 function PadLeft(const AString : String; const nLen : Integer;
    const Caracter : Char = ' ') : String;
+function PadLeftA(const AAnsiString : AnsiString; const nLen : Integer;
+   const Caracter : AnsiChar = ' ') : AnsiString;
 function PadCenter(const AString : String; const nLen : Integer;
    const Caracter : Char = ' ') : String;
+function PadCenterA(const AAnsiString : AnsiString; const nLen : Integer;
+   const Caracter : AnsiChar = ' ') : AnsiString;
 function PadSpace(const AString : String; const nLen : Integer; Separador : String;
    const Caracter : Char = ' '; const RemoverEspacos: Boolean = True) : String ;
 
@@ -196,7 +202,7 @@ function RemoveStrings(const AText: AnsiString; StringsToRemove: array of AnsiSt
 function RemoverEspacosDuplos(const AString: String): String;
 function StripHTML(const AHTMLString : String) : String;
 procedure AcharProximaTag(const ABinaryString: AnsiString;
-  const PosIni: Integer; var ATag: String; var PosTag: Integer);
+  const PosIni: Integer; var ATag: AnsiString; var PosTag: Integer);
 procedure RemoveEmptyLines( AStringList: TStringList) ;
 function RandomName(const LenName : Integer = 8) : String ;
 
@@ -205,6 +211,7 @@ function RandomName(const LenName : Integer = 8) : String ;
 {$IFNDEF COMPILER7_UP}
 function PosEx(const SubStr, S: AnsiString; Offset: Cardinal = 1): Integer;
 {$ENDIF}
+function PosExA(const SubStr, S: AnsiString; Offset: Integer = 1): Integer;
 
 {$IFNDEF COMPILER6_UP}
   type TRoundToRange = -37..37;
@@ -301,6 +308,7 @@ function AjustaLinhas(const Texto: AnsiString; Colunas: Integer ;
    NumMaxLinhas: Integer = 0; PadLinhas: Boolean = False): AnsiString;
 function QuebraLinhas(const Texto: String; const Colunas: Integer;
    const CaracterQuebrar : AnsiChar = ' '): String;
+function RemoverQuebraLinhaFinal(const ATexto: String; const AQuebraLinha: String = ''): String;
 
 function TraduzComando( const AString : String ) : AnsiString ;
 Function StringToAsc( const AString : AnsiString ) : String ;
@@ -348,7 +356,8 @@ Procedure DesligarMaquina(Reboot: Boolean = False; Forcar: Boolean = False;
 function ForceForeground(AppHandle:{$IfDef FPC}LCLType.HWND{$Else}THandle{$EndIf}): boolean;
 {$EndIf}
 
-Procedure WriteToFile( const Arq: String; const ABinaryString : AnsiString);
+Procedure WriteToFile( const Arq: String; const ABinaryString : AnsiString;
+   const ForceDirectory : Boolean = False);
 Procedure WriteToTXT( const ArqTXT : String; const ABinaryString : AnsiString;
    const AppendIfExists : Boolean = True; const AddLineBreak : Boolean = True;
    const ForceDirectory : Boolean = False);
@@ -404,7 +413,7 @@ procedure LoadInpOut;
 procedure LoadBlockInput;
 
 function GetLastErrorAsHexaStr(WinErro: DWORD = 0): String;
-function GetFileVersion(AFile: String): String;
+function GetFileVersion(const AFile: String): String;
 
 {$ENDIF}
 
@@ -550,8 +559,8 @@ function NativeStringToUTF8(const AString : String ) : AnsiString;
  {$ENDIF}
 {$ENDIF}
 begin
-  {$IFDEF FPC}
-    Result := AString;  // FPC usa UTF8 de forma nativa
+  {$IFDEF USE_UTF8}
+    Result := AString;  // FPC, DELPHI LINUX e NEXTGEN usam UTF8 de forma nativa
   {$ELSE}
     {$IFDEF UNICODE}
       RBS := UTF8Encode(AString);
@@ -565,8 +574,8 @@ end;
 
 function UTF8ToNativeString(const AUTF8String: AnsiString): String;
 begin
-  {$IfDef FPC}
-   Result := AUTF8String;  // FPC usa UTF8 de forma nativa
+  {$IfDef USE_UTF8}
+   Result := AUTF8String;  // FPC, DELPHI LINUX e NEXTGEN usam UTF8 de forma nativa
   {$Else}
    {$IfDef UNICODE}
     {$IfDef DELPHI12_UP}  // delphi 2009 em diante
@@ -585,7 +594,7 @@ end;
 
 function NativeStringToAnsi(const AString: String): AnsiString;
 begin
-  {$IfDef FPC}
+  {$IfDef USE_UTF8}
     Result := ACBrUTF8ToAnsi(AString);
   {$Else}
     Result := AnsiString(AString);
@@ -594,7 +603,7 @@ end;
 
 function AnsiToNativeString(const AAnsiString: AnsiString): String;
 begin
-  {$IfDef FPC}
+  {$IfDef USE_UTF8}
     Result := ACBrAnsiToUTF8(AAnsiString);
   {$Else}
     Result := String(AAnsiString);
@@ -995,7 +1004,7 @@ begin
   while P < LenHex do
   begin
     DecVal := StrToInt('$'+copy(AHexStr,P,2)) ;
-    Result := AnsiChar( DecVal ) + Result;
+    Result := AnsiChr( DecVal ) + Result;
     P := P + 2 ;
   end ;
 end;
@@ -1134,7 +1143,7 @@ end;
   Retorna o numero de caracteres dentro de uma String, semelhante a Length()
   Porém Lenght() não funciona corretamente em FPC com UTF8 e acentos
  ---------------------------------------------------------------------------- }
-function LenghtNativeString(const AString: String): Integer;
+function LengthNativeString(const AString: String): Integer;
 begin
   {$IfDef FPC}
    Result := UTF8Length(AString);
@@ -1164,11 +1173,23 @@ function PadRight(const AString : String; const nLen : Integer;
 var
   Tam: Integer;
 begin
-  Tam := LenghtNativeString( AString );
+  Tam := LengthNativeString( AString );
   if Tam < nLen then
     Result := AString + StringOfChar(Caracter, (nLen - Tam))
   else
     Result := LeftStrNativeString(AString, nLen);
+end;
+
+function PadRightA(const AAnsiString : AnsiString; const nLen : Integer;
+   const Caracter : AnsiChar = ' ') : AnsiString;
+var
+  Tam: Integer;
+begin
+  Tam := Length( AAnsiString );
+  if Tam < nLen then
+    Result := AAnsiString + StringOfChar(Caracter, (nLen - Tam))
+  else
+    Result := LeftStr(AAnsiString, nLen);
 end;
 
 {-----------------------------------------------------------------------------
@@ -1180,11 +1201,23 @@ function PadLeft(const AString : String; const nLen : Integer;
 var
   Tam: Integer;
 begin
-  Tam := LenghtNativeString( AString );
+  Tam := LengthNativeString( AString );
   if Tam < nLen then
     Result := StringOfChar(Caracter, (nLen - Tam)) + AString
   else
     Result := LeftStrNativeString(AString, nLen);  //RightStr(AString,nLen) ;
+end;
+
+function PadLeftA(const AAnsiString : AnsiString; const nLen : Integer;
+   const Caracter : AnsiChar = ' ') : AnsiString;
+var
+  Tam: Integer;
+begin
+  Tam := Length( AAnsiString );
+  if Tam < nLen then
+    Result := StringOfChar(Caracter, (nLen - Tam)) + AAnsiString
+  else
+    Result := LeftStr(AAnsiString, nLen);  //RightStr(AString,nLen) ;
 end;
 
 {-----------------------------------------------------------------------------
@@ -1196,7 +1229,7 @@ var
   nCharLeft: Integer;
   Tam: integer;
 begin
-  Tam := LenghtNativeString( AString );
+  Tam := LengthNativeString( AString );
   if Tam < nLen then
   begin
     nCharLeft := Trunc( (nLen - Tam) / 2 ) ;
@@ -1204,6 +1237,22 @@ begin
   end
   else
     Result := LeftStrNativeString(AString, nLen);
+end;
+
+function PadCenterA(const AAnsiString : AnsiString; const nLen : Integer;
+   const Caracter : AnsiChar = ' ') : AnsiString;
+var
+  nCharLeft: Integer;
+  Tam: integer;
+begin
+  Tam := Length( AAnsiString );
+  if (Tam < nLen) then
+  begin
+    nCharLeft := Trunc( (nLen - Tam) / 2 ) ;
+    Result    := PadRightA( StringOfChar(Caracter, nCharLeft) + AAnsiString, nLen, Caracter) ;
+  end
+  else
+    Result := LeftStr(AAnsiString, nLen);
 end;
 
 {-----------------------------------------------------------------------------
@@ -1234,9 +1283,9 @@ begin
   if RemoverEspacos then
     Result := Trim( Result ) ;
 
-  D        := (nLen - (LenghtNativeString(Result)-nSep)) / nSep ;
+  D        := (nLen - (LengthNativeString(Result)-nSep)) / nSep ;
   nCharSep := Trunc( D ) ;
-  nResto   := nLen - ( (LenghtNativeString(Result)-nSep) + (nCharSep*nSep) ) ;
+  nResto   := nLen - ( (LengthNativeString(Result)-nSep) + (nCharSep*nSep) ) ;
   nFeito   := nSep ;
   StuffStr := String( StringOfChar( Caracter, nCharSep ) ) ;
 
@@ -1308,7 +1357,7 @@ end ;
  ---------------------------------------------------------------------------- }
 function StripHTML(const AHTMLString: String): String;
 var
-  ATag, VHTMLString: String;
+  ATag, VHTMLString: AnsiString;
   PosTag, LenTag: Integer;
 begin
   VHTMLString := AHTMLString;
@@ -1332,16 +1381,16 @@ end;
    Se encontrar uma Tag, Retorna a mesma em ATag, e a posição inicial dela em PosTag
  ---------------------------------------------------------------------------- }
 procedure AcharProximaTag(const ABinaryString: AnsiString;
-  const PosIni: Integer; var ATag: String; var PosTag: Integer);
+  const PosIni: Integer; var ATag: AnsiString; var PosTag: Integer);
 var
    PosTagAux, FimTag, LenTag : Integer ;
 begin
   ATag   := '';
-  PosTag := PosEx( '<', ABinaryString, PosIni);
+  PosTag := PosExA( '<', ABinaryString, PosIni);
   if PosTag > 0 then
   begin
-    PosTagAux := PosEx( '<', ABinaryString, PosTag + 1);  // Verificando se Tag é inválida
-    FimTag    := PosEx( '>', ABinaryString, PosTag + 1);
+    PosTagAux := PosExA( '<', ABinaryString, PosTag + 1);  // Verificando se Tag é inválida
+    FimTag    := PosExA( '>', ABinaryString, PosTag + 1);
     if FimTag = 0 then                             // Tag não fechada ?
     begin
       PosTag := 0;
@@ -1351,7 +1400,7 @@ begin
     while (PosTagAux > 0) and (PosTagAux < FimTag) do  // Achou duas aberturas Ex: <<e>
     begin
       PosTag    := PosTagAux;
-      PosTagAux := PosEx( '<', ABinaryString, PosTag + 1);
+      PosTagAux := PosExA( '<', ABinaryString, PosTag + 1);
     end ;
 
     LenTag := FimTag - PosTag + 1 ;
@@ -1512,7 +1561,16 @@ begin
     Result := 0;
   end;
 end;
-{$endif}
+{$EndIf}
+
+function PosExA(const SubStr, S: AnsiString; Offset: Integer): Integer;
+begin
+  {$IFDEF DELPHIXE3_UP}
+   Result := Pos(SubStr, S, Offset);
+  {$Else}
+   Result := PosEx(SubStr, S, Offset);
+  {$EndIf}
+end;
 
 {-----------------------------------------------------------------------------
   Verifica se "AValue" é vazio, se for retorna "DefaultValue". "DoTrim", se
@@ -1729,22 +1787,25 @@ end;
   verifica se a virgula é '.' ou ',' efetuando a conversão se necessário
   Se não for possivel converter, dispara Exception
  ---------------------------------------------------------------------------- }
-function StringToFloat(NumString : String) : Double ;
+function StringToFloat(NumString: String): Double;
 var
   DS: Char;
 begin
-  NumString := Trim( NumString ) ;
+  NumString := Trim(NumString);
 
   DS := {$IFDEF HAS_FORMATSETTINGS}FormatSettings.{$ENDIF}DecimalSeparator;
 
   if DS <> '.' then
-     NumString := StringReplace(NumString,'.',DS,[rfReplaceAll]) ;
+    NumString := StringReplace(NumString, '.', DS, [rfReplaceAll]);
 
   if DS <> ',' then
-     NumString := StringReplace(NumString,',',DS,[rfReplaceAll]) ;
+    NumString := StringReplace(NumString, ',', DS, [rfReplaceAll]);
 
-  Result := StrToFloat(NumString)
-end ;
+  while CountStr(NumString, DS) > 1 do
+    NumString := StringReplace(NumString, DS, '', []);
+
+  Result := StrToFloat(NumString);
+end;
 
 {-----------------------------------------------------------------------------
   Converte um Double para string, SEM o separator decimal, considerando as
@@ -2394,11 +2455,11 @@ begin
   VTexto := String(Texto);
   { Trocando todos os #13+#10 por #10 }
   CurrLineBreak := sLineBreak ;
-  if (CurrLineBreak <> #13+#10) then
-     VTexto := StringReplace(VTexto, #13+#10, #10, [rfReplaceAll]) ;
+  if (CurrLineBreak <> CRLF) then
+     VTexto := StringReplace(VTexto, CRLF, LF, [rfReplaceAll]) ;
 
-  if (CurrLineBreak <> #10) then
-     VTexto := StringReplace(VTexto, CurrLineBreak, #10, [rfReplaceAll]) ;
+  if (CurrLineBreak <> LF) then
+     VTexto := StringReplace(VTexto, CurrLineBreak, LF, [rfReplaceAll]) ;
 
   { Ajustando a largura das Linhas para o máximo permitido em  "Colunas"
     e limitando em "NumMaxLinhas" o total de Linhas}
@@ -2512,6 +2573,27 @@ begin
     Resp := StringReplace(Resp, LF, sLineBreak, [rfReplaceAll]);
 
   Result := ACBrStr(Resp);
+end;
+
+{-----------------------------------------------------------------------------
+  Remove a última quebra de linha caso seja a informada no parâmetro AQuebraLinha
+  ou a quebra de linha padrão do sistema
+ -----------------------------------------------------------------------------}
+function RemoverQuebraLinhaFinal(const ATexto: String; const AQuebraLinha: String = ''): String;
+var
+  StrQ: String;
+  LT, LQ: Integer;
+begin
+  Result := ATexto;
+  StrQ := AQuebraLinha;
+  if StrQ = '' then
+    StrQ := sLineBreak;
+  LT := Length(ATexto);
+  LQ := Length(StrQ);
+  if LT < LQ then
+    Exit;
+  if  Copy(ATexto, LT - LQ + 1, LQ) = StrQ then
+    Result := Copy(ATexto, 1, LT - LQ);
 end;
 
 {-----------------------------------------------------------------------------
@@ -2926,8 +3008,9 @@ begin
      begin
         LastFile := SearchRec.Name ;
 
-        if pos(LastFile, '..') = 0 then    { ignora . e .. }
-           AStringList.Add( IfThen(IncludePath, Path, '') + LastFile) ;
+        if (SearchRec.Attr and faDirectory) <> 0 then
+          if pos(LastFile, '..') = 0 then    { ignora . e .. }
+             AStringList.Add( IfThen(IncludePath, Path, '') + LastFile) ;
 
         SysUtils.FindNext(SearchRec) ;
      end ;
@@ -3237,7 +3320,7 @@ begin
  {$EndIf}
 end ;
 
- function FlushToDisk(const sFile: string): Boolean;
+  function FlushToDisk(const sFile: string): boolean;
 {$IfDef MSWINDOWS}
  { Fonte: http://stackoverflow.com/questions/1635947/how-to-make-sure-that-a-file-was-permanently-saved-on-usb-when-user-doesnt-use }
  var
@@ -3270,7 +3353,7 @@ end ;
  end ;
 {$EndIf}
 
- function FlushFileToDisk(const sFile: string): Boolean;
+  function FlushFileToDisk(const sFile: string): boolean;
  {$IfDef MSWINDOWS}
  var
    hFile: THandle;
@@ -3464,9 +3547,10 @@ end;
 {$EndIf}
 
 
-procedure WriteToFile(const Arq: String; const ABinaryString: AnsiString);
+procedure WriteToFile(const Arq: String; const ABinaryString: AnsiString;
+  const ForceDirectory: Boolean);
 begin
-  WriteToTXT(Arq, ABinaryString, False, False);
+  WriteToTXT(Arq, ABinaryString, False, False, ForceDirectory);
 end;
 
 {-----------------------------------------------------------------------------
@@ -3727,12 +3811,13 @@ function TranslateString(const S: AnsiString; CP_Destino: Word; CP_Atual: Word =
 var
   R: RawByteString;
 begin
-  R := S;
+  R := String(S);
   if CP_Atual = 0 then
     SetCodePage(R, CP_Destino, True)
   else
     SetCodePage(R, CP_ACP, True);
-  Result := R;
+
+  Result := AnsiString(R);
 end;
 {$ELSE}
 {$IfNDef MSWINDOWS}
@@ -4460,7 +4545,7 @@ begin
   Result := IntToHex(WinErro, 8);
 end;
 
-function GetFileVersion(AFile: String): String;
+function GetFileVersion(const AFile: String): String;
 var
   Major, Minor, Release, Build: Integer;
   Zero, VersionInfoSize: DWORD;

@@ -35,15 +35,6 @@
 |* Everton H. Cardoso  -  Bematech S/A - Testes deste Modulo  
 ******************************************************************************}
 
-{******************************************************************************
-|* Historico
-|*
-|* 24/08/2004: Daniel Simoes de Almeida
-|*  - Primeira Versao ACBrCHQBematech
-|* 25/04/2014 : William Duarte
-|*  - Segunda Versao ACBrCHQBematech
-******************************************************************************}
-
 {$I ACBr.inc}
 
 unit ACBrCHQBematech;
@@ -62,6 +53,7 @@ type TACBrCHQBematech = class( TACBrCHQClass )
 
     procedure Ativar ; override ;
 
+    procedure ProgramarImpressao;
     procedure ImprimirCheque ; Override ;
     Procedure TravarCheque ;  Override ;
     Procedure DestravarCheque ;  Override ;
@@ -125,6 +117,12 @@ begin
   DestravarCheque ;
 end;
 
+procedure TACBrCHQBematech.ProgramarImpressao;
+begin
+  // programa ano com 4 dígitos
+  EnviarStr(#27 + #175 + #68 + '4' + #13);
+end;
+
 procedure TACBrCHQBematech.ImprimirCheque;
 Var ValStr, DataStr : String ;
 begin
@@ -132,6 +130,8 @@ begin
     raise Exception.Create(ACBrStr('A impressora de Cheques '+fpModeloStr+
                            ' não está pronta.')) ;
   FImprimeVerso := False;
+
+  ProgramarImpressao;
 
   TravarCheque ;
 
@@ -150,7 +150,7 @@ begin
   EnviarStr( #27 + #161 + fpCidade + #13 ) ;
 
   { Data }
-  DataStr := FormatDateTime('dd/mm/yyyy',fpData) ;
+  DataStr := FormatDateTime('dd/mm/yy',fpData) ;
   DataStr := StringReplace(DataStr,DateSeparator,'/',[rfReplaceAll]) ;
   EnviarStr( #27 + #164 + DataStr + #13 ) ;
 

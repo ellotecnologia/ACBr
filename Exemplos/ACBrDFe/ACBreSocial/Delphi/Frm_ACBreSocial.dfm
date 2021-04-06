@@ -559,9 +559,9 @@ object frmACBreSocial: TfrmACBreSocial
               object Label6: TLabel
                 Left = 8
                 Top = 16
-                Width = 121
+                Width = 126
                 Height = 13
-                Caption = 'Selecione UF de Destino:'
+                Caption = 'Selecione UF do Emitente:'
                 Font.Charset = DEFAULT_CHARSET
                 Font.Color = clWindowText
                 Font.Height = -11
@@ -1439,7 +1439,7 @@ object frmACBreSocial: TfrmACBreSocial
       Top = 273
       Width = 800
       Height = 338
-      ActivePage = tsComandos
+      ActivePage = tsFormaEnvio
       Align = alClient
       TabOrder = 1
       object tsFormaEnvio: TTabSheet

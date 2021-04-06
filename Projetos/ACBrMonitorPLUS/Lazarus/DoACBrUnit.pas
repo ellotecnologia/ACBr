@@ -1,11 +1,9 @@
 {*******************************************************************************}
-{ Projeto: ACBrMonitor                                                         }
+{ Projeto: ACBrMonitor                                                          }
 {  Executavel multiplataforma que faz uso do conjunto de componentes ACBr para  }
 { criar uma interface de comunicação com equipamentos de automacao comercial.   }
 {                                                                               }
-{ Direitos Autorais Reservados (c) 2010 Daniel Simoes de Almeida                }
-{                                                                               }
-{ Colaboradores nesse arquivo:                                  }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida                }
 {                                                                               }
 {  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr     }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr       }
@@ -37,7 +35,7 @@ unit DoACBrUnit ;
 
 interface
 Uses
-  Classes, TypInfo, SysUtils, CmdUnit, IniFiles, ACBrMonitorConsts, ACBrLibCertUtils,
+  Classes, TypInfo, SysUtils, CmdUnit, IniFiles, synautil, synacode, ACBrMonitorConsts, ACBrLibCertUtils,
   ACBrMonitorConfig;
 
 {$IFDEF MSWINDOWS}
@@ -191,6 +189,27 @@ public
   procedure Executar; override;
 end;
 
+{ TMetodoEncodeBase64 }
+
+TMetodoEncodeBase64 = class(TACBrMetodo)
+public
+  procedure Executar; override;
+end;
+
+{ TMetodoDecodeBase64 }
+
+TMetodoDecodeBase64= class(TACBrMetodo)
+public
+  procedure Executar; override;
+end;
+
+{ TMetodoRoundABNT}
+
+TMetodoRoundABNT= class(TACBrMetodo)
+public
+  procedure Executar; override;
+end;
+
 { TMetodoVersao }
 
 TMetodoVersao = class(TACBrMetodo)
@@ -252,7 +271,7 @@ implementation
 Uses ACBrUtil, DateUtils, pcnConversao, utilUnit,
   {$IFDEF MSWINDOWS}sndkey32, Windows,{$ENDIF}
   {$IFNDEF NOGUI}Forms, ACBrMonitor1 {$ELSE}ACBrMonitorConsoleDM {$ENDIF},
-  FileUtil;
+  FileUtil, ACBrDFeSSL;
 
 { TMetodoFim }
 
@@ -322,6 +341,109 @@ begin
     fpCmd.Resposta := VersaoACBr
 end;
 
+{ TMetodoRoundABNT }
+
+{ Params: 0 - Double: Valor para arredondamento
+          1 - integer: Digitos de Decimais p/ Arredondamento}
+procedure TMetodoRoundABNT.Executar;
+var
+   AValue: Double;
+   ADigitos: Integer;
+begin
+  AValue := StrToFloatDef(fpCmd.Params(0),0);
+  ADigitos := StrToIntDef(fpCmd.Params(1),2);
+
+  with TACBrObjetoACBr(fpObjetoDono) do
+    fpcmd.Resposta := FloatToStr(RoundABNT( AValue, ADigitos));
+end;
+
+{ TMetodoEncodeBase64 }
+
+{ Params: 0 - String: Path Arquivo a ser transferido
+          1 - integer: TimeOut para Leitura em milissegundos}
+procedure TMetodoEncodeBase64.Executar;
+var
+  AOrigem: String;
+  ATime: Integer;
+  dtFim: TDateTime;
+
+  AStream: TMemoryStream;
+begin
+  AOrigem := trim(fpCmd.Params(0));
+  ATime := StrToIntDef(fpCmd.Params(1),1);
+
+  with TACBrObjetoACBr(fpObjetoDono) do
+  begin
+    VerificaPermiteComandosRemoto;
+
+    dtFim := IncSecond(now, ATime ) ;
+    while now <= dtFim do
+    begin
+      if FileExists(AOrigem) then
+      begin
+        AStream:= TMemoryStream.Create;
+        try
+          AStream.LoadFromFile(AOrigem);
+          AStream.Position:= 0;
+          fpcmd.Resposta := EncodeBase64( ReadStrFromStream(AStream, AStream.Size) );
+          Break;
+
+        finally
+          AStream.Free;
+        end;
+
+      end
+      else
+        raise Exception.Create('Arquivo '+AOrigem+' não existe.');
+
+      sleep(100) ;
+
+    end;
+  end;
+
+end;
+
+{ TMetodoDecodeBase64 }
+
+{ Params: 0 -  String: Conteudo Base64 a ser Decodificado
+          1 -  String: Path e nome Arquivo a ser gravado}
+procedure TMetodoDecodeBase64.Executar;
+var
+  ABase64: Ansistring;
+  ADestino: String;
+
+  AStream: TMemoryStream;
+begin
+  ABase64 := trim(fpCmd.Params(0));
+  ADestino := trim(fpCmd.Params(1));
+
+  if EstaVazio(ABase64) then
+    Raise Exception.Create('Informe Arquivo em Base64');
+
+  if EstaVazio(ADestino) then
+    Raise Exception.Create('Informe o Path do Arquivo para gravação');
+
+  with TACBrObjetoACBr(fpObjetoDono) do
+  begin
+    if not (DirectoryExists(ExtractFileDir(ADestino)) ) then
+      if not ForceDirectories(ExtractFileDir(ADestino)) then
+        raise Exception.Create(' Falha ao criar o Diretório de destino: ' + ExtractFileDir(ADestino));
+
+    AStream:= TMemoryStream.Create;
+    try
+      AStream.Position:= 0;
+      WriteStrToStream(AStream, DecodeBase64(ABase64) );
+      AStream.SaveToFile(ADestino);
+
+      fpcmd.Resposta := ADestino;
+    finally
+      AStream.Free;
+    end;
+
+  end;
+
+end;
+
 { TMetodoAjustaLnhasLog }
 
 procedure TMetodoAjustaLnhasLog.Executar;
@@ -343,7 +465,8 @@ end;
 procedure TMetodoObterCertificados.Executar;
 begin
   with TACBrObjetoACBr(fpObjetoDono) do
-    fpcmd.Resposta := ObterCerticados(frmACBrMonitor.ACBrNFe1.SSL);
+      fpcmd.Resposta := ObterCerticados(frmACBrMonitor.ACBrNFe1.SSL)
+
 end;
 
 { TMetodoSetWebservice }
@@ -797,6 +920,9 @@ begin
   ListaDeMetodos.Add(CMetodoObterCertificados);
   ListaDeMetodos.Add(CMetodoLerini);
   ListaDeMetodos.Add(CMetodoAjustaLnhasLog);
+  ListaDeMetodos.Add(CMetodoEncodeBase64);
+  ListaDeMetodos.Add(CMetodoDecodeBase64);
+  ListaDeMetodos.Add(CMetodoRoundABNT);
   ListaDeMetodos.Add(CMetodoVersao);
   ListaDeMetodos.Add(CMetodoDatahora);
   ListaDeMetodos.Add(CMetodoData);
@@ -839,14 +965,17 @@ begin
     16  : AMetodoClass := TMetodoObterCertificados;
     17  : AMetodoClass := TMetodoLerini;
     18  : AMetodoClass := TMetodoAjustaLnhasLog;
-    19  : AMetodoClass := TMetodoVersao;
-    20  : AMetodoClass := TMetodoDatahora;
-    21  : AMetodoClass := TMetodoData;
-    22  : AMetodoClass := TMetodoHora;
-    23  : AMetodoClass := TMetodoExit;
-    24  : AMetodoClass := TMetodoBye;
-    25  : AMetodoClass := TMetodoSair;
-    26  : AMetodoClass := TMetodoFim;
+    19  : AMetodoClass := TMetodoEncodeBase64;
+    20  : AMetodoClass := TMetodoDecodeBase64;
+    21  : AMetodoClass := TMetodoRoundABNT;
+    22  : AMetodoClass := TMetodoVersao;
+    23  : AMetodoClass := TMetodoDatahora;
+    24  : AMetodoClass := TMetodoData;
+    25  : AMetodoClass := TMetodoHora;
+    26  : AMetodoClass := TMetodoExit;
+    27  : AMetodoClass := TMetodoBye;
+    28  : AMetodoClass := TMetodoSair;
+    29  : AMetodoClass := TMetodoFim;
 
     else
       raise Exception.Create('Comando inválido ('+ copy(ACmd.Comando,6,length(ACmd.Comando))+')') ;

@@ -52,6 +52,8 @@ Public Const SESSAO_BOLETODIRETORIOCONFIG     As String = "BoletoDiretorioConfig
 Public Const SESSAO_BOLETOBANCOFCFORTESCONFIG As String = "BoletoBancoFCFortesConfig"
 Public Const SESSAO_BAL                       As String = "BAL"
 Public Const SESSAO_BAL_DEVICE                As String = "BAL_Device"
+Public Const SESSAO_GNRE                      As String = "GNRe"
+Public Const SESSAO_GUIA                      As String = "Guia"
 
 Public Enum NivelLog
     logNenhum = 0
@@ -561,4 +563,16 @@ Public Function FromUTF8(ByRef utf8STR As String) As String
     FromUTF8 = String$(lDataLength, 0)
     
     MultiByteToWideChar CP_UTF8, 0, VarPtr(UTF8(0)), length, StrPtr(FromUTF8), lDataLength
+End Function
+
+Public Function ReadFile(sFile As String) As Byte()
+    Dim nFile       As Integer
+
+    nFile = FreeFile
+    Open sFile For Binary Access Read As #nFile
+    If LOF(nFile) > 0 Then
+        ReDim ReadFile(0 To LOF(nFile) - 1)
+        Get nFile, , ReadFile
+    End If
+    Close #nFile
 End Function

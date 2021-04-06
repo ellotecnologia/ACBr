@@ -3,7 +3,7 @@
 {  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
 {                                                                              }
-{ Direitos Autorais Reservados (c) 2004 Daniel Simoes de Almeida               }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
 {                                                                              }
 { Colaboradores nesse arquivo:                                                 }
 {                                                                              }
@@ -26,17 +26,9 @@
 { Você também pode obter uma copia da licença em:                              }
 { http://www.opensource.org/licenses/lgpl-license.php                          }
 {                                                                              }
-{ Daniel Simões de Almeida  -  daniel@djsystem.com.br  -  www.djsystem.com.br  }
-{              Praça Anita Costa, 34 - Tatuí - SP - 18270-410                  }
-{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
-
-{******************************************************************************
-|* Historico
-|*
-|* 21/11/2009: Daniel Simoes de Almeida
-|*  - Primeira Versao: Criaçao e Distribuiçao da Primeira Versao
-******************************************************************************}
 
 {$I ACBr.inc}
 
@@ -45,58 +37,25 @@ unit ACBrTEFDCliSiTef;
 interface
 
 uses
-  Classes, SysUtils, ACBrTEFDClass
+  Classes, SysUtils,
   {$IfNDef NOGUI}
     {$If DEFINED(VisualCLX)}
-      ,QControls
+      QControls,
     {$ElseIf DEFINED(FMX)}
-      ,System.UITypes
+      System.UITypes,
     {$ElseIf DEFINED(DELPHICOMPILER16_UP)}
-      ,System.UITypes
+      System.UITypes,
     {$Else}
-      ,Controls
+      Controls,
     {$IfEnd}
-  {$EndIf};
+  {$EndIf}
+  ACBrTEFDClass, ACBrTEFCliSiTefComum;
 
-
-Const
-   CACBrTEFD_CliSiTef_ImprimeGerencialConcomitante = False ;
-   CACBrTEFD_CliSiTef_PressioneEnter = 'PRESSIONE <ENTER>' ;
-   CACBrTEFD_CliSiTef_TransacaoNaoEfetuada = 'Transação não efetuada.' ;
-   CACBrTEFD_CliSiTef_TransacaoNaoEfetuadaReterCupom =
-      'Transação não efetuada.'+sLineBreak+'Favor reter o Cupom' ;
-   CACBrTEFD_CliSiTef_TransacaoEfetuadaReImprimir =
-      'Transação TEF efetuada.'        + sLineBreak+
-      'Favor reimprimir último Cupom.' + sLineBreak +
-      '%s'                             + sLineBreak +
-      '(Para Cielo utilizar os 6 últimos dígitos.)';
-   CACBrTEFD_CliSiTef_NaoInicializado = 'CliSiTEF não inicializado' ;
-   CACBrTEFD_CliSiTef_NaoConcluido = 'Requisição anterior não concluida' ;
-   CACBrTEFD_CliSiTef_Erro1  = 'Endereço IP inválido ou não resolvido' ;
-   CACBrTEFD_CliSiTef_Erro2  = 'Código da loja inválido' ;
-   CACBrTEFD_CliSiTef_Erro3  = 'Código de terminal inválido' ;
-   CACBrTEFD_CliSiTef_Erro6  = 'Erro na inicialização do TCP/IP' ;
-   CACBrTEFD_CliSiTef_Erro7  = 'Falta de memória' ;
-   CACBrTEFD_CliSiTef_Erro8  = 'Não encontrou a CliSiTef ou ela está com problemas' ;
-   CACBrTEFD_CliSiTef_Erro10 = 'Erro de acesso na pasta CliSiTef (possível falta de permissão para escrita) ' + sLineBreak+
-                               'ou o PinPad não está devidamente configurado no arquivo CliSiTef.ini ' + sLineBreak+
-                               'ou parâmetros IdLoja e IdTerminal inválidos';
-   CACBrTEFD_CliSiTef_Erro11 = 'Dados inválidos passados pela automação.';
-   CACBrTEFD_CliSiTef_Erro12 = 'Modo seguro não ativo (possível falta de configuração no servidor SiTef do arquivo .cha).';
-   CACBrTEFD_CliSiTef_Erro13 = 'Caminho da DLL inválido (o caminho completo das bibliotecas está muito grande).';
-
-{$IFDEF LINUX}
-  CACBrTEFD_CliSiTef_Lib = 'libclisitef.so' ;
-{$ELSE}
-  CACBrTEFD_CliSiTef_Lib = 'CliSiTef32I.dll' ;
-{$ENDIF}
 
 type
   { TACBrTEFDRespCliSiTef }
 
   TACBrTEFDRespCliSiTef = class( TACBrTEFDResp )
-  protected
-    function GetTransacaoAprovada : Boolean; override;
   public
     procedure ConteudoToProperty; override;
     procedure GravaInformacao( const Identificacao : Integer;
@@ -118,6 +77,9 @@ type
 
    TACBrTEFDCliSiTef = class( TACBrTEFDClass )
    private
+      fPinPadChaveAcesso: AnsiString;
+      fPinPadIdentificador: AnsiString;
+      fSiTefAPI: TACBrTEFCliSiTefAPI;
       fExibirErroRetorno: Boolean;
       fIniciouRequisicao: Boolean;
       fReimpressao: Boolean; {Indica se foi selecionado uma reimpressão no ADM}
@@ -143,90 +105,15 @@ type
       fDocumentoFiscal: AnsiString;
       fDataHoraFiscal: TDateTime;
       fDocumentosProcessados : AnsiString ;
-      fPathDLL: string;
       fPortaPinPad: Integer;
       fUsaUTF8: Boolean;
       fArqBackUp: String;
 
-     xConfiguraIntSiTefInterativoEx : function (
-                pEnderecoIP: PAnsiChar;
-                pCodigoLoja: PAnsiChar;
-                pNumeroTerminal: PAnsiChar;
-                ConfiguraResultado: smallint;
-                pParametrosAdicionais: PAnsiChar): integer;
-               {$IFDEF LINUX} cdecl {$ELSE} stdcall {$ENDIF} ;
-
-     xIniciaFuncaoSiTefInterativo : function (
-                Modalidade: integer;
-                pValor: PAnsiChar;
-                pNumeroCuponFiscal: PAnsiChar;
-                pDataFiscal: PAnsiChar;
-                pHorario: PAnsiChar;
-                pOperador: PAnsiChar;
-                pRestricoes: PAnsiChar ): integer;
-                {$IFDEF LINUX} cdecl {$ELSE} stdcall {$ENDIF} ;
-
-
-     xFinalizaFuncaoSiTefInterativo : procedure (
-                 pConfirma: SmallInt;
-                 pCupomFiscal: PAnsiChar;
-                 pDataFiscal: PAnsiChar;
-                 pHoraFiscal: PAnsiChar;
-                 pParamAdic: PAnsiChar);
-                 {$IFDEF LINUX} cdecl {$ELSE} stdcall {$ENDIF} ;
-
-
-     xContinuaFuncaoSiTefInterativo : function (
-                var ProximoComando: SmallInt;
-                var TipoCampo: LongInt;
-                var TamanhoMinimo: SmallInt;
-                var TamanhoMaximo: SmallInt;
-                pBuffer: PAnsiChar;
-                TamMaxBuffer: Integer;
-                ContinuaNavegacao: Integer ): integer;
-                {$IFDEF LINUX} cdecl {$ELSE} stdcall {$ENDIF} ;
-
-     xEscreveMensagemPermanentePinPad: function(Mensagem:PAnsiChar):Integer;
-        {$IFDEF LINUX} cdecl {$ELSE} stdcall {$ENDIF} ;
-
-     xObtemQuantidadeTransacoesPendentes: function(
-        DataFiscal:AnsiString;
-        NumeroCupon:AnsiString):Integer;
-        {$IFDEF LINUX} cdecl {$ELSE} stdcall {$ENDIF} ;
-
-     xEnviaRecebeSiTefDireto : function (
-        RedeDestino: SmallInt;
-        FuncaoSiTef: SmallInt;
-        OffsetCartao: SmallInt;
-        DadosTx: AnsiString;
-        TamDadosTx: SmallInt;
-        DadosRx: PAnsiChar;
-        TamMaxDadosRx: SmallInt;
-        var CodigoResposta: SmallInt;
-        TempoEsperaRx: SmallInt;
-        CuponFiscal: AnsiString;
-        DataFiscal: AnsiString;
-        Horario: AnsiString;
-        Operador: AnsiString;
-        TipoTransacao: SmallInt): Integer;
-        {$IFDEF LINUX} cdecl {$ELSE} stdcall {$ENDIF} ;
-
-     xValidaCampoCodigoEmBarras: function(
-        Dados: AnsiString;
-        var Tipo: SmallInt): Integer;
-        {$IFDEF LINUX} cdecl {$ELSE} stdcall {$ENDIF};
-
-     xVerificaPresencaPinPad: function(): Integer
-     {$IFDEF LINUX} cdecl {$ELSE} stdcall {$ENDIF};
-
-     xObtemDadoPinPadDiretoEx: function(ChaveAcesso: PAnsiChar; Identificador: PAnsiChar; Entrada: PAnsiChar; var Saida: array of Byte): Integer;
-     {$IFDEF LINUX} cdecl {$ELSE} stdcall {$ENDIF};
-
      procedure AvaliaErro(Sts : Integer);
      function GetDataHoraFiscal: TDateTime;
      function GetDocumentoFiscal: AnsiString;
-     procedure LoadDLLFunctions;
-     procedure UnLoadDLLFunctions;
+     function GetPathDLL: string;
+     procedure SetPathDLL(AValue: string);
      procedure SetParametrosAdicionais(const AValue : TStringList) ;
    protected
      procedure SetNumVias(const AValue : Integer); override;
@@ -248,7 +135,9 @@ type
      function CopiarResposta: string; override;
    public
      property Respostas : TStringList read fRespostas ;
-     property PathDLL: string read fPathDLL write fPathDLL;
+     property PathDLL: string read GetPathDLL write SetPathDLL;
+     property PinPadChaveAcesso: AnsiString read fPinPadChaveAcesso write fPinPadChaveAcesso;
+     property PinPadIdentificador: AnsiString read fPinPadIdentificador write fPinPadIdentificador;
 
      constructor Create( AOwner : TComponent ) ; override;
      destructor Destroy ; override;
@@ -276,25 +165,28 @@ type
      Procedure CNF(Rede, NSU, Finalizacao : String;
         DocumentoVinculado : String = ''); override;
      Function CNC(Rede, NSU : String; DataHoraTransacao : TDateTime;
-        Valor : Double) : Boolean; overload; override;
+        Valor : Double; CodigoAutorizacaoTransacao: String = '') : Boolean; overload; override;
      Function PRE(Valor : Double; DocumentoVinculado : String = '';
         Moeda : Integer = 0) : Boolean; override;
      function CDP(const EntidadeCliente: string; out Resposta: string): Boolean; override;
 
+     procedure ExibirMensagemPinPad(const MsgPinPad: String); override;
+
+     procedure FinalizarTransacao( Confirma : Boolean;
+        DocumentoVinculado : AnsiString; ParamAdic: AnsiString = '');
+
      Function DefineMensagemPermanentePinPad(Mensagem:AnsiString):Integer;
      Function ObtemQuantidadeTransacoesPendentes(Data:TDateTime;
         CupomFiscal:AnsiString):Integer;
-     Function EnviaRecebeSiTefDireto( RedeDestino: SmallInt;
-        FuncaoSiTef: SmallInt; OffsetCartao: SmallInt; DadosTx: AnsiString;
-        var DadosRx: AnsiString; var CodigoResposta: SmallInt;
-        TempoEsperaRx: SmallInt; CuponFiscal: AnsiString;
-        Confirmar: Boolean): Integer;
-     procedure FinalizarTransacao( Confirma : Boolean;
-        DocumentoVinculado : AnsiString; ParamAdic: AnsiString = '');
+     function EnviaRecebeSiTefDireto(RedeDestino: SmallInt; FuncaoSiTef: SmallInt;
+       OffsetCartao: SmallInt; DadosTx: AnsiString; var DadosRx: AnsiString;
+       var CodigoResposta: SmallInt; TempoEsperaRx: SmallInt;
+       CupomFiscal: AnsiString; Confirmar: Boolean; Operador: AnsiString): Integer;
      function ValidaCampoCodigoEmBarras(Dados: AnsiString;
         var Tipo: SmallInt): Integer;
      function VerificaPresencaPinPad: Boolean;
-     function ObtemDadoPinPadDiretoEx(Tipo_Doc: Integer; ChaveAcesso: PAnsiChar; Identificador: PAnsiChar): AnsiString;
+     function ObtemDadoPinPadDiretoEx(TipoDocumento: Integer; ChaveAcesso,
+       Identificador: AnsiString): AnsiString;
 
    published
      property EnderecoIP: AnsiString                    read fEnderecoIP           write fEnderecoIP;
@@ -325,214 +217,14 @@ implementation
 
 Uses
   {$IFDEF MSWINDOWS} Windows, {$ENDIF MSWINDOWS}
-  dateutils, Math, StrUtils,
-  ACBrTEFD, ACBrUtil ;
+  strutils, math,
+  ACBrTEFD, ACBrUtil, ACBrTEFComum;
 
 { TACBrTEFDRespCliSiTef }
 
-function TACBrTEFDRespCliSiTef.GetTransacaoAprovada : Boolean;
-begin
-   Result := True ;
-end;
-
 procedure TACBrTEFDRespCliSiTef.ConteudoToProperty;
-var
-   I, wTipoOperacao, wNumCB: Integer;
-   wTotalParc, wValParc: Double;
-   Parc  : TACBrTEFDRespParcela;
-   Linha : TACBrTEFDLinha;
-   CB    : TACBrTEFDRespCB;
-   LinStr: AnsiString;
 begin
-   fpValorTotal := 0;
-   fpImagemComprovante1aVia.Clear;
-   fpImagemComprovante2aVia.Clear;
-   fpDebito    := False;
-   fpCredito   := False;
-   fpDigitado  := False;
-
-   for I := 0 to Conteudo.Count - 1 do
-   begin
-     Linha  := Conteudo.Linha[I];
-     LinStr := StringToBinaryString( Linha.Informacao.AsString );
-
-     case Linha.Identificacao of
-        29 : fpDigitado := (LinStr = 'True');
-       // TODO: Mapear mais propriedades do CliSiTef //
-       100 :
-         begin
-            fpModalidadePagto := LinStr;
-
-            case StrToIntDef(Copy(fpModalidadePagto,1,2),0) of
-              01 : fpDebito  := True;
-              02 : fpCredito := True;
-            end;
-
-            wTipoOperacao:= StrToIntDef(Copy(fpModalidadePagto,3,2),0);
-            {Tipo de Parcelamento}
-            case wTipoOperacao of
-               02 : fpParceladoPor:= parcLoja;
-               03 : fpParceladoPor:= parcADM;
-            end;
-
-            case wTipoOperacao of
-               00    : fpTipoOperacao:= opAvista;
-               01    : fpTipoOperacao:= opPreDatado;
-               02,03 : fpTipoOperacao:= opParcelado;
-               else
-                 fpTipoOperacao:= opOutras;
-            end;
-         end;
-       101 : fpModalidadePagtoExtenso  := LinStr;
-       102 : fpModalidadePagtoDescrita := LinStr;
-       105 :
-         begin
-           fpDataHoraTransacaoComprovante  := Linha.Informacao.AsTimeStampSQL;
-           fpDataHoraTransacaoHost         := fpDataHoraTransacaoComprovante ;
-           fpDataHoraTransacaoLocal        := fpDataHoraTransacaoComprovante ;
-         end;
-       120 : fpAutenticacao                := LinStr;
-       121 : fpImagemComprovante1aVia.Text := StringReplace( StringToBinaryString( Linha.Informacao.AsString ), #10, sLineBreak, [rfReplaceAll] );
-       122 : fpImagemComprovante2aVia.Text := StringReplace( StringToBinaryString( Linha.Informacao.AsString ), #10, sLineBreak, [rfReplaceAll] );
-       123 : fpTipoTransacao               := Linha.Informacao.AsInteger;
-       130 :
-         begin
-           fpSaque      := Linha.Informacao.AsFloat ;
-           fpValorTotal := fpValorTotal + fpSaque ;
-         end;
-       131 : fpInstituicao                 := LinStr;
-       132 : fpCodigoBandeiraPadrao        := LinStr;
-       135 : fpCodigoAutorizacaoTransacao  := Linha.Informacao.AsString;
-       134 : fpNSU                         := LinStr;
-       136 : fpBin                         := Linha.Informacao.AsString;
-       139 : fpValorEntradaCDC             := Linha.Informacao.AsFloat;
-       140 : fpDataEntradaCDC              := Linha.Informacao.AsDate;
-       156 : fpRede                        := LinStr;
-       501 : fpTipoPessoa                  := AnsiChar(IfThen(Linha.Informacao.AsInteger = 0,'J','F')[1]);
-       502 : fpDocumentoPessoa             := LinStr ;
-       504 : fpTaxaServico                 := Linha.Informacao.AsFloat ;
-       505 : fpQtdParcelas                 := Linha.Informacao.AsInteger ;
-       506 : fpDataPreDatado               := Linha.Informacao.AsDate;
-       511 : fpQtdParcelas                 := Linha.Informacao.AsInteger;  {Parcelas CDC - Neste caso o campo 505 não é retornado}
-       515 : fpDataHoraTransacaoCancelada  := Linha.Informacao.AsDate ;
-       516 : fpNSUTransacaoCancelada       := LinStr;
-       527 : fpDataVencimento              := Linha.Informacao.AsDate;    { Data Vencimento do Cheque }
-       589 : fpCodigoOperadoraCelular      := LinStr;                     { Código da Operadora de Celular }
-       590 : fpNomeOperadoraCelular        := LinStr;                     { Nome da Operadora de Celular }
-       591 : fpValorRecargaCelular         := Linha.Informacao.AsFloat;   { Valor selecionado para a Recarga }
-       592 : fpNumeroRecargaCelular        := LinStr;                     { Numero de Celular informado para Recarda }
-
-       607 :  // Indice do Correspondente Bancário
-         begin
-           wNumCB := Linha.Informacao.AsInteger;
-
-           if (wNumCB = 1) then
-             fpCorrespBancarios.Clear;
-
-           CB := TACBrTEFDRespCB.Create;
-           CB.DataVencimento  := LeInformacao(600, wNumCB).AsDate;    { Data Vencimento do título - CB }
-           CB.ValorPago       := LeInformacao(601, wNumCB).AsFloat;   { Valor Pago do título - CB }
-           CB.ValorOriginal   := LeInformacao(602, wNumCB).AsFloat;   { Valor Original do título - CB }
-           CB.Acrescimo       := LeInformacao(603, wNumCB).AsFloat;   { Valor do Acréscimo - CB }
-           CB.Desconto        := LeInformacao(604, wNumCB).AsFloat;   { Valor do Desconto - CB }
-           CB.DataPagamento   := LeInformacao(605, wNumCB).AsDate;    { Data contábil do Pagamento - CB }
-           CB.NSUTransacaoCB  := LeInformacao(611, wNumCB).AsString;  { NSU da Transação CB }
-           CB.TipoDocumento   := LeInformacao(612, wNumCB).AsInteger; { Tipo Docto CB - 0:Arrecadação/ 1:Título/ 2:Tributo }
-           CB.NSUCancelamento := LeInformacao(623, wNumCB).AsString;  { NSU para cancelamento - CB }
-           CB.Documento       := LeInformacao(624, wNumCB).AsString;  { Linha Digitável/Código de Barras do documento pago}
-
-           fpCorrespBancarios.Add(CB);
-         end;
-       609 : fpCorrespBancarios.TotalTitulos        := Linha.Informacao.AsFloat;   { Valor total dos títulos efetivamente pagos no caso de pagamento em lote }
-       610 : fpCorrespBancarios.TotalTitulosNaoPago := Linha.Informacao.AsFloat;   { Valor total dos títulos NÃO pagos no caso de pagamento em lote }
-       613 :
-        begin
-          fpCheque                         := copy(LinStr, 21, 6);
-          fpCMC7                           := LinStr;
-        end;
-       626 : fpBanco                       := LinStr;
-       627 : fpAgencia                     := LinStr;
-       628 : fpAgenciaDC                   := LinStr;
-       629 : fpConta                       := LinStr;
-       630 : fpContaDC                     := LinStr;
-
-       899 :  // Tipos de Uso Interno do ACBrTEFD
-        begin
-          case Linha.Sequencia of
-              1 : fpCNFEnviado         := (UpperCase( Linha.Informacao.AsString ) = 'S' );
-              2 : fpIndiceFPG_ECF      := Linha.Informacao.AsString ;
-              3 : fpOrdemPagamento     := Linha.Informacao.AsInteger ;
-            100 : fpHeader             := LinStr;
-            101 : fpID                 := Linha.Informacao.AsInteger;
-            102 : fpDocumentoVinculado := LinStr;
-            103 : fpValorTotal         := fpValorTotal + Linha.Informacao.AsFloat;
-            500 : fpIdPagamento      := Linha.Informacao.AsInteger ;
-            501 : fpIdRespostaFiscal := Linha.Informacao.AsInteger ;
-          end;
-        end;
-
-       // dados de retorno da NFC-e/SAT
-       950: fpNFCeSAT.CNPJCredenciadora := Linha.Informacao.AsString;
-       951: fpNFCeSAT.Bandeira          := Linha.Informacao.AsString;
-       952: fpNFCeSAT.Autorizacao       := Linha.Informacao.AsString;
-       953: fpNFCeSAT.CodCredenciadora  := Linha.Informacao.AsString;
-      1002: fpNFCeSAT.DataExpiracao     := Linha.Informacao.AsString;
-      1003: fpNFCeSAT.DonoCartao        := Linha.Informacao.AsString;
-      1190: fpNFCeSAT.UltimosQuatroDigitos := Linha.Informacao.AsString;
-       4029 :
-        begin
-          fpDesconto   := Linha.Informacao.AsFloat;
-          fpValorTotal := fpValorTotal - fpDesconto;
-        end;
-
-     end;
-   end ;
-
-   fpQtdLinhasComprovante := max( fpImagemComprovante1aVia.Count,
-                                  fpImagemComprovante2aVia.Count ) ;
-
-  // leitura de parcelas conforme nova documentação
-  // 141 e 142 foram removidos em Setembro de 2014
-  fpParcelas.Clear;
-  if (fpQtdParcelas > 0) then
-  begin
-    wValParc   := RoundABNT((fpValorTotal / fpQtdParcelas), -2);
-    wTotalParc := 0;
-
-    for I := 1 to fpQtdParcelas do
-    begin
-      Parc := TACBrTEFDRespParcela.Create;
-      if I = 1 then
-      begin
-        Parc.Vencimento := LeInformacao(140, I).AsDate;
-        Parc.Valor      := LeInformacao(524, I).AsFloat;
-      end
-      else
-      begin
-        Parc.Vencimento := IncDay(LeInformacao(140, I).AsDate, LeInformacao(508, I).AsInteger);
-        Parc.Valor      := LeInformacao(525, I).AsFloat;
-      end;
-
-      // caso não retorne os dados acima prencher com os defaults
-      if Trim(Parc.NSUParcela) = '' then
-        Parc.NSUParcela := NSU;
-
-      if Parc.Vencimento <= 0 then
-        Parc.Vencimento := IncDay(fpDataHoraTransacaoHost, I * 30);
-
-      if Parc.Valor <= 0 then
-      begin
-        if (I = fpQtdParcelas) then
-          wValParc := fpValorTotal - wTotalParc
-        else
-          wTotalParc := wTotalParc + wValParc;
-
-        Parc.Valor := wValParc;
-      end;
-
-      fpParcelas.Add(Parc);
-    end;
-  end;
+  ConteudoToPropertyCliSiTef( Self );
 end;
 
 procedure TACBrTEFDRespCliSiTef.GravaInformacao(const Identificacao: Integer;
@@ -564,6 +256,8 @@ constructor TACBrTEFDCliSiTef.Create(AOwner : TComponent);
 begin
   inherited Create(AOwner);
 
+  fSiTefAPI := TACBrTEFCliSiTefAPI.Create;
+
   fIniciouRequisicao := False;
   fReimpressao       := False;
   fCancelamento      := False;
@@ -575,13 +269,15 @@ begin
   fpTipo    := gpCliSiTef;
   Name      := 'CliSiTef' ;
 
-  fEnderecoIP     := '' ;
-  fCodigoLoja     := '' ;
+  fEnderecoIP := '' ;
+  fCodigoLoja := '' ;
   fNumeroTerminal := '' ;
   fCNPJEstabelecimento := '';
-  fCNPJSoftwareHouse   := '';
-  fOperador       := '' ;
-  fRestricoes     := '' ;
+  fCNPJSoftwareHouse := '';
+  fOperador := '' ;
+  fRestricoes := '' ;
+  fPinPadChaveAcesso := '';
+  fPinPadIdentificador := '';
 
   fDocumentoFiscal := '';
   fDataHoraFiscal  := 0;
@@ -604,17 +300,6 @@ begin
   fParametrosAdicionais := TStringList.Create;
   fRespostas            := TStringList.Create;
 
-  xConfiguraIntSiTefInterativoEx      := nil;
-  xIniciaFuncaoSiTefInterativo        := nil;
-  xContinuaFuncaoSiTefInterativo      := nil;
-  xFinalizaFuncaoSiTefInterativo      := nil;
-  xEscreveMensagemPermanentePinPad    := nil;
-  xObtemQuantidadeTransacoesPendentes := nil;
-  xValidaCampoCodigoEmBarras          := nil;
-  xEnviaRecebeSiTefDireto             := nil;
-  xVerificaPresencaPinPad             := nil;
-  xObtemDadoPinPadDiretoEx            := nil;
-
   fOnExibeMenu  := nil ;
   fOnObtemCampo := nil ;
 
@@ -622,81 +307,16 @@ begin
      fpResp.Free ;
 
   fpResp := TACBrTEFDRespCliSiTef.Create;
-  fpResp.TipoGP := Tipo;
-end;
-
-function TACBrTEFDCliSiTef.DefineMensagemPermanentePinPad(Mensagem:AnsiString):Integer;
-begin
-   if Assigned(xEscreveMensagemPermanentePinPad) then
-      Result := xEscreveMensagemPermanentePinPad(PAnsiChar(Mensagem))
-   else
-      raise EACBrTEFDErro.Create( ACBrStr( CACBrTEFD_CliSiTef_NaoInicializado ) ) ;
+  fpResp.TipoGP := fpTipo;
 end;
 
 destructor TACBrTEFDCliSiTef.Destroy;
 begin
+   fSiTefAPI.Free;
    fParametrosAdicionais.Free ;
    fRespostas.Free ;
 
    inherited Destroy;
-end;
-
-procedure TACBrTEFDCliSiTef.LoadDLLFunctions ;
- procedure CliSiTefFunctionDetect( FuncName: AnsiString; var LibPointer: Pointer ) ;
- var
- sLibName: string;
- begin
-   if not Assigned( LibPointer )  then
-   begin
-     // Verifica se exite o caminho das DLLs
-     sLibName := '';
-     if Length(PathDLL) > 0 then
-        sLibName := PathWithDelim(PathDLL);
-
-     // Concatena o caminho se exitir mais o nome da DLL.
-     sLibName := sLibName + CACBrTEFD_CliSiTef_Lib;
-
-     if not FunctionDetect( sLibName, FuncName, LibPointer) then
-     begin
-        LibPointer := NIL ;
-        raise EACBrTEFDErro.Create( ACBrStr( 'Erro ao carregar a função:'+FuncName+
-                                         ' de: '+CACBrTEFD_CliSiTef_Lib ) ) ;
-     end ;
-   end ;
- end ;
-begin
-   CliSiTefFunctionDetect('ConfiguraIntSiTefInterativoEx', @xConfiguraIntSiTefInterativoEx);
-   CliSiTefFunctionDetect('IniciaFuncaoSiTefInterativo', @xIniciaFuncaoSiTefInterativo);
-   CliSiTefFunctionDetect('ContinuaFuncaoSiTefInterativo', @xContinuaFuncaoSiTefInterativo);
-   CliSiTefFunctionDetect('FinalizaFuncaoSiTefInterativo', @xFinalizaFuncaoSiTefInterativo);
-   CliSiTefFunctionDetect('EscreveMensagemPermanentePinPad',@xEscreveMensagemPermanentePinPad);
-   CliSiTefFunctionDetect('ObtemQuantidadeTransacoesPendentes',@xObtemQuantidadeTransacoesPendentes);
-   CliSiTefFunctionDetect('ValidaCampoCodigoEmBarras',@xValidaCampoCodigoEmBarras);
-   CliSiTefFunctionDetect('EnviaRecebeSiTefDireto',@xEnviaRecebeSiTefDireto);
-   CliSiTefFunctionDetect('VerificaPresencaPinPad',@xVerificaPresencaPinPad);
-   CliSiTefFunctionDetect('ObtemDadoPinPadDiretoEx', @xObtemDadoPinPadDiretoEx);
-end ;
-
-procedure TACBrTEFDCliSiTef.UnLoadDLLFunctions;
-var
-   sLibName: String;
-begin
-  sLibName := '';
-  if Length(PathDLL) > 0 then
-     sLibName := PathWithDelim(PathDLL);
-
-  UnLoadLibrary( sLibName + CACBrTEFD_CliSiTef_Lib );
-
-  xConfiguraIntSiTefInterativoEx      := Nil;
-  xIniciaFuncaoSiTefInterativo        := Nil;
-  xContinuaFuncaoSiTefInterativo      := Nil;
-  xFinalizaFuncaoSiTefInterativo      := Nil;
-  xEscreveMensagemPermanentePinPad    := Nil;
-  xObtemQuantidadeTransacoesPendentes := Nil;
-  xValidaCampoCodigoEmBarras          := Nil;
-  xEnviaRecebeSiTefDireto             := Nil;
-  xVerificaPresencaPinPad             := Nil;
-  xObtemDadoPinPadDiretoEx            := Nil;
 end;
 
 procedure TACBrTEFDCliSiTef.SetParametrosAdicionais(const AValue : TStringList
@@ -704,6 +324,11 @@ procedure TACBrTEFDCliSiTef.SetParametrosAdicionais(const AValue : TStringList
 begin
    fParametrosAdicionais.Assign( AValue ) ;
 end ;
+
+procedure TACBrTEFDCliSiTef.SetPathDLL(AValue: string);
+begin
+  fSiTefAPI.PathDLL := AValue;
+end;
 
 procedure TACBrTEFDCliSiTef.SetNumVias(const AValue : Integer);
 begin
@@ -724,7 +349,7 @@ begin
   if not Assigned( OnObtemCampo ) then
      raise EACBrTEFDErro.Create( ACBrStr('Evento "OnObtemCampo" não programado' ) ) ;
 
-  LoadDLLFunctions;
+  fSiTefAPI.Inicializada := True;
 
   // configuração da porta do pin-pad
   if PortaPinPad > 0 then
@@ -755,23 +380,23 @@ begin
                                             ' Resultado: 0'     +
                                             ' ParametrosAdicionais: '+ParamAdic ) ;
 
-  Sts := xConfiguraIntSiTefInterativoEx( PAnsiChar(fEnderecoIP),
-                                         PAnsiChar(fCodigoLoja),
-                                         PAnsiChar(fNumeroTerminal),
-                                         0,
-                                         PAnsiChar(ParamAdic) );
+  Sts := fSiTefAPI.ConfiguraIntSiTefInterativo( PAnsiChar(fEnderecoIP),
+                                                PAnsiChar(fCodigoLoja),
+                                                PAnsiChar(fNumeroTerminal),
+                                                0,
+                                                PAnsiChar(ParamAdic) );
   Erro := '' ;
   Case Sts of
-    1 :	Erro := CACBrTEFD_CliSiTef_Erro1;
-    2 : Erro := CACBrTEFD_CliSiTef_Erro2;
-    3 : Erro := CACBrTEFD_CliSiTef_Erro3;
-    6 : Erro := CACBrTEFD_CliSiTef_Erro6;
-    7 : Erro := CACBrTEFD_CliSiTef_Erro7;
-    8 : Erro := CACBrTEFD_CliSiTef_Erro8;
-   10 : Erro := CACBrTEFD_CliSiTef_Erro10;
-   11 : Erro := CACBrTEFD_CliSiTef_Erro11;
-   12 : Erro := CACBrTEFD_CliSiTef_Erro12;
-   13 : Erro := CACBrTEFD_CliSiTef_Erro13;
+    1 :	Erro := CACBrTEFCliSiTef_Erro1;
+    2 : Erro := CACBrTEFCliSiTef_Erro2;
+    3 : Erro := CACBrTEFCliSiTef_Erro3;
+    6 : Erro := CACBrTEFCliSiTef_Erro6;
+    7 : Erro := CACBrTEFCliSiTef_Erro7;
+    8 : Erro := CACBrTEFCliSiTef_Erro8;
+   10 : Erro := CACBrTEFCliSiTef_Erro10;
+   11 : Erro := CACBrTEFCliSiTef_Erro11;
+   12 : Erro := CACBrTEFCliSiTef_Erro12;
+   13 : Erro := CACBrTEFCliSiTef_Erro13;
   end;
 
   if Erro <> '' then
@@ -785,9 +410,8 @@ end;
 
 procedure TACBrTEFDCliSiTef.DesInicializar;
 begin
-   UnLoadDLLFunctions ;
-
-   inherited DesInicializar;
+  fSiTefAPI.Inicializada := False; ;
+  inherited DesInicializar;
 end;
 
 procedure TACBrTEFDCliSiTef.AtivarGP;
@@ -807,12 +431,12 @@ begin
   Sts := FazerRequisicao( fOperacaoATV, 'ATV' ) ;
 
   if Sts = 10000 then
-     Sts := ContinuarRequisicao( CACBrTEFD_CliSiTef_ImprimeGerencialConcomitante ) ;
+     Sts := ContinuarRequisicao( CACBrTEFCliSiTef_ImprimeGerencialConcomitante ) ;
 
   if ( Sts <> 0 ) then
      AvaliaErro( Sts )
   else
-     if not CACBrTEFD_CliSiTef_ImprimeGerencialConcomitante then
+     if not CACBrTEFCliSiTef_ImprimeGerencialConcomitante then
         ProcessarResposta;
 end;
 
@@ -823,14 +447,14 @@ begin
   Sts := FazerRequisicao( fOperacaoADM, 'ADM', 0, '', fRestricoes ) ;
 
   if Sts = 10000 then
-     Sts := ContinuarRequisicao( CACBrTEFD_CliSiTef_ImprimeGerencialConcomitante ) ;
+     Sts := ContinuarRequisicao( CACBrTEFCliSiTef_ImprimeGerencialConcomitante ) ;
 
   Result := ( Sts = 0 ) ;
 
   if not Result then
      AvaliaErro( Sts )
   else
-     if not CACBrTEFD_CliSiTef_ImprimeGerencialConcomitante then
+     if not CACBrTEFCliSiTef_ImprimeGerencialConcomitante then
         ProcessarResposta;
 end;
 
@@ -930,8 +554,9 @@ begin
 end;
 
 function TACBrTEFDCliSiTef.CNC(Rede, NSU: String; DataHoraTransacao: TDateTime;
-  Valor: Double): Boolean;
+  Valor: Double; CodigoAutorizacaoTransacao: String): Boolean;
 var
+   Restr : AnsiString;
    Sts : Integer;
 begin
   Respostas.Values['146'] := FormatFloat('0.00',Valor);
@@ -939,17 +564,21 @@ begin
   Respostas.Values['515'] := FormatDateTime('DDMMYYYY',DataHoraTransacao) ;
   Respostas.Values['516'] := NSU ;
 
-  Sts := FazerRequisicao( fOperacaoCNC, 'CNC' ) ;
+  Restr := fRestricoes;
+  if Restr = '' then
+     Restr := '[10]';
+
+  Sts := FazerRequisicao( fOperacaoCNC, 'CNC', Valor, '', Restr);
 
   if Sts = 10000 then
-     Sts := ContinuarRequisicao( CACBrTEFD_CliSiTef_ImprimeGerencialConcomitante ) ;
+     Sts := ContinuarRequisicao( CACBrTEFCliSiTef_ImprimeGerencialConcomitante ) ;
 
   Result := ( Sts = 0 ) ;
 
   if not Result then
      AvaliaErro( Sts )
   else
-     if not CACBrTEFD_CliSiTef_ImprimeGerencialConcomitante then
+     if not CACBrTEFCliSiTef_ImprimeGerencialConcomitante then
         ProcessarResposta;
 end;
 
@@ -961,14 +590,14 @@ begin
   Sts := FazerRequisicao( fOperacaoPRE, 'PRE', Valor, '', fRestricoes ) ;
 
   if Sts = 10000 then
-     Sts := ContinuarRequisicao( CACBrTEFD_CliSiTef_ImprimeGerencialConcomitante ) ;
+     Sts := ContinuarRequisicao( CACBrTEFCliSiTef_ImprimeGerencialConcomitante ) ;
 
   Result := ( Sts = 0 ) ;
 
   if not Result then
      AvaliaErro( Sts )
   else
-     if not CACBrTEFD_CliSiTef_ImprimeGerencialConcomitante then
+     if not CACBrTEFCliSiTef_ImprimeGerencialConcomitante then
         ProcessarResposta;
 end;
 
@@ -979,133 +608,6 @@ begin
   FinalizarTransacao( False, DocumentoVinculado, Finalizacao );
 end;
 
-function TACBrTEFDCliSiTef.ObtemDadoPinPadDiretoEx(Tipo_Doc: Integer; ChaveAcesso,
-  Identificador: PAnsiChar): AnsiString;
- var
-  Saida   : array of Byte;
-  Retorno : Integer;
-  Caracter: Char;
-  sSaida  : string;
-  I       : Integer;
-
- const
-  EntradaCelular = '011111NUMERO CELULAR                  CONFIRME NUMERO |(xx) xxxxx-xxxx  ';
-  EntradaCPF     = '011111DIGITE O CPF                    CONFIRME O CPF  |xxx.xxx.xxx-xx  ';
-  EntradaCNPJ    =                                                             //
-   '020808INFORME CNPJ P1                 CONFIRME P1     |xx.xxx.xxx      ' + //
-   '0606INFORME CNPJ P2                 CONFIRME P2     |xxxx-xx         ';
-
- begin
-  if Assigned(xObtemDadoPinPadDiretoEx) then
-   begin
-    Result := '';
-    SetLength(Saida, 15);
-
-    case Tipo_Doc of
-     1:
-      begin
-       Retorno := xObtemDadoPinPadDiretoEx(PAnsiChar(ChaveAcesso), PAnsiChar(Identificador), PAnsiChar(EntradaCPF), Saida);
-      end;
-     2:
-      begin
-       Retorno := xObtemDadoPinPadDiretoEx(PAnsiChar(ChaveAcesso), PAnsiChar(Identificador), PAnsiChar(EntradaCNPJ), Saida);
-      end;
-     3:
-      begin
-       Retorno := xObtemDadoPinPadDiretoEx(PAnsiChar(ChaveAcesso), PAnsiChar(Identificador), PAnsiChar(EntradaCelular), Saida);
-      end;
-    else
-      Retorno := -1;
-    end;
-    if Retorno = 0 then
-     begin
-      sSaida := '';
-      case Tipo_Doc of
-       1:
-        begin
-         for I := 4 to 14 do
-          begin
-           Caracter := Char(Saida[I]);
-           sSaida   := sSaida + Caracter;
-          end;
-        end;
-       2:
-        begin
-         for I := 4 to 19 do
-          begin
-           Caracter := Char(Saida[I]);
-           sSaida   := sSaida + Caracter;
-          end;
-         Delete(sSaida, 9, 2);
-        end;
-       3:
-        begin
-         for I := 4 to 14 do
-          begin
-           Caracter := Char(Saida[I]);
-           sSaida   := sSaida + Caracter;
-          end;
-        end;
-
-      end;
-      Result := sSaida;
-     end;
-    Saida := nil;
-   end
-  else
-   begin
-    raise EACBrTEFDErro.Create(ACBrStr(CACBrTEFD_CliSiTef_NaoInicializado));
-   end;
-end;
-
-function TACBrTEFDCliSiTef.ObtemQuantidadeTransacoesPendentes(Data:TDateTime;
-  CupomFiscal: AnsiString): Integer;
-var
-  sDate:AnsiString;
-begin
-   sDate:= FormatDateTime('yyyymmdd',Data);
-   if Assigned(xObtemQuantidadeTransacoesPendentes) then
-      Result := xObtemQuantidadeTransacoesPendentes(sDate,CupomFiscal)
-   else
-      raise EACBrTEFDErro.Create( ACBrStr( CACBrTEFD_CliSiTef_NaoInicializado ) ) ;
-end;
-
-function TACBrTEFDCliSiTef.EnviaRecebeSiTefDireto(RedeDestino: SmallInt;
-  FuncaoSiTef: SmallInt; OffsetCartao: SmallInt; DadosTx: AnsiString;
-  var DadosRx: AnsiString; var CodigoResposta: SmallInt;
-  TempoEsperaRx: SmallInt; CuponFiscal: AnsiString; Confirmar: Boolean
-  ): Integer;
-var
-  Buffer: array [0..20000] of AnsiChar;
-  ANow: TDateTime;
-  DataStr, HoraStr: String;
-begin
-  ANow    := Now ;
-  DataStr := FormatDateTime('YYYYMMDD', ANow );
-  HoraStr := FormatDateTime('HHNNSS', ANow );
-  Buffer := #0;
-  FillChar(Buffer, SizeOf(Buffer), 0);
-
-  GravaLog( 'EnviaRecebeSiTefDireto -> Rede:' +IntToStr(RedeDestino) +', Funcao:'+
-            IntToStr(FuncaoSiTef)+', OffSetCartao:'+IntToStr(OffsetCartao)+', DadosTX:'+
-            DadosTx+', TimeOut'+IntToStr(TempoEsperaRx)+' Cupom:'+CuponFiscal+', '+
-            ifthen(Confirmar,'Confirmar','NAO Confirmar'), True );
-
-  Result := xEnviaRecebeSiTefDireto( RedeDestino,
-                           FuncaoSiTef,
-                           OffsetCartao,
-                           DadosTx,
-                           Length(DadosTx)+1,
-                           Buffer,
-                           SizeOf(Buffer),
-                           CodigoResposta,
-                           TempoEsperaRx,
-                           CuponFiscal, DataStr, HoraStr, fOperador,
-                           IfThen(Confirmar,1,0) );
-
-  DadosRx := TrimRight( LeftStr(Buffer,max(Result,0)) ) ;
-end;
-
 function TACBrTEFDCliSiTef.FazerRequisicao(Funcao: Integer;
   AHeader: AnsiString; Valor: Double; Documento: AnsiString;
   ListaRestricoes: AnsiString): Integer;
@@ -1113,8 +615,8 @@ Var
   ValorStr, DataStr, HoraStr : AnsiString;
   DataHora : TDateTime ;
 begin
-   if not Assigned(xIniciaFuncaoSiTefInterativo) then
-      raise EACBrTEFDErro.Create(ACBrStr(CACBrTEFD_CliSiTef_NaoInicializado));
+   if not fSiTefAPI.Inicializada then
+      raise EACBrTEFDErro.Create(ACBrStr(CACBrTEFCliSiTef_NaoInicializado));
 
    if Documento = '' then
       Documento := DocumentoFiscal;
@@ -1123,7 +625,7 @@ begin
    Req.ValorTotal          := Valor;
 
    if fpAguardandoResposta then
-      raise EACBrTEFDErro.Create( ACBrStr( CACBrTEFD_CliSiTef_NaoConcluido ) ) ;
+      raise EACBrTEFDErro.Create( ACBrStr( CACBrTEFCliSiTef_NaoConcluido ) ) ;
 
    if (pos('{TipoTratamento=4}',ListaRestricoes) = 0) and
       (pos(AHeader,'CRT,CHQ') > 0 ) and
@@ -1148,13 +650,13 @@ begin
                                              ' Operador: '  +fOperador+
                                              ' Restricoes: '+ListaRestricoes ) ;
 
-   Result := xIniciaFuncaoSiTefInterativo( Funcao,
-                                           PAnsiChar( ValorStr ),
-                                           PAnsiChar( Documento ),
-                                           PAnsiChar( DataStr ),
-                                           PAnsiChar( HoraStr ),
-                                           PAnsiChar( fOperador ),
-                                           PAnsiChar( ListaRestricoes ) ) ;
+   Result := fSiTefAPI.IniciaFuncaoSiTefInterativo( Funcao,
+                                                    PAnsiChar( ValorStr ),
+                                                    PAnsiChar( Documento ),
+                                                    PAnsiChar( DataStr ),
+                                                    PAnsiChar( HoraStr ),
+                                                    PAnsiChar( fOperador ),
+                                                    PAnsiChar( ListaRestricoes ) ) ;
 
    { Adiciona Campos já conhecidos em Resp, para processa-los em
      métodos que manipulam "RespostasPendentes" (usa códigos do G.P.)  }
@@ -1186,7 +688,7 @@ var
   Resposta : AnsiString;
   SL : TStringList ;
   Interromper, Digitado, GerencialAberto, FechaGerencialAberto, ImpressaoOk,
-     HouveImpressao, Voltar : Boolean ;
+     HouveImpressao, Voltar, FinalizarTransacaoInterrompida : Boolean ;
   Est : AnsiChar;
 
   function ProcessaMensagemTela( AMensagem : String ) : String ;
@@ -1215,6 +717,7 @@ begin
    fArqBackUp        := '' ;
    Resposta          := '' ;
 
+   FinalizarTransacaoInterrompida := False;
    fpAguardandoResposta := True ;
    FechaGerencialAberto := True ;
 
@@ -1227,11 +730,12 @@ begin
             GravaLog( 'ContinuaFuncaoSiTefInterativo, Chamando: Continua = '+
                       IntToStr(Continua)+' Buffer = '+Resposta ) ;
 
-            Result := xContinuaFuncaoSiTefInterativo( ProximoComando,
-                                                      TipoCampo,
-                                                      TamanhoMinimo, TamanhoMaximo,
-                                                      Buffer, sizeof(Buffer),
-                                                      Continua );
+            Result := fSiTefAPI.ContinuaFuncaoSiTefInterativo( ProximoComando,
+                                                               TipoCampo,
+                                                               TamanhoMinimo,
+                                                               TamanhoMaximo,
+                                                               Buffer, sizeof(Buffer),
+                                                               Continua );
             Continua := 0;
             Mensagem := TrimRight( Buffer ) ;
             Resposta := '' ;
@@ -1446,7 +950,7 @@ begin
                  22 :
                    begin
                      if Mensagem = '' then
-                        Mensagem := CACBrTEFD_CliSiTef_PressioneEnter;
+                        Mensagem := CACBrTEFCliSiTef_PressioneEnter;
 
                      DoExibeMsg( opmOK, Mensagem );
                    end ;
@@ -1504,6 +1008,26 @@ begin
                      BloquearMouseTeclado(True);
                    end;
 
+                 50 :  // Exibir QRCode
+                   begin
+                     DoExibeQRCode( ProcessaMensagemTela( Mensagem ) );
+                   end;
+
+                 51 :   // Remover QRCode
+                   begin
+                     DoExibeQRCode( '' ) ;
+                   end;
+
+                 52 :   // Mensagem de rodapé QRCode
+                   begin
+                     Interromper := False;
+                     OnAguardaResp('52', 0, Interromper);
+                     if Interromper then
+                     begin
+                       Continua := -1 ;
+                       FinalizarTransacaoInterrompida := True;
+                     end;
+                   end;
               end;
             end
             else
@@ -1537,6 +1061,9 @@ begin
          if HouveImpressao or ( ImprimirComprovantes and fCancelamento) then
             FinalizarTransacao( ImpressaoOk, Resp.DocumentoVinculado );
 
+         if FinalizarTransacaoInterrompida then
+             FinalizarTransacao( False, Resp.DocumentoVinculado );
+
          BloquearMouseTeclado( False );
 
          { Transfere valore de "Conteudo" para as propriedades }
@@ -1547,7 +1074,7 @@ begin
 
          if (HouveImpressao and fCancelamento) then
             DoExibeMsg( opmOK,
-                        Format( CACBrTEFD_CliSiTef_TransacaoEfetuadaReImprimir,
+                        Format( CACBrTEFCliSiTef_TransacaoEfetuadaReImprimir,
                                 [Resp.NSU]) ) ;
 
          fpAguardandoResposta := False ;
@@ -1570,6 +1097,18 @@ begin
 
   Result := inherited CopiarResposta;
 end;
+
+procedure TACBrTEFDCliSiTef.AvaliaErro( Sts : Integer );
+var
+   Erro : String;
+begin
+   if not fExibirErroRetorno then
+     Exit;
+
+   Erro := fSiTefAPI.TraduzirErro(Sts);
+   if Erro <> '' then
+      TACBrTEFD(Owner).DoExibeMsg( opmOK, Erro );
+end ;
 
 procedure TACBrTEFDCliSiTef.ProcessarResposta;
 var
@@ -1642,16 +1181,16 @@ begin
                                           ' Data: '      +DataStr+
                                           ' Hora: '      +HoraStr ) ;
 
-  xFinalizaFuncaoSiTefInterativo( Finalizacao,
-                                  PAnsiChar( DocumentoVinculado ),
-                                  PAnsiChar( DataStr ),
-                                  PAnsiChar( HoraStr ),
-                                  PAnsiChar( ParamAdic ) ) ;
+  fSiTefAPI.FinalizaFuncaoSiTefInterativo( Finalizacao,
+                                           PAnsiChar( DocumentoVinculado ),
+                                           PAnsiChar( DataStr ),
+                                           PAnsiChar( HoraStr ),
+                                           PAnsiChar( ParamAdic ) ) ;
 
   if not Confirma then
   begin
      if fCancelamento then
-        AMsg := Format( CACBrTEFD_CliSiTef_TransacaoEfetuadaReImprimir, [Resp.NSU])
+        AMsg := Format( CACBrTEFCliSiTef_TransacaoEfetuadaReImprimir, [Resp.NSU])
      else
      begin
         try
@@ -1661,65 +1200,61 @@ begin
         end;
 
         if (Est = 'O') then
-           AMsg := CACBrTEFD_CliSiTef_TransacaoNaoEfetuada
+           AMsg := CACBrTEFCliSiTef_TransacaoNaoEfetuada
         else
-           AMsg := CACBrTEFD_CliSiTef_TransacaoNaoEfetuadaReterCupom;
+           AMsg := CACBrTEFCliSiTef_TransacaoNaoEfetuadaReterCupom;
      end;
 
      TACBrTEFD(Owner).DoExibeMsg( opmOK, AMsg );
   end;
 end;
 
-{ Valores de Retorno:
-  0 - se o código estiver correto;
-  1 a 4 - Indicando qual o bloco que está com erro
-  5 - Um ou mais blocos com erro
+function TACBrTEFDCliSiTef.DefineMensagemPermanentePinPad(Mensagem: AnsiString): Integer;
+begin
+  Result := fSiTefAPI.DefineMensagemPermanentePinPad(Mensagem);
+end;
 
-  Tipo: tipo de documento sendo coletado:
-        -1: Ainda não identificado
-        0: Arrecadação
-        1: Titulo
-}
+function TACBrTEFDCliSiTef.ObtemQuantidadeTransacoesPendentes(Data: TDateTime;
+  CupomFiscal: AnsiString): Integer;
+begin
+  Result := fSiTefAPI.ObtemQuantidadeTransacoesPendentes(Data, CupomFiscal);
+end;
+
+function TACBrTEFDCliSiTef.EnviaRecebeSiTefDireto(RedeDestino: SmallInt;
+  FuncaoSiTef: SmallInt; OffsetCartao: SmallInt; DadosTx: AnsiString;
+  var DadosRx: AnsiString; var CodigoResposta: SmallInt;
+  TempoEsperaRx: SmallInt; CupomFiscal: AnsiString; Confirmar: Boolean;
+  Operador: AnsiString): Integer;
+begin
+  GravaLog( 'EnviaRecebeSiTefDireto -> Rede:' +IntToStr(RedeDestino) +', Funcao:'+
+            IntToStr(FuncaoSiTef)+', OffSetCartao:'+IntToStr(OffsetCartao)+', DadosTX:'+
+            DadosTx+', TimeOut'+IntToStr(TempoEsperaRx)+' Cupom:'+CupomFiscal+', '+
+            ifthen(Confirmar,'Confirmar','NAO Confirmar'), True );
+
+  Result := fSiTefAPI.EnviaRecebeSiTefDireto( RedeDestino, FuncaoSiTef, OffsetCartao,
+                                              DadosTx, DadosRx, CodigoResposta,
+                                              TempoEsperaRx, CupomFiscal,
+                                              Confirmar, Operador);
+end;
+
 function TACBrTEFDCliSiTef.ValidaCampoCodigoEmBarras(Dados: AnsiString;
   var Tipo: SmallInt): Integer;
 begin
-  GravaLog('ValidaCodigoEmBarras -> Dados:' + Dados, True);
-
-  if Assigned(xValidaCampoCodigoEmBarras) then
-    Result := xValidaCampoCodigoEmBarras(Dados,Tipo)
-  else
-    raise EACBrTEFDErro.Create(ACBrStr(CACBrTEFD_CliSiTef_NaoInicializado));
+  GravaLog('ValidaCampoCodigoEmBarras -> Dados:' + Dados, True);
+  Result := fSiTefAPI.ValidaCampoCodigoEmBarras(Dados, Tipo);
 end;
 
-procedure TACBrTEFDCliSiTef.AvaliaErro( Sts : Integer );
-var
-   Erro : String;
+function TACBrTEFDCliSiTef.VerificaPresencaPinPad: Boolean;
 begin
-   if not fExibirErroRetorno then
-     Exit;
+  GravaLog('VerificaPresencaPinpad', True);
+  Result := fSiTefAPI.VerificaPresencaPinPad;
+end;
 
-   Erro := '' ;
-   Case Sts of
-        -1 : Erro := 'Módulo não inicializado' ;
-        -2 : Erro := 'Operação cancelada pelo operador' ;
-        -3 : Erro := 'Fornecido um código de função inválido' ;
-        -4 : Erro := 'Falta de memória para rodar a função' ;
-        -5 : Erro := '' ; // 'Sem comunicação com o SiTef' ; // Comentado pois SiTEF já envia a msg de Erro
-        -6 : Erro := 'Operação cancelada pelo usuário' ;
-        -40: Erro := 'Transação negada pelo SiTef';
-        -43: Erro := 'Falha no pinpad';
-        -50: Erro := 'Transação não segura';
-        -100: Erro := 'Erro interno do módulo';
-   else
-      if Sts < 0 then
-         Erro := 'Erros detectados internamente pela rotina ('+IntToStr(Sts)+')'
-      else
-         Erro := 'Negada pelo autorizador ('+IntToStr(Sts)+')' ;
-   end;
-
-   if Erro <> '' then
-      TACBrTEFD(Owner).DoExibeMsg( opmOK, Erro );
-end ;
+function TACBrTEFDCliSiTef.ObtemDadoPinPadDiretoEx(TipoDocumento: Integer;
+  ChaveAcesso, Identificador: AnsiString): AnsiString;
+begin
+  Result := fSiTefAPI.ObtemDadoPinPadDiretoEx(TipoDocumento, ChaveAcesso, Identificador);
+end;
 
 function TACBrTEFDCliSiTef.GetDataHoraFiscal: TDateTime;
 begin
@@ -1741,6 +1276,11 @@ begin
         Result := HMS
      else
         Result := fDocumentoFiscal;
+end;
+
+function TACBrTEFDCliSiTef.GetPathDLL: string;
+begin
+  Result := fSiTefAPI.PathDLL;
 end;
 
 
@@ -1778,7 +1318,8 @@ begin
                  RespostaPendente.OrdemPagamento := RespostasPendentes.Count + 1 ;
                  ImpressaoOk := True ;
               except
-                 on EACBrTEFDECF do ImpressaoOk := False ;
+                 on EACBrTEFDECF do
+                    ImpressaoOk := False ;
                  else
                     raise ;
               end;
@@ -1830,26 +1371,34 @@ begin
    Result := FormatDateTime('hhmmss',Now);
 end;
 
-function TACBrTEFDCliSiTef.VerificaPresencaPinPad: Boolean;
+function TACBrTEFDCliSiTef.CDP(const EntidadeCliente: string; out Resposta: string): Boolean;
+var
+  ATipo: Integer;
 begin
-  GravaLog('VerificaPresencaPinpad', True);
-
-  {
-   Retornos:
-      1: Existe um PinPad operacional conectado ao micro;
-      0: Nao Existe um PinPad conectado ao micro;
-     -1: Biblioteca de acesso ao PinPad não encontrada }
-
-  if Assigned(xVerificaPresencaPinPad) then
-    Result := ( xVerificaPresencaPinPad() = 1 )
+  if EntidadeCliente = 'F' then
+    ATipo := 1
+  else if EntidadeCliente = 'J' then
+    ATipo := 2
   else
-    raise EACBrTEFDErro.Create(ACBrStr(CACBrTEFD_CliSiTef_NaoInicializado));
+    ATipo := 3;
+
+  Resposta := ObtemDadoPinPadDiretoEx(ATipo, PinPadChaveAcesso, PinPadIdentificador);
+  Result := (Resposta <> '');
 end;
 
-
-function TACBrTEFDCliSiTef.CDP(const EntidadeCliente: string; out Resposta: string): Boolean;
+procedure TACBrTEFDCliSiTef.ExibirMensagemPinPad(const MsgPinPad: String);
+var
+  Ret: Integer;
+  Erro: String;
 begin
-  raise EACBrTEFDErro.Create( ACBrStr('Não implementado para SiTef no momento. Use a função "ObtemDadoPinPadDiretoEx".') ) ;
+  Ret := DefineMensagemPermanentePinPad(MsgPinPad);
+
+  if (Ret <> 0) then
+  begin
+    Erro := fSiTefAPI.TraduzirErro(Ret);
+    if (Erro <> '') then
+      raise EACBrTEFDErro.Create( ACBrStr(Erro) ) ;
+  end;
 end;
 
 end.

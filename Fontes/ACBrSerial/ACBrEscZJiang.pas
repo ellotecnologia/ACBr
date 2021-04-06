@@ -30,13 +30,6 @@
 {       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
-{******************************************************************************
-|* Historico
-|*
-|* 11/02/2019:  Daniel Simões de Almeida
-|*   Inicio do desenvolvimento
-******************************************************************************}
-
 {$I ACBr.inc}
 
 unit ACBrEscZJiang;
@@ -51,8 +44,6 @@ uses
   {$ENDIF};
 
 type
-
-  { TACBrEscCustomPos }
 
   { TACBrEscZJiang }
 

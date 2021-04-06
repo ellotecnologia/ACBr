@@ -7,8 +7,8 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  sysutils,
-  Forms, Unit1, ConfiguraSerial, ACBrDeviceClass;
+  sysutils, Forms, Unit1, ConfiguraSerial, ACBrDeviceClass,
+  ACBrPosPrinterElginE1Service;
 
 {$R *.res}
 
@@ -18,6 +18,7 @@ begin
    SetHeapTraceOutput( 'c:\temp\heaptrclog.trc');
   {$ENDIF}
   RequireDerivedFormResource := True;
+  Application.Scaled := True;
   Application.Initialize;
   Application.CreateForm(TFrPosPrinterTeste, FrPosPrinterTeste);
   Application.Run;

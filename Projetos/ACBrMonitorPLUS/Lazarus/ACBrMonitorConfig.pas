@@ -1,11 +1,9 @@
 {*******************************************************************************}
-{ Projeto: ACBrMonitor                                                         }
+{ Projeto: ACBrMonitor                                                          }
 {  Executavel multiplataforma que faz uso do conjunto de componentes ACBr para  }
 { criar uma interface de comunicação com equipamentos de automacao comercial.   }
 {                                                                               }
-{ Direitos Autorais Reservados (c) 2010 Daniel Simoes de Almeida                }
-{                                                                               }
-{ Colaboradores nesse arquivo:                                  }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida                }
 {                                                                               }
 {  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr     }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr       }
@@ -194,6 +192,8 @@ type
     SegundoPlano      : Boolean;
     Codificacao       : String;
     HTML              : Boolean;
+    AttemptsMail      : Integer;
+    TimeOutMail       : Integer;
   end;
 
   TCertificado = record
@@ -203,6 +203,7 @@ type
     XmlSignLib        : Integer;
     SSLType           : Integer;
     ArquivoPFX        : String;
+    URLPFX            : String;
     NumeroSerie       : String;
     Senha             : String;
     ExibeRazaoSocialCertificado: Boolean;
@@ -316,6 +317,7 @@ type
     FonteRazao                       : Integer;
     FonteEndereco                    : Integer;
     FonteCampos                      : Integer;
+    FonteAdicionais                  : Integer;
     AlturaCampos                     : Integer;
     Margem                           : Double;
     MargemSup                        : Double;
@@ -345,6 +347,7 @@ type
     LogoEmCima                       : Boolean;
     ExpandirDadosAdicionaisAuto      : Boolean;
     ImprimeContinuacaoDadosAdicionaisPrimeiraPagina: Boolean;
+    ImprimirCampoFormaPagamento      : Integer;
   end;
 
   TDACTE = record
@@ -413,6 +416,7 @@ type
     IgnorarComandoModoEmissao: Boolean;
     ModoXML           : Boolean;
     RetirarAcentos    : Boolean;
+    RetirarEspacos    : Boolean;
     Gravar_Log_Comp   : Boolean;
     Arquivo_Log_Comp  : String;
     Linhas_Log_Comp   : Integer;
@@ -512,6 +516,7 @@ type
 
   TSAT = record
     Modelo                       : Integer;
+    Marca                        : String;
     ArqLog                       : String;
     NomeDLL                      : String;
     CodigoAtivacao               : String;
@@ -639,6 +644,7 @@ type
   TBoletoEmail = record
     EmailAssuntoBoleto         : String ;
     EmailMensagemBoleto        : String ;
+    EmailFormatoHTML           : Boolean;
   end;
 
   TBOLETO = record
@@ -647,6 +653,7 @@ type
     Logradouro                 : String ;
     Numero                     : String ;
     Bairro                     : String ;
+    CodCidade                  : Integer;
     Cidade                     : String ;
     CEP                        : String ;
     Complemento                : String ;
@@ -924,6 +931,8 @@ begin
       Ini.WriteBool( CSecEmail, CKeyEmailSegundoPlano, SegundoPlano );
       Ini.WriteString( CSecEmail, CKeyEmailCodificacao, Codificacao );
       Ini.WriteBool( CSecEmail, CKeyEmailHTML, HTML );
+      Ini.WriteInteger( CSecEmail, CKeyAttemptsMail, AttemptsMail );
+      Ini.WriteInteger( CSecEmail, CKeyTimeoutMail, TimeOutMail );
     end;
 
     with DFe do
@@ -931,6 +940,7 @@ begin
       Ini.WriteBool( CSecACBrNFeMonitor, CKeyIgnorarComandoModoEmissao, IgnorarComandoModoEmissao );
       Ini.WriteBool( CSecACBrNFeMonitor, CKeyModoXML, ModoXML );
       Ini.WriteBool( CSecACBrNFeMonitor, CKeyRetirarAcentos, RetirarAcentos );
+      Ini.WriteBool( CSecACBrNFeMonitor, CKeyRetirarEspacos, RetirarEspacos );
       Ini.WriteBool( CSecACBrNFeMonitor, CKeyGravar_Log_Comp, Gravar_Log_Comp );
       Ini.WriteString( CSecACBrNFeMonitor, CKeyArquivo_Log_Comp, Arquivo_Log_Comp );
       Ini.WriteInteger( CSecACBrNFeMonitor, CKeyLinhas_Log_Comp, Linhas_Log_Comp );
@@ -953,6 +963,7 @@ begin
       Ini.WriteInteger( CSecCertificado, CKeyXmlSignLib, XmlSignLib );
       Ini.WriteInteger( CSecCertificado, CKeySSLType, SSLType );
       Ini.WriteString( CSecCertificado, CKeyArquivoPFX, ArquivoPFX );
+      Ini.WriteString( CSecCertificado, CKeyURLPFX, URLPFX );
       Ini.WriteString( CSecCertificado, CKeyNumeroSerie, NumeroSerie );
       GravaINICrypt(Ini, CSecCertificado, CKeySenha, Senha, _C);
       Ini.WriteBool( CSecCertificado, CKeyExibeRazaoSocialCertificado, ExibeRazaoSocialCertificado );
@@ -1108,6 +1119,7 @@ begin
       Ini.WriteInteger( CSecDANFE,  CKeyDANFEFonteRazao             , FonteRazao );
       Ini.WriteInteger( CSecDANFE,  CKeyDANFEFonteEndereco          , FonteEndereco );
       Ini.WriteInteger( CSecDANFE,  CKeyDANFEFonteCampos            , FonteCampos );
+      Ini.WriteInteger( CSecDANFE,  CKeyDANFEFonteAdicionais        , FonteAdicionais );
       Ini.WriteInteger( CSecDANFE,  CKeyDANFEAlturaCampos           , AlturaCampos );
       Ini.WriteFloat( CSecDANFE,   CKeyDANFEMargem                  , Margem );
       Ini.WriteFloat( CSecDANFE,   CKeyDANFEMargemSup               , MargemSup );
@@ -1137,6 +1149,8 @@ begin
       Ini.WriteBool( CSecDANFE,  CKeyDANFELogoEmCima                     , LogoEmCima );
       Ini.WriteBool( CSecDANFE,  CKeyDANFEExpandirDadosAdicionaisAuto , ExpandirDadosAdicionaisAuto );
       Ini.WriteBool( CSecDANFE,  CKeyDANFEImprimeContinuacaoDadosAdicionaisPrimeiraPagina, ImprimeContinuacaoDadosAdicionaisPrimeiraPagina );
+      Ini.WriteInteger (CSecDANFE, CKeyDANFEImprimirCampoFormaPagamento, ImprimirCampoFormaPagamento);
+
     end;
 
     with DFe.Impressao.DACTE do
@@ -1170,6 +1184,7 @@ begin
     with SAT do
     begin
       ini.WriteInteger( CSecSAT, CKeySATModelo         , Modelo         );
+      ini.WriteString(  CSecSAT, CKeySATMarca          , Marca          );
       ini.WriteString(  CSecSAT, CKeySATArqLog         , ArqLog         );
       ini.WriteString(  CSecSAT, CKeySATNomeDLL        , NomeDLL        );
       ini.WriteString(  CSecSAT, CKeySATCodigoAtivacao , CodigoAtivacao );
@@ -1331,6 +1346,7 @@ begin
       ini.WriteString( CSecBOLETO, CKeyBOLETOLogradouro,    Logradouro    );
       ini.WriteString( CSecBOLETO, CKeyBOLETONumero,        Numero        );
       ini.WriteString( CSecBOLETO, CKeyBOLETOBairro,        Bairro        );
+      ini.WriteInteger( CSecBOLETO, CKeyBOLETOCodCidade,    CodCidade     );
       ini.WriteString( CSecBOLETO, CKeyBOLETOCidade,        Cidade        );
       ini.WriteString( CSecBOLETO, CKeyBOLETOCEP,           CEP           );
       ini.WriteString( CSecBOLETO, CKeyBOLETOComplemento,   Complemento   );
@@ -1387,6 +1403,7 @@ begin
     begin
       ini.WriteString( CSecBOLETO, CKeyBOLETOEmailAssuntoBoleto,        EmailAssuntoBoleto     );
       ini.WriteString( CSecBOLETO, CKeyBOLETOEmailMensagemBoleto,       EmailMensagemBoleto    );
+      ini.WriteBool(   CSecBOLETO, CKeyBOLETOEmailFormatoHTML,          EmailFormatoHTML       );
     end;
 
     SL := TStringList.Create;
@@ -1606,6 +1623,8 @@ begin
       SegundoPlano              := Ini.ReadBool( CSecEmail, CKeyEmailSegundoPlano, SegundoPlano );
       Codificacao               := Ini.ReadString( CSecEmail, CKeyEmailCodificacao, Codificacao );
       HTML                      := Ini.ReadBool( CSecEmail, CKeyEmailHTML, HTML );
+      AttemptsMail              := Ini.ReadInteger( CSecEmail, CKeyAttemptsMail, AttemptsMail );
+      TimeOutMail               := Ini.ReadInteger( CSecEmail, CKeyTimeoutMail, TimeOutMail );
     end;
 
     with DFe do
@@ -1613,6 +1632,7 @@ begin
       IgnorarComandoModoEmissao := Ini.ReadBool( CSecACBrNFeMonitor, CKeyIgnorarComandoModoEmissao, IgnorarComandoModoEmissao );
       ModoXML                   := Ini.ReadBool( CSecACBrNFeMonitor, CKeyModoXML, ModoXML );
       RetirarAcentos            := Ini.ReadBool( CSecACBrNFeMonitor, CKeyRetirarAcentos, RetirarAcentos );
+      RetirarEspacos            := Ini.ReadBool( CSecACBrNFeMonitor, CKeyRetirarEspacos, RetirarEspacos );
       Gravar_Log_Comp           := Ini.ReadBool( CSecACBrNFeMonitor, CKeyGravar_Log_Comp, Gravar_Log_Comp );
       Arquivo_Log_Comp          := Ini.ReadString( CSecACBrNFeMonitor, CKeyArquivo_Log_Comp, Arquivo_Log_Comp );
       Linhas_Log_Comp           := Ini.ReadInteger( CSecACBrNFeMonitor, CKeyLinhas_Log_Comp, Linhas_Log_Comp );
@@ -1635,6 +1655,7 @@ begin
       XmlSignLib                := Ini.ReadInteger( CSecCertificado, CKeyXmlSignLib, XmlSignLib );
       SSLType                   := Ini.ReadInteger( CSecCertificado, CKeySSLType, SSLType );
       ArquivoPFX                := Ini.ReadString( CSecCertificado, CKeyArquivoPFX, ArquivoPFX );
+      URLPFX                    := Ini.ReadString( CSecCertificado, CKeyURLPFX, URLPFX);
       NumeroSerie               := Ini.Readstring( CSecCertificado, CKeyNumeroSerie, NumeroSerie );
       Senha                     := LeINICrypt(Ini, CSecCertificado, CKeySenha, _C);
       ExibeRazaoSocialCertificado:= Ini.ReadBool( CSecCertificado, CKeyExibeRazaoSocialCertificado, ExibeRazaoSocialCertificado );
@@ -1775,6 +1796,7 @@ begin
       FonteRazao                :=  Ini.ReadInteger( CSecDANFE,  CKeyDANFEFonteRazao                     , FonteRazao );
       FonteEndereco             :=  Ini.ReadInteger( CSecDANFE,  CKeyDANFEFonteEndereco                  , FonteEndereco );
       FonteCampos               :=  Ini.ReadInteger( CSecDANFE,  CKeyDANFEFonteCampos                    , FonteCampos );
+      FonteAdicionais           :=  Ini.ReadInteger( CSecDANFE,  CKeyDANFEFonteAdicionais                , FonteAdicionais );
       AlturaCampos              :=  Ini.ReadInteger( CSecDANFE,  CKeyDANFEAlturaCampos                   , AlturaCampos );
       Margem                    :=  Ini.ReadFloat( CSecDANFE,   CKeyDANFEMargem                          , Margem );
       MargemSup                 :=  Ini.ReadFloat( CSecDANFE,   CKeyDANFEMargemSup                       , MargemSup );
@@ -1805,6 +1827,8 @@ begin
       ExpandirDadosAdicionaisAuto:= Ini.ReadBool( CSecDANFE,  CKeyDANFEExpandirDadosAdicionaisAuto      , ExpandirDadosAdicionaisAuto );
       ImprimeContinuacaoDadosAdicionaisPrimeiraPagina:= Ini.ReadBool( CSecDANFE,  CKeyDANFEImprimeContinuacaoDadosAdicionaisPrimeiraPagina,
                                                         ImprimeContinuacaoDadosAdicionaisPrimeiraPagina );
+      ImprimirCampoFormaPagamento   := Ini.ReadInteger( CSecDANFE, CKeyDANFEImprimirCampoFormaPagamento  , ImprimirCampoFormaPagamento );
+
     end;
 
     with DFe.Impressao.DACTE do
@@ -1859,6 +1883,7 @@ begin
     with SAT do
     begin
       Modelo                    := ini.ReadInteger( CSecSAT, CKeySATModelo         , Modelo         );
+      Marca                     := ini.ReadString(  CSecSAT, CKeySATMarca          , Marca          );
       ArqLog                    := ini.ReadString(  CSecSAT, CKeySATArqLog         , ArqLog         );
       NomeDLL                   := ini.ReadString(  CSecSAT, CKeySATNomeDLL        , NomeDLL        );
       CodigoAtivacao            := ini.ReadString(  CSecSAT, CKeySATCodigoAtivacao , CodigoAtivacao );
@@ -2021,6 +2046,7 @@ begin
       Logradouro             :=  ini.ReadString( CSecBOLETO, CKeyBOLETOLogradouro,  ini.ReadString( CSecBOLETO,CKeyBOLETOCedenteLogradouro, '') );
       Numero                 :=  ini.ReadString( CSecBOLETO, CKeyBOLETONumero,      ini.ReadString( CSecBOLETO,CKeyBOLETOCedenteNumero, '') );
       Bairro                 :=  ini.ReadString( CSecBOLETO, CKeyBOLETOBairro,      ini.ReadString( CSecBOLETO,CKeyBOLETOCedenteBairro, '') );
+      CodCidade              :=  ini.ReadInteger(CSecBOLETO, CKeyBOLETOCodCidade,   ini.ReadInteger( CSecBOLETO, CKeyBOLETOCodCidade, 0)  );
       Cidade                 :=  ini.ReadString( CSecBOLETO, CKeyBOLETOCidade,      ini.ReadString( CSecBOLETO,CKeyBOLETOCedenteCidade, '') );
       CEP                    :=  ini.ReadString( CSecBOLETO, CKeyBOLETOCEP,         ini.ReadString( CSecBOLETO,CKeyBOLETOCedenteCEP, '') );
       Complemento            :=  ini.ReadString( CSecBOLETO, CKeyBOLETOComplemento, ini.ReadString( CSecBOLETO,CKeyBOLETOCedenteComplemento, '') );
@@ -2078,6 +2104,7 @@ begin
     begin
       EmailAssuntoBoleto     :=  ini.ReadString( CSecBOLETO, CKeyBOLETOEmailAssuntoBoleto,        EmailAssuntoBoleto     );
       EmailMensagemBoleto    :=  ini.ReadString( CSecBOLETO, CKeyBOLETOEmailMensagemBoleto,       EmailMensagemBoleto    );
+      EmailFormatoHTML       :=  ini.ReadBool(   CSecBOLETO, CKeyBOLETOEmailFormatoHTML,          EmailFormatoHTML    );
     end;
 
   finally
@@ -2118,7 +2145,7 @@ begin
     Converte_TXT_Entrada_Ansi := False;
     Converte_TXT_Saida_Ansi   := False;
     Intervalo                 := 50;
-    Gravar_Log                := False;
+    Gravar_Log                := True;
     Arquivo_Log               := 'LOG.TXT';
     Linhas_Log                := 0;
     Comandos_Remotos          := False;
@@ -2130,7 +2157,7 @@ begin
     MostrarNaBarraDeTarefas   := False;
     {$ENDIF}
     RetirarAcentosNaResposta  := False;
-    MostraLogEmRespostasEnviadas:= True;
+    MostraLogEmRespostasEnviadas:= False;
     HashSenha                 := '';
     Senha                     := '';
     VersaoSSL                 := 0;
@@ -2275,6 +2302,8 @@ begin
     SegundoPlano              := False;
     Codificacao               := '';
     HTML                      := False;
+    AttemptsMail              := 3;
+    TimeOutMail               := 0;
   end;
 
   with DFe do
@@ -2282,6 +2311,7 @@ begin
     IgnorarComandoModoEmissao := False;
     ModoXML                   := False;
     RetirarAcentos            := True;
+    RetirarEspacos            := False;
     Gravar_Log_Comp           := False;
     Arquivo_Log_Comp          := 'LOG_COMP.TXT';
     Linhas_Log_Comp           := 0;
@@ -2304,6 +2334,7 @@ begin
     XmlSignLib                := 0;
     SSLType                   := 0;
     ArquivoPFX                := '';
+    URLPFX                    := '';
     NumeroSerie               := '';
     Senha                     := '';
     ExibeRazaoSocialCertificado:= False;
@@ -2436,6 +2467,7 @@ begin
     FonteRazao                :=  8;
     FonteEndereco             :=  7;
     FonteCampos               :=  8;
+    FonteAdicionais           :=  8;
     AlturaCampos              :=  30;
     Margem                    :=  7;
     MargemSup                 :=  7;
@@ -2462,6 +2494,7 @@ begin
     ImprimirDadosDocReferenciados := True;
     ExibirBandInforAdicProduto := 0;
     ImprimeDescAcrescItemNFe   := 0;
+    ImprimirCampoFormaPagamento:= 0;
     LogoEmCima                 := False;
     ExpandirDadosAdicionaisAuto := False;
     ImprimeContinuacaoDadosAdicionaisPrimeiraPagina:= False;
@@ -2518,6 +2551,7 @@ begin
   with SAT do
   begin
     Modelo                    := 0;
+    Marca                     := '';
     ArqLog                    := 'ACBrSAT.log';
     NomeDLL                   := AcertaPath('SAT\Emulador\SAT.DLL');
     CodigoAtivacao            := '123456';
@@ -2679,6 +2713,7 @@ begin
     Logradouro             :=  '';
     Numero                 :=  '';
     Bairro                 :=  '';
+    CodCidade              :=  0;
     Cidade                 :=  '';
     CEP                    :=  '';
     Complemento            :=  '';
@@ -2735,6 +2770,7 @@ begin
   begin
     EmailAssuntoBoleto     :=  '';
     EmailMensagemBoleto    :=  '';
+    EmailFormatoHTML       := False;
   end;
 end;
 

@@ -47,6 +47,24 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+
+04/09/2020
+-- pcnCFe --
+[*] Melhorias na leitura .ini do CFe, validando primeiramente pelas tags com nomenclaturas padrão SEFAZ
+    (por: José M S Junior)
+
+04/08/2020
+-- ACBrSATExtratoESCPOS --
+[*] Ajustes para melhor impressão, em 40 colunas
+    (por: DSA)
+
+23/07/2020
+-- Diversos --
+[+] Acrescentado a unit pcnConsts em algumas units do componente.
+    Por conta da migração de algumas constantes de pcnGerador para
+    pcnConsts.
+   Por: Italo Jurisato Junior
+
 28/01/2020
 -- ACBrSATExtratoFortesFr --
 [*] Alterado o tipo da fonte do objeto mObsContrib.
@@ -1058,6 +1076,8 @@ Data: 24/02/2014     (por: DSA)
     comandos gerados para a Impressora  (por: Larissa)
     http://www.projetoacbr.com.br/forum/index.php?/topic/14395-impressão-extrato-cancelamento
 
+Data: 04/04/2013
+[+] Inicio do desenvolvimentodo extrato. (por André Ferreira de Moraes)
 
 
 

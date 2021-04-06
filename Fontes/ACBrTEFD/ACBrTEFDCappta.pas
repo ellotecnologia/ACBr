@@ -1,13 +1,11 @@
 {******************************************************************************}
-
 { Projeto: Componentes ACBr                                                    }
 {  Biblioteca multiplataforma de componentes Delphi para interaÁ„o com equipa- }
 { mentos de AutomaÁ„o Comercial utilizados no Brasil                           }
 {                                                                              }
-{ Direitos Autorais Reservados (c) 2019 Daniel Simoes de Almeida               }
-{                                       Juliomar Marchetti                     }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
 {                                                                              }
-{ Colaboradores nesse arquivo:                                                 }
+{ Colaboradores nesse arquivo: Juliomar Marchetti                              }
 {                                                                              }
 {  VocÍ pode obter a ˙ltima vers„o desse arquivo na pagina do  Projeto ACBr    }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
@@ -28,17 +26,9 @@
 { VocÍ tambÈm pode obter uma copia da licenÁa em:                              }
 { http://www.opensource.org/licenses/lgpl-license.php                          }
 {                                                                              }
-{ Daniel Simıes de Almeida  -  daniel@djsystem.com.br  -  www.djsystem.com.br  }
-{              PraÁa Anita Costa, 34 - TatuÌ - SP - 18270-410                  }
-{                                                                              }
+{ Daniel Simıes de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - TatuÌ - SP - 18270-170         }
 {******************************************************************************}
-
-{******************************************************************************
-|* Historico
-|*
-|* 10/03/2019: Juliomar Marchetti
-|*  - Primeira Versao: CriaÁao e DistribuiÁao da Primeira Versao
-******************************************************************************}
 
 {$I ACBr.inc}
 
@@ -51,13 +41,13 @@ uses
   Classes, SysUtils, ACBrTEFDClass
   {$IfNDef NOGUI}
     {$If DEFINED(VisualCLX)}
-  , QControls
-    {$ElseIf DEFINED(FMX)}
-  , System.UITypes
-    {$ElseIf DEFINED(DELPHICOMPILER16_UP)}
-  , System.UITypes
+      , QControls
     {$Else}
-  , Controls
+       {$If DEFINED(FMX)}
+         , FMX.Controls
+       {$Else}
+         , Controls
+       {$IfEnd}
     {$IfEnd}
   {$EndIf};
 
@@ -174,8 +164,7 @@ implementation
 
 uses
   {$IFDEF MSWINDOWS} Windows, {$ENDIF MSWINDOWS}
-  dateutils, Math, StrUtils,
-  ACBrTEFD, ACBrUtil;
+  ACBrUtil;
 
 { TACBrTEFDCappta }
 
@@ -197,7 +186,7 @@ procedure TACBrTEFDCappta.LoadDLLFunctions;
        if not FunctionDetect( sLibName, FuncName, LibPointer) then
        begin
           LibPointer := NIL ;
-          raise EACBrTEFDErro.Create( ACBrStr( 'Erro ao carregar a funùùo:'+FuncName+
+          raise EACBrTEFDErro.Create( ACBrStr( 'Erro ao carregar a funÁ„o:'+FuncName+
                                            ' de: '+CACBrTEFD_Cappta_Lib ) ) ;
        end ;
      end ;

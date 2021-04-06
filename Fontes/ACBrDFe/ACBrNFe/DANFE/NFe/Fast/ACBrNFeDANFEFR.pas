@@ -1,17 +1,16 @@
 {******************************************************************************}
-{ Projeto: Componente ACBrNFe                                                  }
-{  Biblioteca multiplataforma de componentes Delphi para emissão de Nota Fiscal}
-{ eletrônica - NFe - http://www.nfe.fazenda.gov.br                             }
+{ Projeto: Componentes ACBr                                                    }
+{  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
+{ mentos de Automação Comercial utilizados no Brasil                           }
 {                                                                              }
-{ Direitos Autorais Reservados (c) 2008 Wemerson Souto                         }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{                                                                              }
+{ Colaboradores nesse arquivo: Wemerson Souto                                  }
 {                                       Daniel Simoes de Almeida               }
 {                                       André Ferreira de Moraes               }
 {                                                                              }
-{ Colaboradores nesse arquivo:                                                 }
-{                                                                              }
-{  Você pode obter a última versão desse arquivo na pagina do Projeto ACBr     }
-{ Componentes localizado em http://www.sourceforge.net/projects/acbr           }
-{                                                                              }
+{  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
+{ Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
 {                                                                              }
 {  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la }
 { sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela  }
@@ -29,24 +28,10 @@
 { Você também pode obter uma copia da licença em:                              }
 { http://www.opensource.org/licenses/lgpl-license.php                          }
 {                                                                              }
-{ Daniel Simões de Almeida  -  daniel@djsystem.com.br  -  www.djsystem.com.br  }
-{              Praça Anita Costa, 34 - Tatuí - SP - 18270-410                  }
-{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
-{******************************************************************************
-|* Historico
-|*
-|* 11/08/2010: Itamar Luiz Bermond
-|*  - Inicio do desenvolvimento
-|* 24/08/2010: Régys Silveira
-|*  - Acerto da exportação para PDF
-|*  - Acerto para checar se o relatório foi realmente preparado
-|     antes de continuar a imprir ou gerar o PDF
-|*  - Acerto nas propriedades do arquivo PDF
-|* 26/08/2010: Régys Silveira / Itamar Bermond
-|*  - Acerto na propriedade "PreparedReport"
-******************************************************************************}
 {$I ACBr.inc}
 
 unit ACBrNFeDANFEFR;
@@ -81,10 +66,13 @@ type
     function GetPrintOnSheet: Integer;
     function GetExibeCaptionButton: Boolean;
     function GetZoomModePadrao: TfrxZoomMode;
+    {$IFNDEF FMX}
     function GetBorderIcon: TBorderIcons;
+    {$ENDIF}
     function GetIncorporarBackgroundPdf: Boolean;
     function GetIncorporarFontesPdf: Boolean;
     function GetOtimizaImpressaoPdf :Boolean;
+    function GetThreadSafe: Boolean;
 
     procedure SetFastFile(const Value: String);
     procedure SetFastFileEvento(const Value: String);
@@ -93,10 +81,13 @@ type
     procedure SetPrintOnSheet(const Value: Integer);
     procedure SetExibeCaptionButton(const Value: Boolean);
     procedure SetZoomModePadrao(const Value: TfrxZoomMode);
+    {$IFNDEF FMX}
     procedure SetBorderIcon(const Value: TBorderIcons);
+    {$ENDIF}
     procedure SetIncorporarBackgroundPdf(const Value: Boolean);
     procedure SetIncorporarFontesPdf(const Value: Boolean);
     procedure SetOtimizaImpressaoPdf(const Value: Boolean);
+    procedure SetThreadSafe(const Value: Boolean);
 
   public
     constructor Create(AOwner: TComponent); override;
@@ -125,9 +116,12 @@ type
     property OtimizaImpressaoPdf: Boolean read GetOtimizaImpressaoPdf write SetOtimizaImpressaoPdf default True;
     property PrintMode: TfrxPrintMode read GetPrintMode write SetPrintMode default pmDefault;
     property PrintOnSheet: Integer read GetPrintOnSheet write SetPrintOnSheet default 0;
+    {$IFNDEF FMX}
     property BorderIcon: TBorderIcons read GetBorderIcon write SetBorderIcon;
+    {$ENDIF}
     property ExibeCaptionButton: Boolean read GetExibeCaptionButton write SetExibeCaptionButton default False;
     property ZoomModePadrao: TfrxZoomMode read GetZoomModePadrao write SetZoomModePadrao default ZMDEFAULT;
+    property ThreadSafe: Boolean read GetThreadSafe write SetThreadSafe;
   end;
 
   {$IFDEF RTL230_UP}
@@ -148,7 +142,9 @@ type
     function GetPrintOnSheet: Integer;
     function GetExibeCaptionButton: Boolean;
     function GetZoomModePadrao: TfrxZoomMode;
+    {$IFNDEF FMX}
     function GetBorderIcon: TBorderIcons;
+    {$ENDIF}
     procedure SetFastFile(const Value: String);
     procedure SetFastFileEvento(const Value: String);
     procedure SetFastFileInutilizacao(const Value: String);
@@ -156,14 +152,17 @@ type
     procedure SetPrintOnSheet(const Value: Integer);
     procedure SetExibeCaptionButton(const Value: Boolean);
     procedure SetZoomModePadrao(const Value: TfrxZoomMode);
+    {$IFNDEF FMX}
     procedure SetBorderIcon(const Value: TBorderIcons);
+    {$ENDIF}
     function GetIncorporarBackgroundPdf: Boolean;
     function GetIncorporarFontesPdf: Boolean;
     procedure SetIncorporarBackgroundPdf(const Value: Boolean);
     procedure SetIncorporarFontesPdf(const Value: Boolean);
     function GetOtimizaImpressaoPdf: Boolean;
     procedure SetOtimizaImpressaoPdf(const Value: Boolean);
-
+    function GetThreadSafe: Boolean;
+    procedure SetThreadSafe(const Value: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -186,12 +185,15 @@ type
     property FastFileInutilizacao: String read GetFastFileInutilizacao write SetFastFileInutilizacao;
     property PrintMode: TfrxPrintMode read GetPrintMode write SetPrintMode default pmDefault;
     property PrintOnSheet: Integer read GetPrintOnSheet write SetPrintOnSheet default 0;
+    {$IFNDEF FMX}
     property BorderIcon: TBorderIcons read GetBorderIcon write SetBorderIcon;
+    {$ENDIF}
     property ExibeCaptionButton: Boolean read GetExibeCaptionButton write SetExibeCaptionButton default False;
     property ZoomModePadrao: TfrxZoomMode read GetZoomModePadrao write SetZoomModePadrao default ZMDEFAULT;
     property IncorporarBackgroundPdf: Boolean read GetIncorporarBackgroundPdf write SetIncorporarBackgroundPdf default True;
     property IncorporarFontesPdf: Boolean read GetIncorporarFontesPdf write SetIncorporarFontesPdf default True;
     property OtimizaImpressaoPdf: Boolean read GetOtimizaImpressaoPdf write SetOtimizaImpressaoPdf default True;
+    property ThreadSafe: Boolean read GetThreadSafe write SetThreadSafe;
   end;
 
 implementation
@@ -213,11 +215,12 @@ begin
   FdmDanfe.Free;
   inherited Destroy;
 end;
-
+{$IFNDEF FMX}
 function TACBrNFeDANFEFR.GetBorderIcon: TBorderIcons;
 begin
   Result := FdmDanfe.BorderIcon;
 end;
+{$ENDIF}
 
 function TACBrNFeDANFEFR.GetExibeCaptionButton: Boolean;
 begin
@@ -284,11 +287,16 @@ begin
   Result := FdmDanfe.PrintOnSheet;
 end;
 
+function TACBrNFeDANFEFR.GetThreadSafe: Boolean;
+begin
+  Result := FdmDanfe.ThreadSafe;
+end;
+{$IFNDEF FMX}
 procedure TACBrNFeDANFEFR.SetBorderIcon(const Value: TBorderIcons);
 begin
   FdmDanfe.BorderIcon := Value;
 end;
-
+{$ENDIF}
 procedure TACBrNFeDANFEFR.SetExibeCaptionButton(const Value: Boolean);
 begin
   FdmDanfe.ExibeCaptionButton := Value;
@@ -337,6 +345,11 @@ end;
 procedure TACBrNFeDANFEFR.SetPrintOnSheet(const Value: Integer);
 begin
   FdmDanfe.PrintOnSheet := Value;
+end;
+
+procedure TACBrNFeDANFEFR.SetThreadSafe(const Value: Boolean);
+begin
+  FdmDanfe.ThreadSafe := Value;
 end;
 
 procedure TACBrNFeDANFEFR.ImprimirDANFE(NFE: TNFe);
@@ -391,12 +404,12 @@ begin
   FdmDanfe.Free;
   inherited;
 end;
-
+{$IFNDEF FMX}
 function TACBrNFeDANFCEFR.GetBorderIcon: TBorderIcons;
 begin
   Result := FdmDanfe.BorderIcon;
 end;
-
+{$ENDIF}
 function TACBrNFeDANFCEFR.GetExibeCaptionButton: Boolean;
 begin
   Result := FdmDanfe.ExibeCaptionButton;
@@ -462,6 +475,11 @@ begin
   Result := FdmDanfe.PrintOnSheet;
 end;
 
+function TACBrNFeDANFCEFR.GetThreadSafe: Boolean;
+begin
+  Result := FdmDanfe.ThreadSafe;
+end;
+
 procedure TACBrNFeDANFCEFR.ImprimirDANFE(NFE: TNFe);
 begin
   FdmDanfe.ImprimirDANFE(NFE);
@@ -499,12 +517,12 @@ begin
   FdmDanfe.ImprimirINUTILIZACAOPDF(NFE);
   FPArquivoPDF := FdmDanfe.frxPDFExport.FileName;
 end;
-
+{$IFNDEF FMX}
 procedure TACBrNFeDANFCEFR.SetBorderIcon(const Value: TBorderIcons);
 begin
   FdmDanfe.BorderIcon := Value;
 end;
-
+{$ENDIF}
 procedure TACBrNFeDANFCEFR.SetExibeCaptionButton(const Value: Boolean);
 begin
   FdmDanfe.ExibeCaptionButton := Value;
@@ -554,6 +572,11 @@ end;
 procedure TACBrNFeDANFCEFR.SetPrintOnSheet(const Value: Integer);
 begin
   FdmDanfe.PrintOnSheet := Value;
+end;
+
+procedure TACBrNFeDANFCEFR.SetThreadSafe(const Value: Boolean);
+begin
+  FdmDanfe.ThreadSafe := Value;
 end;
 
 end.

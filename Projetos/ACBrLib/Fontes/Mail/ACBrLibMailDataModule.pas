@@ -2,33 +2,32 @@
 { Projeto: Componentes ACBr                                                    }
 {  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
-
-{ Direitos Autorais Reservados (c) 2018 Daniel Simoes de Almeida               }
-
+{                                                                              }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{                                                                              }
 { Colaboradores nesse arquivo: Italo Jurisato Junior                           }
-
+{                                                                              }
 {  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
-
+{                                                                              }
 {  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la }
 { sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela  }
 { Free Software Foundation; tanto a versão 2.1 da Licença, ou (a seu critério) }
 { qualquer versão posterior.                                                   }
-
+{                                                                              }
 {  Esta biblioteca é distribuída na expectativa de que seja útil, porém, SEM   }
 { NENHUMA GARANTIA; nem mesmo a garantia implícita de COMERCIABILIDADE OU      }
 { ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA. Consulte a Licença Pública Geral Menor}
 { do GNU para mais detalhes. (Arquivo LICENÇA.TXT ou LICENSE.TXT)              }
-
+{                                                                              }
 {  Você deve ter recebido uma cópia da Licença Pública Geral Menor do GNU junto}
 { com esta biblioteca; se não, escreva para a Free Software Foundation, Inc.,  }
 { no endereço 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.          }
 { Você também pode obter uma copia da licença em:                              }
-{ http://www.opensource.org/licenses/gpl-license.php                           }
-
-{ Daniel Simões de Almeida  -  daniel@djsystem.com.br  -  www.djsystem.com.br  }
-{        Rua Cel.Aureliano de Camargo, 973 - Tatuí - SP - 18270-170            }
-
+{ http://www.opensource.org/licenses/lgpl-license.php                          }
+{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
 unit ACBrLibMailDataModule;
@@ -38,7 +37,7 @@ unit ACBrLibMailDataModule;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, ACBrLibConfig, syncobjs, ACBrMail;
+  Classes, SysUtils, FileUtil, ACBrLibComum, ACBrLibConfig, syncobjs, ACBrMail;
 
 type
 
@@ -51,19 +50,23 @@ type
     procedure DataModuleDestroy(Sender: TObject);
   private
     FLock: TCriticalSection;
+    fpLib: TACBrLib;
 
   public
     procedure AplicarConfiguracoes;
     procedure GravarLog(AMsg: String; NivelLog: TNivelLog; Traduzir: Boolean = False);
     procedure Travar;
     procedure Destravar;
+
+    property Lib: TACBrLib read fpLib write fpLib;
+
   end;
 
 implementation
 
 uses
   ACBrUtil,
-  ACBrLibMailConfig, ACBrLibComum, ACBrLibMailClass;
+  ACBrLibMailConfig;
 
 {$R *.lfm}
 
@@ -83,7 +86,7 @@ procedure TLibMailDM.AplicarConfiguracoes;
 var
   pLibConfig: TLibMailConfig;
 begin
-  pLibConfig := TLibMailConfig(TACBrLibMail(pLib).Config);
+  pLibConfig := TLibMailConfig(Lib.Config);
 
   with ACBrMail1 do
   begin
@@ -98,20 +101,20 @@ begin
     IsHTML := pLibConfig.Email.IsHTML;
     Password := pLibConfig.Email.Senha;
     Port := IntToStr(pLibConfig.Email.Porta);
-    Priority := pLibConfig.Email.Priority;
-    ReadingConfirmation := pLibConfig.Email.Confirmacao;
-    DeliveryConfirmation := pLibConfig.Email.ConfirmacaoEntrega;
-    TimeOut := pLibConfig.Email.TimeOut;
-    Username := pLibConfig.Email.Usuario;
-    UseThread := pLibConfig.Email.SegundoPlano;
+    Priority := Lib.Config.Email.Priority;
+    ReadingConfirmation := Lib.Config.Email.Confirmacao;
+    DeliveryConfirmation := Lib.Config.Email.ConfirmacaoEntrega;
+    TimeOut := Lib.Config.Email.TimeOut;
+    Username := Lib.Config.Email.Usuario;
+    UseThread := Lib.Config.Email.SegundoPlano;
   end;
 end;
 
 procedure TLibMailDM.GravarLog(AMsg: String; NivelLog: TNivelLog;
   Traduzir: Boolean);
 begin
-  if Assigned(pLib) then
-    pLib.GravarLog(AMsg, NivelLog, Traduzir);
+  if Assigned(Lib) then
+    Lib.GravarLog(AMsg, NivelLog, Traduzir);
 end;
 
 procedure TLibMailDM.Travar;

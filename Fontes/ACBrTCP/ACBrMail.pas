@@ -32,14 +32,6 @@
 {       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
-{******************************************************************************
-|* Historico
-|*
-|* 11/10/2013: Primeira Versao
-|*    Jean Patrick Figueiredo dos Santos
-|*
-******************************************************************************}
-
 unit ACBrMail;
 
 {$I ACBr.inc}
@@ -48,7 +40,7 @@ interface
 
 uses
   Classes, syncobjs, SysUtils,
-  {$IF DEFINED(NEXTGEN)}
+  {$IF DEFINED(HAS_SYSTEM_GENERICS)}
    System.Generics.Collections, System.Generics.Defaults,
   {$ELSEIF DEFINED(DELPHICOMPILER16_UP)}
    System.Contnrs,
@@ -93,7 +85,7 @@ type
 
   { TMailAttachments }
 
-  TMailAttachments = class(TObjectList{$IfDef NEXTGEN}<TMailAttachment>{$EndIf})
+  TMailAttachments = class(TObjectList{$IfDef HAS_SYSTEM_GENERICS}<TMailAttachment>{$EndIf})
   protected
     procedure SetObject (Index: Integer; Item: TMailAttachment);
     function GetObject (Index: Integer): TMailAttachment;
@@ -517,7 +509,7 @@ begin
   fAttachments.Clear;
   SetPriority(MP_normal);
   fDefaultCharsetCode := UTF_8;
-  fIDECharsetCode := {$IfDef FPC}UTF_8{$Else}{$IfDef MSWINDOWS}CP1252{$Else}UTF_8{$EndIf}{$EndIf};
+  fIDECharsetCode := {$IfDef USE_UTF8}UTF_8{$Else}{$IfDef MSWINDOWS}CP1252{$Else}UTF_8{$EndIf}{$EndIf};
   fReadingConfirmation := False;
   fDeliveryConfirmation := False;
   fIsHTML := False;
@@ -727,7 +719,6 @@ begin
     AAttachment.Stream.Position := 0;
     MimePartAttach := fMIMEMess.AddPart(MultiPartParent);
     MimePartAttach.DecodedLines.LoadFromStream(AAttachment.Stream);
-    MimePartAttach.MimeTypeFromExt(AAttachment.FileName);
     MimePartAttach.Description := AAttachment.Description;
     case AAttachment.Disposition of
       adInline: MimePartAttach.Disposition := 'inline';
@@ -743,6 +734,7 @@ begin
     MimePartAttach.CharsetCode := fIDECharsetCode;
     MimePartAttach.TargetCharset := fIDECharsetCode;
     MimePartAttach.ConvertCharset := False;
+    MimePartAttach.MimeTypeFromExt(AAttachment.FileName);
 
     MimePartAttach.EncodePart;
     MimePartAttach.EncodePartHeader;

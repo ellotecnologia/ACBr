@@ -43,7 +43,7 @@
 #define MyAppVersion GetFileVersion(MyAppExeName)
 
 #define MyAppVerName MyAppName + "-" + MyAppVersion + "-" + MyAppTarget
-#define OpenSSLDir ACBrDIR + "\DLLs\OpenSSL\1.1.1.4\" + MyAppTarget
+#define OpenSSLDir ACBrDIR + "\DLLs\OpenSSL\1.1.1.10\" + MyAppTarget
 #define LibXML2Dir ACBrDIR + "\DLLs\LibXml2\" + MyAppTarget
 #define VCRedistInstaller "VC_redist." + MyAppTarget + ".exe"
 
@@ -115,9 +115,6 @@ Source: {#ACBrDIR}\Exemplos\ACBrDFe\Schemas\Reinf\*.*; DestDir: {app}\Schemas\Re
 Source: {#ACBrDIR}\Exemplos\ACBrDFe\Schemas\BPe\*.*; DestDir: {app}\Schemas\BPe; Components: programa;
 Source: {#ACBrDIR}\Exemplos\ACBrDFe\Schemas\GNRe\*.*; DestDir: {app}\Schemas\GNRe; Components: programa;
 
-;Lista de municípios do IBGE
-Source: {#ACBrMonitorPLUSDir}\MunIBGE\*.*; DestDir: {app}\MunIBGE; Flags: ; Components: programa
-
 ;Arquivos de Change-log.TXT
 Source: {#ACBrMonitorPLUSDir}\Notas_Lancamento.pdf; DestDir: {app}; Flags: ignoreversion; Components: help
 Source: {#ACBrMonitorPLUSDir}\ACBrMonitor-change-log.txt; DestDir: {app}\ChangeLog; Flags: ignoreversion; Components: help
@@ -143,6 +140,9 @@ Source: {#ACBrMonitorPLUSDir}\Exemplos\Cobol_TXT_Socket.zip; DestDir: {app}\Exem
 Source: {#ACBrMonitorPLUSDir}\Exemplos\Java_socket.txt; DestDir: {app}\Exemplos; Flags: ignoreversion; Components: exemplos
 Source: {#ACBrMonitorPLUSDir}\Exemplos\Oracle.txt; DestDir: {app}\Exemplos; Flags: ignoreversion; Components: exemplos
 Source: {#ACBrMonitorPLUSDir}\Exemplos\php_socket.zip; DestDir: {app}\Exemplos; Flags: ignoreversion; Components: exemplos
+
+;Arquivo com Códigos e Cidades IBGE
+Source: {#ACBrMonitorPLUSDir}\ACBrIBGE.txt; DestDir: {app}; Flags: ignoreversion; Components: programa
 
 ;DLL para acesso direto a portas
 #ifNDef App64bits
@@ -172,9 +172,9 @@ Source: {#LibXML2Dir}\libxslt.dll; DestDir: {app}; Components: programa; Flags: 
   Source: {#ACBrDIR}\DLLs\Capicom\msxml5.dll; DestDir: {syswow64}; Components: programa; Flags: regserver sharedfile
   Source: {#ACBrDIR}\DLLs\Capicom\msxml5r.dll; DestDir: {syswow64}; Components: programa; Flags: sharedfile
 
-  ;DLLs de Fabricantes SAT
-  Source: {#ACBrMonitorPLUSDir}\SAT\*.*; DestDir: {app}\SAT; Flags: recursesubdirs; Components: programa;
 #endif
+;DLLs de Fabricantes SAT
+  Source: {#ACBrMonitorPLUSDir}\SAT\*.*; DestDir: {app}\SAT; Flags: recursesubdirs; Components: programa;
 
 [INI]
 Filename: {app}\{#MyAppUrlName}; Section: InternetShortcut; Key: URL; String: {#MyAppURL}; Components: help

@@ -282,7 +282,7 @@ end;
 
 procedure Manifesto.Validar;
 var
-  Erro, AXML, DeclaracaoXML, AXMLModal, TagModal: String;
+  Erro, AXML, AXMLModal, TagModal: String;
   MDFeEhValida, ModalEhValido: Boolean;
   ALayout: TLayOutMDFe;
 begin
@@ -311,25 +311,30 @@ begin
     ALayout := LayMDFeRecepcao;
 
     // Extraindo apenas os dados da MDFe (sem mdfeProc)
-    DeclaracaoXML := ObtemDeclaracaoXML(AXML);
-    AXML := DeclaracaoXML + '<MDFe xmlns' +
-            RetornarConteudoEntre(AXML, '<MDFe xmlns', '</MDFe>') +
-            '</MDFe>';
+    AXML := ObterDFeXML(AXML, 'MDFe', ACBRMDFE_NAMESPACE);
 
-    ModalEhValido := SSL.Validar(AXMLModal, GerarNomeArqSchemaModal(AXML, FMDFe.infMDFe.Versao), Erro);
-
-    if not ModalEhValido then
+    if EstaVazio(AXML) then
     begin
-      FErroValidacao := ACBrStr('Falha na validação do Modal do Manifesto: ') +
-        IntToStr(MDFe.Ide.nMDF) + sLineBreak + FAlertas ;
-      FErroValidacaoCompleto := FErroValidacao + sLineBreak + Erro;
+      Erro := ACBrStr('MDFe não encontrada no XML');
+      MDFeEhValida := False;
+    end
+    else
+    begin
+      ModalEhValido := SSL.Validar(AXMLModal, GerarNomeArqSchemaModal(AXML, FMDFe.infMDFe.Versao), Erro);
 
-      raise EACBrMDFeException.CreateDef(
-        IfThen(Configuracoes.Geral.ExibirErroSchema, ErroValidacaoCompleto,
-        ErroValidacao));
+      if not ModalEhValido then
+      begin
+        FErroValidacao := ACBrStr('Falha na validação do Modal do Manifesto: ') +
+          IntToStr(MDFe.Ide.nMDF) + sLineBreak + FAlertas ;
+        FErroValidacaoCompleto := FErroValidacao + sLineBreak + Erro;
+
+        raise EACBrMDFeException.CreateDef(
+          IfThen(Configuracoes.Geral.ExibirErroSchema, ErroValidacaoCompleto,
+          ErroValidacao));
+      end;
+
+      MDFeEhValida := SSL.Validar(AXML, GerarNomeArqSchema(ALayout, FMDFe.infMDFe.Versao), Erro);
     end;
-
-    MDFeEhValida := SSL.Validar(AXML, GerarNomeArqSchema(ALayout, FMDFe.infMDFe.Versao), Erro);
 
     if not MDFeEhValida then
     begin
@@ -346,21 +351,23 @@ end;
 
 function Manifesto.VerificarAssinatura: Boolean;
 var
-  Erro, AXML, DeclaracaoXML: String;
+  Erro, AXML: String;
   AssEhValida: Boolean;
 begin
   AXML := XMLAssinado;
 
   with TACBrMDFe(TManifestos(Collection).ACBrMDFe) do
   begin
+    // Extraindo apenas os dados da MDFe (sem mdfeProc)
+    AXML := ObterDFeXML(AXML, 'MDFe', ACBRMDFE_NAMESPACE);
 
-    // Extraindo apenas os dados do MDFe (sem mdfeProc)
-    DeclaracaoXML := ObtemDeclaracaoXML(AXML);
-    AXML := DeclaracaoXML + '<MDFe xmlns' +
-            RetornarConteudoEntre(AXML, '<MDFe xmlns', '</MDFe>') +
-            '</MDFe>';
-
-    AssEhValida := SSL.VerificarAssinatura(AXML, Erro, 'infMDFe');
+    if EstaVazio(AXML) then
+    begin
+      Erro := ACBrStr('MDFe não encontrada no XML');
+      AssEhValida := False;
+    end
+    else
+      AssEhValida := SSL.VerificarAssinatura(AXML, Erro, 'infMDFe');
 
     if not AssEhValida then
     begin
@@ -608,6 +615,8 @@ begin
               INIRec.WriteString(sSecao, 'CIOT', CIOT);
               INIRec.WriteString(sSecao, 'CNPJCPF', CNPJCPF);
             end;
+
+            INIRec.WriteString(sSecao, 'categCombVeic', categCombVeicToStr(Rodo.infANTT.valePed.categCombVeic));
           end;
 
           for i := 0 to rodo.infANTT.valePed.disp.Count - 1 do
@@ -619,6 +628,7 @@ begin
               INIRec.WriteString(sSecao, 'CNPJPg', CNPJPg);
               INIRec.WriteString(sSecao, 'nCompra', nCompra);
               INIRec.WriteFloat(sSecao, 'vValePed', vValePed);
+              INIRec.WriteString(sSecao, 'tpValePed', tpValePedToStr(tpValePed));
             end;
           end;
 
@@ -642,6 +652,7 @@ begin
               INIRec.WriteString(sSecao, 'idEstrangeiro', idEstrangeiro);
               INIRec.WriteString(sSecao, 'CNPJCPF', CNPJCPF);
               INIRec.WriteFloat(sSecao, 'vContrato', vContrato);
+              INIRec.WriteString(sSecao, 'indAltoDesemp', indAltoDesempToStr(indAltoDesemp));
               INIRec.WriteString(sSecao, 'indPag', TindPagToStr(indPag));
 
               for j := 0 to rodo.infANTT.infPag[I].Comp.Count - 1 do
@@ -669,6 +680,7 @@ begin
               sSecao := 'infBanc' + IntToStrZero(I, 3);
               with rodo.infANTT.infPag.Items[i].infBanc do
               begin
+                INIRec.WriteString(sSecao, 'PIX', PIX);
                 INIRec.WriteString(sSecao, 'CNPJIPEF', CNPJIPEF);
                 INIRec.WriteString(sSecao, 'codBanco', codBanco);
                 INIRec.WriteString(sSecao, 'codAgencia', codAgencia);
@@ -742,7 +754,7 @@ begin
         moAereo:
         begin
           sSecao := 'aereo';
-          INIRec.WriteInteger(sSecao, 'matr', Aereo.matr);
+          INIRec.WriteString(sSecao, 'matr', Aereo.matr);
           INIRec.WriteString(sSecao, 'nVoo', Aereo.nVoo);
           INIRec.WriteString(sSecao, 'cAerEmb', Aereo.cAerEmb);
           INIRec.WriteString(sSecao, 'cAerDes', Aereo.cAerDes);
@@ -1143,7 +1155,7 @@ begin
 
       for i := 0 to autXML.Count - 1 do
       begin
-        sSecao := 'autXML' + IntToStrZero(I + 1, 3);
+        sSecao := 'autXML' + IntToStrZero(I + 1, 2);
         with autXML.Items[i] do
         begin
           INIRec.WriteString(sSecao, 'CNPJCPF', CNPJCPF);
@@ -1463,6 +1475,8 @@ begin
             CNPJCPF := sFim;
           end;
 
+          rodo.infANTT.valePed.categCombVeic := StrTocategCombVeic(OK, INIRec.ReadString(sSecao, 'categCombVeic', ''));
+
           Inc(I);
         end;
 
@@ -1479,10 +1493,11 @@ begin
 
           with rodo.infANTT.valePed.disp.New do
           begin
-            CNPJForn := sFim;
-            CNPJPg   := INIRec.ReadString(sSecao, 'CNPJPg', '');
-            nCompra  := INIRec.ReadString(sSecao, 'nCompra', '');
-            vValePed := StringToFloatDef(INIRec.ReadString(sSecao, 'vValePed', ''), 0 );
+            CNPJForn  := sFim;
+            CNPJPg    := INIRec.ReadString(sSecao, 'CNPJPg', '');
+            nCompra   := INIRec.ReadString(sSecao, 'nCompra', '');
+            vValePed  := StringToFloatDef(INIRec.ReadString(sSecao, 'vValePed', ''), 0 );
+            tpValePed := StrTotpValePed(OK, INIRec.ReadString(sSecao, 'tpValePed', ''));
           end;
 
           Inc(I);
@@ -1530,8 +1545,9 @@ begin
               if idEstrangeiro = '' then
                 CNPJCPF := INIRec.ReadString(sSecao, 'CNPJCPF', '');
 
-              vContrato := StringToFloatDef(INIRec.ReadString(sSecao, 'vContrato', ''), 0 );
-              indPag    := StrToTIndPag(ok, INIRec.ReadString(sSecao, 'indPag', '0'));
+              vContrato     := StringToFloatDef(INIRec.ReadString(sSecao, 'vContrato', ''), 0 );
+              indAltoDesemp := StrToindAltoDesemp(ok, INIRec.ReadString(sSecao, 'indAltoDesemp', ''));
+              indPag        := StrToTIndPag(ok, INIRec.ReadString(sSecao, 'indPag', '0'));
 
               J := 1;
               while true do
@@ -1542,7 +1558,7 @@ begin
                 if sFim = 'FIM' then
                   break;
 
-                with rodo.infANTT.infPag[I].Comp.New do
+                with Comp.New do
                 begin
                   tpComp := StrToTComp(ok, INIRec.ReadString(sSecao, 'tpComp', '01'));
                   vComp  := StringToFloatDef(INIRec.ReadString(sSecao, 'vComp', ''), 0 );
@@ -1552,7 +1568,7 @@ begin
                 Inc(J);
               end;
 
-              if MDFe.rodo.infANTT.infPag[I].indPag = ipPrazo then
+              if indPag = ipPrazo then
               begin
                 j := 1;
                 while true do
@@ -1563,7 +1579,7 @@ begin
                   if sFim = 'FIM' then
                     break;
 
-                  with rodo.infANTT.infPag[I].infPrazo.New do
+                  with infPrazo.New do
                   begin
                     nParcela := INIRec.ReadInteger(sSecao, 'nParcela', 1);
                     dVenc    := StringToDateTime(INIRec.ReadString(sSecao, 'dVenc', '0'));
@@ -1578,23 +1594,29 @@ begin
 
               if INIRec.SectionExists(sSecao) then
               begin
-                MDFe.rodo.infANTT.infPag[I].infBanc.CNPJIPEF := INIRec.ReadString(sSecao, 'CNPJIPEF', '');
-
-                if MDFe.rodo.infANTT.infPag[I].infBanc.CNPJIPEF = '' then
+                with infBanc do
                 begin
-                  MDFe.rodo.infANTT.infPag[I].infBanc.codBanco   := INIRec.ReadString(sSecao, 'codBanco', '');
-                  MDFe.rodo.infANTT.infPag[I].infBanc.codAgencia := INIRec.ReadString(sSecao, 'codAgencia', '');
+                  PIX := INIRec.ReadString(sSecao, 'PIX', '');
+
+                  if PIX = '' then
+                  begin
+                    CNPJIPEF := INIRec.ReadString(sSecao, 'CNPJIPEF', '');
+
+                    if CNPJIPEF = '' then
+                    begin
+                      codBanco   := INIRec.ReadString(sSecao, 'codBanco', '');
+                      codAgencia := INIRec.ReadString(sSecao, 'codAgencia', '');
+                    end;
+                  end;
                 end;
               end;
             end;
-
             Inc(I);
           end;
         end;
       end;
 
       // Dados do veículo de Tração (Obrigatório) - Nível 1
-
       if INIRec.ReadString('veicTracao', 'placa', '') <> '' then
       begin
         rodo.veicTracao.cInt    := INIRec.ReadString('veicTracao', 'cInt', '');
@@ -1703,10 +1725,10 @@ begin
       //
       //*********************************************************************
 
-      Aereo.nac := INIRec.ReadInteger('aereo', 'nac', 0);
-      if (Aereo.nac <> 0) then
+      Aereo.nac := INIRec.ReadString('aereo', 'nac', '');
+      if (Aereo.nac <> '') then
       begin
-        Aereo.matr    := INIRec.ReadInteger('aereo', 'matr', 0);
+        Aereo.matr    := INIRec.ReadString('aereo', 'matr', '');
         Aereo.nVoo    := INIRec.ReadString('aereo', 'nVoo', '');
         Aereo.cAerEmb := INIRec.ReadString('aereo', 'cAerEmb', '');
         Aereo.cAerDes := INIRec.ReadString('aereo', 'cAerDes', '');
@@ -2328,7 +2350,11 @@ begin
       begin
         sSecao := 'autXML' + IntToStrZero(I, 2);
         sFim   := INIRec.ReadString(sSecao, 'CNPJCPF', 'FIM');
-
+        if (sFim = 'FIM') or (Length(sFim) <= 0) then
+        begin
+          sSecao := 'autXML' + IntToStrZero(I, 3);
+          sFim   := INIRec.ReadString(sSecao, 'CNPJCPF', 'FIM');
+        end;
         if (sFim = 'FIM') or (Length(sFim) <= 0) then
           break;
 

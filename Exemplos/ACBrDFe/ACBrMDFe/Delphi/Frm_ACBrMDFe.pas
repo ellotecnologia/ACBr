@@ -1,3 +1,33 @@
+{******************************************************************************}
+{ Projeto: Componentes ACBr                                                    }
+{  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
+{ mentos de Automação Comercial utilizados no Brasil                           }
+{                                                                              }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{																			   }
+{  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
+{ Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
+{                                                                              }
+{  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la }
+{ sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela  }
+{ Free Software Foundation; tanto a versão 2.1 da Licença, ou (a seu critério) }
+{ qualquer versão posterior.                                                   }
+{                                                                              }
+{  Esta biblioteca é distribuída na expectativa de que seja útil, porém, SEM   }
+{ NENHUMA GARANTIA; nem mesmo a garantia implícita de COMERCIABILIDADE OU      }
+{ ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA. Consulte a Licença Pública Geral Menor}
+{ do GNU para mais detalhes. (Arquivo LICENÇA.TXT ou LICENSE.TXT)              }
+{                                                                              }
+{  Você deve ter recebido uma cópia da Licença Pública Geral Menor do GNU junto}
+{ com esta biblioteca; se não, escreva para a Free Software Foundation, Inc.,  }
+{ no endereço 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.          }
+{ Você também pode obter uma copia da licença em:                              }
+{ http://www.opensource.org/licenses/lgpl-license.php                          }
+{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
+{******************************************************************************}
+
 unit Frm_ACBrMDFe;
 
 interface
@@ -201,8 +231,9 @@ type
     btnInclusaoCondutor: TButton;
     btnInclusaoDFe: TButton;
     btnConsultarNaoEncerrados: TButton;
-    ACBrMDFeDAMDFeRL1: TACBrMDFeDAMDFeRL;
     btnPagOperacaoTransp: TButton;
+    ACBrMDFeDAMDFeRL1: TACBrMDFeDAMDFeRL;
+    btnEnviarEventoEmail: TButton;
     procedure FormCreate(Sender: TObject);
     procedure btnSalvarConfigClick(Sender: TObject);
     procedure sbPathMDFeClick(Sender: TObject);
@@ -260,11 +291,13 @@ type
     procedure btnInclusaoCondutorClick(Sender: TObject);
     procedure btnInclusaoDFeClick(Sender: TObject);
     procedure btnPagOperacaoTranspClick(Sender: TObject);
+    procedure btnEnviarEventoEmailClick(Sender: TObject);
   private
     { Private declarations }
     procedure GravarConfiguracao;
     procedure LerConfiguracao;
     procedure ConfigurarComponente;
+    procedure ConfigurarEmail;
     procedure AlimentarMDFe(NumDFe: String);
     Procedure AlimentarComponente(NumDFe: String);
     procedure LoadXML(RetWS: String; MyWebBrowser: TWebBrowser);
@@ -421,6 +454,15 @@ begin
     Ide.UFIni   := 'SP';
     Ide.UFFim   := 'SP';
 
+    // incluir a o percurso caso a URIni seja diferente de UFFim e que exista UF
+    // entre elas. (exemplo: UFIni = SP, UFFim = BA, UF de percuso = MG
+    {
+    with Ide.infPercurso.New do
+    begin
+      UFPer := 'XX';
+    end;
+    }
+
     with Ide.infMunCarrega.New do
     begin
       cMunCarrega := 3503208;
@@ -464,16 +506,13 @@ begin
     with rodo.infANTT.infContratante.New do
     begin
       CNPJCPF       := edtEmitCNPJ.Text;
-      // Campos Novos descomentar para fazer os testes
-//      idEstrangeiro := '';
-//      xNome         := 'Nome do Contatratante';
+      idEstrangeiro := '';
+      xNome         := 'Nome do Contatratante';
     end;
 
     {
     Informações OPCIONAIS sobre o Pagamento do Frete
     }
-    // Inicio dos Campos Novos descomentar para fazer os testes
-    (*
     with rodo.infANTT.infPag.New do
     begin
       xNome         := 'Nome do Responsavel pelo Pagamento';
@@ -537,7 +576,6 @@ begin
         rodo.infANTT.infPag[0].infBanc.codAgencia := '00001';
       end;
     end;
-    *)
 
     // Informações sobre o veiculo de tração
     rodo.veicTracao.cInt    := '001';
@@ -683,8 +721,6 @@ begin
     {
     Informações OPCIONAIS sobre o produto predominante
     }
-    // Inicio dos Campos Novos Descomentar para fazer os testes
-    (*
     prodPred.tpCarga := tcGranelSolido;
     prodPred.xProd   := 'Descricao do Produto';
     prodPred.cEAN    := '78967142344650';
@@ -701,7 +737,6 @@ begin
     prodPred.infLocalDescarrega.CEP       := 14800000;
     prodPred.infLocalDescarrega.latitude  := 0;
     prodPred.infLocalDescarrega.longitude := 0;
-    *)
 
     tot.qCTe := 2;
     tot.vCarga := 3500.00;
@@ -1178,36 +1213,83 @@ begin
 
   OpenDialog1.InitialDir := ACBrMDFe1.Configuracoes.Arquivos.PathSalvar;
 
+  if not OpenDialog1.Execute then
+    Exit;
+
+  ACBrMDFe1.Manifestos.Clear;
+  ACBrMDFe1.Manifestos.LoadFromFile(OpenDialog1.FileName);
+
+  CC := TStringList.Create;
+  try
+    //CC.Add('email_1@provedor.com'); //especifique um email valido
+    //CC.Add('email_2@provedor.com.br');    //especifique um email valido
+    ConfigurarEmail;
+    ACBrMDFe1.Manifestos.Items[0].EnviarEmail(Para
+      , edtEmailAssunto.Text
+      , mmEmailMsg.Lines
+      , True  // Enviar PDF junto
+      , CC    // Lista com emails que serao enviado copias - TStrings
+      , nil // Lista de anexos - TStrings
+      );
+  finally
+    CC.Free;
+  end;
+
+end;
+
+procedure TfrmACBrMDFe.btnEnviarEventoEmailClick(Sender: TObject);
+var
+  Para: String;
+  CC, Evento: Tstrings;
+begin
+  if not(InputQuery('Enviar Email', 'Email de destino', Para)) then
+    exit;
+
+  OpenDialog1.Title := 'Selecione o MDFe';
+  OpenDialog1.DefaultExt := '*-MDFe.xml';
+  OpenDialog1.Filter := 'Arquivos MDFe (*-MDFe.xml)|*-MDFe.xml|Arquivos XML (*.xml)|*.xml|Todos os arquivos (*.*)|*.*';
+
+  OpenDialog1.InitialDir := ACBrMDFe1.Configuracoes.Arquivos.PathSalvar;
+
   if OpenDialog1.Execute then
   begin
     ACBrMDFe1.Manifestos.Clear;
     ACBrMDFe1.Manifestos.LoadFromFile(OpenDialog1.FileName);
-    CC:=TstringList.Create;
-
-    try
-      CC.Add('andrefmoraes@gmail.com'); //especifique um email valido
-      CC.Add('anfm@zipmail.com.br');    //especifique um email valido
-
-      ACBrMail1.Host := edtSmtpHost.Text;
-      ACBrMail1.Port := edtSmtpPort.Text;
-      ACBrMail1.Username := edtSmtpUser.Text;
-      ACBrMail1.Password := edtSmtpPass.Text;
-      ACBrMail1.From := edtSmtpUser.Text;
-      ACBrMail1.SetSSL := cbEmailSSL.Checked; // SSL - Conexao Segura
-      ACBrMail1.SetTLS := cbEmailSSL.Checked; // Auto TLS
-      ACBrMail1.ReadingConfirmation := False; //Pede confirmacao de leitura do email
-      ACBrMail1.UseThread := False;           //Aguarda Envio do Email(nao usa thread)
-      ACBrMail1.FromName := 'Projeto ACBr - ACBrMDFe';
-
-      ACBrMDFe1.Manifestos.Items[0].EnviarEmail( Para, edtEmailAssunto.Text,
-                                               mmEmailMsg.Lines
-                                               , True  // Enviar PDF junto
-                                               , CC    // Lista com emails que serao enviado copias - TStrings
-                                               , nil); // Lista de anexos - TStrings
-    finally
-      CC.Free;
-    end;
   end;
+
+  OpenDialog1.Title := 'Selecione o evento';
+  OpenDialog1.DefaultExt := '*.XML';
+  OpenDialog1.Filter := 'Arquivos XML (*.xml)|*.xml|Todos os arquivos (*.*)|*.*';
+
+  OpenDialog1.InitialDir := ACBrMDFe1.Configuracoes.Arquivos.PathSalvar;
+
+  if not OpenDialog1.Execute then
+    Exit;
+
+  Evento := TStringList.Create;
+  CC := TStringList.Create;
+  try
+    Evento.Clear;
+    Evento.Add(OpenDialog1.FileName);
+
+    ACBrMDFe1.EventoMDFe.Evento.Clear;
+    ACBrMDFe1.EventoMDFe.LerXML(OpenDialog1.FileName);
+
+    //CC.Add('email_1@provedor.com'); // especifique um email valido
+    //CC.Add('email_2@provedor.com.br');    // especifique um email valido
+    ConfigurarEmail;
+    ACBrMDFe1.EnviarEmailEvento(Para
+      , edtEmailAssunto.Text
+      , mmEmailMsg.Lines
+      , CC // Lista com emails que serao enviado copias - TStrings
+      , nil // Lista de anexos - TStrings
+      , nil  // ReplyTo
+      );
+  finally
+    CC.Free;
+    Evento.Free;
+  end;
+
 end;
 
 procedure TfrmACBrMDFe.btnGerarPDFClick(Sender: TObject);
@@ -1954,6 +2036,7 @@ begin
     Ini.WriteString( 'DAMDFE', 'LogoMarca', edtLogoMarca.Text);
 
     ConfigurarComponente;
+    ConfigurarEmail;
   finally
     Ini.Free;
   end;
@@ -2075,6 +2158,7 @@ begin
     edtLogoMarca.Text      := Ini.ReadString( 'DAMDFe', 'LogoMarca',  '');
 
     ConfigurarComponente;
+    ConfigurarEmail;
   finally
     Ini.Free;
   end;
@@ -2164,15 +2248,29 @@ begin
     ACBrMDFe1.DAMDFe.PathPDF      := PathMensal;
     ACBrMDFe1.DAMDFe.TamanhoPapel := tpA4;
 
-    ACBrMDFe1.DAMDFe.MargemDireita  := 7;
-    ACBrMDFe1.DAMDFe.MargemEsquerda := 7;
-    ACBrMDFe1.DAMDFe.MargemSuperior := 5;
-    ACBrMDFe1.DAMDFe.MargemInferior := 5;
+    ACBrMDFe1.DAMDFe.MargemDireita  := 4;
+    ACBrMDFe1.DAMDFe.MargemEsquerda := 4;
+    ACBrMDFe1.DAMDFe.MargemSuperior := 7;
+    ACBrMDFe1.DAMDFe.MargemInferior := 7;
 
 //    ACBrMDFe1.DAMDFE.ImprimeDadosExtras := [];
 //    ACBrMDFe1.DAMDFE.ImprimeDadosExtras := [deRelacaoDFe];
-    ACBrMDFe1.DAMDFE.ImprimeDadosExtras := [deValorTotal];
+    ACBrMDFe1.DAMDFE.ImprimeDadosExtras := [deRelacaoDFe, deValorTotal];
   end;
+end;
+
+procedure TfrmACBrMDFe.ConfigurarEmail;
+begin
+  ACBrMail1.Host := edtSmtpHost.Text;
+  ACBrMail1.Port := edtSmtpPort.Text;
+  ACBrMail1.Username := edtSmtpUser.Text;
+  ACBrMail1.Password := edtSmtpPass.Text;
+  ACBrMail1.From := edtSmtpUser.Text;
+  ACBrMail1.SetSSL := cbEmailSSL.Checked; // SSL - Conexao Segura
+  ACBrMail1.SetTLS := cbEmailSSL.Checked; // Auto TLS
+  ACBrMail1.ReadingConfirmation := False; //Pede confirmacao de leitura do email
+  ACBrMail1.UseThread := False;           //Aguarda Envio do Email(nao usa thread)
+  ACBrMail1.FromName := 'Projeto ACBr - ACBrMDFe';
 end;
 
 procedure TfrmACBrMDFe.LoadXML(RetWS: String; MyWebBrowser: TWebBrowser);

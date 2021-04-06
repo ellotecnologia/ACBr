@@ -1,3 +1,33 @@
+{******************************************************************************}
+{ Projeto: Componentes ACBr                                                    }
+{  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
+{ mentos de Automação Comercial utilizados no Brasil                           }
+{                                                                              }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{																			   }
+{  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
+{ Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
+{                                                                              }
+{  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la }
+{ sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela  }
+{ Free Software Foundation; tanto a versão 2.1 da Licença, ou (a seu critério) }
+{ qualquer versão posterior.                                                   }
+{                                                                              }
+{  Esta biblioteca é distribuída na expectativa de que seja útil, porém, SEM   }
+{ NENHUMA GARANTIA; nem mesmo a garantia implícita de COMERCIABILIDADE OU      }
+{ ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA. Consulte a Licença Pública Geral Menor}
+{ do GNU para mais detalhes. (Arquivo LICENÇA.TXT ou LICENSE.TXT)              }
+{                                                                              }
+{  Você deve ter recebido uma cópia da Licença Pública Geral Menor do GNU junto}
+{ com esta biblioteca; se não, escreva para a Free Software Foundation, Inc.,  }
+{ no endereço 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.          }
+{ Você também pode obter uma copia da licença em:                              }
+{ http://www.opensource.org/licenses/lgpl-license.php                          }
+{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
+{******************************************************************************}
+
 unit Frm_ACBrCTe;
 
 interface
@@ -282,8 +312,10 @@ type
     procedure GravarConfiguracao;
     procedure LerConfiguracao;
     procedure ConfigurarComponente;
+    procedure ConfigurarEmail;
     procedure AlimentarCTe(NumDFe: String);
     procedure AlimentarCTeOS(NumDFe: String);
+    procedure AlimentarGTVe(NumDFe: String);
     Procedure AlimentarComponente(NumDFe: String);
     procedure LoadXML(RetWS: String; MyWebBrowser: TWebBrowser);
     procedure AtualizarSSLLibsCombo;
@@ -444,10 +476,12 @@ procedure TfrmACBrCTe.AlimentarComponente(NumDFe: String);
 begin
   ACBrCTe1.Conhecimentos.Clear;
 
-  if ACBrCTe1.Configuracoes.Geral.ModeloDF = moCTe then
-    AlimentarCTe(NumDFe)
+  case ACBrCTe1.Configuracoes.Geral.ModeloDF of
+    moCTeOS: AlimentarCTeOS(NumDFe);
+    moGTVe: AlimentarGTVe(NumDFe);
   else
-    AlimentarCTeOS(NumDFe);
+    AlimentarCTe(NumDFe);
+  end;
 end;
 
 procedure TfrmACBrCTe.AlimentarCTeOS(NumDFe: String);
@@ -455,10 +489,7 @@ begin
   //CTeOS
   with ACBrCTe1.Conhecimentos.Add.CTe do
   begin
-    if cbVersaoDF.ItemIndex = 0 then
-      infCTe.versao := 2.0
-    else
-      infCTe.versao := 3.0;
+    infCTe.versao := 3.0;
 
     Ide.cUF    := UFtoCUF(edtEmitUF.Text);
     Ide.CFOP   := 6932;
@@ -529,14 +560,20 @@ begin
     toma.email             := '';
 
     {Carrega valores da prestacao de servico}
-    vPrest.vTPrest         := 100.00;
-    vPrest.vRec            := 100.00;
+    vPrest.vTPrest := 100.00;
+    vPrest.vRec    := 100.00;
 
     {Carrega componentes do valor da prestacao}
-    with vPrest.comp.New do
+    with vPrest.comp.Add do
     begin
-      xNome                := 'DFRNER KRTJ';
-      vComp                := 374347.00;
+      xNome := 'Componente 1';
+      vComp := 30.00;
+    end;
+
+    with vPrest.comp.Add do
+    begin
+      xNome := 'Componente 2';
+      vComp := 70.00;
     end;
 
     {Carrega Impostos}
@@ -669,8 +706,13 @@ begin
       //infCteAnu.chCTe := '';
       //infCteAnu.dEmi  := Date;
 
-    {Seleciona o dados dos Autorizados a baixar o xml}
-      //autXML.Add.CNPJCPF := '';
+    {Lista de até 10 CNPJ/CPF de pessoas Autorizadas a baixar o xml}
+    //autXML.Add.CNPJCPF := '';
+
+    {Informações do Responsável Técnico pela emissão do DF-e}
+    infRespTec.xContato := '';
+    infRespTec.email    := '';
+    infRespTec.fone     := '';
   end;
 end;
 
@@ -725,7 +767,7 @@ begin
 
     {Dados do Percurso}
     (*
-    with ide.infPercurso.Add do
+    with ide.infPercurso.New do
       UFPer := 'PR';
     *)
 
@@ -752,15 +794,15 @@ begin
     Ide.Toma4.email             := '';
 
     {Informações Complementares do CTe}
-    compl.xCaracAd  := 'Caracteristicas Adicionais do Transporte';
-    compl.xCaracSer := 'Caracteristicas Adicionais do Serviço';
+    compl.xCaracAd  := 'Carac Adic';
+    compl.xCaracSer := 'Carac Adicionais do Serviço';
     compl.xEmi      := 'Nome do Emitente';
 
     // Descricao da Origiem do Fluxo
     compl.fluxo.xOrig := '';
 
     (*
-    with compl.fluxo.pass.Add do
+    with compl.fluxo.pass.New do
     begin
       xPass := 'Sigla ou código interno da Filial/Porto/Estação/Aeroporto de Passagem ';
     end;
@@ -789,8 +831,10 @@ begin
     compl.Entrega.noInter.hIni  := Time;
     compl.Entrega.noInter.hFim  := Time + 60;
 
-    compl.origCalc := 'Município de origem para efeito de cálculo do frete ';
-    compl.destCalc := 'Município de destino para efeito de cálculo do frete ';
+    // Município de origem para efeito de cálculo do frete
+    compl.origCalc := 'Sao Paulo';
+    // Município de destino para efeito de cálculo do frete
+    compl.destCalc := 'Campinas';
     compl.xObs     := 'Observação livre';
 
     // Obs Estruturada do Contribuinte - Incluir se necessário
@@ -823,7 +867,7 @@ begin
     Emit.enderEmit.fone    := Trim(edtEmitFone.Text);
 
     {Dados do Remetente}
-    Rem.CNPJCPF := '12345678000123';
+    Rem.CNPJCPF := '05481336000137';
     Rem.IE      := '12345678';
     Rem.xNome   := 'Nome do Remetente';
     Rem.xFant   := 'Nome Fantasia';
@@ -833,7 +877,7 @@ begin
     Rem.EnderReme.nro     := '200';
     Rem.EnderReme.xCpl    := '';
     Rem.EnderReme.xBairro := 'Centro';
-    Rem.EnderReme.cMun    := 3512345;
+    Rem.EnderReme.cMun    := 3554003;
     Rem.EnderReme.xMun    := 'Nome do Municipio';
     Rem.EnderReme.CEP     := 14123456;
     Rem.EnderReme.UF      := 'SP';
@@ -879,7 +923,7 @@ begin
     *)
 
     {Dados do Destinatário}
-    Dest.CNPJCPF := '12345678000123';
+    Dest.CNPJCPF := '05481336000137';
     Dest.IE      := '12345678';
     Dest.xNome   := 'Nome do Destinatário';
     Dest.fone    := '33445566';
@@ -888,7 +932,7 @@ begin
     Dest.EnderDest.nro     := '200';
     Dest.EnderDest.xCpl    := '';
     Dest.EnderDest.xBairro := 'Centro';
-    Dest.EnderDest.cMun    := 3512345;
+    Dest.EnderDest.cMun    := 3554003;
     Dest.EnderDest.xMun    := 'Nome do Municipio';
     Dest.EnderDest.CEP     := 14123456;
     Dest.EnderDest.UF      := 'SP';
@@ -960,7 +1004,8 @@ begin
       {Informações da Carga}
       infCarga.vCarga      := 5000;
       infCarga.proPred     := 'Produto Predominante';
-      infCarga.xOutCat     := 'Outras Caractereisticas da Carga';
+      // Outras Caracteristicas da Carga
+      infCarga.xOutCat     := 'Pacotes';
       infCarga.vCargaAverb := 5000;
 
       // UnidMed = (uM3,uKG, uTON, uUNIDADE, uLITROS);
@@ -980,7 +1025,53 @@ begin
 
       {Informações dos Documentos}
       with infDoc.infNFe.New do
-        chave := 'chave da NFe emitida pelo remente da carga';
+        // chave da NFe emitida pelo remente da carga
+        chave := '33190100127817000125650080000000581000384589';
+
+      // o bloco de código abaixo devemos utilizar para informar documentos
+      // anteriores emitidos por outras transportadoras que chamamos de
+      // Expedidores
+      // Devemos informar o Expedidor quando se tratar de Redespacho ou
+      // Redespacho Intermediário.
+
+      (*
+      // o grupo <emiDocAnt> é uma lista que pode ter de 1-n ocorrências
+      with docAnt.emiDocAnt.New do
+      begin
+        CNPJCPF := 'informar o CNPJ/CPF do Expedidor (transportadora anterior)';
+        IE := 'informar a IE do Expedidor';
+        UF := 'SP'; // UF do Expedidor
+        xNome := 'Nome do Expedidor';
+
+        // o grupo <idDocAnt> é uma lista que pode ter de 1-2 ocorrências
+        with idDocAnt.New do
+        begin
+          {
+          ATENÇÃO: no XML se existir o grupo <idDocAntPap> não pode existir o
+                   grupo <idDocAntEle> e vice-versa
+          }
+
+          // Caso o documento anterior for de Papel ou seja não é um documento eletronico
+          // o grupo <idDocAntPap> é uma lista que pode ter de 1-n ocorrências
+          with idDocAntPap.New do
+          begin
+            // daATRE, daDTA, daCAI, daCCPI, daCA, daTIF, daBL
+            tpDoc := daATRE;
+            serie := '1';
+            subser := '';
+            nDoc := '123';
+            dEmi := StrToDate('10/12/2020');
+          end;
+
+          // Caso o documento anterior for eletronico
+          // o grupo <idDocAntEle> é uma lista que pode ter de 1-n ocorrências
+          with idDocAntEle.New do
+          begin
+            chCTe := 'chave do CT-e emitido pelo Expedidor';
+          end;
+        end;
+      end;
+      *)
 
       {Carrega Informacoes do Modal}
       {Rodoviario}
@@ -988,7 +1079,7 @@ begin
 
       {Ordens de Coleta associados}
       (*
-      with rodo.occ.Add do
+      with rodo.occ.New do
       begin
         serie := '001';
         nOcc  := 1;
@@ -1049,8 +1140,181 @@ begin
       //infCteAnu.chCTe := '';
       //infCteAnu.dEmi  := Date;
 
-    {Seleciona o dados dos Autorizados a baixar o xml}
-      //autXML.Add.CNPJCPF := '';
+    {Lista de até 10 CNPJ/CPF de pessoas Autorizadas a baixar o xml}
+    //autXML.New.CNPJCPF := '';
+
+    {Informações do Responsável Técnico pela emissão do DF-e}
+    infRespTec.xContato := '';
+    infRespTec.email    := '';
+    infRespTec.fone     := '';
+  end;
+end;
+
+procedure TfrmACBrCTe.AlimentarGTVe(NumDFe: String);
+begin
+  //GTVe
+  with ACBrCTe1.Conhecimentos.Add.CTe do
+  begin
+    infCTe.versao := 3.0;
+
+    Ide.cUF    := UFtoCUF(edtEmitUF.Text);
+    Ide.CFOP   := 5353;
+    Ide.natOp  := 'PRESTACAO SERVICO';
+    ide.forPag := fpAPagar; // fpAPagar ou fpPago
+    Ide.modelo := 64;
+    Ide.serie  := 1;
+    Ide.nCT    := StrToInt(NumDFe);
+    // Atenção o valor de cCT tem que ser um numero aleatório conforme recomendação
+    // da SEFAZ, mas neste exemplo vamos atribuir o mesmo numero do CT-e.
+    Ide.cCT    := GerarCodigoDFe(Ide.nCT);
+    Ide.dhEmi  := Now;
+    Ide.tpImp  := tiRetrato;
+    Ide.tpEmis := teNormal;
+
+    if rgTipoAmb.ItemIndex = 0 then
+      Ide.tpAmb := taProducao
+    else
+      Ide.tpAmb := taHomologacao;
+
+    Ide.tpCTe      := tcGTVe;
+    Ide.verProc    := '3.0';
+    Ide.cMunEnv    := StrToInt(edtEmitCodCidade.Text);
+    Ide.xMunEnv    := Trim(edtEmitCidade.Text);
+    Ide.UFEnv      := Trim(edtEmitUF.Text);
+    Ide.modal      := mdRodoviario;
+    Ide.tpServ     := tsGTV;
+    ide.indIEToma  := inContribuinte;
+
+    Ide.dhSaidaOrig   := Now;
+    Ide.dhChegadaDest := Now + 1;
+
+//    Ide.cMunIni    := 3119401;
+//    Ide.xMunIni    := 'CORONEL FABRICIANO';
+//    Ide.UFIni      := 'MG';
+//    Ide.cMunFim    := 2900207;
+//    Ide.xMunFim    := 'ABARE';
+//    Ide.UFFim      := 'BA';
+//    Ide.retira     := rtSim; // rtSim, rtNao
+//    Ide.xdetretira := '';
+
+    {Informações Complementares do CTe}
+    compl.xCaracAd  := 'Carac. Adic. Tr'; // no máximo 15 caracteres
+    compl.xCaracSer := 'Carac. Adic. do Serviço';  // no máximo 30 caracteres
+    compl.xEmi      := 'Nome do Emitente';
+    compl.xObs     := 'Observação livre';
+
+    // Obs Estruturada do Contribuinte - Incluir se necessário
+    with compl.ObsCont.New do
+    begin
+      xCampo := 'Nome do Campo';
+      xTexto := 'Valor do Campo';
+    end;
+
+    // Obs Estruturada para o Fisco - Incluir se necessário
+    with compl.ObsFisco.New do
+    begin
+      xCampo := 'Nome do Campo';
+      xTexto := 'Valor do Campo';
+    end;
+
+    {Dados do Emitente}
+    Emit.CNPJ              := Trim(edtEmitCNPJ.Text);
+    Emit.IE                := Trim(edtEmitIE.Text);
+    Emit.xNome             := Trim(edtEmitRazao.Text);
+    Emit.xFant             := Trim(edtEmitFantasia.Text);
+    Emit.enderEmit.xLgr    := Trim(edtEmitLogradouro.Text);
+    Emit.enderEmit.nro     := Trim(edtEmitNumero.Text);
+    Emit.enderEmit.xCpl    := Trim(edtEmitComp.Text);
+    Emit.enderEmit.xBairro := Trim(edtEmitBairro.Text);
+    Emit.enderEmit.cMun    := StrToInt(edtEmitCodCidade.Text);
+    Emit.enderEmit.xMun    := Trim(edtEmitCidade.Text);
+    Emit.enderEmit.CEP     := StrToInt(edtEmitCEP.Text);
+    Emit.enderEmit.UF      := Trim(edtEmitUF.Text);
+    Emit.enderEmit.fone    := Trim(edtEmitFone.Text);
+
+    {Dados do Remetente}
+    Rem.CNPJCPF := '05481336000137';
+    Rem.IE      := '12345678';
+    Rem.xNome   := 'Nome do Remetente';
+    Rem.xFant   := 'Nome Fantasia';
+    Rem.fone    := '33445566';
+
+    Rem.EnderReme.xLgr    := 'Rua 1';
+    Rem.EnderReme.nro     := '200';
+    Rem.EnderReme.xCpl    := '';
+    Rem.EnderReme.xBairro := 'Centro';
+    Rem.EnderReme.cMun    := 3554003;
+    Rem.EnderReme.xMun    := 'Nome do Municipio';
+    Rem.EnderReme.CEP     := 14123456;
+    Rem.EnderReme.UF      := 'SP';
+    Rem.EnderReme.cPais   := 1058;
+    Rem.EnderReme.xPais   := 'BRASIL';
+
+    {Dados do Destinatário}
+    Dest.CNPJCPF := '05481336000137';
+    Dest.IE      := '12345678';
+    Dest.xNome   := 'Nome do Destinatário';
+    Dest.fone    := '33445566';
+
+    Dest.EnderDest.xLgr    := 'Rua 1';
+    Dest.EnderDest.nro     := '200';
+    Dest.EnderDest.xCpl    := '';
+    Dest.EnderDest.xBairro := 'Centro';
+    Dest.EnderDest.cMun    := 3554003;
+    Dest.EnderDest.xMun    := 'Nome do Municipio';
+    Dest.EnderDest.CEP     := 14123456;
+    Dest.EnderDest.UF      := 'SP';
+    Dest.EnderDest.cPais   := 1058;
+    Dest.EnderDest.xPais   := 'BRASIL';
+
+    {Informações do endereço da origem do serviço}
+    origem.xLgr    := '';
+    origem.nro     := '';
+    origem.xCpl    := '';
+    origem.xBairro := '';
+    origem.cMun    := 0;
+    origem.xMun    := '';
+    origem.CEP     := 0;
+    origem.UF      := '';
+    origem.fone    := '';
+
+    {Informações do endereço do destino do serviço}
+    destino.xLgr    := '';
+    destino.nro     := '';
+    destino.xCpl    := '';
+    destino.xBairro := '';
+    destino.cMun    := 0;
+    destino.xMun    := '';
+    destino.CEP     := 0;
+    destino.UF      := '';
+    destino.fone    := '';
+
+    {Detalhamento do GTV}
+    with detGTV.infEspecie.New do
+    begin
+      tpEspecie   := teNumerario; // Numerario = Cedulas
+      vEspecie    := 5000;
+      tpNumerario := tnNacional;
+      xMoedaEstr  := 'Nacional';
+    end;
+
+    // Quantidade de volumes/malotes
+    detGTV.qCarga := 1;
+
+    with detGTV.infVeiculo.New do
+    begin
+      placa := 'XYZ1234';
+      UF    := 'SP';
+      RNTRC := '';
+    end;
+
+    {Lista de até 10 CNPJ/CPF de pessoas Autorizadas a baixar o xml}
+    //autXML.Add.CNPJCPF := '';
+
+    {Informações do Responsável Técnico pela emissão do DF-e}
+    infRespTec.xContato := '';
+    infRespTec.email    := '';
+    infRespTec.fone     := '';
   end;
 end;
 
@@ -1769,36 +2033,28 @@ begin
 
   OpenDialog1.InitialDir := ACBrCTe1.Configuracoes.Arquivos.PathSalvar;
 
-  if OpenDialog1.Execute then
-  begin
-    ACBrCTe1.Conhecimentos.Clear;
-    ACBrCTe1.Conhecimentos.LoadFromFile(OpenDialog1.FileName);
-    CC:=TstringList.Create;
+  if not OpenDialog1.Execute then
+    Exit;
 
-    try
-      CC.Add('andrefmoraes@gmail.com'); // especifique um email valido
-      CC.Add('anfm@zipmail.com.br');    // especifique um email valido
+  ACBrCTe1.Conhecimentos.Clear;
+  ACBrCTe1.Conhecimentos.LoadFromFile(OpenDialog1.FileName);
 
-      ACBrMail1.Host := edtSmtpHost.Text;
-      ACBrMail1.Port := edtSmtpPort.Text;
-      ACBrMail1.Username := edtSmtpUser.Text;
-      ACBrMail1.Password := edtSmtpPass.Text;
-      ACBrMail1.From := edtSmtpUser.Text;
-      ACBrMail1.SetSSL := cbEmailSSL.Checked; // SSL - Conexao Segura
-      ACBrMail1.SetTLS := cbEmailSSL.Checked; // Auto TLS
-      ACBrMail1.ReadingConfirmation := False; // Pede confirmacao de leitura do email
-      ACBrMail1.UseThread := False;           // Aguarda Envio do Email(nao usa thread)
-      ACBrMail1.FromName := 'Projeto ACBr - ACBrCTe';
-
-      ACBrCTe1.Conhecimentos.Items[0].EnviarEmail( Para, edtEmailAssunto.Text,
-                                               mmEmailMsg.Lines
-                                               , True  // Enviar PDF junto
-                                               , CC    // Lista com emails que serao enviado copias - TStrings
-                                               , nil); // Lista de anexos - TStrings
-    finally
-      CC.Free;
-    end;
+  CC := TStringList.Create;
+  try
+    //CC.Add('email_1@provedor.com'); // especifique um email valido
+    //CC.Add('email_2@provedor.com.br');    // especifique um email valido
+    ConfigurarEmail;
+    ACBrCTe1.Conhecimentos.Items[0].EnviarEmail(Para
+      , edtEmailAssunto.Text
+      , mmEmailMsg.Lines
+      , True  // Enviar PDF junto
+      , CC    // Lista com emails que serao enviado copias - TStrings
+      , nil // Lista de anexos - TStrings
+      );
+  finally
+    CC.Free;
   end;
+
 end;
 
 procedure TfrmACBrCTe.btnEnviarEventoEmailClick(Sender: TObject);
@@ -1827,24 +2083,29 @@ begin
 
   OpenDialog1.InitialDir := ACBrCTe1.Configuracoes.Arquivos.PathSalvar;
 
-  if OpenDialog1.Execute then
-  begin
-    Evento := TStringList.Create;
+  if not OpenDialog1.Execute then
+    Exit;
+
+  Evento := TStringList.Create;
+  CC := TStringList.Create;
+  try
     Evento.Clear;
     Evento.Add(OpenDialog1.FileName);
+
     ACBrCTe1.EventoCTe.Evento.Clear;
     ACBrCTe1.EventoCTe.LerXML(OpenDialog1.FileName);
 
-    CC:=TstringList.Create;
-    CC.Add('andrefmoraes@gmail.com'); // especifique um email valido
-    CC.Add('anfm@zipmail.com.br');    // especifique um email valido
-
-    ACBrCTe1.EnviarEmailEvento(Para, edtEmailAssunto.Text, mmEmailMsg.Lines,
-                               nil, // Lista com emails que serao enviado copias - TStrings
-                               nil, // Lista de anexos - TStrings
-                               nil  // ReplyTo
-                               );
-
+    //CC.Add('email_1@provedor.com'); // especifique um email valido
+    //CC.Add('email_2@provedor.com.br');    // especifique um email valido
+    ConfigurarEmail;
+    ACBrCTe1.EnviarEmailEvento(Para
+      , edtEmailAssunto.Text
+      , mmEmailMsg.Lines
+      , CC // Lista com emails que serao enviado copias - TStrings
+      , nil // Lista de anexos - TStrings
+      , nil  // ReplyTo
+      );
+  finally
     CC.Free;
     Evento.Free;
   end;
@@ -2106,9 +2367,15 @@ end;
 
 procedure TfrmACBrCTe.btnPrestacaoDesacordoClick(Sender: TObject);
 var
-  xObs: String;
+  xObs, xUF, xUFOld: String;
   iLote: Integer;
 begin
+  {
+   O Evento de Prestação de Serviço em Desacordo deve ser enviado pelo Tomador
+   do serviço que pode ser tanto o Remetente quanto o Destinatário da carga.
+   Sendo assim na linha abaixo que faz referencia a edtEmitCNPJ entende-se que
+   o CNPJ é do tomador (emitente do evento) e não o CNPJ do emitente do CT-e.
+  }
   OpenDialog1.Title := 'Selecione o CTe para enviar o Evento de Prestação de Serviço em Desacordo';
   OpenDialog1.DefaultExt := '*-cte.xml';
   OpenDialog1.Filter := 'Arquivos CTe (*-cte.xml)|*-cte.xml|Arquivos XML (*.xml)|*.xml|Todos os Arquivos (*.*)|*.*';
@@ -2119,8 +2386,18 @@ begin
     ACBrCTe1.Conhecimentos.Clear;
     ACBrCTe1.Conhecimentos.LoadFromFile(OpenDialog1.FileName);
 
+    xObs := 'Observacao do Tomador (com no minimo 15 caracteres)';
     if not(InputQuery('Prestação de Serviço em Desacordo:', 'Observação do Tomador', xObs)) then
       exit;
+
+    xUF := '';
+    if not(InputQuery('Prestação de Serviço em Desacordo:', 'UF do Emitente do CT-e', xUF)) then
+      exit;
+
+    // Salva a UF configurada no componente
+    xUFOld := ACBrCTe1.Configuracoes.WebServices.UF;
+    // O evento tem que ser enviado para a UF do Emitente do CT-e
+    ACBrCTe1.Configuracoes.WebServices.UF := xUF;
 
     ACBrCTe1.EventoCTe.Evento.Clear;
 
@@ -2128,6 +2405,8 @@ begin
     begin
       // Para o Evento: nSeqEvento sempre = 1
       infEvento.nSeqEvento := 1;
+      // Devemos informar a UF do Emitente do CT-e
+      InfEvento.cOrgao     := UFtoCUF(xUF);
       infEvento.chCTe      := Copy(ACBrCTe1.Conhecimentos.Items[0].CTe.infCTe.Id, 4, 44);
       infEvento.CNPJ       := edtEmitCNPJ.Text;
       infEvento.dhEvento   := now;
@@ -2138,6 +2417,9 @@ begin
 
     iLote := 1; // Numero do Lote do Evento
     ACBrCTe1.EnviarEvento(iLote);
+
+    // Retorna a configuração
+    ACBrCTe1.Configuracoes.WebServices.UF := xUFOld;
 
     MemoResp.Lines.Text   := ACBrCTe1.WebServices.EnvEvento.RetWS;
     memoRespWS.Lines.Text := ACBrCTe1.WebServices.EnvEvento.RetornoWS;
@@ -2482,6 +2764,7 @@ begin
     Ini.WriteString( 'DACTE', 'LogoMarca', edtLogoMarca.Text);
 
     ConfigurarComponente;
+    ConfigurarEmail;
   finally
     Ini.Free;
   end;
@@ -2605,6 +2888,7 @@ begin
     edtLogoMarca.Text     := Ini.ReadString( 'DACTE', 'LogoMarca', '');
 
     ConfigurarComponente;
+    ConfigurarEmail;
   finally
     Ini.Free;
   end;
@@ -2701,6 +2985,20 @@ begin
     ACBrCTe1.DACTe.MargemSuperior := 5;
     ACBrCTe1.DACTe.MargemInferior := 5;
   end;
+end;
+
+procedure TfrmACBrCTe.ConfigurarEmail;
+begin
+  ACBrMail1.Host := edtSmtpHost.Text;
+  ACBrMail1.Port := edtSmtpPort.Text;
+  ACBrMail1.Username := edtSmtpUser.Text;
+  ACBrMail1.Password := edtSmtpPass.Text;
+  ACBrMail1.From := edtSmtpUser.Text;
+  ACBrMail1.SetSSL := cbEmailSSL.Checked; // SSL - Conexao Segura
+  ACBrMail1.SetTLS := cbEmailSSL.Checked; // Auto TLS
+  ACBrMail1.ReadingConfirmation := False; // Pede confirmacao de leitura do email
+  ACBrMail1.UseThread := False;           // Aguarda Envio do Email(nao usa thread)
+  ACBrMail1.FromName := 'Projeto ACBr - ACBrCTe';
 end;
 
 procedure TfrmACBrCTe.LoadXML(RetWS: String; MyWebBrowser: TWebBrowser);

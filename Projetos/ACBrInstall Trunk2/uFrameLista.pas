@@ -3,10 +3,9 @@
 {  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
 {                                                                              }
-{ Direitos Autorais Reservados (c) 2009   Daniel Simoes de Almeida             }
-{                                         Isaque Pinheiro                      }
+{ Direitos Autorais Reservados (c) 2020   Daniel Simoes de Almeida             }
 {                                                                              }
-{ Colaboradores nesse arquivo:                                                 }
+{ Colaboradores nesse arquivo: Isaque Pinheiro                                 }
 {                                                                              }
 {  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
@@ -169,6 +168,12 @@ type
     ACBr_LCDPR_dpk: TCheckBox;
     ACBr_ONE_dpk: TCheckBox;
     ACBr_EDI_dpk: TCheckBox;
+    ACBr_NF3e_dpk: TCheckBox;
+    ACBr_NF3eDANF3eESCPOS_dpk: TCheckBox;
+    ACBr_ADRCST_dpk: TCheckBox;
+    Label28: TLabel;
+    ACBr_SATExtratoFR_dpk: TCheckBox;
+    ACBr_PagFor_dpk: TCheckBox;
     procedure btnPacotesMarcarTodosClick(Sender: TObject);
     procedure btnPacotesDesmarcarTodosClick(Sender: TObject);
     procedure VerificarCheckboxes(Sender: TObject);
@@ -267,22 +272,25 @@ begin
   end;
 end;
 
-// rotina de verificação de dependência e marcação dos pacotes base
 procedure TframePacotes.VerificarCheckboxes(Sender: TObject);
 begin
+// rotina de verificação de dependência e marcação dos pacotes base
+
   //If necessário para evitar stackoverflow
+  /// caso alguma alteração abaixo dispare esse evento novamente
   if not FUtilizarBotoesMarcar then
   begin
     FUtilizarBotoesMarcar := True;
 
-    // pacotes base não podem ser desmarcados
-    // instalação mínima do ACBr
-    ACBr_synapse_dpk.Checked := True;
-    ACBr_Comum_dpk.Checked := True;
-    ACBr_Diversos_dpk.Checked := True;
-
-    /// caso algum evento abaixo dispare novamente
     try
+      // pacotes base não podem ser desmarcados
+      // instalação mínima do ACBr
+      ACBr_synapse_dpk.Checked  := True;
+      ACBr_Comum_dpk.Checked    := True;
+      ACBr_Diversos_dpk.Checked := True;
+
+      //1) Primeiro verificar dependências das impressões marcadas...
+
       // quando não for selecionado o NFe devemos desmarcar
       if not ACBr_NFe_dpk.Checked then
       begin
@@ -322,6 +330,7 @@ begin
       if not ACBr_SAT_dpk.Checked then
       begin
         ACBr_SATExtratoRL_dpk.Checked := False;
+        ACBr_SATExtratoFR_dpk.Checked := False;
       end;
 
       // quando não for selecionado o GNRE devemos desmarcar
@@ -336,7 +345,7 @@ begin
         (not(ACBr_NFe_dpk.Checked) or not(ACBr_Serial_dpk.Checked)) then
       begin
         ACBr_Serial_dpk.Checked := True;
-        ACBr_NFe_dpk.Checked := True;
+        ACBr_NFe_dpk.Checked    := True;
       end;
 
       // dependencia do BPe
@@ -344,7 +353,15 @@ begin
         (not(ACBr_BPe_dpk.Checked) or not(ACBr_Serial_dpk.Checked)) then
       begin
         ACBr_Serial_dpk.Checked := True;
-        ACBr_BPe_dpk.Checked := True;
+        ACBr_BPe_dpk.Checked    := True;
+      end;
+
+      // dependencia da NF3e
+      if ACBr_NF3eDANF3eESCPOS_dpk.Checked and
+        (not(ACBr_NF3e_dpk.Checked) or not(ACBr_Serial_dpk.Checked)) then
+      begin
+        ACBr_Serial_dpk.Checked := True;
+        ACBr_NF3e_dpk.Checked   := True;
       end;
 
       // dependencia do SAT
@@ -352,37 +369,59 @@ begin
         (not(ACBr_SAT_dpk.Checked) or not(ACBr_Serial_dpk.Checked)) then
       begin
         ACBr_Serial_dpk.Checked := True;
-        ACBr_SAT_dpk.Checked := True;
+        ACBr_SAT_dpk.Checked    := True;
       end;
 
-      if (ACBr_SATExtratoRL_dpk.Checked) and not(ACBr_SAT_dpk.Checked) then
+      if (ACBr_SATExtratoRL_dpk.Checked or
+          ACBr_SATExtratoFR_dpk.Checked)
+        and not(ACBr_SAT_dpk.Checked) then
         ACBr_SAT_dpk.Checked := True;
 
-      if ACBr_SAT_dpk.Checked and not(ACBr_PCNComum_dpk.Checked) then
-        ACBr_PCNComum_dpk.Checked := True;
+      //2) Segundo Verificar dependência de outros pacotes marcados...
 
-      // dependencias da NFe e CTe
-      if (ACBr_NFe_dpk.Checked) or (ACBr_CTe_dpk.Checked) or
-        (ACBr_NFSe_dpk.Checked) or (ACBr_MDFe_dpk.Checked) or
-        (ACBr_BlocoX_dpk.Checked) or (ACBr_SATWS_dpk.Checked) or
-        (ACBr_BPe_dpk.Checked) or (ACBr_ANe_dpk.Checked) or
-        (ACBr_CIOT_dpk.Checked) then
+      //
+      if (ACBr_NFe_dpk.Checked)    or (ACBr_CTe_dpk.Checked)   or
+         (ACBr_NFSe_dpk.Checked)   or (ACBr_MDFe_dpk.Checked)  or
+         (ACBr_BlocoX_dpk.Checked) or (ACBr_SATWS_dpk.Checked) or
+         (ACBr_BPe_dpk.Checked)    or (ACBr_ANe_dpk.Checked)   or
+         (ACBr_CIOT_dpk.Checked)   or (ACBr_NF3e_dpk.Checked)  or
+         (ACBr_SAT_dpk.Checked)    or (ACBr_Boleto_dpk.Checked) then
       begin
-        ACBr_PCNComum_dpk.Checked := True;
-        ACBr_OpenSSL_dpk.Checked := True;
         ACBr_DFeComum_dpk.Checked := True;
       end;
 
       if ACBr_DFeComum_dpk.Checked then
+      begin
         ACBr_Integrador_dpk.Checked := True;
+        ACBr_PCNComum_dpk.Checked   := True;
+        ACBr_OpenSSL_dpk.Checked    := True;
+        ACBr_TCP_dpk.Checked        := True;
+      end;
 
-      // dependencias do ACBrTEFD
-      if not(ACBr_TCP_dpk.Checked) and (ACBr_TEFD_dpk.Checked or ACBr_MTER_dpk.Checked ) then
+      if (ACBr_TEFD_dpk.Checked or ACBr_MTER_dpk.Checked) then
         ACBr_TCP_dpk.Checked := True;
 
+      if ACBr_SEF2_dpk.Checked then
+      begin
+        ACBr_TXTComum_dpk.Checked := True;
+        ACBr_PCNComum_dpk.Checked := True;
+      end;
+
       // Dependencias do ACBrPaf
-      if not(ACBr_SPED_dpk.Checked) and ACBr_PAF_dpk.Checked then
-        ACBr_SPED_dpk.Checked := True;
+      if ACBr_PAF_dpk.Checked then
+      begin
+        ACBr_TXTComum_dpk.Checked := True;
+        ACBr_OpenSSL_dpk.Checked  := True;
+      end;
+
+      if ACBr_SPED_dpk.Checked or ACBr_Sintegra_dpk.Checked or
+         ACBr_Convenio115_dpk.Checked or ACBr_DeSTDA_dpk.Checked or
+         ACBr_EDI_dpk.Checked or ACBr_LCDPR_dpk.Checked or
+         ACBr_LFD_dpk.Checked or ACBr_Ponto_dpk.Checked or
+         ACBr_SPEDImportar_dpk.Checked or ACBr_ADRCST_dpk.Checked then
+      begin
+        ACBr_TXTComum_dpk.Checked := True;
+      end;
 
       if (not ACBr_DFeReportRL_dpk.Checked) and
          (ACBr_NFeDanfeRL_dpk.Checked or ACBr_NFSeDanfseRL_dpk.Checked or

@@ -1,10 +1,14 @@
 {******************************************************************************}
-{ Projeto: Componente ACBrNFe                                                  }
-{  Biblioteca multiplataforma de componentes Delphi                            }
+{ Projeto: Componentes ACBr                                                    }
+{  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
+{ mentos de Automação Comercial utilizados no Brasil                           }
 {                                                                              }
-{  Você pode obter a última versão desse arquivo na pagina do Projeto ACBr     }
-{ Componentes localizado em http://www.sourceforge.net/projects/acbr           }
-{                                                                              }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{																			   }
+{ Colaboradores neste arquivo: Italo Jurisato Junior                           }
+{																			   }
+{  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
+{ Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
 {                                                                              }
 {  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la }
 { sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela  }
@@ -22,9 +26,8 @@
 { Você também pode obter uma copia da licença em:                              }
 { http://www.opensource.org/licenses/lgpl-license.php                          }
 {                                                                              }
-{ Daniel Simões de Almeida  -  daniel@djsystem.com.br  -  www.djsystem.com.br  }
-{              Praça Anita Costa, 34 - Tatuí - SP - 18270-410                  }
-{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
 {*******************************************************************************
@@ -193,6 +196,7 @@ const
   DSC_IDDEST = 'Destino da Operação';
   DSC_INDFINAL = 'Indicador de Operação com Consumidor Final';
   DSC_INDPRES = 'Indicador de Presença do Consumidor Final';
+  DSC_INDINTERMED = 'Indicador de Intermediador/marketplace';
   DSC_IDESTR = 'Documento de Identificação do Estrangeiro';
   DSC_INDIEDEST = 'Indicador da IE do Destinatário';
   DSC_NVE = 'Nomenclatura de Valor Aduaneiro e Estatística';
@@ -253,6 +257,8 @@ const
   DSC_CBENEF = 'Código de Benefício Fiscal na UF aplicado ao item';
   DSC_CAGREG = 'Código de Agregação';
   DSC_URLCHAVE = 'URL de consulta por chave de acesso a ser impressa no DANFE NFC-e';
+  DSC_CNPJINTERM = 'CNPJ do Intermediador da Transação';
+  DSC_IDCADINTERM = 'Nome do usuário ou identificação do perfil do vendedor no site do intermediador';
 
 implementation
 

@@ -1,6 +1,7 @@
 package ACBr_MDFeDamdfeFR;
 
 {$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
@@ -22,12 +23,14 @@ package ACBr_MDFeDamdfeFR;
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
+{$DEFINE DEBUG}
+{$ENDIF IMPLICITBUILDING}
 {$DESCRIPTION 'ACBr - DAMDFe em FastReport - (http://www.projetoacbr.com.br/)'}
+{$RUNONLY}
 {$IMPLICITBUILD ON}
 
 requires
   rtl,
-  designide,
 {$IFDEF VER140} fs6, frx6, frxe6, frxDB6, {$ENDIF} // D6
 {$IFDEF VER150} fs7, frx7, frxe7, frxDB7, {$ENDIF} // D7
 {$IFDEF VER170} fs9, frx9, frxe9, frxDB9, {$ENDIF} // D2005
@@ -50,10 +53,10 @@ requires
 {$IFDEF VER310} fs24, frx24, frxe24, frxDB24, dsnap, {$ENDIF} // Berlin
 {$IFDEF VER320} fs25, frx25, frxe25, frxDB25, dsnap, {$ENDIF} // Tokyo
 {$IFDEF VER330} fs26, frx26, frxe26, frxDB26, dsnap, {$ENDIF} // Rio
+{$IFDEF VER340} fs27, frx27, frxe27, frxDB27, dsnap, {$ENDIF} // Sydney
    ACBr_MDFe;
 
 contains
-  ACBrMDFeDAMDFEFRReg in '..\..\..\..\..\..\Fontes\ACBrDFe\ACBrMDFe\DAMDFE\Fast\ACBrMDFeDAMDFEFRReg.pas',
   ACBrMDFeDAMDFEFR in '..\..\..\..\..\..\Fontes\ACBrDFe\ACBrMDFe\DAMDFE\Fast\ACBrMDFeDAMDFEFR.pas';
 
 end.

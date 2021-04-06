@@ -38,7 +38,7 @@ interface
 
 uses
   SysUtils, Classes, Controls,
-  {$IF DEFINED(NEXTGEN)}
+  {$IF DEFINED(HAS_SYSTEM_GENERICS)}
    System.Generics.Collections, System.Generics.Defaults,
   {$ELSEIF DEFINED(DELPHICOMPILER16_UP)}
    System.Contnrs,
@@ -129,9 +129,11 @@ type
   private
     FProcEmi: TProcEmi;
     FVerProc: string;
+    FretifS1250 : string;
   public
     property ProcEmi: TProcEmi read FProcEmi write FProcEmi;
     property VerProc: string read FVerProc write FVerProc;
+    property retifS1250: string read FretifS1250 write FretifS1250;
   end;
 
   { TIdeEvento1 }

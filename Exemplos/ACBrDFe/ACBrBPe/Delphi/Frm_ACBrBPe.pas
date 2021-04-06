@@ -1,3 +1,33 @@
+{******************************************************************************}
+{ Projeto: Componentes ACBr                                                    }
+{  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
+{ mentos de Automação Comercial utilizados no Brasil                           }
+{                                                                              }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{																			   }
+{  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
+{ Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
+{                                                                              }
+{  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la }
+{ sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela  }
+{ Free Software Foundation; tanto a versão 2.1 da Licença, ou (a seu critério) }
+{ qualquer versão posterior.                                                   }
+{                                                                              }
+{  Esta biblioteca é distribuída na expectativa de que seja útil, porém, SEM   }
+{ NENHUMA GARANTIA; nem mesmo a garantia implícita de COMERCIABILIDADE OU      }
+{ ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA. Consulte a Licença Pública Geral Menor}
+{ do GNU para mais detalhes. (Arquivo LICENÇA.TXT ou LICENSE.TXT)              }
+{                                                                              }
+{  Você deve ter recebido uma cópia da Licença Pública Geral Menor do GNU junto}
+{ com esta biblioteca; se não, escreva para a Free Software Foundation, Inc.,  }
+{ no endereço 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.          }
+{ Você também pode obter uma copia da licença em:                              }
+{ http://www.opensource.org/licenses/lgpl-license.php                          }
+{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
+{******************************************************************************}
+
 unit Frm_ACBrBPe;
 
 interface
@@ -218,6 +248,10 @@ type
     btnStatusServ: TButton;
     btnAlteracaoPoltrona: TButton;
     chkLogoLateral: TCheckBox;
+    Label30: TLabel;
+    cbModeloDF: TComboBox;
+    btnExcessoBagagem: TButton;
+
     procedure FormCreate(Sender: TObject);
     procedure btnSalvarConfigClick(Sender: TObject);
     procedure sbPathBPeClick(Sender: TObject);
@@ -272,12 +306,15 @@ type
     procedure btnImprimirDANFCEOfflineClick(Sender: TObject);
     procedure btnNaoEmbarqueClick(Sender: TObject);
     procedure btnAlteracaoPoltronaClick(Sender: TObject);
+    procedure btnExcessoBagagemClick(Sender: TObject);
   private
     { Private declarations }
     procedure GravarConfiguracao;
     procedure LerConfiguracao;
     procedure ConfigurarComponente;
+    procedure ConfigurarEmail;
     procedure AlimentarBPe(NumDFe: String);
+    procedure AlimentarBPeTM(NumDFe: String);
     Procedure AlimentarComponente(NumDFe: String);
     procedure LoadXML(RetWS: String; MyWebBrowser: TWebBrowser);
     procedure AtualizarSSLLibsCombo;
@@ -389,7 +426,11 @@ procedure TfrmACBrBPe.AlimentarComponente(NumDFe: String);
 begin
   ACBrBPe1.Bilhetes.Clear;
 
-  AlimentarBPe(NumDFe)
+  case ACBrBPe1.Configuracoes.Geral.ModeloDF of
+    moBPeTM: AlimentarBPeTM(NumDFe);
+  else
+    AlimentarBPe(NumDFe);
+  end;
 end;
 
 procedure TfrmACBrBPe.AlimentarBPe(NumDFe: String);
@@ -422,7 +463,9 @@ begin
     Ide.cMunIni := 3503208;
     Ide.UFFim   := 'SP';
     Ide.cMunFim := 3550308;
-//   Ide.dhCont  := Now;
+    Ide.tpBPe   := tbNormal;
+
+    //   Ide.dhCont  := Now;
 //   Ide.xJust   := 'Motivo da Contingência';
 
     //
@@ -614,8 +657,156 @@ begin
     infAdic.infAdFisco := '';
     infAdic.infCpl     := 'Informações Complementares';
   end;
+end;
 
-// ACBrBPe1.Bilhetes.GerarBPe;
+procedure TfrmACBrBPe.AlimentarBPeTM(NumDFe: String);
+begin
+  with ACBrBPe1.Bilhetes.Add.BPe do
+  begin
+    //
+    // Dados de Identificação do BP-e TM
+    //
+    Ide.cUF := UFtoCUF(edtEmitUF.Text);
+
+    // TpcnTipoAmbiente = (taProducao, taHomologacao);
+    case rgTipoAmb.ItemIndex of
+      0: Ide.tpAmb := taProducao;
+      1: Ide.tpAmb := taHomologacao;
+    end;
+
+    Ide.modelo  := 63;
+    Ide.serie   := 1;
+    Ide.nBP    := StrToIntDef(NumDFe, 0);
+    Ide.cBP    := GerarCodigoDFe(Ide.nBP);
+    // ( moRodoviario, moAquaviario, moFerroviario );
+    Ide.modal   := moRodoviario;
+    Ide.dhEmi   := Now;
+    Ide.dCompet := Date;
+    // TpcnTipoEmissao = (teNormal, teOffLine);
+    Ide.tpEmis  := teNormal;
+    Ide.verProc := '1.0.0.0'; //Versão do seu sistema
+    Ide.indPres := pcPresencial;
+    Ide.UFIni   := 'SP';
+    Ide.cMunIni := 3503208;
+    Ide.UFFim   := 'SP';
+    Ide.cMunFim := 3550308;
+    Ide.tpBPe   := tbBPeTM;
+    Ide.CFOP    := 5104;
+
+//   Ide.dhCont  := Now;
+//   Ide.xJust   := 'Motivo da Contingência';
+
+    //
+    // Dados do Emitente
+    //
+    Emit.CNPJ  := edtEmitCNPJ.Text;
+    Emit.IE    := edtEmitIE.Text;
+    Emit.IEST  := '';
+    Emit.xNome := edtEmitRazao.Text;
+    Emit.xFant := edtEmitFantasia.Text;
+    Emit.IM    := '123';
+    Emit.CNAE  := '1234567';
+    Emit.CRT   := crtRegimeNormal;
+    Emit.TAR   := '';
+
+    Emit.EnderEmit.xLgr    := edtEmitLogradouro.Text;
+    Emit.EnderEmit.Nro     := edtEmitNumero.Text;
+    Emit.EnderEmit.xCpl    := edtEmitComp.Text;
+    Emit.EnderEmit.xBairro := edtEmitBairro.Text;
+    Emit.EnderEmit.cMun    := StrToInt(edtEmitCodCidade.Text);
+    Emit.EnderEmit.xMun    := edtEmitCidade.Text;
+    Emit.EnderEmit.CEP     := StrToIntDef(edtEmitCEP.Text, 0);
+    Emit.EnderEmit.UF      := edtEmitUF.Text;
+    Emit.EnderEmit.fone    := edtEmitFone.Text;
+    Emit.enderEmit.email   := 'endereco@provedor.com.br';
+
+    //
+    // Informações sobre o Detalhamento do BPe TM
+    //
+    with detBPeTM.New do
+    begin
+      idEqpCont := 1;
+      UFIniViagem := 'SP';
+      UFFimViagem := 'SP';
+      Placa := 'XYZ1234';
+      Prefixo := '123';
+
+      //
+      // Detalhamento da viagem por trechos do BPe TM
+      //
+      with detBPeTM[0].det.New do
+      begin
+        nViagem := 1;
+        cMunIni := 3554003;
+        cMunFim := 3554003;
+        nContInicio := '1';
+        nContFim := '2';
+        qPass := '10';
+        vBP := 100;
+
+        //
+        // Informações sobre o Imposto
+        //
+        Imp.ICMS.CST   := cst00;
+        Imp.ICMS.vBC   := 98.00;
+        Imp.ICMS.pICMS := 18.00;
+        Imp.ICMS.vICMS := 17.64;
+
+        Imp.infAdFisco := '';
+
+        //
+        // Informações sobre os Componentes da Viagem
+        //
+        with detBPeTM[0].det[0].Comp.New do
+        begin
+          xNome := 'IDOSOS';
+          qComp := 1;
+        end;
+
+        with detBPeTM[0].det[0].Comp.New do
+        begin
+          xNome := 'VT';
+          qComp := 9;
+        end;
+      end;
+    end;
+
+    //
+    // Informações sobre o Total de Valores
+    //
+    total.qPass := 10;
+    total.vBP   := 100;
+    total.vBC   := 100;
+    total.vICMS := 18;
+
+    //
+    // Autorizados para o Download do XML do BPe
+    //
+    (*
+    with autXML.New do
+    begin
+      CNPJCPF := '00000000000000';
+    end;
+
+    with autXML.New do
+    begin
+      CNPJCPF := '11111111111111';
+    end;
+    *)
+
+    //
+    // Informações Adicionais
+    //
+    infAdic.infAdFisco := '';
+    infAdic.infCpl     := 'Informações Complementares';
+
+    //
+    // Informações do Responsável Técnico pela emissão do DF-e
+    //
+    infRespTec.xContato := '';
+    infRespTec.email    := '';
+    infRespTec.fone     := '';
+  end;
 end;
 
 procedure TfrmACBrBPe.AtualizarSSLLibsCombo;
@@ -1001,35 +1192,26 @@ begin
 
   OpenDialog1.InitialDir := ACBrBPe1.Configuracoes.Arquivos.PathSalvar;
 
-  if OpenDialog1.Execute then
-  begin
-    ACBrBPe1.Bilhetes.Clear;
-    ACBrBPe1.Bilhetes.LoadFromFile(OpenDialog1.FileName);
-    CC:=TstringList.Create;
+  if not OpenDialog1.Execute then
+    Exit;
 
-    try
-      CC.Add('andrefmoraes@gmail.com'); // especifique um email valido
-      CC.Add('anfm@zipmail.com.br');    // especifique um email valido
+  ACBrBPe1.Bilhetes.Clear;
+  ACBrBPe1.Bilhetes.LoadFromFile(OpenDialog1.FileName);
 
-      ACBrMail1.Host := edtSmtpHost.Text;
-      ACBrMail1.Port := edtSmtpPort.Text;
-      ACBrMail1.Username := edtSmtpUser.Text;
-      ACBrMail1.Password := edtSmtpPass.Text;
-      ACBrMail1.From := edtSmtpUser.Text;
-      ACBrMail1.SetSSL := cbEmailSSL.Checked; // SSL - Conexao Segura
-      ACBrMail1.SetTLS := cbEmailSSL.Checked; // Auto TLS
-      ACBrMail1.ReadingConfirmation := False; // Pede confirmacao de leitura do email
-      ACBrMail1.UseThread := False;           // Aguarda Envio do Email(nao usa thread)
-      ACBrMail1.FromName := 'Projeto ACBr - ACBrBPe';
-
-      ACBrBPe1.Bilhetes.Items[0].EnviarEmail( Para, edtEmailAssunto.Text,
-                                               mmEmailMsg.Lines
-                                               , True  // Enviar PDF junto
-                                               , CC    // Lista com emails que serao enviado copias - TStrings
-                                               , nil); // Lista de anexos - TStrings
-    finally
-      CC.Free;
-    end;
+  CC := TStringList.Create;
+  try
+    //CC.Add('email_1@provedor.com'); // especifique um email valido
+    //CC.Add('email_2@provedor.com.br');    // especifique um email valido
+    ConfigurarEmail;
+    ACBrBPe1.Bilhetes.Items[0].EnviarEmail(Para
+      , edtEmailAssunto.Text
+      , mmEmailMsg.Lines
+      , True  // Enviar PDF junto
+      , CC    // Lista com emails que serao enviado copias - TStrings
+      , nil // Lista de anexos - TStrings
+      );
+  finally
+    CC.Free;
   end;
 end;
 
@@ -1059,27 +1241,88 @@ begin
 
   OpenDialog1.InitialDir := ACBrBPe1.Configuracoes.Arquivos.PathSalvar;
 
-  if OpenDialog1.Execute then
-  begin
-    Evento := TStringList.Create;
+  if not OpenDialog1.Execute then
+    Exit;
+
+  Evento := TStringList.Create;
+  CC := TStringList.Create;
+  try
     Evento.Clear;
     Evento.Add(OpenDialog1.FileName);
     ACBrBPe1.EventoBPe.Evento.Clear;
     ACBrBPe1.EventoBPe.LerXML(OpenDialog1.FileName);
 
-    CC:=TstringList.Create;
-    CC.Add('andrefmoraes@gmail.com'); //especifique um email valido
-    CC.Add('anfm@zipmail.com.br');    //especifique um email valido
-
-    ACBrBPe1.EnviarEmailEvento(Para, edtEmailAssunto.Text, mmEmailMsg.Lines,
-                               nil, // Lista com emails que serao enviado copias - TStrings
-                               nil, // Lista de anexos - TStrings
-                               nil  // ReplyTo
-                               );
-
+    //CC.Add('email_1@provedor.com'); //especifique um email valido
+    //CC.Add('email_2@provedor.com.br');    //especifique um email valido
+    ConfigurarEmail;
+    ACBrBPe1.EnviarEmailEvento(Para
+      , edtEmailAssunto.Text
+      , mmEmailMsg.Lines
+      , CC // Lista com emails que serao enviado copias - TStrings
+      , nil // Lista de anexos - TStrings
+      , nil  // ReplyTo
+      );
+  finally
     CC.Free;
     Evento.Free;
   end;
+end;
+
+procedure TfrmACBrBPe.btnExcessoBagagemClick(Sender: TObject);
+var
+  Chave, idLote, CNPJ, Protocolo, qBagagem, vTotBag: string;
+begin
+  if not(InputQuery('WebServices Eventos: Excesso de Bagagem', 'Chave da BP-e', Chave)) then
+     exit;
+  Chave := Trim(OnlyNumber(Chave));
+  idLote := '1';
+  if not(InputQuery('WebServices Eventos: Excesso de Bagagem', 'Identificador de controle do Lote de envio do Evento', idLote)) then
+     exit;
+  CNPJ := copy(Chave,7,14);
+  if not(InputQuery('WebServices Eventos: Excesso de Bagagem', 'CNPJ ou o CPF do autor do Evento', CNPJ)) then
+     exit;
+  Protocolo:='';
+  if not(InputQuery('WebServices Eventos: Excesso de Bagagem', 'Protocolo de Autorização', Protocolo)) then
+     exit;
+  qBagagem := '1';
+  if not(InputQuery('WebServices Eventos: Excesso de Bagagem', 'Quantidade de volumes de bagagem carregados', qBagagem)) then
+     exit;
+  vTotBag := '1';
+  if not(InputQuery('WebServices Eventos: Excesso de Bagagem', 'Valor total do serviço', vTotBag)) then
+     exit;
+
+  qBagagem := OnlyNumber(qBagagem);
+
+  if Trim(qBagagem) = '' then
+  begin
+    MessageDlg('Quantidade de volumes de bagagem carregados inválida.', mtError,[mbok], 0);
+    exit;
+  end;
+
+  if Trim(vTotBag) = '' then
+  begin
+    MessageDlg('Valor total do serviço inválido.', mtError,[mbok], 0);
+    exit;
+  end;
+
+  ACBrBPe1.EventoBPe.Evento.Clear;
+
+  with ACBrBPe1.EventoBPe.Evento.New do
+  begin
+    infevento.chBPe := Chave;
+    infevento.CNPJ := CNPJ;
+    infEvento.dhEvento := now;
+    infEvento.tpEvento := teExcessoBagagem;
+    infEvento.detEvento.nProt := Protocolo;
+    infEvento.detEvento.qBagagem := StrToIntDef(qBagagem, 0);
+    infEvento.detEvento.vTotBag := StrToFloatDef(vTotBag, 0);
+  end;
+
+  ACBrBPe1.EnviarEvento(StrToInt(idLote));
+
+  MemoResp.Lines.Text := ACBrBPe1.WebServices.EnvEvento.RetWS;
+  memoRespWS.Lines.Text := ACBrBPe1.WebServices.EnvEvento.RetornoWS;
+  LoadXML(ACBrBPe1.WebServices.EnvEvento.RetornoWS, WBResposta);
 end;
 
 procedure TfrmACBrBPe.btnGerarPDFClick(Sender: TObject);
@@ -1519,6 +1762,7 @@ var
   N: TACBrPosPrinterModelo;
   O: TACBrPosPaginaCodigo;
   l: Integer;
+  J: TModeloBPe;
 begin
   cbSSLLib.Items.Clear;
   for T := Low(TSSLLib) to High(TSSLLib) do
@@ -1562,6 +1806,11 @@ begin
   cbxPagCodigo.Items.Clear ;
   for O := Low(TACBrPosPaginaCodigo) to High(TACBrPosPaginaCodigo) do
      cbxPagCodigo.Items.Add( GetEnumName(TypeInfo(TACBrPosPaginaCodigo), integer(O) ) ) ;
+
+  cbModeloDF.Items.Clear;
+  for J := Low(TModeloBPe) to High(TModeloBPe) do
+     cbModeloDF.Items.Add( GetEnumName(TypeInfo(TModeloBPe), integer(J) ) );
+  cbModeloDF.ItemIndex := 0;
 
   cbxPorta.Items.Clear;
   ACBrPosPrinter1.Device.AcharPortasSeriais( cbxPorta.Items );
@@ -1611,6 +1860,7 @@ begin
     Ini.WriteString( 'Geral', 'PathSalvar',       edtPathLogs.Text);
     Ini.WriteString( 'Geral', 'PathSchemas',      edtPathSchemas.Text);
     Ini.WriteInteger('Geral', 'VersaoDF',         cbVersaoDF.ItemIndex);
+    Ini.WriteInteger('Geral', 'ModeloDF',         cbModeloDF.ItemIndex);
 
     Ini.WriteString( 'WebService', 'UF',         cbUF.Text);
     Ini.WriteInteger('WebService', 'Ambiente',   rgTipoAmb.ItemIndex);
@@ -1682,6 +1932,7 @@ begin
     Ini.WriteBool(   'PosPrinter', 'LogoLateral',       chkLogoLateral.Checked );
 
     ConfigurarComponente;
+    ConfigurarEmail;
   finally
     Ini.Free;
   end;
@@ -1740,6 +1991,7 @@ begin
     edtFormatoAlerta.Text       := Ini.ReadString( 'Geral', 'FormatoAlerta',    'TAG:%TAGNIVEL% ID:%ID%/%TAG%(%DESCRICAO%) - %MSG%.');
     cbFormaEmissao.ItemIndex    := Ini.ReadInteger('Geral', 'FormaEmissao',     0);
     cbVersaoDF.ItemIndex        := Ini.ReadInteger('Geral', 'VersaoDF',         0);
+    cbModeloDF.ItemIndex        := Ini.ReadInteger('Geral', 'ModeloDF',         0);
 
     ckSalvar.Checked          := Ini.ReadBool(  'Geral', 'Salvar',         True);
     cbxRetirarAcentos.Checked := Ini.ReadBool(  'Geral', 'RetirarAcentos', True);
@@ -1815,6 +2067,7 @@ begin
     ACBrPosPrinter1.Device.ParamsString := INI.ReadString('PosPrinter', 'ParamsString', '');
 
     ConfigurarComponente;
+    ConfigurarEmail;
   finally
     Ini.Free;
   end;
@@ -1848,6 +2101,7 @@ begin
     FormatoAlerta    := edtFormatoAlerta.Text;
     FormaEmissao     := TpcnTipoEmissao(cbFormaEmissao.ItemIndex);
     VersaoDF         := TVersaoBPe(cbVersaoDF.ItemIndex);
+    ModeloDF         := TModeloBPe(cbModeloDF.ItemIndex);
   end;
 
   with ACBrBPe1.Configuracoes.WebServices do
@@ -1895,7 +2149,7 @@ begin
     PathSchemas      := edtPathSchemas.Text;
     PathBPe          := edtPathBPe.Text;
     PathEvento       := edtPathEvento.Text;
-    PathMensal       := GetPathBPe(0);
+    PathMensal       := GetPathBPe(0, '', '', ACBrBPe1.Configuracoes.Geral.ModeloDF);
     PathSalvar       := PathMensal;
   end;
 
@@ -1905,6 +2159,20 @@ begin
     ACBrBPe1.DABPE.Logo      := edtLogoMarca.Text;
     ACBrBPe1.DABPE.ImprimeLogoLateral := chkLogoLateral.Checked;
   end;
+end;
+
+procedure TfrmACBrBPe.ConfigurarEmail;
+begin
+  ACBrMail1.Host := edtSmtpHost.Text;
+  ACBrMail1.Port := edtSmtpPort.Text;
+  ACBrMail1.Username := edtSmtpUser.Text;
+  ACBrMail1.Password := edtSmtpPass.Text;
+  ACBrMail1.From := edtSmtpUser.Text;
+  ACBrMail1.SetSSL := cbEmailSSL.Checked; // SSL - Conexao Segura
+  ACBrMail1.SetTLS := cbEmailSSL.Checked; // Auto TLS
+  ACBrMail1.ReadingConfirmation := False; // Pede confirmacao de leitura do email
+  ACBrMail1.UseThread := False;           // Aguarda Envio do Email(nao usa thread)
+  ACBrMail1.FromName := 'Projeto ACBr - ACBrBPe';
 end;
 
 procedure TfrmACBrBPe.LoadXML(RetWS: String; MyWebBrowser: TWebBrowser);

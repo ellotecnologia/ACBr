@@ -30,13 +30,6 @@
 {       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
-{******************************************************************************
-|* Historico
-|*
-|* 15/05/2013: Primeira Versao
-|*    Régys Borges da Silveira
-******************************************************************************}
-
 {$I ACBr.inc}
 
 unit ACBrIBPTax;
@@ -45,7 +38,7 @@ interface
 
 uses
   SysUtils, Variants, Classes,
-  {$IF DEFINED(NEXTGEN)}
+  {$IF DEFINED(HAS_SYSTEM_GENERICS)}
    System.Generics.Collections, System.Generics.Defaults,
   {$ELSEIF DEFINED(DELPHICOMPILER16_UP)}
    System.Contnrs,
@@ -134,7 +127,7 @@ type
     property Municipal: Double read FMunicipal write FMunicipal;
   end;
 
-  TACBrIBPTaxRegistros = class(TObjectList{$IfDef NEXTGEN}<TACBrIBPTaxRegistro>{$EndIf})
+  TACBrIBPTaxRegistros = class(TObjectList{$IfDef HAS_SYSTEM_GENERICS}<TACBrIBPTaxRegistro>{$EndIf})
   private
     function GetItem(Index: integer): TACBrIBPTaxRegistro;
     procedure SetItem(Index: integer; const Value: TACBrIBPTaxRegistro);

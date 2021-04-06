@@ -29,15 +29,6 @@
 { Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
 {       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
-{******************************************************************************
-|* Historico
-|*
-|* 04/10/2005: Daniel Simões de Almeida
-|*  - Primeira Versao ACBrBALToledo
-|* 11/04/2007 Daniel Simões de Almeida
-|*  - Corrigido para trabalhar com diversos protocolos da Toledo
-******************************************************************************}
-
 {$I ACBr.inc}
 
 unit ACBrBALToledo;
@@ -154,6 +145,7 @@ end;
 function TACBrBALToledo.InterpretarProtocoloC(const aResposta: AnsiString): AnsiString;
 var
   wPosIni, wPosFim: Integer;
+  vRetorno : String;
 begin
   { Protocolo C = [ STX ] [ PESO ] [ CR ]
     Linha Automacao:
@@ -170,7 +162,10 @@ begin
   else
     wPosFim := Length(aResposta) + 1;  // Não achou? ...Usa a String inteira
 
-  Result := Trim(Copy(aResposta, wPosIni + 1, wPosFim - wPosIni - 1));
+  vRetorno := Trim(Copy(aResposta, wPosIni + 1, wPosFim - wPosIni - 1));
+  // A linha abaixo é para o modelo 9098... Veja: https://www.projetoacbr.com.br/forum/topic/58381-ajuste-leitura-peso-balan%C3%A7a-toleto-9098/
+  vRetorno := StringReplace(vRetorno, 'kg', '', [rfReplaceAll]);
+  Result := vRetorno;
 end;
 
 function TACBrBALToledo.InterpretarProtocoloEth(

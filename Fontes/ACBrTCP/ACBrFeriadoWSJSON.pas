@@ -30,20 +30,13 @@
 {       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
-{******************************************************************************
-|* Historico
-|*
-|* 14/11/2017: Primeira Versao
-|*    Filipe de Almeida Sortica
-******************************************************************************}
-
 unit ACBrFeriadoWSJSON;
 
 interface
 
 uses
   Classes,
-  {$IF DEFINED(NEXTGEN)}
+  {$IF DEFINED(HAS_SYSTEM_GENERICS)}
    System.Generics.Collections, System.Generics.Defaults,
   {$ELSEIF DEFINED(DELPHICOMPILER16_UP)}
    System.Contnrs,

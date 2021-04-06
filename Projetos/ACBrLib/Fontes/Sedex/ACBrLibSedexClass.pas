@@ -2,33 +2,32 @@
 { Projeto: Componentes ACBr                                                    }
 {  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
-
-{ Direitos Autorais Reservados (c) 2018 Daniel Simoes de Almeida               }
-
+{                                                                              }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{                                                                              }
 { Colaboradores nesse arquivo: Italo Jurisato Junior                           }
-
+{                                                                              }
 {  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
-
+{                                                                              }
 {  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la }
 { sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela  }
 { Free Software Foundation; tanto a versão 2.1 da Licença, ou (a seu critério) }
 { qualquer versão posterior.                                                   }
-
+{                                                                              }
 {  Esta biblioteca é distribuída na expectativa de que seja útil, porém, SEM   }
 { NENHUMA GARANTIA; nem mesmo a garantia implícita de COMERCIABILIDADE OU      }
 { ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA. Consulte a Licença Pública Geral Menor}
 { do GNU para mais detalhes. (Arquivo LICENÇA.TXT ou LICENSE.TXT)              }
-
+{                                                                              }
 {  Você deve ter recebido uma cópia da Licença Pública Geral Menor do GNU junto}
 { com esta biblioteca; se não, escreva para a Free Software Foundation, Inc.,  }
 { no endereço 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.          }
 { Você também pode obter uma copia da licença em:                              }
-{ http://www.opensource.org/licenses/gpl-license.php                           }
-
-{ Daniel Simões de Almeida  -  daniel@djsystem.com.br  -  www.djsystem.com.br  }
-{        Rua Cel.Aureliano de Camargo, 973 - Tatuí - SP - 18270-170            }
-
+{ http://www.opensource.org/licenses/lgpl-license.php                          }
+{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
 {$I ACBr.inc}
@@ -144,56 +143,56 @@ end;
 function Sedex_Inicializar(const eArqConfig, eChaveCrypt: PChar): longint;
   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
 begin
-  Result := LIB_Inicializar(eArqConfig, eChaveCrypt);
+  Result := LIB_Inicializar(pLib, TACBrLibSedex, eArqConfig, eChaveCrypt);
 end;
 
 function Sedex_Finalizar: longint;
   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
 begin
-  Result := LIB_Finalizar;
+  Result := LIB_Finalizar(pLib);
 end;
 
 function Sedex_Nome(const sNome: PChar; var esTamanho: longint): longint;
   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
 begin
-  Result := LIB_Nome(sNome, esTamanho);
+  Result := LIB_Nome(pLib, sNome, esTamanho);
 end;
 
 function Sedex_Versao(const sVersao: PChar; var esTamanho: longint): longint;
   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
 begin
-  Result := LIB_Versao(sVersao, esTamanho);
+  Result := LIB_Versao(pLib, sVersao, esTamanho);
 end;
 
 function Sedex_UltimoRetorno(const sMensagem: PChar; var esTamanho: longint): longint;
   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
 begin
-  Result := LIB_UltimoRetorno(sMensagem, esTamanho);
+  Result := LIB_UltimoRetorno(pLib, sMensagem, esTamanho);
 end;
 
 function Sedex_ConfigLer(const eArqConfig: PChar): longint;
   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
 begin
-  Result := LIB_ConfigLer(eArqConfig);
+  Result := LIB_ConfigLer(pLib, eArqConfig);
 end;
 
 function Sedex_ConfigGravar(const eArqConfig: PChar): longint;
   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
 begin
-  Result := LIB_ConfigGravar(eArqConfig);
+  Result := LIB_ConfigGravar(pLib, eArqConfig);
 end;
 
 function Sedex_ConfigLerValor(const eSessao, eChave: PChar; sValor: PChar;
   var esTamanho: longint): longint;
   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
 begin
-  Result := LIB_ConfigLerValor(eSessao, eChave, sValor, esTamanho);
+  Result := LIB_ConfigLerValor(pLib, eSessao, eChave, sValor, esTamanho);
 end;
 
 function Sedex_ConfigGravarValor(const eSessao, eChave, eValor: PChar): longint;
   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
 begin
-  Result := LIB_ConfigGravarValor(eSessao, eChave, eValor);
+  Result := LIB_ConfigGravarValor(pLib, eSessao, eChave, eValor);
 end;
 {%endregion}
 
@@ -203,9 +202,11 @@ var
   Resp: TLibSedexRastreio;
 begin
   Resp := TLibSedexRastreio.Create(
-          CSessaoRespRastreio + Trim(IntToStrZero(ItemID +1, 2)), pLib.Config.TipoResposta, pLib.Config.CodResposta);
+          CSessaoRespRastreio + Trim(IntToStrZero(ItemID +1, 2)),
+          TACBrLibSedex(pLib^.Lib).Config.TipoResposta,
+          TACBrLibSedex(pLib^.Lib).Config.CodResposta);
   try
-    with TACBrLibSedex(pLib).SedexDM.ACBrSedex1.retRastreio[ItemID] do
+    with TACBrLibSedex(pLib^.Lib).SedexDM.ACBrSedex1.retRastreio[ItemID] do
     begin
       Resp.DataHora := DataHora;
       Resp.Local := Local;
@@ -225,15 +226,15 @@ var
   AArqIni: String;
 begin
   try
-    VerificarLibInicializada;
+    VerificarLibInicializada(pLib);
     AArqIni := AnsiString(eArqIni);
 
-    if pLib.Config.Log.Nivel > logNormal then
-      pLib.GravarLog('Sedex_LerArqIni( ' + AArqIni + ' )', logCompleto, True)
+    if TACBrLibSedex(pLib^.Lib).Config.Log.Nivel > logNormal then
+      TACBrLibSedex(pLib^.Lib).GravarLog('Sedex_LerArqIni( ' + AArqIni + ' )', logCompleto, True)
     else
-      pLib.GravarLog('Sedex_LerArqIni', logNormal);
+      TACBrLibSedex(pLib^.Lib).GravarLog('Sedex_LerArqIni', logNormal);
 
-    with TACBrLibSedex(pLib) do
+    with TACBrLibSedex(pLib^.Lib) do
     begin
       SedexDM.Travar;
       try
@@ -245,10 +246,10 @@ begin
     end;
   except
     on E: EACBrLibException do
-      Result := SetRetorno(E.Erro, E.Message);
+      Result := TACBrLibSedex(pLib^.Lib).SetRetorno(E.Erro, E.Message);
 
     on E: Exception do
-      Result := SetRetorno(ErrExecutandoMetodo, E.Message);
+      Result := TACBrLibSedex(pLib^.Lib).SetRetorno(ErrExecutandoMetodo, E.Message);
   end;
 end;
 
@@ -259,13 +260,14 @@ var
   AResposta: String;
 begin
   try
-    VerificarLibInicializada;
-    pLib.GravarLog('Sedex_Consultar', logNormal);
+    VerificarLibInicializada(pLib);
+    TACBrLibSedex(pLib^.Lib).GravarLog('Sedex_Consultar', logNormal);
 
-    with TACBrLibSedex(pLib) do
+    with TACBrLibSedex(pLib^.Lib) do
     begin
       SedexDM.Travar;
-      Resp := TLibSedexConsulta.Create(pLib.Config.TipoResposta, pLib.Config.CodResposta);
+      Resp := TLibSedexConsulta.Create( TACBrLibSedex(pLib^.Lib).Config.TipoResposta,
+                                        TACBrLibSedex(pLib^.Lib).Config.CodResposta);
       try
         SedexDM.ACBrSedex1.Consultar;
         AResposta := '';
@@ -298,10 +300,10 @@ begin
     end;
   except
     on E: EACBrLibException do
-      Result := SetRetorno(E.Erro, E.Message);
+      Result := TACBrLibSedex(pLib^.Lib).SetRetorno(E.Erro, E.Message);
 
     on E: Exception do
-      Result := SetRetorno(ErrExecutandoMetodo, E.Message);
+      Result := TACBrLibSedex(pLib^.Lib).SetRetorno(ErrExecutandoMetodo, E.Message);
   end;
 end;
 
@@ -314,15 +316,15 @@ var
   I: Integer;
 begin
   try
-    VerificarLibInicializada;
+    VerificarLibInicializada(pLib);
     ACodRastreio := AnsiString(eCodRastreio);
 
-    if pLib.Config.Log.Nivel > logNormal then
-      pLib.GravarLog('Sedex_Rastrear( ' + ACodRastreio + ' )', logCompleto, True)
+    if TACBrLibSedex(pLib^.Lib).Config.Log.Nivel > logNormal then
+      TACBrLibSedex(pLib^.Lib).GravarLog('Sedex_Rastrear( ' + ACodRastreio + ' )', logCompleto, True)
     else
-      pLib.GravarLog('Sedex_Rastrear', logNormal);
+      TACBrLibSedex(pLib^.Lib).GravarLog('Sedex_Rastrear', logNormal);
 
-    with TACBrLibSedex(pLib) do
+    with TACBrLibSedex(pLib^.Lib) do
     begin
       SedexDM.Travar;
       try
@@ -341,10 +343,10 @@ begin
     end;
   except
     on E: EACBrLibException do
-      Result := SetRetorno(E.Erro, E.Message);
+      Result := TACBrLibSedex(pLib^.Lib).SetRetorno(E.Erro, E.Message);
 
     on E: Exception do
-      Result := SetRetorno(ErrExecutandoMetodo, E.Message);
+      Result := TACBrLibSedex(pLib^.Lib).SetRetorno(ErrExecutandoMetodo, E.Message);
   end;
 end;
 {%endregion}

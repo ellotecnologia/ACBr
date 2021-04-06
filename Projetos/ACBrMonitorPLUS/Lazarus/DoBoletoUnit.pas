@@ -1,9 +1,9 @@
 {*******************************************************************************}
-{ Projeto: ACBrMonitor                                                         }
+{ Projeto: ACBrMonitor                                                          }
 {  Executavel multiplataforma que faz uso do conjunto de componentes ACBr para  }
 { criar uma interface de comunicação com equipamentos de automacao comercial.   }
 {                                                                               }
-{ Direitos Autorais Reservados (c) 2010 Daniel Simoes de Almeida                }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida                }
 {                                                                               }
 { Colaboradores nesse arquivo: Juliana Rodrigues Prado Tamizou                  }
 {                              Jean Patrick F. dos Santos (envio de e-mails)    }
@@ -31,6 +31,7 @@
 {        Rua Cel.Aureliano de Camargo, 963 - Tatuí - SP - 18270-170             }
 {                                                                               }
 {*******************************************************************************}
+
 {$mode objfpc}{$H+}
 
 unit DoBoletoUnit;
@@ -39,7 +40,7 @@ interface
 
 uses
   Classes, SysUtils, CmdUnit, ACBrBoleto,
-  ACBrMonitorConfig, ACBrMonitorConsts;
+  ACBrMonitorConfig, ACBrMonitorConsts, ACBrBoletoConversao, ACBrLibResposta, ACBrLibBoletoRespostas;
 
 type
 
@@ -457,24 +458,42 @@ end;
 { Params: 0 - Dir = Diretório do arquivo de Retorno
           1 - NomeArq = Nome do arquivo de Retorno
           2 - ListaRelat = Boolean: Listar Relatório caso seja true
+          3 - RetResposta = Boolean: Obter o Retorna na Resposta
 }
 procedure TMetodoLerRetorno.Executar;
 var
   ADir     : String;
   ANomeArq : String;
   AListaRelat : Boolean;
+  ARetResposta : Boolean;
+  RespRetorno : TRetornoBoleto;
 begin
   ADir     := fpCmd.Params(0);
   ANomeArq := fpCmd.Params(1);
   AListaRelat := StrToBoolDef( fpCmd.Params(2), False );
+  ARetResposta := StrToBoolDef( fpCmd.Params(3), False );
 
   with TACBrObjetoBoleto(fpObjetoDono) do
   begin
     ACBrBoleto.DirArqRetorno  := ADir;
     ACBrBoleto.NomeArqRetorno := ANomeArq;
     ACBrBoleto.LerRetorno();
+
+    if ARetResposta then
+    begin
+      RespRetorno := TRetornoBoleto.Create(TpResp, codUTF8);
+      try
+        RespRetorno.Processar(ACBrBoleto);
+        fpCmd.Resposta := sLineBreak + RespRetorno.Gerar;
+      Finally
+        RespRetorno.Free;
+      end;
+
+    end;
+
     ACBrBoleto.GravarArqIni(ADir,'');
-      if ( AListaRelat ) then
+
+    if ( AListaRelat ) then
         ImprimeRelatorioRetorno(ADir);
 
   end;
@@ -503,6 +522,7 @@ begin
       try
         Mensagem.Text:= StringToBinaryString(EmailMensagemBoleto);
         try
+          ACBrBoleto.MAIL.IsHTML := EmailFormatoHTML;
           ACBrBoleto.EnviarEmail( ADest,
                  EmailAssuntoBoleto,
                  Mensagem,
@@ -562,6 +582,7 @@ begin
         Mensagem := TStringList.Create;
         try
           Mensagem.Text:= StringToBinaryString(EmailMensagemBoleto);
+          ACBrBoleto.MAIL.IsHTML := EmailFormatoHTML;
           ACBrBoleto.EnviarEmail( ACBrBoleto.ListadeBoletos[0].Sacado.Email,
                            EmailAssuntoBoleto,
                            Mensagem,
@@ -850,6 +871,7 @@ begin
       try
         Mensagem.Text:= StringToBinaryString(EmailMensagemBoleto);
         try
+          ACBrBoleto.MAIL.IsHTML := EmailFormatoHTML;
           ACBrBoleto.ListadeBoletos[AIndice].EnviarEmail( ADest,
                  EmailAssuntoBoleto,
                  Mensagem,

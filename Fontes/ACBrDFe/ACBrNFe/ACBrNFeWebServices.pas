@@ -41,7 +41,7 @@ uses
   Classes, SysUtils, dateutils,
   ACBrDFe, ACBrDFeWebService,
   blcksock, synacode,
-  pcnNFe, pcnRetConsReciDFe, pcnRetConsCad, pcnAuxiliar, pcnConversao,
+  pcnNFe, pcnRetConsReciDFe, pcnRetConsCad, pcnAuxiliar, pcnConversao, pcnConsts,
   pcnConversaoNFe, pcnProcNFe, pcnEnvEventoNFe, pcnRetEnvEventoNFe, pcnRetConsSitNFe, 
   pcnAdmCSCNFCe, pcnRetAdmCSCNFCe, pcnDistDFeInt, pcnRetDistDFeInt, pcnRetEnvNFe,
   ACBrNFeNotasFiscais, ACBrNFeConfiguracoes;
@@ -67,6 +67,7 @@ type
     function GerarVersaoDadosSoap: String; override;
     procedure EnviarDados; override;
     procedure FinalizarServico; override;
+    function ModeloDFe(const Chave: string): TpcnModeloDF;
 
   public
     constructor Create(AOwner: TACBrDFe); override;
@@ -667,6 +668,21 @@ begin
     FPHeaderElement := ''; //Versão 4.00 não tem o elemento <soap12:Header>
 
   TACBrNFe(FPDFeOwner).SetStatus(FPStatus);
+end;
+
+function TNFeWebService.ModeloDFe(const Chave: string): TpcnModeloDF;
+var
+  Ok: Boolean;
+  xChave: string;
+begin
+  xChave := Trim(Chave);
+  if xChave <> '' then
+  begin
+    result := StrToModeloDF(Ok, ExtrairModeloChaveAcesso(xChave));
+    if Ok then
+      Exit;
+  end;
+  result := FPConfiguracoesNFe.Geral.ModeloDF;
 end;
 
 procedure TNFeWebService.DefinirURL;
@@ -2019,11 +2035,10 @@ procedure TNFeConsulta.DefinirURL;
 var
   VerServ: Double;
   Modelo, xUF: String;
-  ok: Boolean;
 begin
   FPVersaoServico := '';
   FPURL  := '';
-  Modelo := ModeloDFToPrefixo( StrToModeloDF(ok, ExtrairModeloChaveAcesso(FNFeChave) ));
+  Modelo := ModeloDFToPrefixo(ModeloDFe(FNFeChave));
   FcUF   := ExtrairUFChaveAcesso(FNFeChave);
   VerServ:= VersaoDFToDbl(FPConfiguracoesNFe.Geral.VersaoDF);
 
@@ -2400,7 +2415,13 @@ begin
                   AProcNFe := TProcNFe.Create;
                   try
                     AProcNFe.XML_NFe := RemoverDeclaracaoXML(XMLOriginal);
-                    AProcNFe.XML_Prot := NFeRetorno.XMLprotNFe;
+//                    AProcNFe.XML_Prot := NFeRetorno.XMLprotNFe;
+
+                    // A SEFAZ-PR esta retornado o XML de processamento da NFe
+                    // fora do padrão, os atributos versao e Id estão sendo
+                    // gerados com apostrofe em vez de aspas.
+                    AProcNFe.XML_Prot := StringReplace(NFeRetorno.XMLprotNFe, '''', '"', [rfReplaceAll]);
+
                     AProcNFe.Versao := NFeRetorno.protNFe.Versao;
                     if AProcNFe.Versao = '' then
                       AProcNFe.Versao := FPVersaoServico;
@@ -2530,16 +2551,17 @@ procedure TNFeInutilizacao.Clear;
 begin
   inherited Clear;
 
-  FPStatus := stNFeInutilizacao;
-  FPLayout := LayNfeInutilizacao;
-  FPArqEnv := 'ped-inu';
-  FPArqResp := 'inu';
+  FPStatus    := stNFeInutilizacao;
+  FPLayout    := LayNfeInutilizacao;
+  FPArqEnv    := 'ped-inu';
+  FPArqResp   := 'inu';
 
   FverAplic := '';
-  FcStat := 0;
-  FxMotivo := '';
-  Fversao := '';
+  FcStat    := 0;
+  FxMotivo  := '';
+  Fversao   := '';
   FdhRecbto := 0;
+  FProtocolo := '';
   FXML_ProcInutNFe := '';
 
   if Assigned(FPConfiguracoesNFe) then
@@ -2880,10 +2902,8 @@ begin
     ConCadNFe.IE := FIE;
     ConCadNFe.CNPJ := FCNPJ;
     ConCadNFe.CPF := FCPF;
-    if UpperCase(FUF) = 'MT' then
-      ConCadNFe.Versao :=  '2.00'
-    else
-      ConCadNFe.Versao :=  FPVersaoServico;
+    ConCadNFe.Versao :=  '2.00';
+
     AjustarOpcoes( ConCadNFe.Gerador.Opcoes );
     ConCadNFe.GerarXML;
 
@@ -3005,7 +3025,6 @@ procedure TNFeEnvEvento.DefinirURL;
 var
   UF, Modelo : String;
   VerServ: Double;
-  ok: Boolean;
 begin
   { Verificação necessária pois somente os eventos de Cancelamento e CCe serão tratados pela SEFAZ do estado
     os outros eventos como manifestacao de destinatários serão tratados diretamente pela RFB }
@@ -3014,7 +3033,7 @@ begin
   VerServ  := VersaoDFToDbl(FPConfiguracoesNFe.Geral.VersaoDF);
   FCNPJ    := FEvento.Evento.Items[0].InfEvento.CNPJ;
   FTpAmb   := FEvento.Evento.Items[0].InfEvento.tpAmb;
-  Modelo   := ModeloDFToPrefixo( StrToModeloDF(ok, ExtrairModeloChaveAcesso(FEvento.Evento.Items[0].InfEvento.chNFe) ));
+  Modelo   := ModeloDFToPrefixo(ModeloDFe(FEvento.Evento.Items[0].InfEvento.chNFe));
   FIE      := FEvento.Evento.Items[0].InfEvento.detEvento.IE;
 
   // Configuração correta ao enviar para o SVC
@@ -3033,7 +3052,8 @@ begin
   end
   else if not (FEvento.Evento.Items[0].InfEvento.tpEvento in [teCCe,
          teCancelamento, teCancSubst, tePedProrrog1, tePedProrrog2,
-         teCanPedProrrog1, teCanPedProrrog2]) then
+         teCanPedProrrog1, teCanPedProrrog2, teComprEntregaNFe,
+         teCancComprEntregaNFe]) then
   begin
     FPLayout := LayNFeEventoAN;
     UF       := 'AN';
@@ -3213,6 +3233,44 @@ begin
             infEvento.detEvento.nProt := FEvento.Evento[I].InfEvento.detEvento.nProt;
           end;
 
+          teComprEntregaNFe:
+          begin
+            SchemaEventoNFe := schCompEntrega;
+            infEvento.detEvento.nProt     := FEvento.Evento[i].InfEvento.detEvento.nProt;
+            infEvento.detEvento.dhEntrega := FEvento.Evento[i].InfEvento.detEvento.dhEntrega;
+            infEvento.detEvento.nDoc      := FEvento.Evento[i].InfEvento.detEvento.nDoc;
+            infEvento.detEvento.xNome     := FEvento.Evento[i].InfEvento.detEvento.xNome;
+            infEvento.detEvento.latGPS    := FEvento.Evento[i].InfEvento.detEvento.latGPS;
+            infEvento.detEvento.longGPS   := FEvento.Evento[i].InfEvento.detEvento.longGPS;
+
+            infEvento.detEvento.hashComprovante   := FEvento.Evento[i].InfEvento.detEvento.hashComprovante;
+            infEvento.detEvento.dhHashComprovante := FEvento.Evento[i].InfEvento.detEvento.dhHashComprovante;
+          end;
+
+          teCancComprEntregaNFe:
+          begin
+            SchemaEventoNFe := schCancCompEntrega;
+            infEvento.detEvento.nProtEvento := FEvento.Evento[i].InfEvento.detEvento.nProtEvento;
+          end;
+
+          teAtorInteressadoNFe:
+          begin
+            SchemaEventoNFe := schAtorInteressadoNFe;
+            infEvento.detEvento.cOrgaoAutor := FEvento.Evento[I].InfEvento.detEvento.cOrgaoAutor;
+            infEvento.detEvento.tpAutor := FEvento.Evento[I].InfEvento.detEvento.tpAutor;
+            infEvento.detEvento.verAplic := FEvento.Evento[I].InfEvento.detEvento.verAplic;
+
+            for j := 0 to FEvento.Evento.Items[I].InfEvento.detEvento.autXML.count - 1 do
+            begin
+              with infEvento.detEvento.autXML.New do
+              begin
+                CNPJCPF := FEvento.Evento[I].InfEvento.detEvento.autXML[J].CNPJCPF;
+              end;
+            end;
+
+            infEvento.detEvento.tpAutorizacao := FEvento.Evento[I].InfEvento.detEvento.tpAutorizacao;
+            infEvento.detEvento.xCondUso := FEvento.Evento[I].InfEvento.detEvento.xCondUso;
+          end;
         end;
       end;
     end;
@@ -3220,6 +3278,10 @@ begin
 
     EventoNFe.Versao := FPVersaoServico;
     AjustarOpcoes( EventoNFe.Gerador.Opcoes );
+
+    if SchemaEventoNFe = schAtorInteressadoNFe then
+      EventoNFe.Gerador.Opcoes.RetirarAcentos := False;  // Não funciona sem acentos
+
     EventoNFe.GerarXML;
 
     // Separa os grupos <evento> e coloca na variável Eventos
@@ -3312,7 +3374,6 @@ begin
       else
         Break;
     end;
-
 
     for I := 0 to FEvento.Evento.Count - 1 do
       FEvento.Evento[I].InfEvento.id := EventoNFe.Evento[I].InfEvento.id;
@@ -3578,7 +3639,7 @@ end;
 
 procedure TDistribuicaoDFe.DefinirURL;
 var
-  UF : String;
+  UF: String;
   Versao: Double;
 begin
   { Esse método é tratado diretamente pela RFB }
@@ -3591,7 +3652,7 @@ begin
   Versao := VersaoDFToDbl(FPConfiguracoesNFe.Geral.VersaoDF);
 
   TACBrNFe(FPDFeOwner).LerServicoDeParams(
-    TACBrNFe(FPDFeOwner).GetNomeModeloDFe,
+    ModeloDFToPrefixo(ModeloDFe(FchNFe)),
     UF ,
     FPConfiguracoesNFe.WebServices.Ambiente,
     LayOutToServico(FPLayout),

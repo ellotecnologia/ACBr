@@ -559,9 +559,9 @@ object frmACBrMDFe: TfrmACBrMDFe
               object Label6: TLabel
                 Left = 8
                 Top = 16
-                Width = 121
+                Width = 126
                 Height = 13
-                Caption = 'Selecione UF de Destino:'
+                Caption = 'Selecione UF do Emitente:'
                 Font.Charset = DEFAULT_CHARSET
                 Font.Color = clWindowText
                 Font.Height = -11
@@ -1552,6 +1552,15 @@ object frmACBrMDFe: TfrmACBrMDFe
           TabOrder = 7
           OnClick = btnPagOperacaoTranspClick
         end
+        object btnEnviarEventoEmail: TButton
+          Left = 374
+          Top = 71
+          Width = 177
+          Height = 25
+          Caption = 'Enviar Evento Email'
+          TabOrder = 8
+          OnClick = btnEnviarEventoEmailClick
+        end
       end
       object tsDistribuicao: TTabSheet
         Caption = 'Distribui'#231#227'o DFe'
@@ -1572,7 +1581,7 @@ object frmACBrMDFe: TfrmACBrMDFe
       Top = 198
       Width = 567
       Height = 413
-      ActivePage = TabSheet5
+      ActivePage = Dados
       Align = alClient
       TabOrder = 1
       object TabSheet5: TTabSheet
@@ -1655,7 +1664,7 @@ object frmACBrMDFe: TfrmACBrMDFe
           Align = alClient
           Lines.Strings = (
             '')
-          ScrollBars = ssVertical
+          ScrollBars = ssBoth
           TabOrder = 0
           WordWrap = False
         end
@@ -1696,6 +1705,7 @@ object frmACBrMDFe: TfrmACBrMDFe
     Configuracoes.WebServices.AguardarConsultaRet = 0
     Configuracoes.WebServices.QuebradeLinha = '|'
     Configuracoes.RespTec.IdCSRT = 0
+    DAMDFE = ACBrMDFeDAMDFeRL1
     Left = 334
     Top = 238
   end
@@ -1704,7 +1714,7 @@ object frmACBrMDFe: TfrmACBrMDFe
     MargemInferior = 8.000000000000000000
     MargemSuperior = 8.000000000000000000
     MargemEsquerda = 6.000000000000000000
-    MargemDireita = 5.099999999999999000
+    MargemDireita = 5.100000000000000000
     ExpandeLogoMarcaConfig.Altura = 0
     ExpandeLogoMarcaConfig.Esquerda = 0
     ExpandeLogoMarcaConfig.Topo = 0
@@ -1716,6 +1726,7 @@ object frmACBrMDFe: TfrmACBrMDFe
     CasasDecimais.vUnCom = 2
     CasasDecimais.MaskqCom = ',0.00'
     CasasDecimais.MaskvUnCom = ',0.00'
+    ACBrMDFe = ACBrMDFe1
     ImprimeHoraSaida = False
     TipoDAMDFe = tiSemGeracao
     TamanhoPapel = tpA4
@@ -1723,7 +1734,7 @@ object frmACBrMDFe: TfrmACBrMDFe
     Encerrado = False
     ImprimeDadosExtras = [deValorTotal, deRelacaoDFe]
     PrintDialog = True
-    Left = 432
-    Top = 240
+    Left = 430
+    Top = 238
   end
 end

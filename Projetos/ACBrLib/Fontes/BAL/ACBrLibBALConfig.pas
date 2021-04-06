@@ -2,33 +2,32 @@
 { Projeto: Componentes ACBr                                                    }
 {  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
-
-{ Direitos Autorais Reservados (c) 2018 Daniel Simoes de Almeida               }
-
+{                                                                              }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{                                                                              }
 { Colaboradores nesse arquivo: Italo Jurisato Junior                           }
-
+{                                                                              }
 {  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
-
+{                                                                              }
 {  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la }
 { sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela  }
 { Free Software Foundation; tanto a versão 2.1 da Licença, ou (a seu critério) }
 { qualquer versão posterior.                                                   }
-
+{                                                                              }
 {  Esta biblioteca é distribuída na expectativa de que seja útil, porém, SEM   }
 { NENHUMA GARANTIA; nem mesmo a garantia implícita de COMERCIABILIDADE OU      }
 { ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA. Consulte a Licença Pública Geral Menor}
 { do GNU para mais detalhes. (Arquivo LICENÇA.TXT ou LICENSE.TXT)              }
-
+{                                                                              }
 {  Você deve ter recebido uma cópia da Licença Pública Geral Menor do GNU junto}
 { com esta biblioteca; se não, escreva para a Free Software Foundation, Inc.,  }
 { no endereço 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.          }
 { Você também pode obter uma copia da licença em:                              }
-{ http://www.opensource.org/licenses/gpl-license.php                           }
-
-{ Daniel Simões de Almeida  -  daniel@djsystem.com.br  -  www.djsystem.com.br  }
-{        Rua Cel.Aureliano de Camargo, 973 - Tatuí - SP - 18270-170            }
-
+{ http://www.opensource.org/licenses/lgpl-license.php                          }
+{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
 {$I ACBr.inc}
@@ -79,7 +78,6 @@ type
     procedure INIParaClasse; override;
     procedure ClasseParaINI; override;
     procedure ClasseParaComponentes; override;
-    procedure ImportarIni(FIni: TCustomIniFile); override;
 
     procedure Travar; override;
     procedure Destravar; override;
@@ -89,14 +87,14 @@ type
     destructor Destroy; override;
 
     property BALConfig: TBALConfig read FBALConfig;
-    property DeviceConfig: TDeviceConfig read FDeviceConfig;
+    property BalDeviceConfig: TDeviceConfig read FDeviceConfig;
   end;
 
 implementation
 
 uses
-  ACBrMonitorConsts, ACBrLibConsts, ACBrLibBALConsts,
-  ACBrLibBALClass, ACBrLibComum, ACBrUtil;
+  ACBrLibConsts, ACBrLibBALConsts,
+  ACBrLibBALBase, ACBrUtil;
 
 { TBALConfig }
 
@@ -145,7 +143,7 @@ begin
   inherited Create(AOwner, ANomeArquivo, AChaveCrypt);
 
   FBALConfig := TBALConfig.Create;
-  FDeviceConfig := TDeviceConfig.Create('BAL_Device');
+  FDeviceConfig := TDeviceConfig.Create(CSessaoBALDevice);
 end;
 
 destructor TLibBALConfig.Destroy;
@@ -176,16 +174,6 @@ procedure TLibBALConfig.ClasseParaComponentes;
 begin
   if Assigned(Owner) then
     TACBrLibBAL(Owner).BALDM.AplicarConfiguracoes;
-end;
-
-procedure TLibBALConfig.ImportarIni(FIni: TCustomIniFile);
-begin
-  BALConfig.ArqLog    := FIni.ReadString(CSecBAL, CKeyBALArqLog, BALConfig.ArqLog);
-  BALConfig.Porta     := FIni.ReadString(CSecBAL, CKeyBALPorta, BALConfig.Porta);
-  BALConfig.Modelo    := TACBrBALModelo(FIni.ReadInteger(CSecBAL, CKeyBALModelo, Integer(BALConfig.Modelo)));
-  BALConfig.Intervalo := FIni.ReadInteger(CSecBAL, CKeyBALIntervalo, BALConfig.Intervalo);
-
-  DeviceConfig.ImportarSerialParams(FIni.ReadString(CSecBAL, CKeyBALDevice, ''));
 end;
 
 procedure TLibBALConfig.Travar;

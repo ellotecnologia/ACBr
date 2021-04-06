@@ -1,35 +1,34 @@
-﻿{*******************************************************************************}
-{ Projeto: Componentes ACBr                                                     }
-{  Biblioteca multiplataforma de componentes Delphi para interação com equipa-  }
-{ mentos de Automação Comercial utilizados no Brasil                            }
-{                                                                               }
-{ Direitos Autorais Reservados (c) 2018 Daniel Simoes de Almeida                }
-{                                                                               }
-{ Colaboradores nesse arquivo: Rafael Teno Dias                                 }
-{                                                                               }
-{  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr     }
-{ Componentes localizado em      http://www.sourceforge.net/projects/acbr       }
-{                                                                               }
-{  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la  }
-{ sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela   }
-{ Free Software Foundation; tanto a versão 2.1 da Licença, ou (a seu critério)  }
-{ qualquer versão posterior.                                                    }
-{                                                                               }
-{  Esta biblioteca é distribuída na expectativa de que seja útil, porém, SEM    }
-{ NENHUMA GARANTIA; nem mesmo a garantia implícita de COMERCIABILIDADE OU       }
-{ ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA. Consulte a Licença Pública Geral Menor }
-{ do GNU para mais detalhes. (Arquivo LICENÇA.TXT ou LICENSE.TXT)               }
-{                                                                               }
-{  Você deve ter recebido uma cópia da Licença Pública Geral Menor do GNU junto }
-{ com esta biblioteca; se não, escreva para a Free Software Foundation, Inc.,   }
-{ no endereço 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.           }
-{ Você também pode obter uma copia da licença em:                               }
-{ http://www.opensource.org/licenses/gpl-license.php                            }
-{                                                                               }
-{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br }
-{        Rua Cel.Aureliano de Camargo, 963 - Tatuí - SP - 18270-170             }
-{                                                                               }
-{*******************************************************************************}
+﻿{******************************************************************************}
+{ Projeto: Componentes ACBr                                                    }
+{  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
+{ mentos de Automação Comercial utilizados no Brasil                           }
+{                                                                              }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{                                                                              }
+{ Colaboradores nesse arquivo: Rafael Teno Dias                                }
+{                                                                              }
+{  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
+{ Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
+{                                                                              }
+{  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la }
+{ sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela  }
+{ Free Software Foundation; tanto a versão 2.1 da Licença, ou (a seu critério) }
+{ qualquer versão posterior.                                                   }
+{                                                                              }
+{  Esta biblioteca é distribuída na expectativa de que seja útil, porém, SEM   }
+{ NENHUMA GARANTIA; nem mesmo a garantia implícita de COMERCIABILIDADE OU      }
+{ ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA. Consulte a Licença Pública Geral Menor}
+{ do GNU para mais detalhes. (Arquivo LICENÇA.TXT ou LICENSE.TXT)              }
+{                                                                              }
+{  Você deve ter recebido uma cópia da Licença Pública Geral Menor do GNU junto}
+{ com esta biblioteca; se não, escreva para a Free Software Foundation, Inc.,  }
+{ no endereço 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.          }
+{ Você também pode obter uma copia da licença em:                              }
+{ http://www.opensource.org/licenses/lgpl-license.php                          }
+{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
+{******************************************************************************}
 
 {$I ACBr.inc}
 
@@ -40,7 +39,7 @@ interface
 uses
   Classes, SysUtils, IniFiles, pcnConversao,
   ACBrMDFeConfiguracoes, ACBrMDFeDAMDFeRLClass,
-  DFeReportConfig, ACBrLibConfig;
+  DFeReportConfig, ACBrLibComum, ACBrLibConfig;
 
 type
 
@@ -57,10 +56,9 @@ type
 
   protected
     procedure DefinirValoresPadroesChild; override;
-    procedure ImportChild(const AIni: TCustomIniFile); override;
     procedure LerIniChild(const AIni: TCustomIniFile); override;
     procedure GravarIniChild(const AIni: TCustomIniFile); override;
-    procedure ApplyChild(const DFeReport: TACBrMDFeDAMDFeRL); override;
+    procedure ApplyChild(const DFeReport: TACBrMDFeDAMDFeRL; const Lib: TACBrLib); override;
 
   public
     constructor Create;
@@ -84,7 +82,6 @@ type
     procedure INIParaClasse; override;
     procedure ClasseParaINI; override;
     procedure ClasseParaComponentes; override;
-    procedure ImportarIni(FIni: TCustomIniFile); override;
 
     procedure Travar; override;
     procedure Destravar; override;
@@ -101,8 +98,7 @@ implementation
 
 uses
   blcksock, pcnAuxiliar, pmdfeConversaoMDFe,
-  ACBrDFeSSL, ACBrLibMDFeClass, ACBrMonitorConsts,
-  ACBrLibMDFeConsts, ACBrLibConsts, ACBrLibComum, ACBrUtil;
+  ACBrLibMDFeBase, ACBrLibMDFeConsts, ACBrLibConsts, ACBrUtil;
 
 { TDAMDFeConfig }
 constructor TDAMDFeConfig.Create;
@@ -119,11 +115,6 @@ begin
   FEncerrado := False;
   FTipoDAMDFe := tiRetrato;
   FTamanhoPapel := tpA4;
-end;
-
-procedure TDAMDFeConfig.ImportChild(const AIni: TCustomIniFile);
-begin
-  //Não Achei config especifica da DAMDFe
 end;
 
 procedure TDAMDFeConfig.LerIniChild(const AIni: TCustomIniFile);
@@ -148,7 +139,7 @@ begin
   AIni.WriteBool(FSessao, CChaveEncerrado, FEncerrado);
 end;
 
-procedure TDAMDFeConfig.ApplyChild(const DFeReport: TACBrMDFeDAMDFeRL);
+procedure TDAMDFeConfig.ApplyChild(const DFeReport: TACBrMDFeDAMDFeRL; const Lib: TACBrLib);
 begin
   DFeReport.ImprimeHoraSaida := FImprimeHoraSaida;
   DFeReport.ImprimeHoraSaida_Hora := FImprimeHoraSaida_Hora;
@@ -204,102 +195,6 @@ begin
 
   if Assigned(Owner) then
     TACBrLibMDFe(Owner).MDFeDM.AplicarConfiguracoes;
-end;
-
-procedure TLibMDFeConfig.ImportarIni(FIni: TCustomIniFile);
-Var
-  AuxStr: String;
-  Ok: Boolean;
-begin
-  with MDFe.Certificados do
-  begin
-    //Sessão Certificado
-    ArquivoPFX := FIni.ReadString(CSecCertificado, CKeyArquivoPFX, ArquivoPFX);
-    NumeroSerie := FIni.ReadString(CSecCertificado, CKeyNumeroSerie, NumeroSerie);
-
-    AuxStr := '';
-    AuxStr := FIni.ReadString(CSecCertificado, CKeySenha, '');
-    if NaoEstaVazio(AuxStr) then
-      Senha := AuxStr;
-  end;
-
-  with MDFe.Geral do
-  begin
-    //Sessão Certificado
-    SSLCryptLib := TSSLCryptLib(FIni.ReadInteger(CSecCertificado, CKeyCryptLib, Integer(SSLCryptLib)));
-    SSLHttpLib := TSSLHttpLib(FIni.ReadInteger(CSecCertificado, CKeyHttpLib, Integer(SSLHttpLib)));
-    SSLXmlSignLib := TSSLXmlSignLib(FIni.ReadInteger(CSecCertificado, CKeyXmlSignLib, Integer(SSLXmlSignLib)));
-
-    //ACBrNFeMonitor
-    RetirarAcentos := FIni.ReadBool(CSecACBrNFeMonitor, CKeyRetirarAcentos,RetirarAcentos);
-    ValidarDigest := FIni.ReadBool(CSecACBrNFeMonitor, CKeyValidarDigest, ValidarDigest);
-
-    //Webservices
-    FormaEmissao := TpcnTipoEmissao(FIni.ReadInteger(CSecWebService, CKeyFormaEmissaoMDFe, Integer(FormaEmissao)));
-    VersaoDF := StrToVersaoMDFe(Ok, FIni.ReadString(CSecWebService, CKeyVersaoMDFe, VersaoMDFeToStr(VersaoDF)));
-  end;
-
-
-  with MDFe.Arquivos do
-  begin
-    //ACBrNFeMonitor
-    IniServicos := FIni.ReadString(CSecACBrNFeMonitor, CKeyArquivoWebServicesMDFe, IniServicos);
-
-    //Arquivos
-    Salvar := FIni.ReadBool(CSecArquivos, CKeyArquivosSalvar, Salvar);
-    SepararPorMes := FIni.ReadBool(CSecArquivos, CKeyArquivosPastaMensal, SepararPorMes);
-    SepararPorCNPJ := FIni.ReadBool(CSecArquivos, CKeyArquivosSepararPorCNPJ, SepararPorCNPJ);
-    SepararPorModelo := FIni.ReadBool(CSecArquivos, CKeyArquivosSepararPorModelo, SepararPorModelo);
-    SepararPorModelo := FIni.ReadBool(CSecArquivos, CKeyArquivosSepararPorModelo, SepararPorModelo);
-    AdicionarLiteral := FIni.ReadBool(CSecArquivos, CKeyArquivosAddLiteral, AdicionarLiteral);
-    SalvarApenasMDFeProcessados := FIni.ReadBool(CSecArquivos, CKeyArquivosSalvarApenasNFesAutorizadas, SalvarApenasMDFeProcessados);
-    NormatizarMunicipios := FIni.ReadBool(CSecArquivos, CKeyArquivosNormatizarMunicipios, NormatizarMunicipios);
-    EmissaoPathMDFe := FIni.ReadBool(CSecArquivos, CKeyArquivosEmissaoPathNFe, EmissaoPathMDFe);
-    PathEvento := FIni.ReadString(CSecArquivos, CKeyArquivosPathEvento, PathEvento);
-
-    AuxStr := FIni.ReadString(CSecArquivos, CKeyArquivosPathSchemasDFe, '');
-    if NaoEstaVazio(AuxStr) then
-      PathSchemas := PathWithDelim(AuxStr) + 'MDFe';
-
-    with DownloadDFe do
-    begin
-      SepararPorNome := FIni.ReadBool(CSecArquivos, CKeyArquivosSepararPorNome, SepararPorNome);
-      PathDownload := FIni.ReadString(CSecArquivos, CKeyArquivosPathDownload, PathDownload);
-    end;
-  end;
-
-  with MDFe.WebServices do
-  begin
-    // ACBrNFeMonitor
-    TimeOut := FIni.ReadInteger(CSecACBrNFeMonitor, CKeyTimeoutWebService, TimeOut);
-
-    // Certificado
-    SSLType := TSSLType(FIni.ReadInteger(CSecCertificado, CKeySSLType, Integer(SSLType)));
-
-    //Webservices
-    Ambiente := TpcnTipoAmbiente(FIni.ReadInteger(CSecWebService, CKeyAmbiente, Integer(Ambiente)));
-    UF := FIni.ReadString(CSecWebService, CKeyUF, UF);
-    AjustaAguardaConsultaRet := FIni.ReadBool(CSecWebService, CKeyAjustarAut, AjustaAguardaConsultaRet);
-    AguardarConsultaRet := FIni.ReadInteger(CSecWebService, CKeyAguardar, AguardarConsultaRet);
-    Tentativas := FIni.ReadInteger(CSecWebService, CKeyTentativas, Tentativas);
-    IntervaloTentativas := FIni.ReadInteger(CSecWebService, CKeyWebServiceIntervalo, IntervaloTentativas);
-
-    with TimeZoneConf do
-    begin
-      ModoDeteccao := TTimeZoneModoDeteccao(FIni.ReadInteger(CSecWebService, CKeyTimeZoneMode, Integer(ModoDeteccao)));
-      TimeZoneStr := FIni.ReadString(CSecWebService, CKeyTimeZoneStr, TimeZoneStr);
-    end;
-  end;
-
-  with MDFe.RespTec do
-  begin
-    // RespTecnico
-    IdCSRT := FIni.ReadInteger(CSecRespTecnico, CKeyidCSRT, IdCSRT);
-    CSRT := FIni.ReadString(CSecRespTecnico, CKeyCSRT, CSRT);
-  end;
-
-  //Impressão
-  DAMDFe.Import(FIni);
 end;
 
 procedure TLibMDFeConfig.Travar;

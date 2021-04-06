@@ -38,9 +38,11 @@ uses
   Interfaces, Forms,
   sysutils, Classes, ACBrLibBoletoDataModule,
   ACBrLibConfig, ACBrLibResposta,
-  ACBrLibComum, ACBrLibConsts, ACBrLibBoletoClass, ACBrLibBoletoConsts, ACBrLibBoletoConfig;
+  ACBrLibComum, ACBrLibConsts,
+  {$IFDEF MT}ACBrLibBoletoMT{$ELSE}ACBrLibBoletoST{$ENDIF},
+  ACBrLibBoletoConsts, ACBrLibBoletoConfig, ACBrLibBoletoRespostas;
 
-//{$R *.res}
+{$R *.res}
 
 {$IFDEF DEBUG}
 var
@@ -53,7 +55,8 @@ exports
   Boleto_Nome,
   Boleto_Versao,
   Boleto_UltimoRetorno,
-  Boleto_ImportarConfig,
+  Boleto_ConfigImportar,
+  Boleto_ConfigExportar,
   Boleto_ConfigLer,
   Boleto_ConfigGravar,
   Boleto_ConfigLerValor,
@@ -66,10 +69,13 @@ exports
   Boleto_Imprimir,
   Boleto_ImprimirBoleto,
   Boleto_GerarPDF,
+  Boleto_GerarPDFBoleto,
   Boleto_GerarHTML,
   Boleto_GerarRemessa,
   Boleto_LerRetorno,
+  Boleto_ObterRetorno,
   Boleto_EnviarEmail,
+  Boleto_EnviarEmailBoleto,
   Boleto_SetDiretorioArquivo,
   Boleto_ListaBancos,
   Boleto_ListaCaractTitulo,
@@ -82,8 +88,6 @@ exports
   Boleto_RetornaLinhaDigitavel,
   Boleto_RetornaCodigoBarras;
 
-{$R *.res}
-
 begin
   {$IFDEF DEBUG}
    HeapTraceFile := ExtractFilePath(ParamStr(0))+ 'heaptrclog.trc' ;
@@ -91,7 +95,6 @@ begin
    SetHeapTraceOutput( HeapTraceFile );
   {$ENDIF}
 
-  pLibClass := TACBrLibBoleto; // Ajusta a classe a ser criada
   MainThreadID := GetCurrentThreadId();
   Application.Initialize;
 

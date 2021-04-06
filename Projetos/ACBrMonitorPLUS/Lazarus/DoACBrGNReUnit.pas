@@ -1,11 +1,9 @@
 {*******************************************************************************}
-{ Projeto: ACBrMonitor                                                         }
+{ Projeto: ACBrMonitor                                                          }
 {  Executavel multiplataforma que faz uso do conjunto de componentes ACBr para  }
 { criar uma interface de comunicação com equipamentos de automacao comercial.   }
 {                                                                               }
-{ Direitos Autorais Reservados (c) 2010 Daniel Simoes de Almeida                }
-{                                                                               }
-{ Colaboradores nesse arquivo:                                  }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida                }
 {                                                                               }
 {  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr     }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr       }
@@ -186,7 +184,10 @@ var
 begin
   Resp := TLibGNReConsulta.Create(TpResp, codUTF8);
   try
-    with fACBrGNRe.WebServices.ConsultaUF do
+    Resp.Processar(fACBrGNRe);
+    fpCmd.Resposta := fpCmd.Resposta + Resp.Gerar;
+
+    {with fACBrGNRe.WebServices.ConsultaUF do
     begin
       Resp.Ambiente := TpAmbToStr(ambiente);
       Resp.Codigo := IntToStr(codigo);
@@ -196,7 +197,7 @@ begin
       Resp.ExigeReceita := IfThen(exigeReceita = 'S', 'SIM', 'NÃO');
 
       fpCmd.Resposta := fpCmd.Resposta + Resp.Gerar;
-    end;
+    end; }
   finally
     Resp.Free;
   end;
@@ -208,7 +209,10 @@ var
 begin
   Resp := TLibGNReEnvio.Create(TpResp, codUTF8);
   try
-    with fACBrGNRe.WebServices.Retorno do
+    Resp.Processar(fACBrGNRe);
+    fpCmd.Resposta := fpCmd.Resposta + Resp.Gerar;
+
+    {with fACBrGNRe.WebServices.Retorno do
     begin
       Resp.Ambiente := TpAmbToStr(ambiente);
       Resp.Codigo := IntToStr(codigo);
@@ -217,7 +221,7 @@ begin
       Resp.Protocolo := Protocolo;
 
       fpCmd.Resposta := fpCmd.Resposta + Resp.Gerar;
-    end;
+    end;}
   finally
     Resp.Free;
   end;
@@ -360,12 +364,13 @@ begin
 
     ACBrGNRe.Guias.GerarGNRE;
     ACBrGNRe.Guias.Items[0].GravarXML;
-    fpCmd.Resposta:= 'Arquivo gerado em: ' +
+    fpCmd.Resposta:= 'Arquivo guia gerado em: ' +
                      ACBrGNRe.Guias.Items[0].NomeArq + sLineBreak;
 
     ACBrGNRe.Enviar(bImprimir);
 
     RespostaEnvio;
+
   end;
 end;
 

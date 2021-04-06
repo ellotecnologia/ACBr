@@ -1081,15 +1081,11 @@ var
 begin
   inherited;
 
-  if (fpDACTe.Logo <> '') then
+  CarregouLogo := TDFeReportFortes.CarregarLogo(rliLogo, fpDACTe.Logo);
+  if not CarregouLogo then
   begin
-    CarregouLogo := TDFeReportFortes.CarregarLogo(rliLogo, fpDACTe.Logo);
-  end
-  else
-  begin
-    rlmDadosEmitente.Left := 7;
-    rlmDadosEmitente.Width := 302;
-    rlmDadosEmitente.Alignment := taCenter;
+    rlmDadosEmitente.Left := rlmEmitente.Left;
+    rlmDadosEmitente.Width := rlmEmitente.Width;
   end;
 
   if fpDACTe.ExpandeLogoMarca then
@@ -1235,6 +1231,12 @@ begin
   end;
 
   rllInscSuframa.Caption := fpCTe.Dest.ISUF;
+
+  if (fpCTe.ide.modelo = 67) then
+  begin
+    RLLabel17.Caption := 'DACTE OS';
+    RLLabel18.Caption := 'Documento Auxiliar do Conhecimento de Transporte Eletrônico para Outros Serviços';
+  end;
 end;
 
 procedure TfrmDACTeRLRetrato.rlb_03_DadosDACTeBeforePrint(Sender: TObject;
@@ -1459,13 +1461,18 @@ begin
       end;
       uUNIDADE, uLITROS, uMMBTU:
       begin
-        rlmQtdUnidMedida5.Lines.Add(fpCTe.infCTeNorm.InfCarga.InfQ.Items[i].tpMed);
         rlmQtdUnidMedida5.Lines.Add(
+          fpCTe.infCTeNorm.InfCarga.InfQ.Items[i].tpMed + ': ' +
           FormatFloatBr(msk6x4, fpCTe.infCTeNorm.InfCarga.InfQ.Items[i].qCarga) + ' ' +
           UnidMedToDescricaoStr(fpCTe.infCTeNorm.InfCarga.InfQ.Items[i].cUnid));
       end;
     end;
   end;
+
+  RLDraw58.Height  := rlb_04_DadosNotaFiscal.Height;
+  RLDraw59.Height  := rlb_04_DadosNotaFiscal.Height;
+  RLDraw100.Height := rlb_04_DadosNotaFiscal.Height;
+  RLDraw60.Height  := rlb_04_DadosNotaFiscal.Height;
 
   if fpCTe.infCTeNorm.seg.Count > 0 then
   begin
@@ -1758,7 +1765,12 @@ begin
           rlmObs.Lines.Add('');
        rlmObs.Lines.EndUpdate;
     end;
-    rllMsgTeste.Caption := ACBrStr('AMBIENTE DE HOMOLOGAÇÃO - SEM VALOR FISCAL');
+
+    if fpCTe.procCTe.nprot = '' then
+      rllMsgTeste.Caption := ACBrStr('CT-e NÃO ENVIADO, SEM VALOR FISCAL - HOMOLOGAÇÃO')
+    else
+      rllMsgTeste.Caption := ACBrStr('CT-e SEM VALOR FISCAL - AMBIENTE DE HOMOLOGAÇÃO');
+
     rllMsgTeste.Visible := True;
     rllMsgTeste.Enabled := True;
   end
@@ -1789,7 +1801,9 @@ begin
     end
     else
     begin
-      rllMsgTeste.Caption := ACBrStr('CT-E NÃO ENVIADO PARA SEFAZ');
+      if fpCTe.procCTe.nprot = '' then
+        rllMsgTeste.Caption := ACBrStr('CT-e NÃO ENVIADO, SEM VALOR FISCAL');
+
       rllMsgTeste.Visible := True;
       rllMsgTeste.Enabled := True;
     end;
@@ -1854,7 +1868,12 @@ begin
         end;
 
         if (dPrev > 0) then
-          rllDtPrevEntrega.Caption := FormatDateTime('DD/MM/YYYY', dPrev);
+          rllDtPrevEntrega.Caption := FormatDateTime('DD/MM/YYYY', dPrev)
+        else
+        begin
+          if (fpCTe.compl.Entrega.comData.dProg > 0) then
+            rllDtPrevEntrega.Caption := FormatDateTime('DD/MM/YYYY', fpCTe.compl.Entrega.comData.dProg);
+        end;
       end;
     end;
   end;
@@ -2010,35 +2029,35 @@ begin
   //Valida a Versão para reposicionar campos na tela
   if (fpCTe.infCTe.versao >= 3.00) then
   begin
-    RLDraw58.Left := 148;
-    RLDraw59.Left := 296;
-    RLDraw100.Left := 444;
-    RLDraw60.Left := 592;
+    RLDraw58.Left := 112;
+    RLDraw59.Left := 224;
+    RLDraw100.Left := 336;
+    RLDraw60.Left := 448;
 
-    RLLabel35.Width := 136;
+    RLLabel35.Width := 100;
     RLLabel35.Left := 5;
-    rlmQtdUnidMedida1.Width := 136;
+    rlmQtdUnidMedida1.Width := 100;
     rlmQtdUnidMedida1.Left := 5;
 
-    RLLabel36.Width := 136;
-    RLLabel36.Left := 154;
-    rlmQtdUnidMedida2.Width := 136;
-    rlmQtdUnidMedida2.Left := 154;
+    RLLabel36.Width := 100;
+    RLLabel36.Left := 118;
+    rlmQtdUnidMedida2.Width := 100;
+    rlmQtdUnidMedida2.Left := 118;
 
-    RLLabel41.Width := 136;
-    RLLabel41.Left := 304;
-    rlmQtdUnidMedida3.Width := 136;
-    rlmQtdUnidMedida3.Left := 304;
+    RLLabel41.Width := 100;
+    RLLabel41.Left := 232;
+    rlmQtdUnidMedida3.Width := 100;
+    rlmQtdUnidMedida3.Left := 232;
 
-    RLLabel73.Width := 136;
-    RLLabel73.Left := 449;
-    rlmQtdUnidMedida4.Width := 136;
-    rlmQtdUnidMedida4.Left := 449;
+    RLLabel73.Width := 100;
+    RLLabel73.Left := 341;
+    rlmQtdUnidMedida4.Width := 100;
+    rlmQtdUnidMedida4.Left := 341;
 
-    RLLabel43.Width := 136;
-    RLLabel43.Left := 600;
-    rlmQtdUnidMedida5.Width := 136;
-    rlmQtdUnidMedida5.Left := 600;
+    RLLabel43.Width := 280;
+    RLLabel43.Left := 456;
+    rlmQtdUnidMedida5.Width := 280;
+    rlmQtdUnidMedida5.Left := 456;
   end;
 end;
 
@@ -2274,7 +2293,7 @@ begin
     rllAWB.Caption := nOCA;
     rllTarifaCL.Caption := tarifa.CL;
     rllTarifaCodigo.Caption := tarifa.cTar;
-    rllTarifaValor.Caption := FormatCurr('###,###,##0.00', tarifa.vTar);
+    rllTarifaValor.Caption := FormatCurr(',0.00', tarifa.vTar);
     rllContaCorrente.Caption := IdT; // ??? Conta Corrente ???
     rllMinuta.Caption := FormatFloat('0000000000', nMinu);
     rllLojaAgenteEmissor.Caption := xLAgEmi;
@@ -2300,8 +2319,8 @@ begin
 
   with fpCTe.infCTeNorm.aquav do
   begin
-    rllBCAFRMM.Caption := FormatCurr('###,###,##0.00', vPrest);
-    rllValorAFRMM.Caption := FormatCurr('###,###,##0.00', vAFRMM);
+    rllBCAFRMM.Caption := FormatCurr(',0.00', vPrest);
+    rllValorAFRMM.Caption := FormatCurr(',0.00', vAFRMM);
 
     rllPortoEmbarque.Caption := prtEmb;
     rllPortoDestino.Caption := prtDest;

@@ -30,20 +30,14 @@
 {       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
-{******************************************************************************
-|* Historico
-|*
-|* 30/08/2004: Daniel Simoes de Almeida
-|*  - Primeira Versao ACBrCHQImpressoraComum
-******************************************************************************}
-
 {$I ACBr.inc}
 
 unit ACBrCHQImpressoraComum;
 
 interface
-uses ACBrCHQClass,  
-     Classes ;
+uses
+  Classes,
+  ACBrCHQClass;
 
 const cColCheque = 65 ;
       cLinCheque = 18 ;
@@ -54,10 +48,6 @@ const cColCheque = 65 ;
       cAF = 1.18644 ;          { Constante de conversão da metrica da
                                  espaçamento horizontal de caracteres
                                  usada pela Bematech para uma Matricial comum }
-
-const MesDescr : array[1..12] of string =
-      ('Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto',
-       'Setembro','Outubro','Novembro','Dezembro') ;
 
 type TACBrCHQImpressoraComum = class( TACBrCHQClass )
   private
@@ -93,9 +83,10 @@ type TACBrCHQImpressoraComum = class( TACBrCHQClass )
 end ;
 
 implementation
-Uses ACBrUtil, ACBrExtenso,
-     SysUtils,
-     {$IFDEF COMPILER6_UP} DateUtils {$ELSE} ACBrD5{$ENDIF} ;
+Uses
+  SysUtils,
+  {$IFDEF COMPILER6_UP} DateUtils {$ELSE} ACBrD5{$ENDIF},
+  ACBrUtil, ACBrConsts, ACBrExtenso;
 
 { TACBrCHQImpressoraComum }
 
@@ -215,7 +206,7 @@ begin
                    IntToStr( DayOf(fpData) ) ) ;
         Linhas.Add(IntToStrZero(LinhaLocal,3)+'|'+
                    IntToStrZero(Round(ColunaMes/cAF),3)+'|'+
-                   CodificarPaginaDeCodigo( ACBrStr(MesDescr[ MonthOf(fpData) ]) ) ) ;
+                   CodificarPaginaDeCodigo( ACBrStr(cMesDescricao[ MonthOf(fpData) ]) ) ) ;
 
         Linhas.Add(IntToStrZero(LinhaLocal,3)+'|'+
                    IntToStrZero(Round(ColunaAno/cAF),3)+'|'+

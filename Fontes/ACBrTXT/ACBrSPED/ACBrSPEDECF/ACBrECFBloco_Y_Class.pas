@@ -450,7 +450,7 @@ begin
             LFill(CNPJ_FON, 14) +
             LFill(NOM_EMP) +
             LFill(IND_ORG_PUB) +
-            LFill(COD_REC, 4) +
+            LFill(COD_REC, 4, True) +
             VLFill(VL_REND, 19, 2) +
             VLFill(IR_RET, 19, 2) +
             VLFill(CSLL_RET, 19, 2));
@@ -961,7 +961,7 @@ begin
                   LFill(ARQ_RTF) +
                   LFill(IND_FIM_RTF));
 
-          ECFVersao300, ECFVersao400, ECFVersao500:
+          ECFVersao300, ECFVersao400, ECFVersao500, ECFVersao600, ECFVersao700:
                Add( LFill('Y800') +
                     LFill(TIPO_DOC) +
                     LFill(DESC_RTF) +

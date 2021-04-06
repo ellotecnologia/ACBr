@@ -1,12 +1,9 @@
 {*******************************************************************************}
-{ Projeto: ACBrMonitor                                                         }
+{ Projeto: ACBrMonitor                                                          }
 {  Executavel multiplataforma que faz uso do conjunto de componentes ACBr para  }
 { criar uma interface de comunicação com equipamentos de automacao comercial.   }
 {                                                                               }
-{ Direitos Autorais Reservados (c) 2010 Daniel Simoes de Almeida                }
-{                                                                               }
-{ Colaboradores nesse arquivo: Juliana Rodrigues Prado Tamizou                  }
-{                              Jean Patrick F. dos Santos (envio de e-mails)    }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida                }
 {                                                                               }
 {  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr     }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr       }
@@ -119,7 +116,7 @@ end;
 
 procedure TfrmSobre.bSACClick(Sender : TObject) ;
 begin
- OpenURL('http://www.djsystem.com.br/acbr/sac/');
+ OpenURL('https://projetoacbr.com.br/#sac');
 end;
 
 procedure TfrmSobre.imgLazarusClick(Sender : TObject) ;
@@ -151,7 +148,7 @@ end;
 
 procedure TfrmSobre.lDesenvolvedoresClick(Sender: TObject);
 begin
-  OpenURL('www.djsystem.com.br');
+  OpenURL('https://projetoacbr.com.br/');
 end;
 
 procedure TfrmSobre.bAjudaClick(Sender: TObject);

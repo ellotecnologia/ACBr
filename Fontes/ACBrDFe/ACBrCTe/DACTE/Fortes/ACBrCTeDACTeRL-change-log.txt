@@ -45,6 +45,32 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+09/03/2021
+-- ACBrCTeDACTeRLRetrato --
+[*] Ajustes na impressão: Peso Bruto/Peso Base Calc/Peso Aferido/Cubagem e Qtde Volumes.
+   Por: Douglas GV
+
+07/07/2020
+-- ACBrCTeDACTeRLRetrato --
+[*] Mensagens mais objetivas quando o CT-e esta sem o protocolo de autorização.
+   Por: Mario Inacio
+
+14/05/2020
+-- ACBrCTeDACTeRLClass --
+[*] Corrigido o nome do PDF de eventos.
+   Por: Italo Jurisato Junior
+
+14/05/2020
+-- ACBrCTeDACTeRLRetrato --
+[*] A variável CarregouLogo estava sendo atribuida mas não estava sendo
+    utilizada. Incluido as linhas que estavam faltando.
+   Por: Italo Jurisato Junior
+
+01/04/2020
+-- ACBrCTeDAEventoRLRetrato --
+[+] Inclusão dos eventos novos.
+   Por: Italo Jurisato Junior
+
 19/02/2020
 -- ACBrCTeDACTeRLRetrato --
 [*] Alterado a mensagem "Declaração Doc." por "N. Doc." pois não estava sendo 

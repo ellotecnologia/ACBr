@@ -1,11 +1,9 @@
 {*******************************************************************************}
-{ Projeto: ACBrMonitor                                                         }
+{ Projeto: ACBrMonitor                                                          }
 {  Executavel multiplataforma que faz uso do conjunto de componentes ACBr para  }
 { criar uma interface de comunicação com equipamentos de automacao comercial.   }
 {                                                                               }
-{ Direitos Autorais Reservados (c) 2010 Daniel Simoes de Almeida                }
-{                                                                               }
-{ Colaboradores nesse arquivo:                                  }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida                }
 {                                                                               }
 {  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr     }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr       }
@@ -777,10 +775,15 @@ var
 begin
   with TACBrObjetoETQ(fpObjetoDono) do
   begin
-    ACopias := IfThen( NaoEstaVazio( fpCmd.Params(0) ), StrToInt(fpCmd.Params(0)) ,
-                        MonitorConfig.ETQ.Copias);
-    AAvanco := IfThen( NaoEstaVazio( fpCmd.Params(1) ), StrToInt(fpCmd.Params(1)) ,
-                        MonitorConfig.ETQ.Avanco);
+    if NaoEstaVazio( fpCmd.Params(0) ) then
+      ACopias := StrToInt(fpCmd.Params(0))
+    else
+      ACopias := MonitorConfig.ETQ.Copias;
+
+    if NaoEstaVazio( fpCmd.Params(1) ) then
+      AAvanco := StrToInt(fpCmd.Params(1))
+    else
+      AAvanco := MonitorConfig.ETQ.Avanco;
 
     ACBrETQ.Imprimir( ACopias, AAvanco );
   end;

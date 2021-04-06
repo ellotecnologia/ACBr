@@ -3,10 +3,8 @@
 {  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
 {                                                                              }
-{ Direitos Autorais Reservados (c) 2010                                        }
-{                                                                              }
-{ Colaboradores nesse arquivo:                                                 }
-{                                                                              }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{																			   }
 {  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
 {                                                                              }
@@ -26,9 +24,8 @@
 { Você também pode obter uma copia da licença em:                              }
 { http://www.opensource.org/licenses/lgpl-license.php                          }
 {                                                                              }
-{ Daniel Simões de Almeida  -  daniel@djsystem.com.br  -  www.djsystem.com.br  }
-{              Praça Anita Costa, 34 - Tatuí - SP - 18270-410                  }
-{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
 {$I ACBr.inc}
@@ -73,6 +70,7 @@ type
     procedure LerTransp(const ANode: TACBrXmlNode);
     procedure LerTranspVol(const ANode: TACBrXmlNode);
     procedure LerCobr(const ANode: TACBrXmlNode);
+    procedure LerInfIntermed(const ANode: TACBrXmlNode);
     procedure LerInfAdic(const ANode: TACBrXmlNode);
     procedure LerExporta(const ANode: TACBrXmlNode);
     procedure LerCompra(const ANode: TACBrXmlNode);
@@ -204,6 +202,7 @@ begin
   LerTotal(ANode.Childrens.Find('total'));
   LerTransp(ANode.Childrens.Find('transp'));
   LerCobr(ANode.Childrens.Find('cobr'));
+  LerInfIntermed(ANode.Childrens.Find('infIntermed'));
   LerInfAdic(ANode.Childrens.Find('infAdic'));
   LerExporta(ANode.Childrens.Find('exporta'));
   LerCompra(ANode.Childrens.Find('compra'));
@@ -257,6 +256,9 @@ begin
     (*B25a*)NFe.ide.indFinal := StrToConsumidorFinal(ok, ProcessarConteudo(ANode.Childrens.Find('indFinal'), tcStr));
     (*B25b*)NFe.ide.indPres  := StrToPresencaComprador(ok, ProcessarConteudo(ANode.Childrens.Find('indPres'), tcStr));
   end;
+
+  if NFe.infNFe.Versao >= 4 then
+    NFe.ide.indIntermed := StrToIndIntermed(ok, ProcessarConteudo(ANode.Childrens.Find('indIntermed'), tcStr));
 
   (*B26*) NFe.Ide.procEmi := StrToProcEmi(ok, ProcessarConteudo(ANode.Childrens.Find('procEmi'), tcStr));
   (*B27*) NFe.Ide.verProc := ProcessarConteudo(ANode.Childrens.Find('verProc'), tcStr);
@@ -1245,6 +1247,14 @@ begin
      (*Z11*)NFe.InfAdic.procRef[i].nProc   := ProcessarConteudo(ANodes[i].Childrens.Find('nProc'),tcStr);
      (*Z12*)NFe.InfAdic.procRef[i].indProc := StrToIndProc(ok, ProcessarConteudo(ANodes[i].Childrens.Find('indProc'), tcStr));
   end;
+end;
+
+procedure TNFeXmlReader.LerInfIntermed(const ANode: TACBrXmlNode);
+begin
+  if not Assigned(ANode) or (ANode = nil) then Exit;
+
+  NFe.infIntermed.CNPJ         := ProcessarConteudo(ANode.Childrens.Find('CNPJ'), tcStr);
+  NFe.infIntermed.idCadIntTran := ProcessarConteudo(ANode.Childrens.Find('idCadIntTran'), tcStr);
 end;
 
 procedure TNFeXmlReader.LerExporta(const ANode: TACBrXmlNode);

@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, syncobjs,
-  ACBrLibConfig, ACBrPosPrinter;
+  ACBrLibComum, ACBrLibConfig, ACBrPosPrinter;
 
 type
 
@@ -18,18 +18,21 @@ type
     procedure DataModuleDestroy(Sender: TObject);
   private
     FLock: TCriticalSection;
+    fpLib: TACBrLib;
 
   public
     procedure AplicarConfiguracoes;
     procedure GravarLog(AMsg: String; NivelLog: TNivelLog; Traduzir: Boolean = False);
     procedure Travar;
     procedure Destravar;
+
+    property Lib: TACBrLib read fpLib write fpLib;
   end;
 
 implementation
 
 uses
-  ACBrUtil, ACBrLibPosPrinterConfig, ACBrLibComum;
+  ACBrUtil, ACBrDeviceSerial, ACBrLibPosPrinterConfig;
 
 {$R *.lfm}
 
@@ -47,7 +50,7 @@ procedure TLibPosPrinterDM.AplicarConfiguracoes;
 var
   pLibConfig: TLibPosPrinterConfig;
 begin
-  pLibConfig := TLibPosPrinterConfig(pLib.Config);
+  pLibConfig := TLibPosPrinterConfig(Lib.Config);
 
   with ACBrPosPrinter1 do
   begin
@@ -92,14 +95,24 @@ begin
     ConfigModoPagina.Direcao := TACBrPosDirecao(pLibConfig.PosPrinter.MpDirecao);
     ConfigModoPagina.EspacoEntreLinhas := pLibConfig.PosPrinter.MpEspacoEntreLinhas;
 
-    pLibConfig.DeviceConfig.Apply(Device);
+    Device.Baud := pLibConfig.PosDeviceConfig.Baud;
+    Device.Data := pLibConfig.PosDeviceConfig.Data;
+    Device.TimeOut := pLibConfig.PosDeviceConfig.TimeOut;
+    Device.Parity := TACBrSerialParity(pLibConfig.PosDeviceConfig.Parity);
+    Device.Stop := TACBrSerialStop(pLibConfig.PosDeviceConfig.Stop);
+    Device.MaxBandwidth := pLibConfig.PosDeviceConfig.MaxBandwidth;
+    Device.SendBytesCount := pLibConfig.PosDeviceConfig.SendBytesCount;
+    Device.SendBytesInterval := pLibConfig.PosDeviceConfig.SendBytesInterval;
+    Device.HandShake := TACBrHandShake(pLibConfig.PosDeviceConfig.HandShake);
+    Device.HardFlow := pLibConfig.PosDeviceConfig.HardFlow;
+    Device.SoftFlow := pLibConfig.PosDeviceConfig.SoftFlow;
   end;
 end;
 
 procedure TLibPosPrinterDM.GravarLog(AMsg: String; NivelLog: TNivelLog; Traduzir: Boolean);
 begin
-  if Assigned(pLib) then
-    pLib.GravarLog(AMsg, NivelLog, Traduzir);
+  if Assigned(Lib) then
+    Lib.GravarLog(AMsg, NivelLog, Traduzir);
 end;
 
 procedure TLibPosPrinterDM.Travar;

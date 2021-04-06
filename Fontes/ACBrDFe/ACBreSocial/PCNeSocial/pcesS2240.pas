@@ -33,6 +33,15 @@
 {       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
+{******************************************************************************
+|* Historico
+|*
+|* 27/10/2015: Jean Carlo Cantu, Tiago Ravache
+|*  - Doação do componente para o Projeto ACBr
+|* 28/08/2017: Leivio Fontenele - leivio@yahoo.com.br
+|*  - Implementação comunicação, envelope, status e retorno do componente com webservice.
+******************************************************************************}
+
 {$I ACBr.inc}
 
 unit pcesS2240;
@@ -41,13 +50,13 @@ interface
 
 uses
   SysUtils, Classes,
-  {$IF DEFINED(NEXTGEN)}
+  {$IF DEFINED(HAS_SYSTEM_GENERICS)}
    System.Generics.Collections, System.Generics.Defaults,
   {$ELSEIF DEFINED(DELPHICOMPILER16_UP)}
    System.Contnrs,
   {$IfEnd}
   ACBrBase,
-  pcnConversao, pcnGerador, ACBrUtil,
+  pcnConversao, pcnGerador, ACBrUtil, pcnConsts,
   pcesCommon, pcesConversaoeSocial, pcesGerador;
 
 type
@@ -137,7 +146,7 @@ type
     FIdeOC: tpIdeOC;
     FdscOC: String;
     FNrOc: String;
-    FUfOC: tpUf;
+    FUfOC: string;
   public
     property cpfResp: string read FcpfResp write FcpfResp;
     property nisResp: string read FNisResp write FNisResp;
@@ -145,7 +154,7 @@ type
     property ideOC: tpIdeOC read FIdeOC write FIdeOC;
     property dscOC: string read FdscOC write FdscOC;
     property nrOC: string read FNrOc write FNrOc;
-    property ufOC: tpuf read FUfOC write FUfOC;
+    property ufOC: string read FUfOC write FUfOC;
   end;
 
   TinfoExpRisco = class(TObject)
@@ -503,7 +512,7 @@ begin
     if pRespReg[i].ideOC = idOutros then
       Gerador.wCampo(tcStr, '', 'dscOC',   1, 20, 1, pRespReg[i].dscOC);
     Gerador.wCampo(tcStr, '', 'nrOC',    1, 14, 1, pRespReg[i].nrOc);
-    Gerador.wCampo(tcStr, '', 'ufOC',    2,  2, 0, eSufToStr(pRespReg[i].ufOC));
+    Gerador.wCampo(tcStr, '', 'ufOC',    2,  2, 0, pRespReg[i].ufOC);
 
     Gerador.wGrupo('/respReg');
   end;
@@ -798,7 +807,7 @@ begin
           ideOC   := eSStrToIdeOC(Ok, INIRec.ReadString(sSecao, 'ideOC', EmptyStr));
           dscOC   := INIRec.ReadString(sSecao, 'dscOC', EmptyStr);
           nrOC    := INIRec.ReadString(sSecao, 'nrOc', EmptyStr);
-          ufOC    := eSStrTouf(Ok, INIRec.ReadString(sSecao, 'ufOC', 'SP'));
+          ufOC    := INIRec.ReadString(sSecao, 'ufOC', 'SP');
         end;
 
         Inc(I);

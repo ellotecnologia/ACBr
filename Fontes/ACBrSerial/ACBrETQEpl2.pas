@@ -57,6 +57,7 @@ type
     function ConverterReverso(aImprimirReverso: Boolean): String;
     function ConverterLarguraBarras(aBarraLarga, aBarraFina: Integer): String;
     function ConverterUnidadeAlturaBarras(aAlturaBarras: Integer): String;
+    function ConverterPaginaDeCodigo(aPaginaDeCodigo: TACBrETQPaginaCodigo): String;
 
     function FormatarTexto(const aTexto: String): String;
 
@@ -73,6 +74,7 @@ type
     function ComandoAbertura: AnsiString; override;
     function ComandoBackFeed: AnsiString; override;
     function ComandoTemperatura: AnsiString; override;
+    function ComandoPaginaDeCodigo: AnsiString; override;
     function ComandoOrigemCoordenadas: AnsiString; override;
     function ComandoVelocidade: AnsiString; override;
 
@@ -87,6 +89,9 @@ type
       aBarraLarga, aBarraFina, aVertical, aHorizontal: Integer; aTexto: String;
       aAlturaBarras: Integer; aExibeCodigo: TACBrETQBarraExibeCodigo = becPadrao
       ): AnsiString; override;
+    function ComandoImprimirQRCode(aVertical, aHorizontal: Integer;
+      const aTexto: String; aLarguraModulo: Integer; aErrorLevel: Integer;
+      aTipo: Integer): AnsiString; override;
 
     function ComandoImprimirLinha(aVertical, aHorizontal, aLargura, aAltura: Integer
       ): AnsiString; override;
@@ -187,6 +192,21 @@ begin
   Result := IntToStr(ConverterUnidade(etqDots, aAlturaBarras));
 end;
 
+function TACBrETQEpl2.ConverterPaginaDeCodigo(
+  aPaginaDeCodigo: TACBrETQPaginaCodigo): String;
+begin
+  case aPaginaDeCodigo of
+    pce437 : Result := '8,0,001';
+    pce850 : Result := '8,1,001';
+    pce852 : Result := '8,2,001';
+    pce860 : Result := '8,3,001';
+    pce1250: Result := '8,B,001';
+    pce1252: Result := '8,A,001';
+  else
+    Result := '';
+  end;
+end;
+
 function TACBrETQEpl2.ConverterOrientacao(aOrientacao: TACBrETQOrientacao
   ): String;
 begin
@@ -273,6 +293,17 @@ begin
   Result := 'D' + IntToStr(Temperatura);
 end;
 
+function TACBrETQEpl2.ComandoPaginaDeCodigo: AnsiString;
+var
+  APagCod: String;
+begin
+  APagCod := ConverterPaginaDeCodigo(PaginaDeCodigo);
+  if (APagCod <> '') then
+    Result := 'I'+APagCod
+  else
+    Result := '';
+end;
+
 function TACBrETQEpl2.ComandoVelocidade: AnsiString;
 begin
   Result := EmptyStr;
@@ -353,6 +384,20 @@ begin
             ConverterLarguraBarras(aBarraLarga, aBarraFina) + ',' +
             ConverterUnidadeAlturaBarras(aAlturaBarras)     + ',' +
             ConverterExibeCodigo(aExibeCodigo)              + ',' +
+            FormatarTexto(aTexto);
+end;
+
+function TACBrETQEpl2.ComandoImprimirQRCode(aVertical, aHorizontal: Integer;
+  const aTexto: String; aLarguraModulo: Integer; aErrorLevel: Integer;
+  aTipo: Integer): AnsiString;
+begin
+  Result := 'b' +
+            ConverterCoordenadas(aVertical, aHorizontal) + ',' +
+            'Q'                                          + ',' +
+            'm'+IntToStr(aTipo)                          + ',' +
+            's'+IntToStr(aLarguraModulo)                 + ',' +
+            'e'+ConverterQRCodeErrorLevel(aErrorLevel)   + ',' +
+            'iA'                                         + ',' +
             FormatarTexto(aTexto);
 end;
 

@@ -1,3 +1,35 @@
+{******************************************************************************}
+{ Projeto: Componentes ACBr                                                    }
+{  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
+{ mentos de Automação Comercial utilizados no Brasil                           }
+{                                                                              }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{																			   }
+{  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
+{ Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
+{                                                                              }
+{  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la }
+{ sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela  }
+{ Free Software Foundation; tanto a versão 2.1 da Licença, ou (a seu critério) }
+{ qualquer versão posterior.                                                   }
+{                                                                              }
+{  Esta biblioteca é distribuída na expectativa de que seja útil, porém, SEM   }
+{ NENHUMA GARANTIA; nem mesmo a garantia implícita de COMERCIABILIDADE OU      }
+{ ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA. Consulte a Licença Pública Geral Menor}
+{ do GNU para mais detalhes. (Arquivo LICENÇA.TXT ou LICENSE.TXT)              }
+{                                                                              }
+{  Você deve ter recebido uma cópia da Licença Pública Geral Menor do GNU junto}
+{ com esta biblioteca; se não, escreva para a Free Software Foundation, Inc.,  }
+{ no endereço 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.          }
+{ Você também pode obter uma copia da licença em:                              }
+{ http://www.opensource.org/licenses/lgpl-license.php                          }
+{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
+{******************************************************************************}
+
+{$I ACBr.inc}
+
 unit Unit1;
 
 interface
@@ -5,7 +37,7 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls,
   strutils, ExtCtrls, Buttons, Spin, ComCtrls, ExtDlgs, ACBrPosPrinter,
-  ACBrBase, ACBrDevice;
+  ACBrBase, ACBrDevice, ACBrCMC7, ACBrPosPrinterElginE1Service;
 
 type
 
@@ -14,11 +46,8 @@ type
   TFrPosPrinterTeste = class(TForm)
     bAtivar: TBitBtn;
     bApagarLogo: TButton;
-    bImprimir: TBitBtn;
     bImprimirLogo: TButton;
     bImpTagsValidas: TButton;
-    bLerInfo: TButton;
-    bLimpar: TBitBtn;
     bTagFormtacaoCaracter: TButton;
     bTagGaveta: TButton;
     bTagLogo: TButton;
@@ -38,8 +67,6 @@ type
     bConverter: TButton;
     cbCortarPapel: TCheckBox;
     cbHRI: TCheckBox;
-    cbGavetaSinalInvertido: TCheckBox;
-    cbxLimparTexto: TCheckBox;
     cbxModelo: TComboBox;
     cbxPagCodigo: TComboBox;
     cbxPorta: TComboBox;
@@ -48,9 +75,9 @@ type
     cbControlePorta: TCheckBox;
     edImagem: TEdit;
     edLog: TEdit;
-    gbCodBarrasConfig1: TGroupBox;
+    gbQRCodeConfig: TGroupBox;
     gbCodBarrasConfig2: TGroupBox;
-    gbGavetaConfig: TGroupBox;
+    gbChequeConfig: TGroupBox;
     gbConfiguracao: TGroupBox;
     gbCodBarrasConfig: TGroupBox;
     Label1: TLabel;
@@ -62,10 +89,7 @@ type
     Label15: TLabel;
     Label16: TLabel;
     Label17: TLabel;
-    Label18: TLabel;
-    Label19: TLabel;
     Label2: TLabel;
-    Label20: TLabel;
     Label3: TLabel;
     Label4: TLabel;
     Label5: TLabel;
@@ -78,16 +102,13 @@ type
     OpenPictureDialog1: TOpenPictureDialog;
     PageControl1: TPageControl;
     Panel1: TPanel;
-    Panel2: TPanel;
-    Panel3: TPanel;
-    Panel4: TPanel;
+    pConfig: TPanel;
+    pBotoes2: TPanel;
     Panel5: TPanel;
     rbArquivo: TRadioButton;
     rbStream: TRadioButton;
     SbArqLog: TSpeedButton;
     btSerial: TSpeedButton;
-    seGavetaTempoON: TSpinEdit;
-    seGavetaTempoOFF: TSpinEdit;
     seLogoFatorX: TSpinEdit;
     seLogoFatorY: TSpinEdit;
     seLogoKC1: TSpinEdit;
@@ -101,7 +122,6 @@ type
     seBarrasAltura: TSpinEdit;
     seLinhasBuffer: TSpinEdit;
     seLinhasPular: TSpinEdit;
-    seGavetaNum: TSpinEdit;
     tsImagens: TTabSheet;
     tsImprimir: TTabSheet;
     tsLog: TTabSheet;
@@ -111,6 +131,26 @@ type
     btSearchPorts: TSpeedButton;
     ACBrPosPrinter1: TACBrPosPrinter;
     btInfoUSB: TButton;
+    btImprimirCheque: TButton;
+    btLerCheque: TButton;
+    btEjetarCheque: TButton;
+    btImprimirTextoCheque: TButton;
+    btResultadoLeitura: TButton;
+    gbGavetaConfig: TGroupBox;
+    Label21: TLabel;
+    Label22: TLabel;
+    Label23: TLabel;
+    seGavetaTempoON: TSpinEdit;
+    cbGavetaSinalInvertido: TCheckBox;
+    seGavetaTempoOFF: TSpinEdit;
+    seGavetaNum: TSpinEdit;
+    ACBrCMC71: TACBrCMC7;
+    cbAguardarCheque: TCheckBox;
+    Panel4: TPanel;
+    bLimpar: TBitBtn;
+    bImprimir: TBitBtn;
+    cbxLimparTexto: TCheckBox;
+    bCancelarCheque: TBitBtn;
     procedure ACBrPosPrinter1GravarLog(const ALogLine: String;
       var Tratado: Boolean);
     procedure bApagarLogoClick(Sender: TObject);
@@ -164,14 +204,26 @@ type
     procedure seQRCodeErrorLevelChange(Sender: TObject);
     procedure seQRCodeLarguraModuloChange(Sender: TObject);
     procedure seQRCodeTipoChange(Sender: TObject);
-    procedure LimparTexto;
     procedure bTagBMPClick(Sender: TObject);
     procedure btSearchPortsClick(Sender: TObject);
     procedure btInfoUSBClick(Sender: TObject);
+    procedure btImprimirChequeClick(Sender: TObject);
+    procedure btImprimirTextoChequeClick(Sender: TObject);
+    procedure btLerChequeClick(Sender: TObject);
+    procedure btResultadoLeituraClick(Sender: TObject);
+    procedure btEjetarChequeClick(Sender: TObject);
+    procedure bCancelarChequeClick(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     { private declarations }
-    Procedure GravarINI ;
-    Procedure LerINI ;
+    fE1Printer: TACBrPosPrinterElginE1Service;
+
+    Procedure GravarINI;
+    Procedure LerINI;
+    procedure LimparTexto;
+    procedure AjustarControlesDeCheque(TemCheque: Boolean);
+    function StatusToStr(const Status: TACBrPosPrinterStatus): String;
+    procedure PrepararTelaParaCargaDeCheque(Bloquear: Boolean);
   public
     { public declarations }
   end;
@@ -206,7 +258,20 @@ begin
   btSearchPortsClick(Sender);
   PageControl1.ActivePageIndex := 0;
 
+  fE1Printer := TACBrPosPrinterElginE1Service.Create(ACBrPosPrinter1);
+  fE1Printer.Modelo := prnI9;
+  // Usar por TXT
+  fE1Printer.PastaEntradaE1 := 'c:\E1\pathIN';
+  fE1Printer.PastaSaidaE1 := 'c:\E1\pathOUT';
+  // Usar por TCP
+  //fE1Printer.IPePortaE1 := '192.168.56.1:89';
+
   LerINI;
+end;
+
+procedure TFrPosPrinterTeste.FormDestroy(Sender: TObject);
+begin
+  fE1Printer.Free;
 end;
 
 procedure TFrPosPrinterTeste.FormClose(Sender: TObject;
@@ -254,8 +319,8 @@ begin
   mImp.Lines.Add('<in><a>INVERTIDA E ALT.DUPLA</a></in>');
   mImp.Lines.Add('</fn>FONTE NORMAL');
   mImp.Lines.Add('</linha_simples>');
-  mImp.Lines.Add('</FB>FONTE TIPO B');
-  mImp.Lines.Add('<n>FONTE NEGRITO</N>');
+  mImp.Lines.Add('</fb>FONTE TIPO B');
+  mImp.Lines.Add('</fn><n>FONTE NEGRITO</N>');
   mImp.Lines.Add('<e>FONTE EXPANDIDA</e>');
   mImp.Lines.Add('<a>FONTE ALT.DUPLA</a>');
   mImp.Lines.Add('<in>FONTE INVERTIDA</in>');
@@ -263,7 +328,7 @@ begin
   mImp.Lines.Add('<i>FONTE ITALICO</i>');
   mImp.Lines.Add('</FA>FONTE TIPO A');
   mImp.Lines.Add('</FN>FONTE NORMAL');
-  mImp.Lines.Add('</corte_total>');     
+  mImp.Lines.Add('</corte_total>');
 end;
 
 procedure TFrPosPrinterTeste.bTagGavetaClick(Sender: TObject);
@@ -570,9 +635,24 @@ end;
 procedure TFrPosPrinterTeste.cbxModeloChange(Sender: TObject);
 begin
   try
-     ACBrPosPrinter1.Modelo := TACBrPosPrinterModelo( cbxModelo.ItemIndex ) ;
+    if cbxModelo.ItemIndex = Integer(ppExterno) then
+    begin
+      ACBrPosPrinter1.ModeloExterno := fE1Printer;
+      ACBrPosPrinter1.Modelo := ppExterno;
+      cbxPorta.Text := 'NULL';
+      cbxPorta.Enabled := False;
+    end
+    else
+    begin
+      ACBrPosPrinter1.Modelo := TACBrPosPrinterModelo(cbxModelo.ItemIndex);
+      if (cbxPorta.Text = 'NULL') then
+        cbxPorta.Text := '';
+
+      cbxPorta.Enabled := True;
+    end;
   except
      cbxModelo.ItemIndex := Integer( ACBrPosPrinter1.Modelo ) ;
+     cbxPorta.Enabled := True;
      raise ;
   end ;
 end;
@@ -757,9 +837,10 @@ begin
 
   INI := TIniFile.Create(ArqINI);
   try
-     cbxModelo.ItemIndex := INI.ReadInteger('PosPrinter','Modelo', Integer(ACBrPosPrinter1.Modelo));
      cbxPorta.Text := INI.ReadString('PosPrinter','Porta',ACBrPosPrinter1.Porta);
      cbxPortaChange(nil);
+     cbxModelo.ItemIndex := INI.ReadInteger('PosPrinter','Modelo', Integer(ACBrPosPrinter1.Modelo));
+     cbxModeloChange(nil);
      ACBrPosPrinter1.Device.ParamsString := INI.ReadString('PosPrinter','DeviceParams',ACBrPosPrinter1.Device.ParamsString);
      seColunas.Value := INI.ReadInteger('PosPrinter','Colunas',ACBrPosPrinter1.ColunasFonteNormal);
      seEspLinhas.Value := INI.ReadInteger('PosPrinter','EspacoEntreLinhas',ACBrPosPrinter1.EspacoEntreLinhas);
@@ -828,30 +909,24 @@ end;
 
 procedure TFrPosPrinterTeste.bLerInfoClick(Sender: TObject);
 begin
+  PageControl1.ActivePage := tsImprimir;
   mImp.Lines.Add( ACBrPosPrinter1.LerInfoImpressora );
+  mImp.Lines.Add( 'TemGuilhotina: '+IntToStr(ACBrPosPrinter1.TemGuilhotina) );
+  mImp.Lines.Add( 'TemCheque: '+IntToStr(ACBrPosPrinter1.TemCheque) );
+  mImp.Lines.Add( 'TemAutenticacao: '+IntToStr(ACBrPosPrinter1.TemAutenticacao) );
+  mImp.Lines.Add( 'TemMICR: '+IntToStr(ACBrPosPrinter1.TemMICR) );
 end;
 
 procedure TFrPosPrinterTeste.bLerStatusClick(Sender: TObject);
 var
   Status: TACBrPosPrinterStatus;
-  i: TACBrPosTipoStatus;
-  AStr: String;
 begin
   Status := ACBrPosPrinter1.LerStatusImpressora;
 
   if Status = [] then
     mImp.Lines.Add('Nennhum Erro encontrado')
   else
-  begin
-    AStr := '';
-    For i := Low(TACBrPosTipoStatus) to High(TACBrPosTipoStatus) do
-    begin
-      if i in Status then
-        AStr := AStr + GetEnumName(TypeInfo(TACBrPosTipoStatus), integer(i) )+ ', ';
-    end;
-
-    mImp.Lines.Add( AStr );
-  end;
+    mImp.Lines.Add( StatusToStr(Status) );
 end;
 
 procedure TFrPosPrinterTeste.bAtivarClick(Sender: TObject);
@@ -866,8 +941,8 @@ begin
   begin
     try
        Self.Enabled := False;
-       ACBrPosPrinter1.Modelo := TACBrPosPrinterModelo( cbxModelo.ItemIndex );
        ACBrPosPrinter1.Porta  := cbxPorta.Text;
+       ACBrPosPrinter1.Modelo := TACBrPosPrinterModelo( cbxModelo.ItemIndex );
        ACBrPosPrinter1.ArqLOG := edLog.Text;
        ACBrPosPrinter1.LinhasBuffer := seLinhasBuffer.Value;
        ACBrPosPrinter1.LinhasEntreCupons := seLinhasPular.Value;
@@ -888,17 +963,18 @@ begin
        ACBrPosPrinter1.ConfigLogo.KeyCode2 := seLogoKC2.Value;
        ACBrPosPrinter1.ConfigLogo.FatorX := seLogoFatorX.Value;
        ACBrPosPrinter1.ConfigLogo.FatorY := seLogoFatorY.Value;
-
-       ACBrPosPrinter1.Ativar ;
-
-       btSerial.Enabled := False ;
-       bAtivar.Caption := 'Desativar' ;
-
        GravarINI ;
+       ACBrPosPrinter1.Ativar ;
     finally
        Self.Enabled := True;
        cbxModelo.ItemIndex   := Integer(ACBrPosPrinter1.Modelo) ;
        cbxPorta.Text         := ACBrPosPrinter1.Porta ;
+       if ACBrPosPrinter1.Ativo then
+       begin
+         btSerial.Enabled := False ;
+         bAtivar.Caption := 'Desativar';
+         AjustarControlesDeCheque(ACBrPosPrinter1.TemCheque <> 0);
+       end;
     end ;
   end;
 end;
@@ -1052,20 +1128,19 @@ begin
 end;
 
 procedure TFrPosPrinterTeste.btSearchPortsClick(Sender: TObject);
-var
-  K: Integer;
 begin
   cbxPorta.Items.Clear;
   ACBrPosPrinter1.Device.AcharPortasSeriais( cbxPorta.Items );
-
   {$IfDef MSWINDOWS}
-   ACBrPosPrinter1.Device.WinUSB.FindUSBPrinters;
-   for K := 0 to ACBrPosPrinter1.Device.WinUSB.DeviceList.Count-1 do
-     cbxPorta.Items.Add('USB:'+ACBrPosPrinter1.Device.WinUSB.DeviceList.Items[K].DeviceName);
+  ACBrPosPrinter1.Device.AcharPortasUSB( cbxPorta.Items );
   {$EndIf}
-
-  For K := 0 to Printer.Printers.Count-1 do
-    cbxPorta.Items.Add('RAW:'+Printer.Printers[K]);
+  ACBrPosPrinter1.Device.AcharPortasRAW( cbxPorta.Items );
+  {$IfDef HAS_BLUETOOTH}
+  try
+    ACBrPosPrinter1.Device.AcharPortasBlueTooth( cbxPorta.Items, True );
+  except
+  end;
+  {$EndIf}
 
   cbxPorta.Items.Add('LPT1') ;
   cbxPorta.Items.Add('\\localhost\Epson') ;
@@ -1074,11 +1149,141 @@ begin
 
   {$IfNDef MSWINDOWS}
    cbxPorta.Items.Add('/dev/ttyS0') ;
-   cbxPorta.Items.Add('/dev/ttyS1') ;
    cbxPorta.Items.Add('/dev/ttyUSB0') ;
-   cbxPorta.Items.Add('/dev/ttyUSB1') ;
    cbxPorta.Items.Add('/tmp/ecf.txt') ;
   {$EndIf}
+end;
+
+procedure TFrPosPrinterTeste.AjustarControlesDeCheque(TemCheque: Boolean);
+begin
+  gbChequeConfig.Enabled := TemCheque;
+  btImprimirCheque.Enabled := TemCheque;
+  btImprimirTextoCheque.Enabled := TemCheque;
+  btLerCheque.Enabled := TemCheque;
+  btResultadoLeitura.Enabled := TemCheque;
+  btEjetarCheque.Enabled := TemCheque;
+  cbAguardarCheque.Enabled := TemCheque and ACBrPosPrinter1.PodeLerDaPorta;
+  if not cbAguardarCheque.Enabled then
+    cbAguardarCheque.Checked := False;
+end;
+
+procedure TFrPosPrinterTeste.btImprimirChequeClick(Sender: TObject);
+begin
+  mImp.Lines.Add('');
+  mImp.Lines.Add('***** Insira o Cheque na Impressora *****');
+  mImp.Lines.Add('');
+
+  if cbAguardarCheque.Checked then
+    PrepararTelaParaCargaDeCheque(True)
+  else
+  begin
+    mImp.Lines.Add('- Clique em "Ejetar Cheque", para Cancelar...');
+    mImp.Lines.Add('');
+  end;
+
+  ACBrPosPrinter1.ImprimirCheque(341, 1122112.23, Date,
+    'PROJETO ACBR', 'TATUÍ', 'TESTE COM ACENTOS ÁÉÍÓÚ', cbAguardarCheque.Checked);
+end;
+
+procedure TFrPosPrinterTeste.btImprimirTextoChequeClick(Sender: TObject);
+begin
+  mImp.Lines.Add('');
+  mImp.Lines.Add('***** Insira o Cheque na Impressora *****');
+  mImp.Lines.Add('');
+  if cbAguardarCheque.Checked then
+    PrepararTelaParaCargaDeCheque(True)
+  else
+    mImp.Lines.Add('Clique em "Ejetar Cheque", para Cancelar...');
+
+  ACBrPosPrinter1.ImprimirTextoCheque(145, 60,
+    '<a><e><n>PROJETO ACBR</n></e></a> - TESTE COM ACENTOS ÁÉÍÓÚ', cbAguardarCheque.Checked);
+end;
+
+procedure TFrPosPrinterTeste.btLerChequeClick(Sender: TObject);
+begin
+  mImp.Lines.Add('');
+  mImp.Lines.Add('***** Insira o Cheque na Impressora *****');
+  mImp.Lines.Add('');
+
+  if cbAguardarCheque.Checked then
+    PrepararTelaParaCargaDeCheque(True)
+  else
+  begin
+    mImp.Lines.Add('- Clique em "Ejetar Cheque", para encerrar...');
+    mImp.Lines.Add('- Após a Impressão, clique em "Resultado Leitura", para ver o CMC7');
+    mImp.Lines.Add('');
+  end;
+
+  ACBrPosPrinter1.LerCMC7(cbAguardarCheque.Checked);
+  if cbAguardarCheque.Checked then
+    ACBrPosPrinter1.EjetarCheque;
+end;
+
+procedure TFrPosPrinterTeste.btResultadoLeituraClick(Sender: TObject);
+var
+  AResp: AnsiString;
+begin
+  AResp := ACBrPosPrinter1.LeituraCheque;
+  if (AResp <> '') then
+  begin
+    ACBrCMC71.CMC7 := AResp;
+    mImp.Lines.Add('');
+    mImp.Lines.Add('Comp: '+ACBrCMC71.Comp );
+    mImp.Lines.Add('Banco: '+ACBrCMC71.Banco );
+    mImp.Lines.Add('Agencia: '+ACBrCMC71.Agencia );
+    mImp.Lines.Add('C1: '+IntToStr(ACBrCMC71.C1) );
+    mImp.Lines.Add('DvBcoAg: '+ACBrCMC71.DvBcoAg );
+    mImp.Lines.Add('Conta: '+ACBrCMC71.Conta );
+    mImp.Lines.Add('DvCCT: '+ACBrCMC71.DvCCT );
+    mImp.Lines.Add('C2: '+IntToStr(ACBrCMC71.C2) );
+    mImp.Lines.Add('N.Cheque: '+ACBrCMC71.Numero );
+    mImp.Lines.Add('C3: '+IntToStr(ACBrCMC71.C3) );
+    mImp.Lines.Add('');
+    mImp.Lines.Add('Tipificacao: '+ACBrCMC71.Tipificacao );
+    mImp.Lines.Add('');
+    mImp.Lines.Add('CMC7Bloco1: '+ACBrCMC71.CMC7Bloco1 );
+    mImp.Lines.Add('CMC7Bloco2: '+ACBrCMC71.CMC7Bloco2 );
+    mImp.Lines.Add('CMC7Bloco3: '+ACBrCMC71.CMC7Bloco3 );
+    mImp.Lines.Add('');
+  end
+  else
+    mImp.Lines.Add('Não há informação da Última Leitura' );
+end;
+
+procedure TFrPosPrinterTeste.btEjetarChequeClick(Sender: TObject);
+begin
+  ACBrPosPrinter1.EjetarCheque;
+end;
+
+procedure TFrPosPrinterTeste.bCancelarChequeClick(Sender: TObject);
+begin
+  ACBrPosPrinter1.EjetarCheque;
+  PrepararTelaParaCargaDeCheque(False);
+end;
+
+procedure TFrPosPrinterTeste.PrepararTelaParaCargaDeCheque(
+  Bloquear: Boolean);
+begin
+  pBotoes2.Enabled := not Bloquear;
+  pConfig.Enabled := not Bloquear;
+  cbxLimparTexto.Visible := not Bloquear;
+  bLimpar.Visible := not Bloquear;
+  bImprimir.Visible := not Bloquear;
+  bCancelarCheque.Visible := Bloquear;
+  Application.ProcessMessages;
+end;
+
+function TFrPosPrinterTeste.StatusToStr(
+  const Status: TACBrPosPrinterStatus): String;
+var
+  i: TACBrPosTipoStatus;
+begin
+  Result := '';
+  for i := Low(TACBrPosTipoStatus) to High(TACBrPosTipoStatus) do
+  begin
+    if i in Status then
+      Result := Result + GetEnumName(TypeInfo(TACBrPosTipoStatus), integer(i) )+ ', ';
+  end;
 end;
 
 end.

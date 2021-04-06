@@ -33,6 +33,15 @@
 {       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
+{******************************************************************************
+|* Historico
+|*
+|* 27/10/2015: Jean Carlo Cantu, Tiago Ravache
+|*  - Doação do componente para o Projeto ACBr
+|* 28/08/2017: Leivio Fontenele - leivio@yahoo.com.br
+|*  - Implementação comunicação, envelope, status e retorno do componente com webservice.
+******************************************************************************}
+
 {$I ACBr.inc}
 
 unit pcesS1000;
@@ -41,13 +50,13 @@ interface
 
 uses
   SysUtils, Classes,
-  {$IF DEFINED(NEXTGEN)}
+  {$IF DEFINED(HAS_SYSTEM_GENERICS)}
    System.Generics.Collections, System.Generics.Defaults,
   {$ELSEIF DEFINED(DELPHICOMPILER16_UP)}
    System.Contnrs,
   {$IfEnd}
   ACBrBase,
-  pcnConversao, pcnGerador, ACBrUtil,
+  pcnConversao, pcnGerador, ACBrUtil, pcnConsts,
   pcesCommon, pcesConversaoeSocial, pcesGerador;
 
 type
@@ -289,14 +298,14 @@ type
   TInfoEnte = class(TObject)
   private
     FNmEnte: String;
-    FUf: tpuf;
+    FUf: string;
     FCodMunic: Integer;
     FIndRPPS: tpSimNao;
     FSubteto: tpIdeSubteto;
     FVrSubTeto: Double;
   public
     property nmEnte: String read FNmEnte write FNmEnte;
-    property uf: tpuf read FUf write FUf;
+    property uf: string read FUf write FUf;
     property codMunic: Integer read FCodMunic write FCodMunic;
     property indRPPS: tpSimNao read FIndRPPS write FIndRPPS;
     property subteto: tpIdeSubteto read FSubteto write FSubteto;
@@ -419,7 +428,7 @@ begin
     Gerador.wGrupo('infoEnte');
 
     Gerador.wCampo(tcStr, '', 'nmEnte',    1, 100, 1, infoEmpregador.infoCadastro.InfoOp.infoEnte.nmEnte);
-    Gerador.wCampo(tcStr, '', 'uf',        2,   2, 1, eSufToStr(infoEmpregador.infoCadastro.InfoOp.infoEnte.uf));
+    Gerador.wCampo(tcStr, '', 'uf',        2,   2, 1, infoEmpregador.infoCadastro.InfoOp.infoEnte.uf);
     Gerador.wCampo(tcInt, '', 'codMunic',  7,   7, 0, infoEmpregador.infoCadastro.InfoOp.infoEnte.codMunic);
     Gerador.wCampo(tcStr, '', 'indRPPS',   1,   1, 1, eSSimNaoToStr(infoEmpregador.infoCadastro.InfoOp.infoEnte.indRPPS));
     Gerador.wCampo(tcInt, '', 'subteto',   1,   1, 1, eSIdeSubtetoToStr(infoEmpregador.infoCadastro.InfoOp.infoEnte.subteto));
@@ -707,7 +716,7 @@ begin
           if INIRec.ReadString(sSecao, 'nmEnte', '') <> '' then
           begin
             infoEmpregador.infoCadastro.InfoOp.infoEnte.nmEnte    := INIRec.ReadString(sSecao, 'nmEnte', EmptyStr);
-            infoEmpregador.infoCadastro.InfoOp.infoEnte.uf        := eSStrTouf(Ok, INIRec.ReadString(sSecao, 'uf', 'SP'));
+            infoEmpregador.infoCadastro.InfoOp.infoEnte.uf        := INIRec.ReadString(sSecao, 'uf', 'SP');
             infoEmpregador.infoCadastro.InfoOp.infoEnte.codMunic  := INIRec.ReadInteger(sSecao, 'codMunic', 0);
             infoEmpregador.infoCadastro.InfoOp.infoEnte.indRPPS   := eSStrToSimNao(Ok, INIRec.ReadString(sSecao, 'indRPPS', 'S'));
             infoEmpregador.infoCadastro.InfoOp.infoEnte.subteto   := eSStrToIdeSubteto(Ok, INIRec.ReadString(sSecao, 'subteto', '1'));

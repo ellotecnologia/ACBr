@@ -94,6 +94,12 @@ namespace ACBrLib.Sat.Demo
             }
         }
 
+        private void BtnAtivarSAT_Click(object sender, EventArgs e)
+        {
+            var ret = acbrSat.AtivarSAT(txtCNPJContribuinte.Text, Convert.ToInt32(txtCodEstFederacao.Text));
+            rtbRespostas.AppendText(ret);
+        }
+
         private void btnConsultarSAT_Click(object sender, EventArgs e)
         {
             var ret = acbrSat.ConsultarSAT();
@@ -316,7 +322,5 @@ namespace ACBrLib.Sat.Demo
         }
 
         #endregion Methods
-
-        
     }
 }

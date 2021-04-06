@@ -38,7 +38,7 @@ interface
 
 uses
   Classes, SysUtils,
-  pcnConversao, pcnSignature,
+  pcnSignature, ACBrXmlBase,
   ACBrXmlDocument;
 
 resourcestring
@@ -57,7 +57,6 @@ resourcestring
   DSC_CPF = 'CPF';
 
 type
- {$M+}
   { TACBrXmlWriterOptions }
   TACBrXmlWriterOptions = class
   private
@@ -68,11 +67,11 @@ type
     FIdentarXML: Boolean;
     FSuprimirDecimais: Boolean;
     FFormatoAlerta: string;
+    FQuebraLinha: string;
 
   public
     constructor Create;
 
-  published
     property DecimalChar: Char read FDecimalChar write FDecimalChar;
     property SomenteValidar: Boolean read FSomenteValidar write FSomenteValidar default False;
     property RetirarEspacos: Boolean read FRetirarEspacos write FRetirarEspacos default True;
@@ -80,9 +79,9 @@ type
     property IdentarXML: Boolean read FIdentarXML write FIdentarXML default False;
     property SuprimirDecimais: Boolean read FSuprimirDecimais write FSuprimirDecimais default False;
     property FormatoAlerta: string read FFormatoAlerta write FFormatoAlerta;
+    property QuebraLinha: string read FQuebraLinha write FQuebraLinha;
 
   end;
- {$M-}
 
   { TACBrXmlWriter }
   TACBrXmlWriter = class
@@ -92,6 +91,7 @@ type
   protected
     FDocument: TACBrXmlDocument;
     FOpcoes: TACBrXmlWriterOptions;
+    FPrefixoPadrao: string;
 
     function AddNodeCNPJCPF(const ID1, ID2: string; CNPJCPF: string;
       obrigatorio: boolean = True; PreencheZeros: boolean = True): TACBrXmlNode;
@@ -99,10 +99,12 @@ type
       obrigatorio: boolean): TACBrXmlNode;
     function AddNodeCPF(const ID: string; CPF: string; const cPais: integer;
       obrigatorio: boolean): TACBrXmlNode;
-    function AddNode(const Tipo: TpcnTipoCampo; ID, TAG: string;
+    function CreateElement(AName: string; ANamespace: string = '';
+      APrefixNamespace: string = ''): TACBrXmlNode; virtual;
+    function AddNode(const Tipo: TACBrTipoCampo; ID, TAG: string;
       const min, max, ocorrencias: smallint; const valor: variant;
       const Descricao: string = ''; ParseTextoXML: boolean = True;
-      Atributo: string = ''): TACBrXmlNode;
+      Atributo: string = ''): TACBrXmlNode; virtual;
     procedure wAlerta(const ID, TAG, Descricao, Alerta: string);
     function GerarSignature(const Signature: TSignature): TACBrXmlNode;
     function CreateOptions: TACBrXmlWriterOptions; virtual; abstract;
@@ -116,6 +118,7 @@ type
 
     property Document: TACBrXmlDocument read FDocument;
     property ListaDeAlertas: TStringList read FListaDeAlertas write FListaDeAlertas;
+    property PrefixoPadrao: string read FPrefixoPadrao write FPrefixoPadrao;
 
   end;
 
@@ -124,7 +127,7 @@ implementation
 uses
   variants, dateutils,
   ACBrDFeUtil, ACBrUtil,
-  pcnAuxiliar;
+  ACBrValidador;
 
 { TACBrXmlWriterOptions }
 constructor TACBrXmlWriterOptions.Create;
@@ -163,7 +166,6 @@ var
   Tamanho: integer;
   Ocorrencia: integer;
 begin
-  Result := nil;
   CNPJCPF := OnlyNumber(trim(CNPJCPF));
   Tamanho := length(CNPJCPF);
   Ocorrencia := integer(obrigatorio);
@@ -177,7 +179,7 @@ begin
     end;
 
     Result := AddNode(tcStr, ID2, 'CPF  ', 0, 11, Ocorrencia, CNPJCPF);
-    if not ValidarCPF(CNPJCPF) then
+    if ValidarCPF(CNPJCPF) <> '' then
       wAlerta(ID2, 'CPF', 'CPF', ERR_MSG_INVALIDO);
   end
   else
@@ -189,7 +191,7 @@ begin
     end;
 
     Result := AddNode(tcStr, ID1, 'CNPJ', 0, 14, Ocorrencia, CNPJCPF);
-    if (Tamanho > 0) and (not ValidarCNPJ(CNPJCPF)) then
+    if (Tamanho > 0) and (ValidarCNPJ(CNPJCPF) <> '') then
       wAlerta(ID1, 'CNPJ', 'CNPJ', ERR_MSG_INVALIDO);
   end;
 
@@ -200,40 +202,53 @@ end;
 function TACBrXmlWriter.AddNodeCNPJ(const ID: string; CNPJ: string;
   const cPais: integer; obrigatorio: boolean): TACBrXmlNode;
 begin
-  Result := nil;
   if cPais <> 1058 then
   begin
     Result := AddNode(tcStr, ID, 'CNPJ', 00, 00, 1, '');
     exit;
   end;
+
   CNPJ := OnlyNumber(Trim(CNPJ));
+
   if obrigatorio then
     Result := AddNode(tcEsp, ID, 'CNPJ', 14, 14, 1, CNPJ, DSC_CNPJ)
   else
     Result := AddNode(tcEsp, ID, 'CNPJ', 14, 14, 0, CNPJ, DSC_CNPJ);
-  if not ValidarCNPJ(CNPJ) then
+
+  if ValidarCNPJ(CNPJ) <> '' then
     wAlerta(ID, 'CNPJ', DSC_CNPJ, ERR_MSG_INVALIDO);
 end;
 
 function TACBrXmlWriter.AddNodeCPF(const ID: string; CPF: string;
   const cPais: integer; obrigatorio: boolean): TACBrXmlNode;
 begin
-  Result := nil;
   if cPais <> 1058 then
   begin
     Result := AddNode(tcStr, ID, 'CPF', 00, 00, 1, '');
     exit;
   end;
+
   CPF := OnlyNumber(Trim(CPF));
+
   if obrigatorio then
     Result := AddNode(tcEsp, ID, 'CPF', 11, 11, 1, CPF, DSC_CPF)
   else
     Result := AddNode(tcEsp, ID, 'CPF', 11, 11, 0, CPF, DSC_CPF);
-  if not ValidarCPF(CPF) then
+
+  if ValidarCPF(CPF) <> '' then
     wAlerta(ID, 'CPF', DSC_CPF, ERR_MSG_INVALIDO);
 end;
 
-function TACBrXmlWriter.AddNode(const Tipo: TpcnTipoCampo; ID, TAG: string;
+function TACBrXmlWriter.CreateElement(AName: string; ANamespace: string;
+  APrefixNamespace: string): TACBrXmlNode;
+begin
+  if NaoEstaVazio(FPrefixoPadrao) then
+    Result := FDocument.CreateElement(FPrefixoPadrao + ':' + AName, ANamespace,  APrefixNamespace)
+  else
+    Result := FDocument.CreateElement(AName, ANamespace,  APrefixNamespace);
+end;
+
+function TACBrXmlWriter.AddNode(const Tipo: TACBrTipoCampo; ID, TAG: string;
   const min, max, ocorrencias: smallint; const valor: variant;
   const Descricao: string = ''; ParseTextoXML: boolean = True;
   Atributo: string = ''): TACBrXmlNode;
@@ -253,6 +268,9 @@ var
   AttSplit: TSplitResult;
 begin
   Result := nil;
+
+  if ocorrencias < 0 then Exit;
+
   ID := Trim(ID);
   Tag := Trim(TAG);
   Atributo := Trim(Atributo);
@@ -373,7 +391,7 @@ begin
       // Tipo String - somente numeros
       ConteudoProcessado := Trim(string(valor));
       EstaVazio := (valor = '');
-      if not ValidarNumeros(ConteudoProcessado) then
+      if not StrIsNumber(ConteudoProcessado) then
         walerta(ID, Tag, Descricao, ERR_MSG_INVALIDO);
     end;
 
@@ -424,18 +442,18 @@ begin
   // Grava a tag no arquivo - Quando não existir algum conteúdo
   if ((ocorrencias = 1) and (EstaVazio)) then
   begin
-    Result := FDocument.CreateElement(Tag);
+    Result := CreateElement(Tag);
     exit;
   end;
 
   // Grava a tag no arquivo - Quando existir algum conteúdo
   if ((ocorrencias = 1) or (not EstaVazio)) then
   begin
-    Result := FDocument.CreateElement(Tag);
+    Result := CreateElement(Tag);
 
     if ParseTextoXML then
       Result.Content := FiltrarTextoXML(FOpcoes.RetirarEspacos,
-        ConteudoProcessado, FOpcoes.RetirarAcentos)
+        ConteudoProcessado, FOpcoes.RetirarAcentos, True, FOpcoes.FQuebraLinha)
     else
       Result.Content := ConteudoProcessado;
 
@@ -471,13 +489,11 @@ function TACBrXmlWriter.GerarSignature(const Signature: TSignature): TACBrXmlNod
 var
   xmlNode, xmlNodeAux: TACBrXmlNode;
 begin
-  Result := FDocument.CreateElement('Signature',
-    'http://www.w3.org/2000/09/xmldsig#');
+  Result := FDocument.CreateElement('Signature', 'http://www.w3.org/2000/09/xmldsig#');
   xmlNode := Result.AddChild('SignedInfo');
 
   xmlNodeAux := xmlNode.AddChild('CanonicalizationMethod');
-  xmlNodeAux.SetAttribute('Algorithm',
-    'http://www.w3.org/TR/2001/REC-xml-c14n-20010315');
+  xmlNodeAux.SetAttribute('Algorithm', 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315');
 
   xmlNodeAux := xmlNode.AddChild('SignatureMethod');
   xmlNodeAux.SetAttribute('Algorithm', 'http://www.w3.org/2000/09/xmldsig#rsa-sha1');
@@ -486,13 +502,10 @@ begin
   xmlNode.SetAttribute('URI', Signature.URI);
 
   xmlNodeAux := xmlNode.AddChild('Transforms');
-  xmlNodeAux.AddChild('Transform ').SetAttribute('Algorithm',
-    'http://www.w3.org/2000/09/xmldsig#enveloped-signature');
-  xmlNodeAux.AddChild('Transform ').SetAttribute('Algorithm',
-    'http://www.w3.org/TR/2001/REC-xml-c14n-20010315');
+  xmlNodeAux.AddChild('Transform ').SetAttribute('Algorithm', 'http://www.w3.org/2000/09/xmldsig#enveloped-signature');
+  xmlNodeAux.AddChild('Transform ').SetAttribute('Algorithm', 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315');
 
-  xmlNode.AddChild('DigestMethod').SetAttribute('Algorithm',
-    'http://www.w3.org/2000/09/xmldsig#sha1');
+  xmlNode.AddChild('DigestMethod').SetAttribute('Algorithm', 'http://www.w3.org/2000/09/xmldsig#sha1');
   xmlNode.AddChild('DigestValue').Content := Signature.DigestValue;
 
   Result.AddChild('SignatureValue').Content := Signature.SignatureValue;

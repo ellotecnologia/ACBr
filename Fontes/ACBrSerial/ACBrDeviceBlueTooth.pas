@@ -43,6 +43,9 @@ uses
 
 const
   GUID_BLUETOOTH_PRINTER : TGUID =  '{00001101-0000-1000-8000-00805F9B34FB}';
+  BLUETOOTH_TIMEOUT = 5000;
+  BLUETOOTH_BPS = 9600;
+  BLUETOOTH_RETRIES = 5;
 
 type
 
@@ -52,11 +55,16 @@ type
   private
     fsBluetooth: TBluetooth;
     fsBlueToothSocket: TBluetoothSocket;
+    fsBlueToothDevice: TBluetoothDevice;
     fsInternalBuffer: AnsiString;
 
     procedure AtivarBlueTooth;
     function GetDeviceName: String;
     function PedirPermissoes: Boolean;
+
+    procedure ReconectarSocket;
+    procedure ConectarSocket;
+    procedure FecharSocket;
 
     function ReceiveNumBytes(BytesToRead, ATimeout: Integer): AnsiString;
     function ReceivePacket(ATimeOut: Integer): AnsiString;
@@ -76,11 +84,13 @@ type
     procedure EnviaString(const AString: AnsiString); override;
     function LeString(ATimeOutMilissegundos: Integer = 0; NumBytes: Integer = 0;
       const Terminador: AnsiString = ''): AnsiString; override;
+    procedure Limpar; override;
 
     function GetBluetoothDevice(AName: String): TBluetoothDevice;
 
     property BlueTooth: TBluetooth read fsBlueTooth;
     property BlueToothSocket: TBluetoothSocket read fsBlueToothSocket;
+    property BlueToothDevice: TBluetoothDevice read fsBlueToothDevice;
   end;
 
 ResourceString
@@ -91,7 +101,7 @@ ResourceString
 implementation
 
 uses
-  dateutils,
+  dateutils, math,
   {$IfDef ANDROID}
    Androidapi.Helpers, Androidapi.JNI.Os, Androidapi.JNI.JavaTypes, System.Permissions,
   {$EndIf}
@@ -118,25 +128,30 @@ function TACBrDeviceBlueTooth.PedirPermissoes: Boolean;
 Var
   Ok: Boolean;
 begin
-  Ok := True;
   {$IfDef ANDROID}
-   PermissionsService.RequestPermissions( [JStringToString(TJManifest_permission.JavaClass.BLUETOOTH),
-                                           JStringToString(TJManifest_permission.JavaClass.BLUETOOTH_ADMIN),
-                                           JStringToString(TJManifest_permission.JavaClass.BLUETOOTH_PRIVILEGED),
-                                           JStringToString(TJManifest_permission.JavaClass.ACCESS_COARSE_LOCATION),
-                                           JStringToString(TJManifest_permission.JavaClass.BIND_PRINT_SERVICE),
-                                           JStringToString(TJManifest_permission.JavaClass.ACCESS_FINE_LOCATION)],
+    Ok := False;
+    PermissionsService.RequestPermissions( [JStringToString(TJManifest_permission.JavaClass.BLUETOOTH),
+                                            JStringToString(TJManifest_permission.JavaClass.BLUETOOTH_ADMIN)],
       procedure(const APermissions: TArray<string>; const AGrantResults: TArray<TPermissionStatus>)
       var
         GR: TPermissionStatus;
       begin
-        for GR in AGrantResults do
-          if (GR <> TPermissionStatus.Granted) then
+        Ok := (Length(AGrantResults) = 2);
+
+        if Ok then
+        begin
+          for GR in AGrantResults do
           begin
-            Ok := False;
-            Break;
+            if (GR <> TPermissionStatus.Granted) then
+            begin
+              Ok := False;
+              Break;
+            end;
           end;
+        end;
       end );
+  {$Else}
+    Ok := True;
   {$EndIf}
 
   Result := Ok;
@@ -168,6 +183,9 @@ end;
 
 procedure TACBrDeviceBlueTooth.AtivarBlueTooth;
 begin
+  if not PedirPermissoes then
+    DoException( Exception.Create(ACBrStr(SErrSemPermissaoParaBlueTooth)));
+
   if not fsBluetooth.Enabled then
     fsBluetooth.Enabled := True;
 end;
@@ -175,7 +193,6 @@ end;
 procedure TACBrDeviceBlueTooth.Conectar(const APorta: String;
   const ATimeOutMilissegundos: Integer);
 var
-  DevBT: TBluetoothDevice;
   DeviceName: String;
 begin
   inherited;
@@ -186,20 +203,36 @@ begin
   AtivarBlueTooth;
   DeviceName := GetDeviceName;
 
-  DevBT := GetBluetoothDevice(DeviceName);
-  if not Assigned(DevBT) then
+  fsBlueToothDevice := GetBluetoothDevice(DeviceName);
+  if not Assigned(fsBlueToothDevice) then
     DoException( Exception.CreateFmt(ACBrStr(SErrDispositivoNaoEncontrado), [APorta]));
 
-  fsBlueToothSocket := DevBT.CreateClientSocket(GUID_BLUETOOTH_PRINTER, False);
-  if Assigned(fsBlueToothSocket) then
-    fsBlueToothSocket.Connect
-  else
-    DoException( Exception.CreateFmt(ACBrStr(SErrConectar), [DevBT.DeviceName]));
-
   Self.TimeOutMilissegundos := ATimeOutMilissegundos;
+  ConectarSocket;
+end;
+
+procedure TACBrDeviceBlueTooth.ConectarSocket;
+begin
+  if not Assigned(fsBlueToothDevice) then  // Já passou por Conectar ?
+    Exit;
+
+  fsBlueToothSocket := fsBlueToothDevice.CreateClientSocket(GUID_BLUETOOTH_PRINTER, False);
+  if Assigned(fsBlueToothSocket) then
+  begin
+    fsBlueToothSocket.Connect;
+    if not fsBlueToothSocket.Connected then
+      DoException( Exception.CreateFmt(ACBrStr(SErrConectar), [fsBlueToothDevice.DeviceName]));
+  end
+  else
+    DoException( Exception.CreateFmt(ACBrStr(SErrConectar), [fsBlueToothDevice.DeviceName]));
 end;
 
 procedure TACBrDeviceBlueTooth.Desconectar(IgnorarErros: Boolean);
+begin
+  FecharSocket;
+end;
+
+procedure TACBrDeviceBlueTooth.FecharSocket;
 begin
   if Assigned(fsBlueToothSocket) then
   begin
@@ -209,12 +242,39 @@ begin
 end;
 
 procedure TACBrDeviceBlueTooth.EnviaString(const AString: AnsiString);
+var
+  Retries, SleepTime: Integer;
+  Ok : Boolean;
+  EL: String;
 begin
   GravaLog('  TACBrDeviceBlueTooth.EnviaString');
   if not Assigned(fsBlueToothSocket) then
     Exit;
 
-  fsBlueToothSocket.SendData( TEncoding.ANSI.GetBytes(AString) );
+  Retries := 0;
+  Ok := False;
+  while (not OK) do
+  begin
+    try
+      fsBlueToothSocket.SendData( TEncoding.ANSI.GetBytes(AString) );
+      Ok := True;
+      SleepTime := max(Trunc(Length(AString) / BLUETOOTH_BPS * 1000), 100);
+      Sleep( SleepTime )
+    except
+      On E: Exception do
+      begin
+        EL := LowerCase(E.Message);
+        if (EL.IndexOf('ioexception') > 0) and
+           (Retries < BLUETOOTH_RETRIES) then
+        begin
+          ReconectarSocket;
+          Inc(Retries)
+        end
+        else
+          raise;
+      end;
+    end;
+  end;
 end;
 
 function TACBrDeviceBlueTooth.GetBluetoothDevice(AName: String): TBluetoothDevice;
@@ -251,7 +311,7 @@ begin
   if Assigned(fsBluetooth.CurrentManager) then
     Result := fsBluetooth.CurrentManager.SocketTimeout
   else
-    Result := 100;
+    Result := BLUETOOTH_TIMEOUT;
 end;
 
 procedure TACBrDeviceBlueTooth.SetTimeOutMilissegundos(AValue: Integer);
@@ -265,7 +325,7 @@ function TACBrDeviceBlueTooth.LeString(ATimeOutMilissegundos, NumBytes: Integer;
   const Terminador: AnsiString): AnsiString;
 begin
   if ATimeOutMilissegundos = 0 then
-    ATimeOutMilissegundos := TimeOutMilissegundos;
+    ATimeOutMilissegundos := BLUETOOTH_TIMEOUT;
 
   if (NumBytes > 0) then
     Result := ReceiveNumBytes( NumBytes, ATimeOutMilissegundos)
@@ -275,6 +335,11 @@ begin
     Result := ReceivePacket( ATimeOutMilissegundos );
 end;
 
+
+procedure TACBrDeviceBlueTooth.Limpar;
+begin
+  inherited;
+end;
 
 function TACBrDeviceBlueTooth.ReceiveNumBytes(BytesToRead: Integer;
   ATimeout: Integer): AnsiString;
@@ -324,6 +389,16 @@ begin
     Result := copy(fsInternalBuffer, 1, p-1);
     Delete(fsInternalBuffer, 1, p + LenTer-1);
   end;
+end;
+
+procedure TACBrDeviceBlueTooth.ReconectarSocket;
+begin
+  if not Assigned(fsBlueToothDevice) then  // Estava conectado ?
+    Exit;
+
+  FecharSocket;
+  Sleep(100);
+  ConectarSocket;
 end;
 
 function TACBrDeviceBlueTooth.ReceivePacket(ATimeOut: Integer): AnsiString;

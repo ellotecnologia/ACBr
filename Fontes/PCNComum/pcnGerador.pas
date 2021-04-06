@@ -76,17 +76,18 @@ type
     FIDNivel: string;
     FOpcoes: TGeradorOpcoes;
     FPrefixo: string;
+
     procedure addStringArquivoXML(const Value: String);
   public
     FIgnorarTagNivel: string;
     FIgnorarTagIdentacao: string;
+
     constructor Create;
     destructor Destroy; override;
+
     function SalvarArquivo(const CaminhoArquivo: string; const FormatoGravacao: TpcnFormatoGravacao = fgXML): Boolean;
     procedure wGrupo(const TAG: string; const ID: string = ''; const Identar: Boolean = True);
     procedure wCampo(const Tipo: TpcnTipoCampo; ID, TAG: string; const min, max, ocorrencias: smallint; const valor: variant; const Descricao: string = ''; ParseTextoXML: Boolean = True; Atributo: String = '');
-    procedure wGrupoNFSe(const TAG: string; const ID: string = ''; const Identar: Boolean = True);
-    procedure wCampoNFSe(const Tipo: TpcnTipoCampo; const ID, TAG: string; const min, max, ocorrencias: smallint; const valor: variant; const Descricao: string = ''; ParseTextoXML: Boolean = True; const Atributo: String = '');
     procedure wCampoCNPJCPF(const ID1, ID2: string; CNPJCPF: string; obrigatorio: Boolean = True; PreencheZeros: Boolean = True);
     procedure wCampoCNPJ(const ID: string; CNPJ: string; const cPais: Integer; obrigatorio: Boolean);
     procedure wCampoCPF(const ID: string; CPF: string; const cPais: Integer; obrigatorio: Boolean);
@@ -138,31 +139,9 @@ type
 
 const
 
-  ERR_MSG_MAIOR = 'Tamanho maior que o máximo permitido';
-  ERR_MSG_MENOR = 'Tamanho menor que o mínimo permitido';
-  ERR_MSG_VAZIO = 'Nenhum valor informado';
-  ERR_MSG_INVALIDO = 'Conteúdo inválido';
-  ERR_MSG_MAXIMO_DECIMAIS = 'Numero máximo de casas decimais permitidas';
-  ERR_MSG_MAIOR_MAXIMO = 'Número de ocorrências maior que o máximo permitido - Máximo ';
-  ERR_MSG_GERAR_CHAVE = 'Erro ao gerar a chave da NFe!';
-  ERR_MSG_FINAL_MENOR_INICIAL = 'O numero final não pode ser menor que o inicial';
-  ERR_MSG_ARQUIVO_NAO_ENCONTRADO = 'Arquivo não encontrado';
-  ERR_MSG_SOMENTE_UM = 'Somente um campo deve ser preenchido';
-  ERR_MSG_MENOR_MINIMO = 'Número de ocorrências menor que o mínimo permitido - Mínimo ';
-
-  CODIGO_BRASIL = 1058;
-
-  XML_V01           = '?xml version="1.0"?';
-  ENCODING_UTF8     = '?xml version="1.0" encoding="UTF-8"?';
-  ENCODING_UTF8_STD = '?xml version="1.0" encoding="UTF-8" standalone="no"?';
-
-  NAME_SPACE      = 'xmlns="http://www.portalfiscal.inf.br/nfe"';
-  NAME_SPACE_CTE  = 'xmlns="http://www.portalfiscal.inf.br/cte"';
-  NAME_SPACE_CFE  = 'xmlns="http://www.fazenda.sp.gov.br/sat"';
-  NAME_SPACE_MDFE = 'xmlns="http://www.portalfiscal.inf.br/mdfe"';
   NAME_SPACE_GNRE = 'xmlns="http://www.gnre.pe.gov.br"';
+  NAME_SPACE_CFE  = 'xmlns="http://www.fazenda.sp.gov.br/sat"';
   NAME_SPACE_SAT  = 'xmlns="http://www.fazenda.sp.gov.br/sat"';
-  NAME_SPACE_BPE  = 'xmlns="http://www.portalfiscal.inf.br/bpe"';
 
   V0_02 = 'versao="0.02"';
   V1_00 = 'versao="1.00"';
@@ -175,102 +154,10 @@ const
   V2_00 = 'versao="2.00"';
   V2_01 = 'versao="2.01"';
 
-  DSC_CNPJ = 'CNPJ(MF)';
-  DSC_CPF = 'CPF';
-  DSC_CUF = 'Código do UF (Unidade da Federação)';
-  DSC_CNF = 'Número da Nota Fiscal Eletrônica';
-  DSC_MOD = 'Modelo';
-  DSC_SERIE = 'Série do Documento Fiscal';
-  DSC_DEMI = 'Data de emissão';
-  DSC_CDV = 'Digito Verificador';
-  DSC_TPAMB = 'Identificação do Ambiente';
-  DSC_XNOME = 'Razão Social ou Nome';
-  DSC_IE = 'Inscrição Estadual';
-  DSC_IM = 'Inscrição Municipal';
-  DSC_XLGR = 'Logradouro';
-  DSC_NRO = 'Número';
-  DSC_XCPL = 'Complemento (Endereço)';
-  DSC_XBAIRRO = 'Bairro';
-  DSC_XMUN = 'Nome do Município';
-  DSC_CEP = 'CEP';
-  DSC_UF = 'Sigla da UF';
-  DSC_INFADPROD = 'Informações adicionais do Produto';
-  DSC_NITEM = 'Numero do item';
-  DSC_CPROD = 'Código do produto ou serviço';
-  DSC_CEAN = 'Código de Barra do Item';
-  DSC_XPROD = 'Descrição do Produto ou Serviço';
-  DSC_NCM = 'Código NCM';
-  DSC_CEST = 'Código Identificador da Substitução Tributária';
-  DSC_CFOP = 'CFOP';
-  DSC_UCOM = 'Unidade Comercial';
-  DSC_QCOM = 'Quantidade Comercial';
-  DSC_VUNCOM = 'Valor Unitário de Comercialização';
-  DSC_VPROD = 'Valor Total Bruto dos Produtos ou Serviços';
-  DSC_NITEMPED = 'Item do Pedido de Compra da DI – adição';
-  DSC_VDESC = 'Valor do desconto';
-  DSC_VOUTRO = 'Outras Despesas Acessórias';
-  DSC_XTEXTO = 'Conteúdo do Campo';
-  DSC_ORIG = 'Origem da mercadoria';
-  DSC_CST = 'Código da situação tributária ';
-  DSC_PICMS = 'Alíquota do imposto';
-  DSC_VICMS = 'Valor do ICMS';
-  DSC_CSOSN = 'Código de Situação da Operação – Simples Nacional';
-  DSC_VBC = 'Valor da BC do ICMS';
-  DSC_PPIS = 'Alíquota do PIS (em percentual)';
-  DSC_VPIS = 'Valor do PIS';
-  DSC_QBCPROD = 'BC da CIDE';
-  DSC_VALIQPROD = 'Valor da alíquota (em reais)';
-  DSC_PCOFINS = 'Alíquota da COFINS (em percentual)';
-  DSC_VCOFINS = 'Valor do COFINS';
-  DSC_PISOUTR = 'Grupo PIS outras operações';
-  DSC_VBCISS = 'Valor da Base de Cálculo do ISSQN';
-  DSC_VALIQ = 'Alíquota';
-  DSC_VISSQN = 'Valor do Imposto sobre Serviço de Qualquer Natureza';
-  DSC_CMUNFG = 'Código do Município FG';
-  DSC_CLISTSERV = 'Lista Prestação de Serviços';
-  DSC_VISS = 'Valor do Imposto sobre Serviço';
-  DSC_INFCPL = 'Informações complementares de interesse do contribuinte';
-  DSC_OBSFISCO = 'Observações de interesse do fisco';
-  DSC_XCAMPO = 'Identificação do Campo';
-
-  //CFe - Cupom Fiscal Eletrônico - SAT
-  DSC_VDESCSUBTOT = 'Valor de Desconto sobre Subtotal';
-  DSC_VACRESSUBTOT = 'Valor de Acréscimo sobre Subtotal';
-  DSC_VPISST = 'Valor do PIS ST';
-  DSC_VCOFINSST = 'Valor do COFINS ST';
-  DSC_VCFE = 'Valor Total do CF-e';
-  DSC_VCFELEI12741 = 'Valor aproximado dos tributos do CFe-SAT – Lei 12741/12.';
-  DSC_VDEDUCISS = 'Valor das deduções para ISSQN';
-  DSC_CSERVTRIBMUN = 'Codigo de tributação pelo ISSQN do municipio';
-  DSC_CNATOP = 'Natureza da Operação de ISSQN';
-  DSC_INDINCFISC = 'Indicador de Incentivo Fiscal do ISSQN';
-  DSC_COFINSST = 'Grupo de COFINS Substituição Tributária';
-  DSC_REGTRIB = 'Código de Regime Tributário';
-  DSC_REGISSQN = 'Regime Especial de Tributação do ISSQN';
-  DSC_RATISSQN = 'Indicador de rateio do Desconto sobre subtotal entre itens sujeitos à tributação pelo ISSQN.';
-  DSC_NCFE = 'Número do Cupom Fiscal Eletronico';
-  DSC_HEMI = 'Hora de emissão';
-  DSC_SIGNAC = 'Assinatura do Aplicativo Comercial';
-  DSC_QRCODE = 'Assinatura Digital para uso em QRCODE';
-  DSC_MP = 'Grupo de informações sobre Pagamento do CFe';
-  DSC_CMP = 'Código do Meio de Pagamento';
-  DSC_VMP = 'Valor do Meio de Pagamento';
-  DSC_CADMC = 'Credenciadora de cartão de débito ou crédito';
-  DSC_VTROCO = 'Valor do troco';
-  DSC_VITEM = 'Valor líquido do Item';
-  DSC_VRATDESC = 'Rateio do desconto sobre subtotal';
-  DSC_VRATACR = 'Rateio do acréscimo sobre subtotal';
-  DSC_NUMEROCAIXA = 'Número do Caixa ao qual o SAT está conectado';
-  DSC_VITEM12741 = 'Valor aproximado dos tributos do Produto ou serviço – Lei 12741/12';
-  DSC_NSERIESAT = 'Número de série do equipamento SAT';
-  DSC_DHINICIAL = 'Data e hora incial';
-  DSC_DHFINAL = 'Data e Hora Final';
-  DSC_CHAVESEGURANCA = 'Chave de segurança';
-
 implementation
 
 uses
-  DateUtils, ACBrUtil;
+  DateUtils, ACBrUtil, pcnConsts;
 
 { TGeradorOpcoes }
 
@@ -303,6 +190,7 @@ begin
   FOpcoes := TGeradorOpcoes.Create;
   FListaDeAlertas := TStringList.Create;
   FLayoutArquivoTXT := TStringList.Create;
+  FPrefixo := '';
 end;
 
 destructor TGerador.Destroy;
@@ -358,34 +246,44 @@ begin
 end;
 
 procedure TGerador.wGrupo(const TAG: string; const ID: string = ''; const Identar: Boolean = True);
+var
+  aTAG: string;
 begin
+  if copy(TAG, 1, 1) = '/' then
+    aTAG := '/' + FPrefixo + copy(TAG, 2, length(TAG))
+  else
+    aTAG := FPrefixo + TAG;
+
   // A propriedade FIgnorarTagNivel é utilizada para Ignorar TAG
   // na construção dos níveis para apresentação na mensagem de erro.
   gtNivel(ID);
   // Caso a tag seja um Grupo com Atributo
-  if (pos('="', TAG) > 0) or (pos('= "', TAG) > 0) then
-    gtCampo(RetornarConteudoEntre(TAG, ' ', '='), RetornarConteudoEntre(TAG, '"', '"'));
+  if (pos('="', aTAG) > 0) or (pos('= "', aTAG) > 0) then
+    gtCampo(RetornarConteudoEntre(aTAG, ' ', '='), RetornarConteudoEntre(aTAG, '"', '"'));
   //
-  if not SubStrEmSubStr(TAG, FIgnorarTagNivel) then
+  if not SubStrEmSubStr(aTAG, FIgnorarTagNivel) then
   begin
-    if TAG[1] <> '/' then
-      FTagNivel := FTagNivel + '<' + TAG + '>';
-    if (TAG[1] = '/') and (Copy(TAG, 2, 3) = 'det') then
+    if aTAG[1] <> '/' then
+      FTagNivel := FTagNivel + '<' + aTAG + '>';
+
+    if (aTAG[1] = '/') and (Copy(aTAG, 2, 3) = 'det') then
       FTagNivel := Copy(FTagNivel, 1, pos('<det', FTagNivel) - 1)
     else
-      FTagNivel := StringReplace(FTagNivel, '<' + Copy(TAG, 2, MaxInt) + '>', '', []);
+      FTagNivel := StringReplace(FTagNivel, '<' + Copy(aTAG, 2, MaxInt) + '>', '', []);
   end;
-  //
-  if (Identar) and (TAG[1] = '/') then
+
+  if (Identar) and (aTAG[1] = '/') then
     Dec(FOpcoes.FNivelIdentacao);
-  if SubStrEmSubStr(TAG, FIgnorarTagIdentacao) then
+
+  if SubStrEmSubStr(aTAG, FIgnorarTagIdentacao) then
     Dec(FOpcoes.FNivelIdentacao);
-  //
+
   if FOpcoes.IdentarXML then
-    addStringArquivoXML(StringOfChar(' ', FOpcoes.FTamanhoIdentacao * FOpcoes.FNivelIdentacao) + '<' + tag + '>' + #13#10)
+    addStringArquivoXML(StringOfChar(' ', FOpcoes.FTamanhoIdentacao * FOpcoes.FNivelIdentacao) + '<' + aTAG + '>' + #13#10)
   else
-    addStringArquivoXML('<' + TAG + '>');
-  if (Identar) and (TAG[1] <> '/') then
+    addStringArquivoXML('<' + aTAG + '>');
+
+  if (Identar) and (aTAG[1] <> '/') then
     Inc(FOpcoes.FNivelIdentacao);
 end;
 
@@ -475,8 +373,11 @@ var
   wAno, wMes, wDia, wHor, wMin, wSeg, wMse: Word;
   EstaVazio: Boolean;
 begin
+  if ocorrencias < 0 then
+    Exit;
+
   ID                  := Trim(ID);
-  Tag                 := Trim(TAG);
+  Tag                 := FPrefixo + Trim(TAG);
   Atributo            := Trim(Atributo);
   EstaVazio           := False;
   NumeroDecimais      := 0;
@@ -545,7 +446,7 @@ begin
         EstaVazio := ((wAno = 1899) and (wMes = 12) and (wDia = 30));
       end;
 
-    tcDe2, tcDe3, tcDe4, tcDe6, tcDe10:
+    tcDe2, tcDe3, tcDe4, tcDe6, tcDe8, tcDe10:
       begin
         // adicionar um para que o máximo e mínimo não considerem a virgula
         if not FOpcoes.FSuprimirDecimais then
@@ -560,6 +461,7 @@ begin
           tcDe3 : NumeroDecimais :=  3;
           tcDe4 : NumeroDecimais :=  4;
           tcDe6 : NumeroDecimais :=  6;
+          tcDe8 : NumeroDecimais :=  8;
           tcDe10: NumeroDecimais := 10;
         end;
 
@@ -801,23 +703,6 @@ begin
     ListArquivo.Free;
     ListCorrigido.Free;
   end;
-end;
-
-procedure TGerador.wCampoNFSe(const Tipo: TpcnTipoCampo; const ID, TAG: string;
-  const min, max, ocorrencias: smallint; const valor: variant;
-  const Descricao: string; ParseTextoXML: Boolean; const Atributo: String);
-begin
-  Self.wCampo(Tipo, ID, Self.Prefixo + TAG, min, max, ocorrencias, valor,
-              Descricao, ParseTextoXML, Atributo);
-end;
-
-procedure TGerador.wGrupoNFSe(const TAG: string; const ID: string;
-  const Identar: Boolean);
-begin
-  if copy(TAG, 1, 1) = '/' then
-     Self.wGrupo('/' + Self.Prefixo + copy(TAG, 2, length(TAG)), ID, Identar)
-  else
-     Self.wGrupo(Self.Prefixo + TAG, ID, Identar);
 end;
 
 end.

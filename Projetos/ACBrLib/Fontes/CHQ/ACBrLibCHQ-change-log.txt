@@ -1,9 +1,9 @@
 {******************************************************************************}
 { Projeto: Componentes ACBr                                                    }
-{ Biblioteca multi plataforma de componentes Delphi para interação com equipa- }
+{  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
 {                                                                              }
-{  Você pode obter a última versão desse arquivo na página do Projeto ACBr     }
+{  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
 {                                                                              }
 {  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la }
@@ -22,15 +22,13 @@
 { Você também pode obter uma copia da licença em:                              }
 { http://www.opensource.org/licenses/lgpl-license.php                          }
 {                                                                              }
-{ Daniel Simões de Almeida  -  daniel@djsystem.com.br  -  www.djsystem.com.br  }
-{              Praça Anita Costa, 34 - Tatuí - SP - 18270-410                  }
-{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 Agradecimentos:
 
 * Administradores:
 - Daniel Simões de Almeida
-- André Ferreira de Moraes
 
 {******************************************************************************
 |* ACBrLibCHQ
@@ -43,6 +41,25 @@ Símbolo : Significado
 [+]     : Novo recurso
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
+
+26/11/2020
+--- ACBrLibCHQDataModule ---
+[+] Correção do na passagem das configurações para o componente estava lendo as configurações do PosPrinter.
+   Por: Rafael Teno Dias
+
+19/10/2020
+--- ACBrLibCHQBase, ACBrLibCHQDataModule ---
+[-] Corrigindo retornos da ACBrLibCHQ.
+    (Por: Rafael Dias)
+
+07/09/2020
+--- ACBrLibCHQMT, ACBrLibCHQST ---
+[+] Removido o metodo CHQ_ConfigImportar.
+   Por: Rafael Dias
+[+] Removido o metodo CHQ_ConfigExportar.
+   Por: Rafael Dias
+[-] Removido o metodo CHQ_ImportarConfig.
+   Por: Rafael Dias
 
 06/01/2020
 --- ACBrLibCHQConfig, ACBrLibCHQClass ---

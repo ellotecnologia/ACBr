@@ -3,9 +3,7 @@
 {  Executavel multiplataforma que faz uso do conjunto de componentes ACBr para  }
 { criar uma interface de comunicação com equipamentos de automacao comercial.   }
 {                                                                               }
-{ Direitos Autorais Reservados (c) 2010 Daniel Simoes de Almeida                }
-{                                                                               }
-{ Colaboradores nesse arquivo:                                  }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida                }
 {                                                                               }
 {  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr     }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr       }
@@ -28,7 +26,6 @@
 {                                                                               }
 { Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br }
 {        Rua Cel.Aureliano de Camargo, 963 - Tatuí - SP - 18270-170             }
-{                                                                               }
 {*******************************************************************************}
 
 {******************************************************************************
@@ -39,13 +36,144 @@
 
 
 Para ver os comandos dispoíveis do ACBrMonitor acesse:
-http://acbr.sourceforge.net/drupal/?q=node/40
+https://acbr.sourceforge.io/ACBrMonitor/ACBrMonitor.html
 
 Símbolo : Significado
 
 [+]     : Novo recurso
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
+
+25/03/2021
+-- DoACBrNFeUnit --
+[*] Adicionado Melhorias para Agrupar respostas dos métodos de Envio de NFe, dessa forma evita problemas na geração de respostas 
+no formato Json e XML e permite melhor compatibilidade de respostas entre ACBrMonitor e ACBrLib
+
+16/03/2021
+-- DoACBrNFSeUnit --
+[+] Adicionado classe para implementar componente ACBrNFSe
+
+01/03/2021
+-- DoACBrNFeUnit --
+[*] Melhorias na geração respostas para componente NFe
+
+01/03/2021
+-- DoACBrBoleto --
+[*] Adicionado parâmetro no método LerRetorno para obter Retorno como Resposta
+
+01/03/2021
+-- DoACBrGNReUnit --
+[*] Ajuste na geração Respostas do componente GNRe adicionando campos com path do arquivo gerado e o XML
+
+15/02/2021
+-- ACBrMonitor --
+[*] Ajuste Descrição em Tela
+
+12/02/2021
+-- ACBrMonitor --
+[+] Adicionado Validação para gerar log em tela
+
+04/02/2021
+-- ACBrMonitor --
+[+] Melhorias no Menu de Acesso e validaçoes de erros em tela
+   Por: José M S Junior
+
+13/01/2021
+-- ACBrMonitor1 --
+[*] Ajustes de posicionamento de campos em tela
+   Por: José M S Junior
+
+08/01/2021
+-- ACBrMonitor1, DoACBrSATUnit, DoACBrBoletoUnit, DoACBrNFeUnit, ACBrMonitorConsts, ACBrMonitorConfig --
+[+] Melhorias e validações nas configurações em Tela: DFe, SAT, Boleto, e-mail
+   Por: José M S Junior
+
+   08/01/2021
+-- ACBrMonitor1, DoACBrSATUnit --
+[+] Adicionado Método SAT.GerarPDFExtratoCancelamento
+   Por: José M S Junior
+
+24/11/2020
+-- DoSATUnit --
+[*] Ajuste no método ConsultarModeloSat
+   Por: José M S Junior
+
+19/11/2020
+-- ACBrMonitor1, DoSATUnit, ACBrMonitorConsts, ACBrMonitorConfig --
+[+] Adicionado Configuração Automática do SAT através da Marca do Aparelho
+   Por: José M S Junior
+
+27/10/2020
+-- DoACBrCTeUnit --
+[+] Adicionado a Procedure LerIniCTe aos moldes do que foi implementado no DoACBrNFeUnit.
+   Por: Italo Giurizzato Junior
+
+26/10/2020
+-- DoACBrNFe --
+[+] Adicionado parâmetros para validação de retorno nos métodos getPathNFe, GetPathEvento, GetPathInu
+-- DoACBrCTe --
+[+] Adicionado parâmetros para validação de retorno nos métodos getPathNFe, GetPathEvento, GetPathInu
+-- DoACBrMDFe --
+[+] Adicionado parâmetros para validação de retorno nos métodos getPathNFe, GetPathEvento, GetPathInu
+
+07/10/2020
+-- ACBrMonitor1, ACBrMonitorConfig, ACBrMonitorConsts --
+[+] Adicionado campo de configuração do tamanho de Fonte para informações complementares no menu DFe / Impressao / NFe
+
+-- ACBrMonitor1, ACBrMonitorConfig, ACBrMonitorConsts --
+[+] Adicionado configuração Attempts e TimeOut para o componente ACBrMail
+
+-- DoACBrNFeUnit, DoACBrCTeUnit, DoACBrMDFeUnit --
+[+] Adicionado validação de Status de Envio para geração do PDF nos métodos de Impressão junto ao método de Envio de NFe.
+
+25/09/2020
+-- ACBrMonitor1, ACBrMonitorConfig, ACBrMonitorConsts --
+[+] Adicionado configuração para impressão das Formas de Pagamento na NFe  (Menu: DFe/NFe/Impressao)
+
+19/08/2020
+-- DoACBrNFeUnit --
+[*] Ajuste ao ler arquivo .ini e atualizar dados validados pelo componente
+
+31/07/2020
+-- ACBrMonitor1 --
+[*] Ajuste na Definição de geração de path para os DFes "Salvar Arquivos Em Pastas Separadas"
+
+-- ACBrMDFeManifestos, ACBrCTeConhecimentos, ACBrNFeNotasFiscais --
+[*] Ajuste e padronização na leitura do .ini ref campo autXML
+
+24/07/2020
+-- ACBrMonitor1 --
+[*] Retirado mensagens de leitura do arquivo swh.ini
+
+05/06/2020
+
+-- DoBoletoUnit, ACBrMonitor1 --
+[*] Ajustes nas declaraçoes de Uses referente ao componente Boleto
+
+-- DoACBrUnit, ACBrMonitorConsts --
+[+] Adicionado o método ACBr.RoundABNT para facilitar o arredondamento de valores seguindo a especificação da SEFAZ
+
+[+] DoACBrUnit
+Adicionado os métodos EncodeBase64 e DecodeBase64, como estes métodos é possível transferir arquivos binários utilizando
+comunicação TCP/IP, pode ser útil para transferir arquivos .pdf que são gerados no Servidor para ser emitidos na estação Client
+
+[*] DoSATUnit
+Ajuste na validação do XML passado como parâmetro no método EnviarCFe
+
+[*] DoACBrNFeUnit
+Adicionado validação na função de configuração de impressão
+
+[+] ACBrMonitor1, ACBrMonitorConfig, ACBrMonitorConsts
+Adicionado propriedade para RemoverEspaços do XML
+
+[*] ACBrMonitor1
+Remoção da propriedade PathArquivoMunicipios
+
+[+] ACBrMonitor1
+Adicionado funcionalidade de validar Variaveis na Mensagem personalizada do canhoto de NFe.
+
+[+] ACBrMonitor1, DoCPFUnit, DoCNPJUnit, ACBrMonitorConsts, ACBrCMD
+Adicionado Funcionalidade de ConsultaCNPJ e ConsultaCPF no site da Receita Federal
 
 13/03/2020
 [*] ACBrMonitor1

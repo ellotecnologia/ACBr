@@ -30,13 +30,6 @@
 {       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
-{******************************************************************************
-|* Historico
-|*
-|* 11/02/2019:  Daniel Simões de Almeida
-|*   Inicio do desenvolvimento
-******************************************************************************}
-
 {$I ACBr.inc}
 
 unit ACBrEscCustomPos;
@@ -83,6 +76,8 @@ uses
 { TACBrEscCustomPos }
 
 constructor TACBrEscCustomPos.Create(AOwner: TACBrPosPrinter);
+var
+  i: Integer;
 begin
   inherited Create(AOwner);
 
@@ -117,6 +112,13 @@ begin
   TagsNaoSuportadas.Add( cTagModoPaginaAltura );
   TagsNaoSuportadas.Add( cTagModoPaginaEspaco );
   TagsNaoSuportadas.Add( cTagModoPaginaConfigurar );
+
+  i := TagsNaoSuportadas.IndexOf( cTagLigaItalico );
+  if i >= 0 then
+    TagsNaoSuportadas.Delete(i);
+  i := TagsNaoSuportadas.IndexOf( cTagDesligaItalico );
+  if i >= 0 then
+    TagsNaoSuportadas.Delete(i);
 end;
 
 function TACBrEscCustomPos.ComandoFonte(TipoFonte: TACBrPosTipoFonte;

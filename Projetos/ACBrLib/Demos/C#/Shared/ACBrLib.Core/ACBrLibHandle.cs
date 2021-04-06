@@ -151,6 +151,7 @@ namespace ACBrLib.Core
         protected readonly Dictionary<string, Delegate> methodCache;
         protected readonly string className;
         protected const int BUFFER_LEN = 256;
+        protected IntPtr libHandle;
 
         #endregion Fields
 
@@ -159,6 +160,11 @@ namespace ACBrLib.Core
         static ACBrLibHandle()
         {
             MinusOne = new IntPtr(-1);
+
+            var uri = new Uri(Assembly.GetExecutingAssembly().CodeBase);
+            var path = Path.GetDirectoryName(!uri.IsFile ? uri.ToString() : uri.LocalPath + Uri.UnescapeDataString(uri.Fragment));
+            path += Environment.Is64BitProcess ? "\\ACBrLib\\x64\\" : "\\ACBrLib\\x86\\";
+            Environment.SetEnvironmentVariable("PATH", path);
         }
 
         protected ACBrLibHandle(string dllName64, string dllName32) :
@@ -169,11 +175,6 @@ namespace ACBrLib.Core
         protected ACBrLibHandle(string dllName)
             : base(IntPtr.Zero, true)
         {
-            var uri = new Uri(Assembly.GetExecutingAssembly().CodeBase);
-            var path = Path.GetDirectoryName(!uri.IsFile ? uri.ToString() : uri.LocalPath + Uri.UnescapeDataString(uri.Fragment));
-            path += Environment.Is64BitProcess ? "\\ACBrLib\\x64\\" : "\\ACBrLib\\x86\\";
-            Environment.SetEnvironmentVariable("PATH", path);
-
             methodCache = new Dictionary<string, Delegate>();
             methodList = new Dictionary<Type, string>();
             className = GetType().Name;
@@ -287,7 +288,7 @@ namespace ACBrLib.Core
         /// </summary>
         /// <typeparam name="T">Delegate</typeparam>
         /// <returns></returns>
-        /// <exception cref="ACBrException"></exception>
+        /// <exception cref="ArgumentNullException"></exception>
         protected virtual T GetMethod<T>() where T : class
         {
             if (!methodList.ContainsKey(typeof(T)))
@@ -313,7 +314,7 @@ namespace ACBrLib.Core
         /// <param name="method"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        /// <exception cref="ACBrException"></exception>
+        /// <exception cref="ApplicationException"></exception>
         [HandleProcessCorruptedStateExceptions]
         protected virtual T ExecuteMethod<T>(Func<T> method)
         {

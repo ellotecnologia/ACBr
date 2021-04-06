@@ -2,33 +2,32 @@
 { Projeto: Componentes ACBr                                                    }
 {  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
-
-{ Direitos Autorais Reservados (c) 2018 Daniel Simoes de Almeida               }
-
+{                                                                              }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{                                                                              }
 { Colaboradores nesse arquivo: Rafael Teno Dias                                }
-
+{                                                                              }
 {  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
-
+{                                                                              }
 {  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la }
 { sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela  }
 { Free Software Foundation; tanto a versão 2.1 da Licença, ou (a seu critério) }
 { qualquer versão posterior.                                                   }
-
+{                                                                              }
 {  Esta biblioteca é distribuída na expectativa de que seja útil, porém, SEM   }
 { NENHUMA GARANTIA; nem mesmo a garantia implícita de COMERCIABILIDADE OU      }
 { ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA. Consulte a Licença Pública Geral Menor}
 { do GNU para mais detalhes. (Arquivo LICENÇA.TXT ou LICENSE.TXT)              }
-
+{                                                                              }
 {  Você deve ter recebido uma cópia da Licença Pública Geral Menor do GNU junto}
 { com esta biblioteca; se não, escreva para a Free Software Foundation, Inc.,  }
 { no endereço 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.          }
 { Você também pode obter uma copia da licença em:                              }
-{ http://www.opensource.org/licenses/gpl-license.php                           }
-
-{ Daniel Simões de Almeida  -  daniel@djsystem.com.br  -  www.djsystem.com.br  }
-{        Rua Cel.Aureliano de Camargo, 973 - Tatuí - SP - 18270-170            }
-
+{ http://www.opensource.org/licenses/lgpl-license.php                          }
+{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
 {$I ACBr.inc}
@@ -221,23 +220,18 @@ type
   private
     FidLote: Integer;
     FcOrgao: Integer;
-    FItens: TObjectList;
-
-    function GetItem(Index: Integer): TEventoItemResposta;
+    FItems: TObjectList;
 
   public
     constructor Create(const ATipo: TACBrLibRespostaTipo; const AFormato: TACBrLibCodificacao); reintroduce;
-
     destructor Destroy; override;
 
     procedure Processar(const ACBrCTe: TACBrCTe); override;
-    function Gerar: String; override;
-
-    property Items[Index: Integer]: TEventoItemResposta read GetItem;
 
   published
     property idLote: Integer read FidLote write FidLote;
     property cOrgao: Integer read FcOrgao write FcOrgao;
+    property Items: TObjectList read FItems;
 
   end;
 
@@ -279,32 +273,15 @@ end;
 constructor TEventoResposta.Create(const ATipo: TACBrLibRespostaTipo; const AFormato: TACBrLibCodificacao);
 begin
   inherited Create(CSessaoRespEvento, ATipo, AFormato);
-  FItens := TObjectList.Create(True);
+  FItems := TObjectList.Create(True);
 end;
 
 destructor TEventoResposta.Destroy;
 begin
-  FItens.Clear;
-  FItens.Free;
+  FItems.Clear;
+  FItems.Free;
 
   inherited Destroy;
-end;
-
-function TEventoResposta.Gerar: String;
-Var
-  i: Integer;
-begin
-  Result := Inherited Gerar;
-
-  for i := 0 to FItens.Count - 1  do
-  begin
-    Result := Result + sLineBreak + TEventoItemResposta(FItens.Items[i]).Gerar;
-  end;
-end;
-
-function TEventoResposta.GetItem(Index: Integer): TEventoItemResposta;
-begin
-  Result := TEventoItemResposta(FItens.Items[Index]);
 end;
 
 procedure TEventoResposta.Processar(const ACBrCTe: TACBrCTe);
@@ -327,7 +304,7 @@ begin
       begin
         Item := TEventoItemResposta.Create('EVENTO' + Trim(IntToStrZero(i +1, 3)), Tipo, Formato);
         Item.Processar(retEvento.Items[i].RetInfevento);
-        FItens.Add(Item);
+        FItems.Add(Item);
       end;
     end;
   end;
@@ -413,17 +390,17 @@ begin
   end
   else if (ACBrCTe.Configuracoes.Geral.ModeloDF = moCTeOS) and (ACBrCTe.Conhecimentos.Count > 0) then
   begin
-    FItem := TRetornoItemResposta.Create('CTeOS' + Trim(ACBrCTe.WebServices.Enviar.CTeRetornoOS.protCTe.chCTe), Tipo, Formato);
-    FItem.Id := ACBrCTe.WebServices.Enviar.CTeRetornoOS.protCTe.Id;
-    FItem.tpAmb := TpAmbToStr(ACBrCTe.WebServices.Enviar.CTeRetornoOS.protCTe.tpAmb);
-    FItem.verAplic := ACBrCTe.WebServices.Enviar.CTeRetornoOS.protCTe.verAplic;
-    FItem.chDFe := ACBrCTe.WebServices.Enviar.CTeRetornoOS.protCTe.chCTe;
-    FItem.dhRecbto := ACBrCTe.WebServices.Enviar.CTeRetornoOS.protCTe.dhRecbto;
-    FItem.nProt := ACBrCTe.WebServices.Enviar.CTeRetornoOS.protCTe.nProt;
-    FItem.digVal := ACBrCTe.WebServices.Enviar.CTeRetornoOS.protCTe.digVal;
-    FItem.cStat := ACBrCTe.WebServices.Enviar.CTeRetornoOS.protCTe.cStat;
-    FItem.xMotivo := ACBrCTe.WebServices.Enviar.CTeRetornoOS.protCTe.xMotivo;
-    FItem.XML := ACBrCTe.WebServices.Enviar.CTeRetornoOS.protCTe.XML_prot;
+    FItem := TRetornoItemResposta.Create('CTeOS' + Trim(ACBrCTe.WebServices.Enviar.CTeRetornoSincrono.protCTe.chCTe), Tipo, Formato);
+    FItem.Id := ACBrCTe.WebServices.Enviar.CTeRetornoSincrono.protCTe.Id;
+    FItem.tpAmb := TpAmbToStr(ACBrCTe.WebServices.Enviar.CTeRetornoSincrono.protCTe.tpAmb);
+    FItem.verAplic := ACBrCTe.WebServices.Enviar.CTeRetornoSincrono.protCTe.verAplic;
+    FItem.chDFe := ACBrCTe.WebServices.Enviar.CTeRetornoSincrono.protCTe.chCTe;
+    FItem.dhRecbto := ACBrCTe.WebServices.Enviar.CTeRetornoSincrono.protCTe.dhRecbto;
+    FItem.nProt := ACBrCTe.WebServices.Enviar.CTeRetornoSincrono.protCTe.nProt;
+    FItem.digVal := ACBrCTe.WebServices.Enviar.CTeRetornoSincrono.protCTe.digVal;
+    FItem.cStat := ACBrCTe.WebServices.Enviar.CTeRetornoSincrono.protCTe.cStat;
+    FItem.xMotivo := ACBrCTe.WebServices.Enviar.CTeRetornoSincrono.protCTe.xMotivo;
+    FItem.XML := ACBrCTe.WebServices.Enviar.CTeRetornoSincrono.protCTe.XML_prot;
   end;
 end;
 

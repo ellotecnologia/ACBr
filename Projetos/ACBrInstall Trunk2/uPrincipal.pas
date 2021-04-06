@@ -3,10 +3,9 @@
 {  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
 {                                                                              }
-{ Direitos Autorais Reservados (c) 2009   Daniel Simoes de Almeida             }
-{                                         Isaque Pinheiro                      }
+{ Direitos Autorais Reservados (c) 2020   Daniel Simoes de Almeida             }
 {                                                                              }
-{ Colaboradores nesse arquivo:                                                 }
+{ Colaboradores nesse arquivo: Isaque Pinheiro                                 }
 {                                                                              }
 {  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
@@ -43,7 +42,7 @@ interface
 
 uses
   Windows, Messages, FileCtrl, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ComCtrls, StdCtrls, ExtCtrls, Buttons, pngimage,
+  Dialogs, ComCtrls, StdCtrls, ExtCtrls, Buttons, pngimage, Generics.Collections,
   IOUtils, UITypes, JclIDEUtils, JclCompilerUtils,
   Types, JvComponentBase, JvCreateProcess, JvExControls, JvAnimatedImage,
   JvGIFCtrl, JvWizard, JvWizardRouteMapNodes, CheckLst,
@@ -86,7 +85,6 @@ type
     Label22: TLabel;
     framePacotes1: TframePacotes;
     wizPgSelectIDEs: TJvWizardInteriorPage;
-    clbDelphiVersion: TCheckListBox;
     grpCompilacao: TGroupBox;
     grpInstalacao: TGroupBox;
     ckbRemoveOpenSSL: TCheckBox;
@@ -110,6 +108,7 @@ type
     Label12: TLabel;
     Label13: TLabel;
     Label14: TLabel;
+    scrlbxDelphiVersion: TScrollBox;
     procedure btnDesmarcarTodasClick(Sender: TObject);
     procedure imgPropaganda1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -132,12 +131,13 @@ type
     procedure wizPgPacotesNextButtonClick(Sender: TObject; var Stop: Boolean);
     procedure wizPgSelectIDEsNextButtonClick(Sender: TObject; var Stop: Boolean);
   private
-    UmaListaPlataformasAlvos: TListaPlataformasAlvos;
+    FUmaListaPlataformasAlvos: TListaPlataformasAlvos;
+    FListaCheckBox: TList<TCheckBox>;
 
     FUltimoArquivoLog: string;
 
     procedure GravarConfiguracoesEmArquivoIni;
-    procedure LerConfiguracoes;
+    procedure LerConfiguracoesEmArquivoIni;
     function PathArquivoIni: String;
     procedure ValidarSeExistemPacotesNasPastas(var Stop: Boolean; const PastaACBr: string; ListaPacotes:
         TPacotes);
@@ -159,7 +159,7 @@ var
 implementation
 
 uses
-  ShellApi, IniFiles, StrUtils, Math, Registry, ACBrInstallUtils, Generics.Collections,
+  ShellApi, IniFiles, StrUtils, Math, Registry, ACBrInstallUtils,
   ACBrInstallDelphiComponentes;
 
 {$R *.dfm}
@@ -186,7 +186,7 @@ begin
       // Busca diretório do pacote
       sDirPackage := FindDirPackage(IncludeTrailingPathDelimiter(PastaACBr) + 'Pacotes\Delphi', NomePacote);
       if Trim(sDirPackage) = '' then
-        raise Exception.Create('Não foi possível retornar o diretório do pacote : ' + NomePacote);
+        raise Exception.Create('Não foi possível encontrar o diretório do pacote "' + NomePacote +'" no caminho: '+ PastaACBr);
       if IsDelphiPackage(NomePacote) then
       begin
         if not FileExists(IncludeTrailingPathDelimiter(sDirPackage) + NomePacote) then
@@ -201,10 +201,12 @@ begin
 end;
 
 // ler o arquivo .ini de configurações e setar os campos com os valores lidos
-procedure TfrmPrincipal.LerConfiguracoes;
+procedure TfrmPrincipal.LerConfiguracoesEmArquivoIni;
 var
   ArqIni: TIniFile;
-  I: Integer;
+  I, J: Integer;
+  PlataformasMarcadas: string;
+  ListaPlataformasStrings: TStringList;
 begin
   ArqIni := TIniFile.Create(PathArquivoIni);
   try
@@ -220,6 +222,32 @@ begin
     ckbRemoverCastWarnings.Checked := ArqIni.ReadBool('CONFIG','RemoverCastWarnings', False);
     ckbUsarArquivoConfig.Checked   := True;
 
+    PlataformasMarcadas := ArqIni.ReadString('PLATAFORMAS', 'Marcadas', '');
+    if PlataformasMarcadas <> '' then
+    begin
+      ListaPlataformasStrings := TStringList.Create;
+      try
+        ListaPlataformasStrings.Delimiter := ';';
+        ListaPlataformasStrings.StrictDelimiter := True;
+        ListaPlataformasStrings.DelimitedText := PlataformasMarcadas;
+
+        for I := 0 to ListaPlataformasStrings.Count - 1 do
+        begin
+          for J := 0 to scrlbxDelphiVersion.ControlCount - 1 do
+          begin
+            if (scrlbxDelphiVersion.Controls[J] as TCheckBox).Caption = ListaPlataformasStrings[I] then
+            begin
+              (scrlbxDelphiVersion.Controls[J] as TCheckBox).Checked := True;
+            end;
+          end;
+        end;
+
+      finally
+        ListaPlataformasStrings.Free;
+      end;
+    end;
+
+
     for I := 0 to framePacotes1.Pacotes.Count - 1 do
       framePacotes1.Pacotes[I].Checked := ArqIni.ReadBool('PACOTES', framePacotes1.Pacotes[I].Caption, False);
   finally
@@ -232,6 +260,7 @@ procedure TfrmPrincipal.GravarConfiguracoesEmArquivoIni;
 var
   ArqIni: TIniFile;
   I: Integer;
+  PlataformasMarcadas: string;
 begin
   ArqIni := TIniFile.Create(PathArquivoIni);
   try
@@ -245,6 +274,20 @@ begin
     ArqIni.WriteBool('CONFIG','CargaDllTardia', ckbCargaDllTardia.Checked);
     ArqIni.WriteBool('CONFIG','RemoverCastWarnings', ckbRemoverCastWarnings.Checked);
 
+    PlataformasMarcadas := '';
+    for i := 0 to scrlbxDelphiVersion.ControlCount - 1 do
+    begin
+      // só instala as versão marcadas para instalar.
+      if ((scrlbxDelphiVersion.Controls[i] as TCheckBox).Checked) then
+      begin
+        PlataformasMarcadas := PlataformasMarcadas + (scrlbxDelphiVersion.Controls[i] as TCheckBox).Caption +';';
+      end;
+    end;
+
+    ArqIni.EraseSection('PLATAFORMAS');
+    ArqIni.WriteString('PLATAFORMAS', 'Marcadas', PlataformasMarcadas);
+
+    ArqIni.EraseSection('PACOTES');
     for I := 0 to framePacotes1.Pacotes.Count - 1 do
       ArqIni.WriteBool('PACOTES', framePacotes1.Pacotes[I].Caption, framePacotes1.Pacotes[I].Checked);
   finally
@@ -268,42 +311,60 @@ begin
 end;
 
 procedure TfrmPrincipal.MontaListaIDEsSuportadas;
-  function EhSuportada(PlataformaAlvo: TPlataformaDestino): Boolean;
-  Begin
-    Result := (not MatchText(PlataformaAlvo.InstalacaoAtual.VersionNumberStr, ['d3', 'd4', 'd5', 'd6'])) and
-              (PlataformaAlvo.tPlatformAtual in [bpWin32, bpWin64]);
-  End;
 var
   iFor: Integer;
-  NomeAlvo: string;
-  Habilitado: Boolean;
+  achk: TCheckBox;
+  ValorTop: Integer;
 begin
   // popular o combobox de versões do delphi instaladas na máquina
-
-  for iFor := 0 to UmaListaPlataformasAlvos.Count - 1 do
+  for iFor := 0 to FUmaListaPlataformasAlvos.Count - 1 do
   begin
-    NomeAlvo := UmaListaPlataformasAlvos[iFor].InstalacaoAtual.Name + ' ' + UmaListaPlataformasAlvos[iFor].sPlatform;
-    Habilitado := EhSuportada(UmaListaPlataformasAlvos[iFor]);
+    achk := TCheckBox.Create(scrlbxDelphiVersion);
+    achk.Parent  := scrlbxDelphiVersion;
+    achk.Name    := 'chk'+IntToStr(iFor);
+    achk.Caption := FUmaListaPlataformasAlvos[iFor].GetNomeAlvo;
+    achk.Tag     := iFor;
+    achk.Left    := 4;
+    ValorTop     := 4;
+    if (iFor > 0) then
+    begin
+      ValorTop   := FListaCheckBox[iFor-1].Top + FListaCheckBox[iFor-1].Height;
+      if FUmaListaPlataformasAlvos[iFor].InstalacaoAtual.Name <> FUmaListaPlataformasAlvos[iFor-1].InstalacaoAtual.Name then
+      begin
+        ValorTop   := ValorTop + 8;
+      end;
 
-    clbDelphiVersion.Items.Add(NomeAlvo);
-    clbDelphiVersion.ItemEnabled[iFor] := Habilitado;
+    end;
+    achk.Width   := scrlbxDelphiVersion.Width - 16;
+    achk.Top     := ValorTop;
+//    if FUmaListaPlataformasAlvos[iFor].EhSuportadaPeloACBrBeta then
+//    begin
+//      achk.StyleName := Estilo.Suportado.Apenas.Delphi10.4;
+//      //achk.Font.Color :=
+//      //achk.Font.Style := [fsItalic];
+//    end;
+    achk.Enabled := FUmaListaPlataformasAlvos[iFor].EhSuportadaPeloACBr;
+    achk.OnClick := clbDelphiVersionClick;
+    FListaCheckBox.Add(achk);
   end;
 end;
 
 procedure TfrmPrincipal.FormCreate(Sender: TObject);
 begin
   Caption := Caption + ' ' + sVersaoInstalador;
-  UmaListaPlataformasAlvos := GeraListaPlataformasAlvos;
+  FUmaListaPlataformasAlvos := GeraListaPlataformasAlvos;
   FUltimoArquivoLog := '';
+  FListaCheckBox := TList<TCheckBox>.Create;
 
   MontaListaIDEsSuportadas;
 
-  LerConfiguracoes;
+  LerConfiguracoesEmArquivoIni;
 end;
 
 procedure TfrmPrincipal.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  UmaListaPlataformasAlvos.Free;
+  FUmaListaPlataformasAlvos.Free;
+  FListaCheckBox.Free;
 end;
 
 procedure TfrmPrincipal.Logar(const AString: String);
@@ -324,10 +385,10 @@ begin
 
   ListaVersoesInstalacao := TList<Integer>.Create;
 
-  for i := 0 to clbDelphiVersion.Count - 1 do
+  for i := 0 to scrlbxDelphiVersion.ControlCount - 1 do
   begin
     // só instala as versão marcadas para instalar.
-    if (clbDelphiVersion.Checked[i]) then
+    if ((scrlbxDelphiVersion.Controls[i] as TCheckBox).Checked) then
     begin
       ListaVersoesInstalacao.Add(i)
     end;
@@ -358,7 +419,7 @@ begin
     end;
     ACBrInstaladorAux.OpcoesInstall.DiretorioRaizACBr := IncludeTrailingPathDelimiter(edtDirDestino.Text);
 
-    Result := ACBrInstaladorAux.Instalar(ListaPacotes, ListaVersoesInstalacao, UmaListaPlataformasAlvos);
+    Result := ACBrInstaladorAux.Instalar(ListaPacotes, ListaVersoesInstalacao, FUmaListaPlataformasAlvos);
   finally
     ACBrInstaladorAux.Free;
   end;
@@ -392,8 +453,13 @@ begin
 end;
 
 procedure TfrmPrincipal.btnDesmarcarTodasClick(Sender: TObject);
+var
+  I: Integer;
 begin
-  clbDelphiVersion.CheckAll(cbUnchecked, True, False);
+  for I := 0 to FListaCheckBox.Count - 1 do
+  begin
+    if FListaCheckBox[i].Enabled then FListaCheckBox[i].Checked := False;
+  end;
 end;
 
 procedure TfrmPrincipal.IncrementaBarraProgresso;
@@ -428,8 +494,13 @@ begin
 end;
 
 procedure TfrmPrincipal.btnMarcarTodasClick(Sender: TObject);
+var
+  I: Integer;
 begin
-  clbDelphiVersion.CheckAll(cbChecked, True, False);
+  for I := 0 to FListaCheckBox.Count - 1 do
+  begin
+    if FListaCheckBox[i].Enabled then FListaCheckBox[i].Checked := True;
+  end;
 end;
 
 // chama a caixa de dialogo para selecionar o diretório de instalação
@@ -447,13 +518,16 @@ end;
 procedure TfrmPrincipal.clbDelphiVersionClick(Sender: TObject);
 var
   I: Integer;
+  ChkBoxClicado: TCheckBox;
 begin
-  if clbDelphiVersion.ItemIndex < 0 then
+  ChkBoxClicado := TCheckBox(Sender);
+
+  if not ChkBoxClicado.Enabled then
   begin
-    Exit
+    Exit;
   end;
 
-  if MatchText(UmaListaPlataformasAlvos[clbDelphiVersion.ItemIndex].InstalacaoAtual.VersionNumberStr,
+  if MatchText(FUmaListaPlataformasAlvos[ChkBoxClicado.Tag].InstalacaoAtual.VersionNumberStr,
                ['d7','d9','d10','d11']) then
   begin
     Application.MessageBox(
@@ -463,36 +537,36 @@ begin
     );
   end;
 
-  if (UmaListaPlataformasAlvos[clbDelphiVersion.ItemIndex].tPlatformAtual <> bpWin32) and
-     (clbDelphiVersion.Checked[clbDelphiVersion.ItemIndex]) then
+  if (FUmaListaPlataformasAlvos[ChkBoxClicado.Tag].tPlatformAtual <> bpWin32) and
+     (ChkBoxClicado.Checked) then
   begin
     //Ligar instalacao win32 da IDE correspondente...
-    I := (clbDelphiVersion.ItemIndex - 1);
-    repeat
-      if (UmaListaPlataformasAlvos[clbDelphiVersion.ItemIndex].InstalacaoAtual =
-          UmaListaPlataformasAlvos[i].InstalacaoAtual) and
-         (UmaListaPlataformasAlvos[i].tPlatformAtual = bpWin32) then
+    I := (ChkBoxClicado.Tag - 1);
+    while I >= 0 do
+    begin
+      if (FUmaListaPlataformasAlvos[ChkBoxClicado.Tag].InstalacaoAtual =
+          FUmaListaPlataformasAlvos[i].InstalacaoAtual) and
+         (FUmaListaPlataformasAlvos[i].tPlatformAtual = bpWin32) then
       begin
-        clbDelphiVersion.Checked[i] := True;
+        FListaCheckBox[i].Checked := True;
       end;
       Dec(I);
-    until (I < 0);
-
+    end;
   end
-  else if (UmaListaPlataformasAlvos[clbDelphiVersion.ItemIndex].tPlatformAtual = bpWin32) and
-     (not clbDelphiVersion.Checked[clbDelphiVersion.ItemIndex]) then
+  else if (FUmaListaPlataformasAlvos[ChkBoxClicado.Tag].tPlatformAtual = bpWin32) and
+     (not ChkBoxClicado.Checked) then
   begin
     //Desligar todas instalacoes nao win32.
-    I := (clbDelphiVersion.ItemIndex + 1);
+    I := (ChkBoxClicado.Tag + 1);
     repeat
-      if (UmaListaPlataformasAlvos[clbDelphiVersion.ItemIndex].InstalacaoAtual =
-          UmaListaPlataformasAlvos[i].InstalacaoAtual) and
-         (UmaListaPlataformasAlvos[i].tPlatformAtual <> bpWin32)then
+      if (FUmaListaPlataformasAlvos[ChkBoxClicado.Tag].InstalacaoAtual =
+          FUmaListaPlataformasAlvos[i].InstalacaoAtual) and
+         (FUmaListaPlataformasAlvos[i].tPlatformAtual <> bpWin32)then
       begin
-        clbDelphiVersion.Checked[i] := False;
+        FListaCheckBox[i].Checked := False;
       end;
       Inc(I);
-    until (I = UmaListaPlataformasAlvos.Count);
+    until (I = FUmaListaPlataformasAlvos.Count);
   end;
 
 //
@@ -650,9 +724,9 @@ var
   bChk: Boolean;
 begin
   bChk := False;
-  for iFor := 0 to clbDelphiVersion.Count -1 do
+  for iFor := 0 to FListaCheckBox.Count -1 do
   begin
-    if clbDelphiVersion.Checked[iFor] then
+    if FListaCheckBox[iFor].Checked then
     begin
       bChk := True;
       Break;
@@ -662,7 +736,7 @@ begin
   if not bChk then
   begin
     Stop := True;
-    clbDelphiVersion.SetFocus;
+    scrlbxDelphiVersion.SetFocus;
     Application.MessageBox(
       'Para continuar escolha a versão do Delphi para a qual deseja instalar o ACBr.',
       'Erro.',

@@ -38,10 +38,10 @@ interface
 
 uses
   SysUtils, Classes,
-{$IFNDEF VER130}
-  Variants,
-{$ENDIF}
-  {$IF DEFINED(NEXTGEN)}
+  {$IFNDEF VER130}
+   Variants,
+  {$ENDIF}
+  {$IF DEFINED(HAS_SYSTEM_GENERICS)}
    System.Generics.Collections, System.Generics.Defaults,
   {$ELSEIF DEFINED(DELPHICOMPILER16_UP)}
    System.Contnrs,
@@ -205,8 +205,11 @@ begin
           infEvento.detEvento.cMunCarrega := Leitor.rCampo(tcInt, 'cMunCarrega');
           infEvento.detEvento.xMunCarrega := Leitor.rCampo(tcStr, 'xMunCarrega');
 
-          InfEvento.detEvento.infViagens.qtdViagens := Leitor.rCampo(tcInt, 'qtdViagens');
-          InfEvento.detEvento.infViagens.nroViagem  := Leitor.rCampo(tcInt, 'nroViagem');
+          if Leitor.rExtrai(4, 'infViagens') <> '' then
+          begin
+            InfEvento.detEvento.infViagens.qtdViagens := Leitor.rCampo(tcInt, 'qtdViagens');
+            InfEvento.detEvento.infViagens.nroViagem  := Leitor.rCampo(tcInt, 'nroViagem');
+          end;
 
           // Carrega os dados da informação de Documentos
           i := 0;
@@ -271,12 +274,17 @@ begin
 
               if Leitor.rExtrai(5, 'infBanc') <> '' then
               begin
-                infBanc.CNPJIPEF := Leitor.rCampo(tcStr, 'CNPJIPEF');
+                infBanc.PIX := Leitor.rCampo(tcStr, 'PIX');
 
-                if infBanc.CNPJIPEF = '' then
+                if infBanc.PIX = '' then
                 begin
-                  infBanc.codBanco   := Leitor.rCampo(tcStr, 'codBanco');
-                  infBanc.codAgencia := Leitor.rCampo(tcStr, 'codAgencia');
+                  infBanc.CNPJIPEF := Leitor.rCampo(tcStr, 'CNPJIPEF');
+
+                  if infBanc.CNPJIPEF = '' then
+                  begin
+                    infBanc.codBanco   := Leitor.rCampo(tcStr, 'codBanco');
+                    infBanc.codAgencia := Leitor.rCampo(tcStr, 'codAgencia');
+                  end;
                 end;
               end;
             end;

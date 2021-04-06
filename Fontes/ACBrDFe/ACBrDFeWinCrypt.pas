@@ -37,10 +37,9 @@ unit ACBrDFeWinCrypt;
 interface
 
 uses
-  Classes, SysUtils,
+  Classes, SysUtils, Windows,
   ACBrDFeSSL, ACBrDFeException,
-  ACBr_WinCrypt, ACBr_NCrypt,
-  Windows;
+  ACBr_WinCrypt, ACBr_NCrypt ;
 
 const
   sz_CERT_STORE_PROV_PKCS12 = 'PKCS12';
@@ -64,6 +63,10 @@ type
 
     function GetCertContextWinApi: Pointer; override;
     function GetCertPFXData: AnsiString; override;
+
+    procedure CarregarCertificadoDeDadosPFX; override;
+    procedure CarregarCertificadoDeNumeroSerie; override;
+    procedure LerInfoCertificadoCarregado; override;
   public
     constructor Create(ADFeSSL: TDFeSSL); override;
     destructor Destroy; override;
@@ -78,7 +81,6 @@ type
        const Hash: AnsiString;
        const Assinado: Boolean =  False): Boolean; override;
 
-    procedure CarregarCertificado; override;
     function SelecionarCertificado: String; override;
     procedure LerCertificadosStore; override;
     procedure DescarregarCertificado; override;
@@ -223,7 +225,7 @@ begin
                       {$IfDef UNICODE}LPWSTR{$Else}LPSTR{$EndIf}(CertName),
                       1024);
     if BytesRead > 0 then
-      SetLength(CertName, BytesRead)
+      SetLength(CertName, BytesRead-1)
     else
       raise EACBrDFeException.Create( 'Falha ao executar "CertNameToStr" em "GetSubjectName". Erro:'+GetLastErrorAsHexaStr);
 
@@ -246,7 +248,7 @@ begin
                       {$IfDef UNICODE}LPWSTR{$Else}LPSTR{$EndIf}(CertName),
                       1024);
     if BytesRead > 0 then
-      SetLength(CertName, BytesRead)
+      SetLength(CertName, BytesRead-1)
     else
       raise EACBrDFeException.Create( 'Falha ao executar "CertNameToStr" em "GetIssuerName". Erro:'+GetLastErrorAsHexaStr);
 
@@ -901,71 +903,39 @@ begin
   Result := FpPFXData;
 end;
 
-procedure TDFeWinCrypt.CarregarCertificado;
+procedure TDFeWinCrypt.CarregarCertificadoDeDadosPFX;
+begin
+  OpenSystemStore;
+  PFXDataToCertContextWinApi( FpDFeSSL.DadosPFX,
+                              FpDFeSSL.Senha,
+                              FpStore,
+                              Pointer(FpCertContext))
+end;
+
+procedure TDFeWinCrypt.CarregarCertificadoDeNumeroSerie;
 var
   ACertContext: PCCERT_CONTEXT;
-  PFXStream: TFileStream;
-
-  procedure CarregarCertificadoDeDadosPFX;
-  begin
-    OpenSystemStore;
-    PFXDataToCertContextWinApi( FpDFeSSL.DadosPFX,
-                                FpDFeSSL.Senha,
-                                FpStore,
-                                Pointer(FpCertContext))
-  end;
-
 begin
-  DescarregarCertificado;
-
-  Clear;
   ACertContext := Nil;
-
-
-  if (not EstaVazio(FpDFeSSL.DadosPFX)) then
-      CarregarCertificadoDeDadosPFX
-
-  else if not EstaVazio(FpDFeSSL.ArquivoPFX) then
+  OpenSystemStore;
+  ACertContext := CertEnumCertificatesInStore(FpStore, ACertContext^);
+  while (ACertContext <> nil) and (FpCertContext = nil) do
   begin
-    if not FileExists(FpDFeSSL.ArquivoPFX) then
-      raise EACBrDFeException.Create('Arquivo: ' + FpDFeSSL.ArquivoPFX + ' não encontrado');
-
-    PFXStream := TFileStream.Create(FpDFeSSL.ArquivoPFX, fmOpenRead or fmShareDenyNone);
-    try
-      FpDFeSSL.DadosPFX := ReadStrFromStream(PFXStream, PFXStream.Size);
-    finally
-      PFXStream.Free;
-    end;
-
-    CarregarCertificadoDeDadosPFX;
-  end
-
-  else if NaoEstaVazio(FpDFeSSL.NumeroSerie) then
-  begin
-    OpenSystemStore;
-    ACertContext := CertEnumCertificatesInStore(FpStore, ACertContext^);
-    while (ACertContext <> nil) and (FpCertContext = nil) do
-    begin
-      if GetSerialNumber(ACertContext) = FpDFeSSL.NumeroSerie then
-        FpCertContext := ACertContext
-      else
-      begin
-        ACertContext := CertEnumCertificatesInStore(FpStore, ACertContext^);
-      end
-    end;
-
-    if (FpCertContext = Nil) then
-      raise EACBrDFeException.Create('Certificado "'+FpDFeSSL.NumeroSerie+'" não encontrado!');
-  end
-
-  else
-  begin
-    raise EACBrDFeException.Create( 'DadosPFX, ArquivoPFX ou NumeroSerie não especificados !');
+    if (GetSerialNumber(ACertContext) = FpDFeSSL.NumeroSerie) then
+      FpCertContext := ACertContext
+    else
+      ACertContext := CertEnumCertificatesInStore(FpStore, ACertContext^);  // Pega o próximo
   end;
 
+  if (FpCertContext = Nil) then
+    raise EACBrDFeException.Create('Certificado Série: "'+FpDFeSSL.NumeroSerie+'", não encontrado!');
+end;
+
+procedure TDFeWinCrypt.LerInfoCertificadoCarregado;
+begin
   // Não Achou ? //
   if (FpCertContext = Nil) then
-    raise EACBrDFeException.Create('Certificado Digital não encontrado!');
+    raise EACBrDFeException.Create('Certificado Digital não Carregado!');
 
   // Obtendo propriedades do Certificado //
   GetCertContextInfo( FpDadosCertificado, FpCertContext, True );
@@ -1101,7 +1071,6 @@ begin
   FpCertContext := Nil;
   FpStore := Nil;
   FpPFXData := '';
-
 
   inherited DescarregarCertificado;
 end;
@@ -1258,6 +1227,7 @@ begin
         end;
 
         mBytesLen := Length(mHashBuffer);
+        FillChar(mHashBuffer, mBytesLen, #0);
 
         if Assina then
         begin
@@ -1397,6 +1367,7 @@ begin
         else
         begin
           mBytesLen := Length(mHashBuffer);
+          FillChar(mHashBuffer, mBytesLen, 0);
           // Obtendo o Hash //
           if not CryptGetHashParam(mHash, HP_HASHVAL, @mHashBuffer, mBytesLen, 0) then
             raise Exception.Create('CryptGetHashParam');

@@ -96,19 +96,12 @@ type
     property PosPrinter: TACBrPosPrinter read FPosPrinter write SetPosPrinter;
   end;
 
-procedure Register;
-
 implementation
 
 uses
   strutils, Math,
   ACBrBPe, ACBrValidador, ACBrUtil, ACBrDFeUtil, ACBrConsts,
   pcnConversao, pcnConversaoBPe, pcnAuxiliar;
-
-procedure Register;
-begin
-  RegisterComponents('ACBrBPe', [TACBrBPeDABPeESCPOS]);
-end;
 
 { TACBrBPeDABPeESCPOS }
 
@@ -623,7 +616,18 @@ begin
 end;
 
 procedure TACBrBPeDABPeESCPOS.GerarObservacoesEvento;
+const
+  TAMCOLDESCR = 25;
 begin
+  if FpEvento.Evento[0].InfEvento.detEvento.vTotBag > 0 then
+  begin
+    FPosPrinter.Buffer.Add('</linha_simples>');
+    FPosPrinter.Buffer.Add( PadRight('Quatidade de Bagagem..:', TAMCOLDESCR) +
+     IntToStr(FpEvento.Evento[0].InfEvento.detEvento.qBagagem) );
+    FPosPrinter.Buffer.Add( PadRight('Valor Total da Bagagem:', TAMCOLDESCR) +
+     FormatFloatBr(FpEvento.Evento[0].InfEvento.detEvento.vTotBag) );
+  end;
+
   if FpEvento.Evento[0].InfEvento.detEvento.xJust <> '' then
   begin
     FPosPrinter.Buffer.Add('</linha_simples>');

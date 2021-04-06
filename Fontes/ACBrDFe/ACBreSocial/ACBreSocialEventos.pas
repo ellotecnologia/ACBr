@@ -33,6 +33,15 @@
 {       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
+{******************************************************************************
+|* Historico
+|*
+|* 27/10/2015: Jean Carlo Cantu, Tiago Ravache
+|*  - Doação do componente para o Projeto ACBr
+|* 28/08/2017: Leivio Fontenele - leivio@yahoo.com.br
+|*  - Implementação comunicação, envelope, status e retorno do componente com webservice.
+******************************************************************************}
+
 {$I ACBr.inc}
 
 unit ACBreSocialEventos;
@@ -41,13 +50,13 @@ interface
 
 uses
   SysUtils, Classes, synautil,
-  {$IF DEFINED(NEXTGEN)}
+  {$IF DEFINED(HAS_SYSTEM_GENERICS)}
    System.Generics.Collections, System.Generics.Defaults,
   {$ELSEIF DEFINED(DELPHICOMPILER16_UP)}
    System.Contnrs,
   {$IfEnd}
-  ACBrBase, pcesIniciais, pcesTabelas, pcesNaoPeriodicos, pcesPeriodicos,
-  pcesConversaoeSocial;
+  ACBrBase, pcesIniciais, pcesTabelas,
+  pcesNaoPeriodicos, pcesPeriodicos, pcesConversaoeSocial;
 
 type
 
@@ -83,6 +92,7 @@ type
     FTipoEmpregador: TEmpregador;
     FGerados: TGeradosCollection;
     FOwner: TComponent;
+
     procedure SetNaoPeriodicos(const Value: TNaoPeriodicos);
     procedure SetPeriodicos(const Value: TPeriodicos);
     procedure SetTabelas(const Value: TTabelas);
@@ -158,6 +168,7 @@ end;
 constructor TEventos.Create(AOwner: TComponent);
 begin
   inherited Create;
+
   FOwner         := AOwner;
   FIniciais      := TIniciais.Create(AOwner);
   FTabelas       := TTabelas.Create(AOwner);
@@ -311,7 +322,8 @@ begin
     Result := Self.NaoPeriodicos.LoadFromString(AXML) or Result;
     Result := Self.Periodicos.LoadFromString(AXML) or Result;
 
-    SaveToFiles;
+    if TACBreSocial(Self.FOwner).Configuracoes.Arquivos.Salvar then
+      SaveToFiles;
 
     P := PoseSocial;
   end;
@@ -324,7 +336,8 @@ begin
   Result := Self.NaoPeriodicos.LoadFromIni(AIniString) or Result;
   Result := Self.Periodicos.LoadFromIni(AIniString) or Result;
 
-  SaveToFiles;
+  if TACBreSocial(Self.FOwner).Configuracoes.Arquivos.Salvar then
+    SaveToFiles;
 end;
 
 function TEventos.LoadFromIni(const AIniString: String): Boolean;

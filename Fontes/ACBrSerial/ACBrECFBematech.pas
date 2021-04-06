@@ -307,7 +307,7 @@ const
 {$IFNDEF MSWINDOWS}
  cLIB_Bema = 'libbemafiscal.so';
 {$ELSE}
- {$IFDEF CPU64}
+ {$IFDEF WIN64}
   cLIB_Bema = 'Bemafi64.dll';
  {$ELSE}
   cLIB_Bema = 'Bemafi32.dll';
@@ -363,31 +363,31 @@ TACBrECFBematech = class( TACBrECFClass )
     xBematech_FI_DownloadMFD: function(cNomeArquivoMFD, cTipoDownload,
       cDadoInicial, cDadoFinal, cUsuario: AnsiString): Integer; {$IFDEF LINUX} cdecl {$ELSE} stdcall {$ENDIF};
     xBematech_FI_DownloadMF: function(cNomeArquivoMF: AnsiString): Integer; {$IFDEF LINUX} cdecl {$ELSE} stdcall {$ENDIF};
-    xBematech_FI_RelatorioSintegraMFD: function (iRelatorios : Integer;
-                                                 cArquivo    : String;
-                                                 cMes        : String;
-                                                 cAno        : String;
-                                                 cRazaoSocial: String;
-                                                 cEndereco   : String;
-                                                 cNumero     : String;
-                                                 cComplemento: String;
-                                                 cBairro     : String;
-                                                 cCidade     : String;
-                                                 cCEP        : String;
-                                                 cTelefone   : String;
-                                                 cFax        : String;
-                                                 cContato    : String): Integer; {$IFDEF LINUX} cdecl {$ELSE} stdcall {$ENDIF};
-    xBematech_FI_GeraRegistrosSpedCompleto: function (cArquivoMFD: string;
-                                                      cArquivoTXT: string;
-                                                      cDataInicial: string;
-                                                      cDataFinal: string;
-                                                      cPerfil: string;
-                                                      cCFOP: string;
-                                                      cCODOBSFiscal: string;
-                                                      cAliqPIS: string;
-                                                      cAliqCOFINS: string;
-                                                      cEmpresa: string;
-                                                      cCodMunicipio: string): Integer; {$IFDEF LINUX} cdecl {$ELSE} stdcall {$ENDIF};
+    xBematech_FI_RelatorioSintegraMFD: function (iRelatorios: Integer;
+                                                 cArquivo: AnsiString;
+                                                 cMes: AnsiString;
+                                                 cAno: AnsiString;
+                                                 cRazaoSocial: AnsiString;
+                                                 cEndereco: AnsiString;
+                                                 cNumero: AnsiString;
+                                                 cComplemento: AnsiString;
+                                                 cBairro: AnsiString;
+                                                 cCidade: AnsiString;
+                                                 cCEP: AnsiString;
+                                                 cTelefone: AnsiString;
+                                                 cFax: AnsiString;
+                                                 cContato: AnsiString): Integer; {$IFDEF LINUX} cdecl {$ELSE} stdcall {$ENDIF};
+    xBematech_FI_GeraRegistrosSpedCompleto: function (cArquivoMFD: AnsiString;
+                                                      cArquivoTXT: AnsiString;
+                                                      cDataInicial: AnsiString;
+                                                      cDataFinal: AnsiString;
+                                                      cPerfil: AnsiString;
+                                                      cCFOP: AnsiString;
+                                                      cCODOBSFiscal: AnsiString;
+                                                      cAliqPIS: AnsiString;
+                                                      cAliqCOFINS: AnsiString;
+                                                      cEmpresa: AnsiString;
+                                                      cCodMunicipio: AnsiString): Integer; {$IFDEF LINUX} cdecl {$ELSE} stdcall {$ENDIF};
      procedure LoadDLLFunctions;
      procedure UnLoadDLLFunctions;
      procedure AbrePortaSerialDLL(const aPath: String='');
@@ -686,7 +686,7 @@ Uses
    {$IFDEF MSWINDOWS} Windows, {$ENDIF MSWINDOWS}
    SysUtils, IniFiles, math,
    {$IFDEF COMPILER6_UP} DateUtils, StrUtils, {$ELSE} ACBrD5,{$ENDIF}
-   {$IfDef  POSIX}Posix.Unistd, {$Endif}
+   {$IfDef POSIX}Posix.Unistd,{$Endif}
    ACBrConsts, ACBrECF, ACBrECFEscECF, ACBrUtil;
 
 function BematechTraduzirTag(const ATag : AnsiString) : AnsiString ;
@@ -3759,7 +3759,7 @@ begin
    if PathIni = '' then
      PathIni := ApplicationPath;
 
-   {$IFDEF CPU64}
+   {$IFDEF WIN64}
     IniFile := PathIni+'BemaFi64.INI' ;
    {$ELSE}
     IniFile := PathIni+'BemaFi32.INI' ;

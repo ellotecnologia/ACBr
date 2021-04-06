@@ -777,6 +777,9 @@ begin
     (*N14*)NFe.Det[i].Imposto.ICMS.pRedBC := LerCampo(tcDe2, 'pRedBC');
     (*N15*)NFe.Det[i].Imposto.ICMS.vBC := LerCampo(tcDe2, 'vBC');
     (*N16*)NFe.Det[i].Imposto.ICMS.pICMS := LerCampo(tcDe2, 'pICMS');
+    (*N16a*)NFe.Det[i].Imposto.ICMS.vICMSOp := LerCampo(tcDe2, 'vICMSOp');
+    (*N16b*)NFe.Det[i].Imposto.ICMS.pDif := LerCampo(tcDe4, 'pDif');
+    (*N16c*)NFe.Det[i].Imposto.ICMS.vICMSDif := LerCampo(tcDe2, 'vICMSDif');
     (*N17*)NFe.Det[i].Imposto.ICMS.vICMS := LerCampo(tcDe2, 'vICMS');
     (*N18*)NFe.Det[i].Imposto.ICMS.modBCST := StrToModBCST(ok, LerCampo(tcStr, 'modBCST'));
     (*N19*)NFe.Det[i].Imposto.ICMS.pMVAST := LerCampo(tcDe2, 'pMVAST');
@@ -811,10 +814,8 @@ begin
       (*N36*)NFe.Det[i].Imposto.ICMS.pICMSEfet := LerCampo(tcDe2, 'pICMSEfet');
       (*N37*)NFe.Det[i].Imposto.ICMS.vICMSEfet := LerCampo(tcDe2, 'vICMSEfet');
     end;
-{           NFe.Det[i].Imposto.ICMS.motDesICMS := StrToModBC(ok, LerCampo(tcStr, 'motDesICMS'));
-           NFe.Det[i].Imposto.ICMS.pDif := LerCampo(tcDe4, 'pDif');
-           NFe.Det[i].Imposto.ICMS.vICMSDif := LerCampo(tcDe2, 'vICMSDif');
-           NFe.Det[i].Imposto.ICMS.vICMSOp := LerCampo(tcDe2, 'vICMSOp');}
+
+
   end;
 
   if (ID = 'NA') then
@@ -1045,7 +1046,8 @@ begin
     NFe.Det[i].pDevol := LerCampo(tcDe2, 'pDevol');
   end;
 
-  if ID = 'UA3' then  (* Grupo da TAG <det><impostoDevol> **********************)
+  // UA3 não existe no layout, mantido por retrocompatibilidade
+  if (ID = 'UA03') or (ID = 'UA3') then  (* Grupo da TAG <det><impostoDevol> **********************)
   begin
     i := NFe.Det.Count - 1;
     NFe.Det[i].vIPIDevol := LerCampo(tcDe2, 'vIPIDevol');

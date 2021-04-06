@@ -2,33 +2,32 @@
 { Projeto: Componentes ACBr                                                    }
 {  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
-
-{ Direitos Autorais Reservados (c) 2018 Daniel Simoes de Almeida               }
-
+{                                                                              }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{                                                                              }
 { Colaboradores nesse arquivo: José M. S. Junior                               }
-
+{                                                                              }
 {  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
-
+{                                                                              }
 {  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la }
 { sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela  }
 { Free Software Foundation; tanto a versão 2.1 da Licença, ou (a seu critério) }
 { qualquer versão posterior.                                                   }
-
+{                                                                              }
 {  Esta biblioteca é distribuída na expectativa de que seja útil, porém, SEM   }
 { NENHUMA GARANTIA; nem mesmo a garantia implícita de COMERCIABILIDADE OU      }
 { ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA. Consulte a Licença Pública Geral Menor}
 { do GNU para mais detalhes. (Arquivo LICENÇA.TXT ou LICENSE.TXT)              }
-
+{                                                                              }
 {  Você deve ter recebido uma cópia da Licença Pública Geral Menor do GNU junto}
 { com esta biblioteca; se não, escreva para a Free Software Foundation, Inc.,  }
 { no endereço 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.          }
 { Você também pode obter uma copia da licença em:                              }
-{ http://www.opensource.org/licenses/gpl-license.php                           }
-
-{ Daniel Simões de Almeida  -  daniel@djsystem.com.br  -  www.djsystem.com.br  }
-{        Rua Cel.Aureliano de Camargo, 973 - Tatuí - SP - 18270-170            }
-
+{ http://www.opensource.org/licenses/lgpl-license.php                          }
+{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
 
@@ -40,7 +39,7 @@ interface
 
 uses
   Classes, SysUtils, IniFiles,
-  ACBrBoleto, ACBrLibConfig;
+  ACBrBoleto, ACBrBoletoConversao, ACBrLibConfig;
 
 type
 
@@ -234,7 +233,6 @@ type
     procedure INIParaClasse; override;
     procedure ClasseParaINI; override;
     procedure ClasseParaComponentes; override;
-    procedure ImportarIni(FIni: TCustomIniFile); override;
 
     procedure Travar; override;
     procedure Destravar; override;
@@ -255,8 +253,8 @@ type
 implementation
 
 uses
-  ACBrMonitorConsts, ACBrLibBoletoConsts, ACBrLibComum,
-  ACBrUtil, ACBrConsts, ACBrLibConsts, ACBrLibBoletoClass;
+  ACBrLibBoletoConsts, ACBrUtil,
+  ACBrConsts, ACBrLibConsts, ACBrLibBoletoBase;
 
 { TLibBoletoConfig }
 procedure TLibBoletoConfig.INIParaClasse;
@@ -286,66 +284,6 @@ procedure TLibBoletoConfig.ClasseParaComponentes;
 begin
   if Assigned(Owner) then
     TACBrLibBoleto(Owner).BoletoDM.AplicarConfiguracoes;
-end;
-
-procedure TLibBoletoConfig.ImportarIni(FIni: TCustomIniFile);
-begin
-
-  with BoletoConfig do
-  begin
-    emailAssuntoBoleto:= FIni.ReadString(CSecBOLETO, CKeyBOLETOEmailAssuntoBoleto, emailAssuntoBoleto );
-    emailMensagemBoleto:= FIni.ReadString(CSecBOLETO, CKeyBOLETOEmailMensagemBoleto, emailMensagemBoleto );
-  end;
-
-  with BoletoCedenteConfig do
-  begin
-    Agencia:= FIni.ReadString(CSecBOLETO, CKeyBOLETOAgencia, Agencia);
-    AgenciaDigito:= FIni.ReadString(CSecBOLETO, CKeyBOLETODigitoAgencia, AgenciaDigito );
-    Bairro:= FIni.ReadString(CSecBOLETO, CKeyBOLETOBairro, Bairro );
-    CEP:= FIni.ReadString(CSecBOLETO, CKeyBOLETOCEP, CEP );
-    Cidade:= FIni.ReadString(CSecBOLETO, CKeyBOLETOCidade, Cidade );
-    CNPJCPF:= FIni.ReadString(CSecBOLETO, CKeyBOLETOCNPJCPF, CNPJCPF );
-    CodigoCedente:= FIni.ReadString(CSecBOLETO, CKeyBOLETOCodCedente, CodigoCedente );
-    CodigoTransmissao:= FIni.ReadString(CSecBOLETO, CKeyBOLETOCodTransmissao, CodigoTransmissao );
-    Complemento:= FIni.ReadString(CSecBOLETO, CKeyBOLETOComplemento, Complemento );
-    Conta:= FIni.ReadString(CSecBOLETO, CKeyBOLETOConta, Conta );
-    ContaDigito:= FIni.ReadString(CSecBOLETO, CKeyBOLETODigitoConta, ContaDigito);
-    Convenio:= FIni.ReadString(CSecBOLETO, CKeyBOLETOConvenio, Convenio );
-    Logradouro:= FIni.ReadString(CSecBOLETO, CKeyBOLETOLogradouro, Logradouro );
-    Modalidade:= FIni.ReadString(CSecBOLETO, CKeyBOLETOModalidade, Modalidade );
-    Nome:= FIni.ReadString(CSecBOLETO, CKeyBOLETONome, Nome );
-    NumeroRes:= FIni.ReadString(CSecBOLETO, CKeyBOLETONumero, NumeroRes );
-    ResponEmissao:= TACBrResponEmissao(FIni.ReadInteger(CSecBOLETO, CKeyBOLETORespEmis, integer(ResponEmissao) ));
-    TipoInscricao:= TACBrPessoaCedente( FIni.ReadInteger(CSecBOLETO, CKeyBOLETOPessoa, integer(TipoInscricao) ));
-    UF:= FIni.ReadString(CSecBOLETO, CKeyBOLETOUF, UF );
-    DigitoVerificadorAgenciaConta:= FIni.ReadString(CSecBOLETO, CKeyBOLETODigitoAgenciaConta, DigitoVerificadorAgenciaConta );
-  end;
-
-  with BoletoBancoConfig do
-  begin
-    LocalPagamento:= FIni.ReadString(CSecBOLETO, CKeyBOLETOLocalPagamento, LocalPagamento );
-    TipoCobranca:= TACBrTipoCobranca( FIni.ReadInteger(CSecBOLETO, CKeyBOLETOBanco, integer(TipoCobranca) ));
-  end;
-
-  with BoletoDiretorioConfig do
-  begin
-    DirArqRemessa := FIni.ReadString(CSecBOLETO, CKeyBOLETODirArquivoRemessa, DirArqRemessa);
-    DirArqRetorno := FIni.ReadString(CSecBOLETO, CKeyBOLETODirArquivoRetorno, DirArqRetorno);
-    LayoutRemessa := TACBrLayoutRemessa(FIni.ReadInteger(CSecBOLETO, CKeyBOLETOCNAB, integer(LayoutRemessa)));
-    LeCedenteRetorno := FIni.ReadBool(CSecBOLETO, CKeyBOLETOLerCedenteRetorno, LeCedenteRetorno);
-  end;
-
-  with BoletoFCFortesConfig do
-  begin
-    DirLogo:= FIni.ReadString(CSecBOLETO, CKeyBOLETODirLogos, DirLogo );
-    Filtro:= TACBrBoletoFCFiltro( FIni.Readinteger(CSecBOLETO, CKeyBOLETOFiltro, integer(Filtro)) );
-    Layout:= TACBrBolLayOut( FIni.ReadInteger(CSecBOLETO, CKeyBOLETOLayout, integer(Layout)) );
-    MostrarPreview:= FIni.ReadBool(CSecBOLETO, CKeyBOLETOPreview, MostrarPreview );
-    MostrarProgresso:= FIni.ReadBool(CSecBOLETO, CKeyBOLETOProgresso, MostrarProgresso );
-    MostrarSetup:= FIni.ReadBool(CSecBOLETO, CKeyBOLETOSetup, MostrarSetup );
-    NomeArquivo:= FIni.ReadString(CSecBOLETO, CKeyBOLETONomeArquivoBoleto, NomeArquivo );
-  end;
-
 end;
 
 procedure TLibBoletoConfig.Travar;

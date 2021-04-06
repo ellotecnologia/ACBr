@@ -1,9 +1,9 @@
 {******************************************************************************}
 { Projeto: Componentes ACBr                                                    }
-{ Biblioteca multi plataforma de componentes Delphi para interação com equipa- }
+{  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
 {                                                                              }
-{  Você pode obter a última versão desse arquivo na página do Projeto ACBr     }
+{  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
 {                                                                              }
 {  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la }
@@ -22,9 +22,8 @@
 { Você também pode obter uma copia da licença em:                              }
 { http://www.opensource.org/licenses/lgpl-license.php                          }
 {                                                                              }
-{ Daniel Simões de Almeida  -  daniel@djsystem.com.br  -  www.djsystem.com.br  }
-{              Praça Anita Costa, 34 - Tatuí - SP - 18270-410                  }
-{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
 {******************************************************************************
@@ -38,6 +37,46 @@ Símbolo : Significado
 [+]     : Novo recurso
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
+
+16/02/2020
+-- pcnConversao --
+[*] Alterado a descrição do enumerador fpPagamentoInstantaneo 
+    de: Pagamento Instantâneo 
+    para: Pagamento Instantâneo (PIX).
+   Por: Italo Giurizzato Junior
+
+21/12/2020
+-- pcnConversao --
+[+] Acrescentado novos tipos de meio de pagamento para atender a NT 2020/002.
+   Por: Italo Giurizzato Junior
+
+13/11/2020
+-- pcnConversao --
+[+] Acrescentado os tipos de eventos: teComprEntregaNFe, teCancComprEntregaNFe e
+    teAtorInteressadoNFe.
+   Por: Italo Giurizzato Junior
+
+24/08/2020
+-- pcnConversao --
+[+] Acrescentado o tipo de evento "teEncerramentoFisco".
+   Por: Italo Jurisato Junior
+
+23/07/2020
+-- Diversos --
+[+] Acrescentado na unit pcnConsts as constantes que estavam no pcnGerador.
+   Por: Italo Jurisato Junior
+
+27/04/2020
+-- pcnConversao/pcnGerador/pcnLeitor --
+[+] Acrescentado o tipo de conversão tcDe8 que é utilizado em algumas tags do
+    NF3e.
+   Por: Italo Jurisato Junior
+
+23/03/2020
+-- pcnGerador --
+[*] Removido os métodos wGrupoNFSe e wCampoNFSe, agora os métodos wGrupo e wCampo,
+    são capazes de gerar as tags com o prefixo quando for o caso.
+   Por: Italo Jurisato Junior
 
 02/03/2020
 -- pcnRetDistDFeInt --

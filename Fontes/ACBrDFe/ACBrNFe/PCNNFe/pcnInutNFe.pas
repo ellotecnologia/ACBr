@@ -82,6 +82,7 @@ type
     FVersao: String;
     FRetInutNFe: TRetInutNFe;
     Fsignature: Tsignature;
+    FXML: String;
   public
     constructor Create;
     destructor Destroy; override;
@@ -105,6 +106,7 @@ type
     property Versao: String          read FVersao     write FVersao;
     property RetInutNFe: TRetInutNFe read FRetInutNFe write FRetInutNFe;
     property signature: Tsignature   read Fsignature  write Fsignature;
+    property XML: String             read FXML        write FXML;
   end;
 
 implementation
@@ -204,11 +206,12 @@ begin
   RetornoInutNFe := TRetInutNFe.Create;
   try
     // Lendo dados do pedido de inutilização, se houver...
-    Leitor.Arquivo := AXML;
+    Leitor.Arquivo := DecodeToString(AXML, True);
 
     Result := ( leitor.rExtrai(1, 'infInut') <> '');
     if Result then
     begin
+         XML             := AXML;
          FIDInutilizacao := Leitor.rAtributo('Id=');
                Fversao   := Leitor.rAtributo('versao');
       (*DR05 *)FtpAmb    := StrToTpAmb(ok, Leitor.rCampo(tcStr, 'tpAmb'));
@@ -231,7 +234,7 @@ begin
     end;
 
     // Lendo dados do retorno, se houver
-    RetornoInutNFe.Leitor.Arquivo := AXML;
+    RetornoInutNFe.Leitor.Arquivo := DecodeToString(AXML, True);
 
     Result := RetornoInutNFe.LerXml;
 

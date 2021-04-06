@@ -30,13 +30,6 @@
 {       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
-{******************************************************************************
-|* Historico
-|*
-|* 12/08/2010: Primeira Versao
-|*    Daniel Simoes de Almeida e André Moraes
-******************************************************************************}
-
 unit ACBrIBGE ;
 
 {$I ACBr.inc}
@@ -45,7 +38,7 @@ interface
 
 uses
   Classes, SysUtils,
-  {$IF DEFINED(NEXTGEN)}
+  {$IF DEFINED(HAS_SYSTEM_GENERICS)}
    System.Generics.Collections, System.Generics.Defaults,
   {$ELSEIF DEFINED(DELPHICOMPILER16_UP)}
    System.Contnrs,
@@ -225,6 +218,9 @@ type
 
     property Cidades: TACBrIBGECidades read fCidadesEncontradas ;
 
+    function BuscarPorcUF( const AcUF: Integer ) : Integer ;
+    function BuscarPorUF( const AUF: string ) : Integer ;
+
     function BuscarPorCodigo( const ACodMun : Integer ) : Integer ;
     function BuscarPorNome( const ACidade : String; const AUF: String = '';
       const Exata: Boolean = False) : Integer ;
@@ -263,11 +259,11 @@ type
       write fOnLerCache;
   end ;
 
-  function CompCidadeCodMunicipioAsc(const pCidade1, pCidade2: {$IfDef NEXTGEN}TObject{$Else}Pointer{$EndIf}): Integer;
-  function CompCidadeMunicipioAsc(const pCidade1, pCidade2: {$IfDef NEXTGEN}TObject{$Else}Pointer{$EndIf}): Integer;
+  function CompCidadeCodMunicipioAsc(const pCidade1, pCidade2: {$IfDef HAS_SYSTEM_GENERICS}TObject{$Else}Pointer{$EndIf}): Integer;
+  function CompCidadeMunicipioAsc(const pCidade1, pCidade2: {$IfDef HAS_SYSTEM_GENERICS}TObject{$Else}Pointer{$EndIf}): Integer;
 
-  function CompUFCodUFAsc(const pUF1, pUF2: {$IfDef NEXTGEN}TObject{$Else}Pointer{$EndIf}): Integer;
-  function CompUFNomeAsc(const pUF1, pUF2: {$IfDef NEXTGEN}TObject{$Else}Pointer{$EndIf}): Integer;
+  function CompUFCodUFAsc(const pUF1, pUF2: {$IfDef HAS_SYSTEM_GENERICS}TObject{$Else}Pointer{$EndIf}): Integer;
+  function CompUFNomeAsc(const pUF1, pUF2: {$IfDef HAS_SYSTEM_GENERICS}TObject{$Else}Pointer{$EndIf}): Integer;
 
 implementation
 
@@ -384,7 +380,7 @@ begin
   oUF := TACBrIBGEUF.Create;
   try
     oUF.CodUF := ACodUF;
-    {$IfDef NEXTGEN}
+    {$IfDef HAS_SYSTEM_GENERICS}
      Result := FindObject(oUF, TComparer<TObject>.Construct( CompUFCodUFAsc ) );
     {$Else}
      Result := FindObject(Pointer(oUF), @CompUFCodUFAsc);
@@ -427,7 +423,7 @@ begin
   if FSortOrder = 1 then
     Exit;
 
-  {$IfDef NEXTGEN}
+  {$IfDef HAS_SYSTEM_GENERICS}
   Self.Sort( TComparer<TObject>.Construct( CompUFCodUFAsc ) );
   {$Else}
   Self.Sort(@CompUFCodUFAsc);
@@ -441,7 +437,7 @@ begin
   if FSortOrder = 2 then
     Exit;
 
-  {$IfDef NEXTGEN}
+  {$IfDef HAS_SYSTEM_GENERICS}
   Self.Sort( TComparer<TObject>.Construct( CompUFNomeAsc ) );
   {$Else}
   Self.Sort(@CompUFNomeAsc);
@@ -590,7 +586,7 @@ begin
   {$EndIf}
 end;
 
-function CompUFCodUFAsc(const pUF1, pUF2: {$IfDef NEXTGEN}TObject{$Else}Pointer{$EndIf}): Integer;
+function CompUFCodUFAsc(const pUF1, pUF2: {$IfDef HAS_SYSTEM_GENERICS}TObject{$Else}Pointer{$EndIf}): Integer;
 var
   UF1, UF2: TACBrIBGEUF;
 begin
@@ -605,7 +601,7 @@ begin
     Result := 0;
 end;
 
-function CompUFNomeAsc(const pUF1, pUF2: {$IfDef NEXTGEN}TObject{$Else}Pointer{$EndIf}): Integer;
+function CompUFNomeAsc(const pUF1, pUF2: {$IfDef HAS_SYSTEM_GENERICS}TObject{$Else}Pointer{$EndIf}): Integer;
 var
   UF1, UF2: TACBrIBGEUF;
 begin
@@ -740,7 +736,7 @@ begin
   oCidadeFind := TACBrIBGECidade.Create;
   try
     oCidadeFind.MunicipioIdx := AMunicipio;
-    {$IfDef NEXTGEN}
+    {$IfDef HAS_SYSTEM_GENERICS}
      I := FindObject(oCidadeFind, TComparer<TObject>.Construct( CompCidadeMunicipioAsc ), (not Exact));
     {$Else}
      I := FindObject(Pointer(oCidadeFind), @CompCidadeMunicipioAsc, (not Exact));
@@ -765,7 +761,7 @@ begin
   oCidade := TACBrIBGECidade.Create;
   try
     oCidade.CodMunicipio := ACodMunicio;
-    {$IfDef NEXTGEN}
+    {$IfDef HAS_SYSTEM_GENERICS}
      Result := FindObject(oCidade, TComparer<TObject>.Construct( CompCidadeCodMunicipioAsc ), (not Exact));
     {$Else}
      Result := FindObject(Pointer(oCidade), @CompCidadeCodMunicipioAsc, (not Exact));
@@ -780,7 +776,7 @@ begin
   if FSortOrder = 1 then
     Exit;
 
-  {$IfDef NEXTGEN}
+  {$IfDef HAS_SYSTEM_GENERICS}
   Self.Sort( TComparer<TObject>.Construct( CompCidadeCodMunicipioAsc ) );
   {$Else}
   Self.Sort(@CompCidadeCodMunicipioAsc);
@@ -794,7 +790,7 @@ begin
   if FSortOrder = 2 then
     Exit;
 
-  {$IfDef NEXTGEN}
+  {$IfDef HAS_SYSTEM_GENERICS}
   Self.Sort( TComparer<TObject>.Construct( CompCidadeMunicipioAsc ) );
   {$Else}
   Self.Sort(@CompCidadeMunicipioAsc);
@@ -968,7 +964,7 @@ begin
   {$EndIf}
 end;
 
-function CompCidadeCodMunicipioAsc(const pCidade1, pCidade2: {$IfDef NEXTGEN}TObject{$Else}Pointer{$EndIf}): Integer;
+function CompCidadeCodMunicipioAsc(const pCidade1, pCidade2: {$IfDef HAS_SYSTEM_GENERICS}TObject{$Else}Pointer{$EndIf}): Integer;
 var
   oCidade1, oCidade2: TACBrIBGECidade;
 begin
@@ -983,7 +979,7 @@ begin
     Result := 0;
 end;
 
-function CompCidadeMunicipioAsc(const pCidade1, pCidade2: {$IfDef NEXTGEN}TObject{$Else}Pointer{$EndIf}): Integer;
+function CompCidadeMunicipioAsc(const pCidade1, pCidade2: {$IfDef HAS_SYSTEM_GENERICS}TObject{$Else}Pointer{$EndIf}): Integer;
 var
   oCidade1, oCidade2: TACBrIBGECidade;
 begin
@@ -1027,7 +1023,7 @@ end;
 function TACBrIBGE.UnZipDoc: String;
 var
   CT: String;
-  UnZipStr: AnsiString;
+  Resp: AnsiString;
   RespIsUTF8: Boolean;
   zt: TCompressType;
 begin
@@ -1035,18 +1031,17 @@ begin
   if zt = ctUnknown then
   begin
     HTTPSend.Document.Position := 0;
-    Result := String(ReadStrFromStream(HTTPSend.Document, HTTPSend.Document.Size));
-    Exit;
-  end;
-
-  UnZipStr := UnZip(HTTPSend.Document);
+    Resp := ReadStrFromStream(HTTPSend.Document, HTTPSend.Document.Size);
+  end
+  else
+    Resp := UnZip(HTTPSend.Document);
 
   CT := LowerCase( GetHeaderValue('Content-Type:') );
   RespIsUTF8 := (pos('utf-8', CT) > 0);
   if RespIsUTF8 then
-    Result := UTF8ToNativeString(UnZipStr)
+    Result := UTF8ToNativeString(Resp)
   else
-    Result := String(UnZipStr);
+    Result := String(Resp);
 end;
 
 constructor TACBrIBGE.Create(AOwner : TComponent) ;
@@ -1099,6 +1094,31 @@ begin
 
   Result := fCidadesEncontradas.Count;
 end ;
+
+function TACBrIBGE.BuscarPorcUF(const AcUF: Integer): Integer;
+var
+  I, CidadeMin: Integer;
+begin
+  RespHTTP.Clear;
+  fCidadesEncontradas.Clear;
+  ObterCidades( AcUF );
+
+  CidadeMin := AcUF * 100000;
+  I := fListaCidades.Find(CidadeMin, False);
+  if (I >= 0) then
+  begin
+    while (I < fListaCidades.Count) and (fListaCidades[I].CodUF = AcUF) do
+    begin
+      fCidadesEncontradas.Copy(fListaCidades[I]);
+      Inc(I);
+    end;
+  end;
+
+  Result := fCidadesEncontradas.Count;
+
+  if Assigned( OnBuscaEfetuada ) then
+     OnBuscaEfetuada( Self );
+end;
 
 function TACBrIBGE.BuscarPorNome(const ACidade: String; const AUF: String;
   const Exata: Boolean): Integer;
@@ -1157,6 +1177,11 @@ begin
   if Assigned( OnBuscaEfetuada ) then
      OnBuscaEfetuada( Self );
 end ;
+
+function TACBrIBGE.BuscarPorUF(const AUF: string): Integer;
+begin
+  Result := BuscarPorcUF( UFToCodUF(Trim(AUF)) );
+end;
 
 procedure TACBrIBGE.ObterCidades;
 var
@@ -1463,6 +1488,9 @@ begin
 end;
 
 procedure TACBrIBGE.ObterUFs;
+var
+  UFsEmCache: String;
+  i: Integer;
 begin
   if not fCacheLido then
     CarregarCache;
@@ -1470,9 +1498,17 @@ begin
   if (fListaUFs.Count >= CIBGE_UF_COUNT) then  // Já fez a carga ?
     Exit;
 
+  UFsEmCache := '';
+  for i := 0 to fListaUFs.Count-1 do
+    UFsEmCache := UFsEmCache + fListaUFs[i].fUF + ',';
+
   fListaUFs.Clear;
   HTTPGet(CIBGE_URL_UF);
   fListaUFs.AddFromJSonStr(UnZipDoc);
+
+  if (UFsEmCache <> '') then
+    for i := 0 to fListaUFs.Count-1 do
+      fListaUFs[i].CidadesCarregadas := (pos(fListaUFs[i].fUF, UFsEmCache) > 0);
 end;
 
 procedure TACBrIBGE.ObterEstatisticasUF;

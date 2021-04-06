@@ -42,6 +42,32 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+27/01/2021
+-- ACBrNFSeDANFSeRLRetrato --
+[*] Ao imprimir o DANFSE não estava levando em consideração o valor da 
+    propriedade Cancelada.
+   Por: Italo Giurizzato Junior
+
+04/09/2020
+-- ACBrNFSeDANFSeFR --
+[*] Correções e melhorias para atender o provedor Vitoria.
+  Por: Gumercino Breder Paulino
+
+20/08/2020
+-- ACBrNFSeDANFSeRLRetrato --
+[*] Na função NaturezaOperacaoDescricao estava faltando o segundo parâmentro.
+   Por: Douglas GV
+
+21/04/2020
+-- ACBrNFSeDANFSeRLRetrato --
+[*] Melhorado a posição do cabeçalho dos itens de serviço.
+   Por: Italo Jurisato Junior
+
+14/04/2020
+-- ACBrNFSeDANFSeRLRetrato --
+[-] https://www.projetoacbr.com.br/forum/topic/57130-danfse-valor-total-da-nota/
+   Por: MaxDataSistema
+
 31/01/2020
 -- ACBrNFSeDANFSeRLRetrato --
 [-] Corrigido a condição que determina se a frase de Emitido em Homologação deve ser

@@ -30,18 +30,6 @@
 {       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
-{******************************************************************************
-|* Historico
-|*
-|* 27/10/2017: Primeira Versao,
-|*             Inclusão de pesquisa no WebService calendario.com.br
-|*    Filipe de Almeida Sortica
-|* 07/11/2017: Inclusão de pesquisa no arquivo JSON
-|*    Filipe de Almeida Sortica
-|* 14/11/2017: Separação das classes em arquivos próprios
-|*    Filipe de Almeida Sortica
-******************************************************************************}
-
 unit ACBrFeriado;
 
 {$I ACBr.inc}
@@ -50,7 +38,7 @@ interface
 
 uses
   SysUtils, Classes,
-  {$IF DEFINED(NEXTGEN)}
+  {$IF DEFINED(HAS_SYSTEM_GENERICS)}
    System.Generics.Collections, System.Generics.Defaults,
   {$ELSEIF DEFINED(DELPHICOMPILER16_UP)}
    System.Contnrs,
@@ -97,7 +85,7 @@ type
     property ListaCidade: String    read fListaCidade write fListaCidade;
   end;
 
-  TACBrFeriadoEventos = class(TObjectList{$IfDef NEXTGEN}<TACBrFeriadoEvento>{$EndIf})
+  TACBrFeriadoEventos = class(TObjectList{$IfDef HAS_SYSTEM_GENERICS}<TACBrFeriadoEvento>{$EndIf})
   protected
     procedure SetObject(Index: Integer; Item: TACBrFeriadoEvento);
     function GetObject(Index: Integer): TACBrFeriadoEvento;

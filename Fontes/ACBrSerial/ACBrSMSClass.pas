@@ -38,7 +38,7 @@ interface
 
 uses
   Classes, SysUtils,
-  {$IF DEFINED(NEXTGEN)}
+  {$IF DEFINED(HAS_SYSTEM_GENERICS)}
    System.Generics.Collections, System.Generics.Defaults,
   {$ELSEIF DEFINED(DELPHICOMPILER16_UP)}
    System.Contnrs,
@@ -86,7 +86,7 @@ type
     property Mensagem: String read FMensagem write FMensagem;
   end;
 
-  TACBrSMSMensagens = class(TObjectList{$IfDef NEXTGEN}<TACBrSMSMensagem>{$EndIf})
+  TACBrSMSMensagens = class(TObjectList{$IfDef HAS_SYSTEM_GENERICS}<TACBrSMSMensagem>{$EndIf})
   protected
     procedure SetObject (Index: Integer; Item: TACBrSMSMensagem);
     function GetObject (Index: Integer): TACBrSMSMensagem;
@@ -279,7 +279,7 @@ begin
               FimSMS := Pos(DelimitadorSMS, ListaSMS[J]) > 0;
           end;
 
-          if (copy(Mensagem,1,2) = '00') and StrIsNumber(Mensagem) then
+          if (copy(Mensagem,1,2) = '00') and StrIsNumber(Trim(Mensagem)) then
             Mensagem := ConvertMsg(Mensagem);
         end;
       end

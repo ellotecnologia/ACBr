@@ -55,6 +55,7 @@ type
     FPStatus: TStatusACBrGNRE;
     FPLayout: TLayOutGNRE;
     FPConfiguracoesGNRE: TConfiguracoesGNRE;
+    FtempoEstimadoProc: Integer;
 
   protected
     procedure InicializarServico; override;
@@ -68,6 +69,7 @@ type
 
     property Status: TStatusACBrGNRE read FPStatus;
     property Layout: TLayOutGNRE read FPLayout;
+    property tempoEstimadoProc: Integer read FtempoEstimadoProc write FtempoEstimadoProc;
   end;
 
   { TGNRERecepcao }
@@ -75,7 +77,6 @@ type
   TGNRERecepcao = class(TGNREWebService)
   private
     Fnumero: String;
-    FtempoEstimadoProc: Integer;
     Fcodigo: Integer;
     Fdescricao: String;
     FdataHoraRecibo: TDateTime;
@@ -106,7 +107,6 @@ type
     property descricao: String read Fdescricao write Fdescricao;
     property numero: String read Fnumero write Fnumero;
     property dataHoraRecibo: TDateTime read FdataHoraRecibo write FdataHoraRecibo;
-    property tempoEstimadoProc: Integer read FtempoEstimadoProc write FtempoEstimadoProc;
     property cUF: Integer read FcUF;
   end;
 
@@ -144,7 +144,8 @@ type
 
     function Executar: Boolean; override;
     function SalvarTXT(AResultado: String): Boolean;
-    function SalvarXML(AGuia, ANumero: String): Boolean;
+    function SalvarXML(AGuia, ANumero: String; aData: TDateTime;
+      aCNPJ, aIE: string; Item: Integer): Boolean;
 
     property Ambiente: TpcnTipoAmbiente read FAmbiente write FAmbiente;
     property numeroRecibo: String read FnumeroRecibo write FnumeroRecibo;
@@ -412,7 +413,7 @@ var
 begin
   vGuias := '';
   for i := 0 to FGuias.Count - 1 do
-    vGuias := vGuias + FGuias.Items[i].XML;
+    vGuias := vGuias + RemoverDeclaracaoXML(FGuias.Items[i].XMLAssinado);
 
   if FPConfiguracoesGNRE.Geral.VersaoDF = ve200 then
     Versao := 'versao="2.00" '
@@ -558,6 +559,9 @@ begin
     FcUF := FPConfiguracoesGNRE.WebServices.UFCodigo;
   end;
 
+  if Assigned(FGNRERetorno) then
+    FGNRERetorno.Free;
+    
   FGNRERetorno := TTResultLote_GNRE.Create;
 end;
 
@@ -628,7 +632,10 @@ begin
 
   TACBrGNRE(FPDFeOwner).SetStatus(stGNRERetRecepcao);
   try
-    Sleep(FPConfiguracoesGNRE.WebServices.AguardarConsultaRet);
+    if FPConfiguracoesGNRE.WebServices.AguardarConsultaRet < FtempoEstimadoProc then
+      Sleep(FtempoEstimadoProc)
+    else
+      Sleep(FPConfiguracoesGNRE.WebServices.AguardarConsultaRet);
 
     Tentativas := 0;
     IntervaloTentativas := max(FPConfiguracoesGNRE.WebServices.IntervaloTentativas, 1000);
@@ -691,19 +698,22 @@ begin
   // Para aparecer as exceções que ocorreram / caso haja alguma
   SL := TStringList.Create;
   SL.Clear;
-  for I := 0 to GNRERetorno.resRejeicaGuia.Count - 1 do
-   SL.Add(Trim(GNRERetorno.resRejeicaGuia.Items[I].DescMotivoRejeicao)+#13);
+  for I := 0 to GNRERetorno.resRejeicaoGuia.Count - 1 do
+   SL.Add(Trim(GNRERetorno.resRejeicaoGuia.Items[I].DescMotivoRejeicao)+#13);
   FPMsg      := FGNRERetorno.descricao + #13 + Trim(SL.Text);
   SL.Free;
   //
-  Result := (FGNRERetorno.codigo = 401); // Lote em Processamento
+  Result := (FGNRERetorno.codigo = 401) or// Lote em Processamento
+            (FGNRERetorno.codigo = 0); // Para retornos do SEFAZ onde tem apenas o numero do recibo
 end;
 
 function TGNRERetRecepcao.TratarRespostaFinal: Boolean;
 var
   I: Integer;
+  xData: TDateTime;
 begin
   Result := False;
+
   //Verificando se existe alguma guia confirmada
   for I := 0 to FGuias.Count - 1 do
   begin
@@ -711,11 +721,20 @@ begin
     begin
       Result := True;
 
-      if FGNRERetorno.resGuia.Items[i].Versao = ve100 then
+      if FGNRERetorno.resGuia.Items[I].Versao = ve100 then
         Self.SalvarTXT(FGNRERetorno.resultado)
       else
-        Self.SalvarXML(FGNRERetorno.resGuia.Items[i].XML,
-                       FGNRERetorno.resGuia.Items[i].NumeroControle);
+      begin
+        with FGNRERetorno.resGuia.Items[I] do
+        begin
+          if FPConfiguracoesGNRE.Arquivos.EmissaoPathGNRE then
+            xData := StrToDateDef(DataVencimento,Now)
+          else
+            xData := Now;
+
+          Self.SalvarXML(XML, NumeroControle, xData, DocEmitente, '', I);
+        end;
+      end;
     end;
   end;
 
@@ -742,14 +761,15 @@ function TGNRERetRecepcao.SalvarTXT(AResultado: String): Boolean;
 var
   SL, SLAux: TStringList;
   i, GuiasOk: Integer;
-  Cabec, RepresentacaoNumerica, SituacaoGuia: String;
+  Cabec, RepresentacaoNumerica, SituacaoGuia, PathNome: String;
 begin
+  GuiasOk := 0;
+  FGNRERetorno.resGuia.Clear;
+
   SL := TStringList.Create;
   SLAux := TStringList.Create;
-  SL.Text := AResultado;
-  GuiasOk := 0;
-
   try
+    SL.Text := AResultado;
     Cabec := SL.Strings[0];
     for i := 0 to SL.Count - 1 do
     begin
@@ -762,12 +782,21 @@ begin
           SLAux.Add(SL.Strings[i]);
           Inc(GuiasOk);
           RepresentacaoNumerica := Copy(SL.Strings[i], 979, 48);
+
+          FGNRERetorno.resGuia.New;
+          FGNRERetorno.resGuia.Items[GuiasOk-1].TXT := SLAux.Text;
+
           if FPConfiguracoesGNRE.Arquivos.SalvarTXT then
           begin
             if not DirectoryExists(FPConfiguracoesGNRE.Arquivos.PathArqTXT) then
               ForceDirectories(FPConfiguracoesGNRE.Arquivos.PathArqTXT);
 
-            SLAux.SaveToFile(PathWithDelim(FPConfiguracoesGNRE.Arquivos.PathArqTXT)+RepresentacaoNumerica+'-gnre.txt');
+            PathNome := PathWithDelim(FPConfiguracoesGNRE.Arquivos.PathArqTXT) +
+                       RepresentacaoNumerica+'-guia.txt';
+
+            FGNRERetorno.resGuia.Items[GuiasOk-1].NomeArq := PathNome;
+
+            SLAux.SaveToFile(PathNome);
           end;
         end;
       end;
@@ -783,18 +812,22 @@ begin
   end;
 end;
 
-function TGNRERetRecepcao.SalvarXML(AGuia, ANumero: String): Boolean;
+function TGNRERetRecepcao.SalvarXML(AGuia, ANumero: String; aData: TDateTime;
+  aCNPJ, aIE: string; Item: Integer): Boolean;
 var
-  NomeArq: string;
+  PathNome: string;
 begin
   Result := True;
 
   if FPConfiguracoesGNRE.Arquivos.Salvar then
   begin
-    NomeArq := PathWithDelim(FPConfiguracoesGNRE.Arquivos.PathGNRE) +
-               ANumero + '-guia.xml';
+    PathNome := FPConfiguracoesGNRE.Arquivos.GetPathGNRE(aData, aCNPJ, aIE);
 
-    Result := FPDFeOwner.Gravar(NomeArq, AGuia);
+    PathNome := PathWithDelim(PathNome) + ANumero + '-guia.xml';
+
+    FGNRERetorno.resGuia.Items[Item].NomeArq := PathNome;
+
+    Result := FPDFeOwner.Gravar(PathNome, AGuia);
   end;
 end;
 

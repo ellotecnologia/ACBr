@@ -30,6 +30,15 @@
 {       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
+{******************************************************************************
+|* Historico
+|*
+|* 27/10/2015: Jean Carlo Cantu, Tiago Ravache
+|*  - Doação do componente para o Projeto ACBr
+|* 28/08/2017: Leivio Fontenele - leivio@yahoo.com.br
+|*  - Implementação comunicação, envelope, status e retorno do componente com webservice.
+******************************************************************************}
+
 {$I ACBr.inc}
 
 unit pcesS2206;
@@ -38,14 +47,14 @@ interface
 
 uses
   SysUtils, Classes,
-  {$IF DEFINED(NEXTGEN)}
+  {$IF DEFINED(HAS_SYSTEM_GENERICS)}
    System.Generics.Collections, System.Generics.Defaults,
   {$ELSEIF DEFINED(DELPHICOMPILER16_UP)}
    System.Contnrs,
   {$ELSE}
    Contnrs,
   {$IFEND}
-  ACBrBase, pcnConversao, ACBrUtil,
+  ACBrBase, pcnConversao, ACBrUtil, pcnConsts,
   pcesCommon, pcesConversaoeSocial, pcesGerador;
 
 type
@@ -500,13 +509,13 @@ begin
         altContratual.infoContrato.LocalTrabalho.localTrabDom.Bairro      := INIRec.ReadString(sSecao, 'bairro', '');
         altContratual.infoContrato.LocalTrabalho.localTrabDom.Cep         := INIRec.ReadString(sSecao, 'cep', '');
         altContratual.infoContrato.LocalTrabalho.localTrabDom.CodMunic    := INIRec.ReadInteger(sSecao, 'CodMunic', 0);
-        altContratual.infoContrato.LocalTrabalho.localTrabDom.uf          := eSStrTouf(Ok, INIRec.ReadString(sSecao, 'uf', 'SP'));
+        altContratual.infoContrato.LocalTrabalho.localTrabDom.uf          := INIRec.ReadString(sSecao, 'uf', 'SP');
       end;
 
       sSecao := 'horContratual';
       if INIRec.ReadString(sSecao, 'qtdHrsSem', '') <> '' then
       begin
-        altContratual.infoContrato.horContratual.QtdHrsSem := INIRec.ReadInteger(sSecao, 'qtdHrsSem', 0);
+        altContratual.infoContrato.horContratual.QtdHrsSem := StrtoFloatDef(IniRec.ReadString(sSecao,'qtdHrsSem','0'),0);
         altContratual.infoContrato.horContratual.TpJornada := eSStrToTpJornada(Ok, INIRec.ReadString(sSecao, 'tpJornada', '1'));
         altContratual.infoContrato.horContratual.DscTpJorn := INIRec.ReadString(sSecao, 'dscTpJorn', '');
         altContratual.infoContrato.horContratual.tmpParc   := StrTotpTmpParc(Ok, INIRec.ReadString(sSecao, 'tmpParc', '0'));

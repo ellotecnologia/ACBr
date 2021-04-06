@@ -34,6 +34,15 @@
 {       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
+{******************************************************************************
+|* Historico
+|*
+|* 27/10/2015: Jean Carlo Cantu, Tiago Ravache
+|*  - Doação do componente para o Projeto ACBr
+|* 28/08/2017: Leivio Fontenele - leivio@yahoo.com.br
+|*  - Implementação comunicação, envelope, status e retorno do componente com webservice.
+******************************************************************************}
+
 {$I ACBr.inc}
 
 unit pcesConversaoeSocial;
@@ -127,9 +136,9 @@ type
 
   TptpInscContratante     = (icCNPJ, icCPF);
 
-  tpuf                    = (ufAC, ufAL, ufAP, ufAM, ufBA, ufCE, ufDF, ufES, ufGO, ufMA,
-                             ufMT, ufMS, ufMG, ufPA, ufPB, ufPR, ufPE, ufPI, ufRJ, ufRN,
-                             ufRS, ufRO, ufRR, ufSC, ufSP, ufSE, ufTO, ufEX);
+//  tpuf                    = (ufNenhum, ufAC, ufAL, ufAP, ufAM, ufBA, ufCE, ufDF, ufES, ufGO, ufMA,
+//                             ufMT, ufMS, ufMG, ufPA, ufPB, ufPR, ufPE, ufPI, ufRJ, ufRN,
+//                             ufRS, ufRO, ufRR, ufSC, ufSP, ufSE, ufTO, ufEX);
 
   tpIndSituacaoEspecial   = (iseSituacaoNormal, iseExtincao, iseFusao, iseCisao, iseIncorporacao);
 
@@ -199,7 +208,7 @@ type
 
   tpTpIntervalo           = (tinHorarioFixo, tinHorarioVariavel);
 
-  tpIndSubstPatronalObra  = (ispPatronalSubstituida, ispPatronalNaoSubstituida);
+  tpIndSubstPatronalObra  = (ispVazio, ispPatronalSubstituida, ispPatronalNaoSubstituida);
 
   tpIndDecisao            = (idLiminarMandado, idDepositoJudicial, idDepositoAdministrativo, idAntecipacao,
                              idLiminarMedidaCautelar, idDecisaoNaoTransitada, idContestacaoFAP, idDefinitiva);
@@ -303,7 +312,8 @@ type
   tpClassTrabEstrang      = (ctVistoPermanente, ctVistoTemporario, ctAsilado, ctRefugiado, ctSolicitanteRefugio,
                              ctResidentePaisFrontBrasil, ctDefFisicoMais51Anos, ctComResidenciaProvAnistiadoSituacaoIrregular,
                              ctPermanenciaBrasilRazaoFilhosOuConjugeBras, ctBeneficiadoAcordoPaisesMercosul,
-                             ctDependenteAgenteDiplomaticoOuConsular, ctBeneficiadoTratadoAmizade);
+                             ctDependenteAgenteDiplomaticoOuConsular, ctBeneficiadoTratadoAmizade,
+                             ctVazio);
 
   tpTpDep                 = (tdConjuge, tdCompanheiroComFilhoOuVivaMais5Anos, tdFilhoOuEnteado, tdFilhoOuEnteadoUniverOuEscolaTec,
                              tdIrmaoNetoBisnetoGuardaJudicial, tdIrmaoNetoBisnetoUniverOuEscolaTecGuardaJudicial,
@@ -380,7 +390,7 @@ type
 
   tpTpContribSind         = (csContribSindical, csContribAssociativa, csContribAssistencial, csContribConfederativa);
 
-  tpIndSubstPatrOpPort    = (spIntegralmenteSubstituida, spParcialmenteSubstituida);
+  tpIndSubstPatrOpPort    = (spVazio, spIntegralmenteSubstituida, spParcialmenteSubstituida);
 
   tpIdAquis               = (iaAquiProducaoProdutorRuralPessoaFisSegEspGeral, iaAquiProducaoProdutorRuralPessoaFisSegEspGeralEntPAA,
                              iaAquiProducaoProdutorRuralPessoaJurEntPAA, iaAquiProducaoProdutorRuralPessoaFisSegEspGeralProdIsenta,
@@ -400,7 +410,8 @@ type
                               mtvLicencaMaternidadeAdocaoGuardaJudicial, mtvLicencaNaoRemunerada, mtvMandatoEleitoralSemRemuneracao,
                               mtvMandatoEleitoralComRemuneracao, mtvMandatoSindical, mtvMulherVitimaViolencia, mtvParticipacaoCNPS,
                               mtvQualificacao, mtvRepresentanteSindical, mtvServicoMilitar, mtvSuspensaoDisciplinar, mtvServidorPublicoDisponibilidade,
-                              mtvLicencaMaternidade180Dias, mtvInatividadetrabalhadorAvulso90Dias, mtvLicencaMaternidadeAntecipacaoProrrogacao);
+                              mtvLicencaMaternidade180Dias, mtvInatividadetrabalhadorAvulso90Dias, mtvLicencaMaternidadeAntecipacaoProrrogacao,
+                              mtvSuspensaoTemporariaContratoTrabalhoNosTermosMP936_2020, mtvImpedimentoConcorrenciaEscalaTrabalhoAvulso);
 
   tpTpAcidTransito        = (tpatAtropelamento, tpatColisao, tpatOutros, tpatNao);
 
@@ -412,7 +423,7 @@ type
 
   tpNivelEstagio          = (nvFundamental, nvMedio, nvEnsinoProfis, nvSuperior, nvEspecial, nvMaeSocial);
 
-  tpCaepf                 = (tcContrIndividual, tcProdRural, tcSegEspecial);//layout 2.1
+  tpCaepf                 = (tcVazio, tcContrIndividual, tcProdRural, tcSegEspecial);//layout 2.1
 
   tpOpcConsult            = (ocContribPrevCPF, ocIRporCPF, ocTotContribSociais, ocTotIRRF);
 
@@ -527,8 +538,8 @@ function eSStrToSiglaMin(var ok: boolean; const s: string): TpSiglaMin;
 function eSIndAcordoIsencaoMultaToStr(const t: TpIndAcordoIsencaoMulta ): string;
 function eSStrToIndAcordoIsencaoMulta(var ok: boolean; const s: string): TpIndAcordoIsencaoMulta;
 
-function eSufToStr(const t: Tpuf ): string;
-function eSStrTouf(var ok: boolean; const s: string): Tpuf;
+//function eSufToStr(const t: Tpuf ): string;
+//function eSStrTouf(var ok: boolean; const s: string): Tpuf;
 
 function eSIndSituacaoEspecialToStr(const t: TpIndSituacaoEspecial ): string;
 function eSStrToIndSituacaoEspecial(var ok: boolean; const s: string): TpIndSituacaoEspecial;
@@ -931,13 +942,13 @@ const
 
   TMotivoAlteracaoCargoFuncao: array[0..3] of string = ('1', '2', '3', '9');
 
-  TMotivoAfastamento: array[0..30] of string = ('01', '03', '05', '06', '07',
+  TMotivoAfastamento: array[0..32] of string = ('01', '03', '05', '06', '07',
                                                 '08', '10', '11', '12', '13',
                                                 '14', '15', '16', '17', '18',
                                                 '19', '20', '21', '22', '23',
                                                 '24', '25', '26', '27', '28',
                                                 '29', '30', '31', '33', '34',
-                                                '35');
+                                                '35', '37', '38');
 
   TGenericosString0_1 : array[0..1] of string = ('0','1' );
   TGenericosString0_2 : array[0..2] of string = ('0','1','2' );
@@ -1493,7 +1504,10 @@ end;
 
 function eSStrToSimNao(var ok: boolean; const s: string): tpSimNao;
 begin
-  result := tpSimNao( StrToEnumerado2(ok , s, TSimNaoString ) );
+  if Trim(s) = '' then
+    result := tpNao
+  else
+    result := tpSimNao(StrToEnumerado2(ok , s, TSimNaoString));
 end;
 
 function eSSimNaoFacultativoToStr(const t: tpSimNaoFacultativo ): string;
@@ -1568,12 +1582,18 @@ end;
 
 function eSIndOpcCPToStr(const t:TpIndOpcCP ): string;
 begin
-  result := EnumeradoToStr2(t,TGenericosString1_2 );
+  if t = icpNenhum then
+    result := ''
+  else
+    result := EnumeradoToStr2(t, TGenericosString1_2);
 end;
 
 function eSStrToIndOpcCP(var ok: boolean; const s: string): TpIndOpcCP;
 begin
-  result := TpIndOpcCP( StrToEnumerado2(ok , s, TGenericosString1_2 ) );
+  if Trim(s) = '' then
+    result := icpNenhum
+  else
+    result := TpIndOpcCP(StrToEnumerado2(ok , s, TGenericosString1_2));
 end;
 
 function eSAliqRatToStr(const t:tpAliqRat ): string;
@@ -1615,7 +1635,7 @@ function eSStrToIndAcordoIsencaoMulta(var ok: boolean; const s: string): TpIndAc
 begin
   result := TpIndAcordoIsencaoMulta( StrToEnumerado2(ok , s,TGenericosString0_1 ) );
 end;
-
+{
 function eSufToStr(const t:tpuf ): string;
 begin
   result := EnumeradoToStr2(t,TUFString );
@@ -1625,7 +1645,7 @@ function eSStrTouf(var ok: boolean; const s: string): Tpuf;
 begin
   result := Tpuf( StrToEnumerado2(ok , s,TUFString ) );
 end;
-
+}
 function eSIndSituacaoEspecialToStr(const t:tpIndSituacaoEspecial ): string;
 begin
   result := EnumeradoToStr2(t,TGenericosString0_4 );
@@ -1785,17 +1805,23 @@ end;
 
 function eSStrToTpIntervalo(var ok: boolean; const s: string): TpTpIntervalo;
 begin
-  result := TpTpIntervalo( StrToEnumerado2(ok , s,TGenericosString1_2  ));
+  result := TpTpIntervalo( StrToEnumerado2(ok , s, TGenericosString1_2));
 end;
 
 function eSIndSubstPatronalObraToStr(const t:tpIndSubstPatronalObra ): string;
 begin
-  result := EnumeradoToStr2(t,TGenericosString1_2  );
+  if t = ispVazio then
+    result := ''
+  else
+    result := EnumeradoToStr2(t, TGenericosString1_2);
 end;
 
 function eSStrToIndSubstPatronalObra(var ok: boolean; const s: string): TpIndSubstPatronalObra;
 begin
-  result := TpIndSubstPatronalObra( StrToEnumerado2(ok , s,TGenericosString1_2  ));
+  if Trim(s) = '' then
+    result := ispVazio
+  else
+    result := TpIndSubstPatronalObra(StrToEnumerado2(ok , s, TGenericosString1_2));
 end;
 
 function eSIndDecisaoToStr(const t:tpIndDecisao ): string;
@@ -2240,12 +2266,18 @@ end;
 
 function eStpCaepfToStr(const t: tpCaepf): string;
 begin
-  result := EnumeradoToStr2(t, TGenericosString1_3);
+  if t <> tcVazio then
+    result := EnumeradoToStr2(t, TGenericosString0_3)
+  else
+    result := '';
 end;
 
 function eSStrTotpCaepf(var ok: boolean; const s: string): tpCaepf;
 begin
-  result := tpCaepf(StrToEnumerado2(ok, s, TGenericosString1_3));
+  if Trim(s) <> '' then
+    result := tpCaepf(StrToEnumerado2(ok, s, TGenericosString0_3))
+  else
+    result := tcVazio;
 end;
 
 function eStpTpPgtoToStr(const t: tpTpPgto): string;
@@ -2411,7 +2443,7 @@ end;
 
 function eSStrTotpMotivosAfastamento(var ok: boolean; const s: string): tpMotivosAfastamento;
 begin
-   result := tpMotivosAfastamento(StrToEnumerado2(ok , s, TMotivoAfastamento));
+  result := tpMotivosAfastamento(StrToEnumerado2(ok , s, TMotivoAfastamento));
 end;
 
 function StrEventoToTipoEvento(out ok: boolean; const s: string): TTipoEvento;

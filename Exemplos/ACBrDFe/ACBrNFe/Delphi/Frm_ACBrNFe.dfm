@@ -36,7 +36,7 @@ object frmACBrNFe: TfrmACBrNFe
           Top = 0
           Width = 287
           Height = 516
-          ActivePage = TabSheet3
+          ActivePage = TabSheet12
           Align = alClient
           MultiLine = True
           TabOrder = 0
@@ -86,26 +86,26 @@ object frmACBrNFe: TfrmACBrNFe
               Left = 2
               Top = 118
               Width = 263
-              Height = 144
+              Height = 184
               Caption = 'Certificado'
               TabOrder = 0
               object Label1: TLabel
-                Left = 8
-                Top = 16
+                Left = 7
+                Top = 60
                 Width = 41
                 Height = 13
                 Caption = 'Caminho'
               end
               object Label2: TLabel
-                Left = 8
-                Top = 56
+                Left = 7
+                Top = 100
                 Width = 30
                 Height = 13
                 Caption = 'Senha'
               end
               object sbtnCaminhoCert: TSpeedButton
-                Left = 235
-                Top = 32
+                Left = 234
+                Top = 76
                 Width = 23
                 Height = 24
                 Glyph.Data = {
@@ -125,15 +125,15 @@ object frmACBrNFe: TfrmACBrNFe
                 OnClick = sbtnCaminhoCertClick
               end
               object Label25: TLabel
-                Left = 8
-                Top = 96
+                Left = 7
+                Top = 140
                 Width = 79
                 Height = 13
                 Caption = 'N'#250'mero de S'#233'rie'
               end
               object sbtnGetCert: TSpeedButton
-                Left = 235
-                Top = 110
+                Left = 234
+                Top = 154
                 Width = 23
                 Height = 24
                 Glyph.Data = {
@@ -153,8 +153,8 @@ object frmACBrNFe: TfrmACBrNFe
                 OnClick = sbtnGetCertClick
               end
               object sbtnNumSerie: TSpeedButton
-                Left = 206
-                Top = 110
+                Left = 205
+                Top = 154
                 Width = 23
                 Height = 24
                 Glyph.Data = {
@@ -173,32 +173,46 @@ object frmACBrNFe: TfrmACBrNFe
                 NumGlyphs = 2
                 OnClick = sbtnNumSerieClick
               end
+              object Label51: TLabel
+                Left = 7
+                Top = 17
+                Width = 65
+                Height = 13
+                Caption = 'URL para PFX'
+              end
               object edtCaminho: TEdit
-                Left = 8
-                Top = 32
+                Left = 7
+                Top = 76
                 Width = 225
                 Height = 21
-                TabOrder = 0
+                TabOrder = 1
               end
               object edtSenha: TEdit
-                Left = 8
-                Top = 72
+                Left = 7
+                Top = 116
                 Width = 249
                 Height = 21
                 PasswordChar = '*'
-                TabOrder = 1
+                TabOrder = 2
               end
               object edtNumSerie: TEdit
-                Left = 8
-                Top = 112
+                Left = 7
+                Top = 156
                 Width = 193
                 Height = 21
-                TabOrder = 2
+                TabOrder = 3
+              end
+              object edtURLPFX: TEdit
+                Left = 7
+                Top = 33
+                Width = 249
+                Height = 21
+                TabOrder = 0
               end
             end
             object btnDataValidade: TButton
-              Left = 8
-              Top = 266
+              Left = 7
+              Top = 305
               Width = 99
               Height = 25
               Caption = 'Data de Validade'
@@ -206,8 +220,8 @@ object frmACBrNFe: TfrmACBrNFe
               OnClick = btnDataValidadeClick
             end
             object btnNumSerie: TButton
-              Left = 112
-              Top = 266
+              Left = 111
+              Top = 305
               Width = 73
               Height = 25
               Caption = 'Num.S'#233'rie'
@@ -215,30 +229,30 @@ object frmACBrNFe: TfrmACBrNFe
               OnClick = btnNumSerieClick
             end
             object btnSubName: TButton
-              Left = 8
-              Top = 298
+              Left = 7
+              Top = 337
               Width = 99
               Height = 25
               Caption = 'Subject Name'
-              TabOrder = 3
+              TabOrder = 4
               OnClick = btnSubNameClick
             end
             object btnCNPJ: TButton
               Left = 112
-              Top = 298
+              Top = 337
               Width = 73
               Height = 25
               Caption = 'CNPJ'
-              TabOrder = 4
+              TabOrder = 5
               OnClick = btnCNPJClick
             end
             object btnIssuerName: TButton
-              Left = 188
-              Top = 298
+              Left = 190
+              Top = 306
               Width = 76
               Height = 25
               Caption = 'Issuer Name'
-              TabOrder = 5
+              TabOrder = 3
               OnClick = btnIssuerNameClick
             end
             object GroupBox1: TGroupBox
@@ -247,7 +261,7 @@ object frmACBrNFe: TfrmACBrNFe
               Width = 263
               Height = 69
               Caption = 'Calculo de Hash e assinatura'
-              TabOrder = 6
+              TabOrder = 7
               object Edit1: TEdit
                 Left = 3
                 Top = 14
@@ -282,7 +296,7 @@ object frmACBrNFe: TfrmACBrNFe
               Width = 128
               Height = 25
               Caption = 'HTTPS sem Certificado'
-              TabOrder = 7
+              TabOrder = 8
               OnClick = btnHTTPSClick
             end
             object btnLeituraX509: TButton
@@ -291,7 +305,7 @@ object frmACBrNFe: TfrmACBrNFe
               Width = 115
               Height = 25
               Caption = 'Leitura de X509'
-              TabOrder = 8
+              TabOrder = 9
               OnClick = btnLeituraX509Click
             end
             object cbSSLLib: TComboBox
@@ -300,7 +314,7 @@ object frmACBrNFe: TfrmACBrNFe
               Width = 160
               Height = 21
               Style = csDropDownList
-              TabOrder = 9
+              TabOrder = 10
               OnChange = cbSSLLibChange
             end
             object cbCryptLib: TComboBox
@@ -309,7 +323,7 @@ object frmACBrNFe: TfrmACBrNFe
               Width = 160
               Height = 21
               Style = csDropDownList
-              TabOrder = 10
+              TabOrder = 11
               OnChange = cbCryptLibChange
             end
             object cbHttpLib: TComboBox
@@ -318,7 +332,7 @@ object frmACBrNFe: TfrmACBrNFe
               Width = 160
               Height = 21
               Style = csDropDownList
-              TabOrder = 11
+              TabOrder = 12
               OnChange = cbHttpLibChange
             end
             object cbXmlSignLib: TComboBox
@@ -327,16 +341,16 @@ object frmACBrNFe: TfrmACBrNFe
               Width = 160
               Height = 21
               Style = csDropDownList
-              TabOrder = 12
+              TabOrder = 13
               OnChange = cbXmlSignLibChange
             end
             object btVersao: TButton
-              Left = 8
+              Left = 190
               Top = 336
-              Width = 113
+              Width = 76
               Height = 25
-              Caption = 'Vers'#227'o OpenSSL'
-              TabOrder = 13
+              Caption = 'Ver.SSL Lib'
+              TabOrder = 6
               OnClick = btVersaoClick
             end
           end
@@ -550,9 +564,9 @@ object frmACBrNFe: TfrmACBrNFe
               object Label6: TLabel
                 Left = 8
                 Top = 16
-                Width = 121
+                Width = 126
                 Height = 13
-                Caption = 'Selecione UF de Destino:'
+                Caption = 'Selecione UF do Emitente:'
                 Font.Charset = DEFAULT_CHARSET
                 Font.Color = clWindowText
                 Font.Height = -11
@@ -904,6 +918,19 @@ object frmACBrNFe: TfrmACBrNFe
               Height = 13
               Caption = 'Fone'
             end
+            object Label52: TLabel
+              Left = 8
+              Top = 289
+              Width = 83
+              Height = 13
+              Caption = 'Tipo de Empresa:'
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clWindowText
+              Font.Height = -11
+              Font.Name = 'MS Sans Serif'
+              Font.Style = []
+              ParentFont = False
+            end
             object edtEmitCNPJ: TEdit
               Left = 8
               Top = 20
@@ -994,6 +1021,24 @@ object frmACBrNFe: TfrmACBrNFe
               Width = 35
               Height = 21
               TabOrder = 12
+            end
+            object cbTipoEmpresa: TComboBox
+              Left = 8
+              Top = 305
+              Width = 249
+              Height = 24
+              Style = csDropDownList
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clWindowText
+              Font.Height = -13
+              Font.Name = 'MS Sans Serif'
+              Font.Style = []
+              ParentFont = False
+              TabOrder = 13
+              Items.Strings = (
+                'Simples Nacional'
+                'Simples Nacional, excesso sublimite de receita bruta'
+                'Regime Normal')
             end
           end
           object TabSheet13: TTabSheet
@@ -1490,11 +1535,12 @@ object frmACBrNFe: TfrmACBrNFe
           Width = 257
           Height = 49
           Caption = 'DANFCE'
-          Columns = 2
+          Columns = 3
           ItemIndex = 0
           Items.Strings = (
-            'Fortes Report'
-            'Esc Pos')
+            'Fortes'
+            'EscPos'
+            'A4')
           TabOrder = 3
         end
       end
@@ -1643,7 +1689,7 @@ object frmACBrNFe: TfrmACBrNFe
           Width = 177
           Height = 25
           Caption = 'Criar e Enviar'
-          TabOrder = 0
+          TabOrder = 2
           OnClick = btnCriarEnviarClick
         end
         object btnValidarRegrasNegocio: TButton
@@ -1652,7 +1698,7 @@ object frmACBrNFe: TfrmACBrNFe
           Width = 177
           Height = 25
           Caption = 'Validar Regras de Neg'#243'cio'
-          TabOrder = 1
+          TabOrder = 5
           OnClick = btnValidarRegrasNegocioClick
         end
         object btnGerarTXT: TButton
@@ -1661,7 +1707,7 @@ object frmACBrNFe: TfrmACBrNFe
           Width = 177
           Height = 25
           Caption = 'Gerar TXT'
-          TabOrder = 2
+          TabOrder = 1
           OnClick = btnGerarTXTClick
         end
         object btnGerarXML: TButton
@@ -1670,7 +1716,7 @@ object frmACBrNFe: TfrmACBrNFe
           Width = 177
           Height = 25
           Caption = 'Gerar NFe'
-          TabOrder = 3
+          TabOrder = 0
           OnClick = btnGerarXMLClick
         end
         object btnImportarXML: TButton
@@ -1688,7 +1734,7 @@ object frmACBrNFe: TfrmACBrNFe
           Width = 177
           Height = 25
           Caption = 'Gerar PDF'
-          TabOrder = 5
+          TabOrder = 10
           OnClick = btnGerarPDFClick
         end
         object btnValidarXML: TButton
@@ -1706,7 +1752,7 @@ object frmACBrNFe: TfrmACBrNFe
           Width = 177
           Height = 25
           Caption = 'Imprimir DANFE'
-          TabOrder = 7
+          TabOrder = 9
           OnClick = btnImprimirClick
         end
         object btnEnviarEmail: TButton
@@ -1715,7 +1761,7 @@ object frmACBrNFe: TfrmACBrNFe
           Width = 177
           Height = 25
           Caption = 'Enviar NFe Email'
-          TabOrder = 8
+          TabOrder = 11
           OnClick = btnEnviarEmailClick
         end
         object btnAdicionarProtocolo: TButton
@@ -1724,7 +1770,7 @@ object frmACBrNFe: TfrmACBrNFe
           Width = 177
           Height = 25
           Caption = 'Adicionar Protocolo ao XML'
-          TabOrder = 9
+          TabOrder = 8
           OnClick = btnAdicionarProtocoloClick
         end
         object btnCarregarXMLEnviar: TButton
@@ -1733,7 +1779,7 @@ object frmACBrNFe: TfrmACBrNFe
           Width = 177
           Height = 25
           Caption = 'Carregar XML e Enviar'
-          TabOrder = 10
+          TabOrder = 3
           OnClick = btnCarregarXMLEnviarClick
         end
         object btnValidarAssinatura: TButton
@@ -1742,7 +1788,7 @@ object frmACBrNFe: TfrmACBrNFe
           Width = 177
           Height = 25
           Caption = 'Validar Assinatura'
-          TabOrder = 11
+          TabOrder = 7
           OnClick = btnValidarAssinaturaClick
         end
         object btnImprimirDANFCE: TButton
@@ -1773,7 +1819,7 @@ object frmACBrNFe: TfrmACBrNFe
           Width = 177
           Height = 25
           Caption = 'Consultar carregando XML'
-          TabOrder = 0
+          TabOrder = 1
           OnClick = btnConsultarClick
         end
         object btnConsultarChave: TButton
@@ -1782,7 +1828,7 @@ object frmACBrNFe: TfrmACBrNFe
           Width = 177
           Height = 25
           Caption = 'Consultar pela Chave'
-          TabOrder = 1
+          TabOrder = 3
           OnClick = btnConsultarChaveClick
         end
         object btnConsCad: TButton
@@ -1791,7 +1837,7 @@ object frmACBrNFe: TfrmACBrNFe
           Width = 177
           Height = 25
           Caption = 'Consulta Cadastro'
-          TabOrder = 2
+          TabOrder = 4
           OnClick = btnConsCadClick
         end
         object btnConsultarRecibo: TButton
@@ -1800,7 +1846,7 @@ object frmACBrNFe: TfrmACBrNFe
           Width = 177
           Height = 25
           Caption = 'Consultar Recibo Lote'
-          TabOrder = 3
+          TabOrder = 2
           OnClick = btnConsultarReciboClick
         end
         object btnStatusServ: TButton
@@ -1809,7 +1855,7 @@ object frmACBrNFe: TfrmACBrNFe
           Width = 177
           Height = 25
           Caption = ' Status de Servi'#231'o'
-          TabOrder = 4
+          TabOrder = 0
           OnClick = btnStatusServClick
         end
       end
@@ -1845,21 +1891,30 @@ object frmACBrNFe: TfrmACBrNFe
         end
         object btnImprimirEvento: TButton
           Left = 8
-          Top = 40
+          Top = 100
           Width = 177
           Height = 25
           Caption = 'Imprimir Evento'
-          TabOrder = 3
+          TabOrder = 4
           OnClick = btnImprimirEventoClick
         end
         object btnEnviarEventoEmail: TButton
           Left = 191
-          Top = 40
+          Top = 100
           Width = 177
           Height = 25
           Caption = 'Enviar Evento Email'
-          TabOrder = 4
+          TabOrder = 5
           OnClick = btnEnviarEventoEmailClick
+        end
+        object btnAtorInterNFeTransp: TButton
+          Left = 8
+          Top = 40
+          Width = 177
+          Height = 25
+          Caption = 'Ator Interessado na NF-e Transp.'
+          TabOrder = 3
+          OnClick = btnAtorInterNFeTranspClick
         end
       end
       object tsInutilizacao: TTabSheet
@@ -1888,22 +1943,40 @@ object frmACBrNFe: TfrmACBrNFe
         Caption = 'Distribui'#231#227'o DFe'
         ImageIndex = 5
         object btnManifDestConfirmacao: TButton
-          Left = 192
-          Top = 9
+          Left = 8
+          Top = 40
           Width = 178
           Height = 25
           Caption = 'Manif. Dest. - Conf. Opera'#231#227'o'
-          TabOrder = 0
+          TabOrder = 3
           OnClick = btnManifDestConfirmacaoClick
         end
-        object btnDistribuicaoDFe: TButton
+        object btnDistrDFePorUltNSU: TButton
           Left = 8
           Top = 9
           Width = 178
           Height = 25
-          Caption = 'Distribui'#231#227'o Documentos Fiscais'
+          Caption = 'Distribui'#231#227'o DF-e por '#250'ltimo NSU'
+          TabOrder = 0
+          OnClick = btnDistrDFePorUltNSUClick
+        end
+        object btnDistrDFePorNSU: TButton
+          Left = 192
+          Top = 9
+          Width = 178
+          Height = 25
+          Caption = 'Distribui'#231#227'o DF-e por NSU'
           TabOrder = 1
-          OnClick = btnDistribuicaoDFeClick
+          OnClick = btnDistrDFePorNSUClick
+        end
+        object btnDistrDFePorChave: TButton
+          Left = 376
+          Top = 9
+          Width = 178
+          Height = 25
+          Caption = 'Distribui'#231#227'o DF-e por Chave'
+          TabOrder = 2
+          OnClick = btnDistrDFePorChaveClick
         end
       end
     end
@@ -2004,7 +2077,6 @@ object frmACBrNFe: TfrmACBrNFe
   end
   object ACBrNFe1: TACBrNFe
     MAIL = ACBrMail1
-    Integrador = ACBrIntegrador1
     OnStatusChange = ACBrNFe1StatusChange
     OnGerarLog = ACBrNFe1GerarLog
     Configuracoes.Geral.SSLLib = libNone
@@ -2023,6 +2095,7 @@ object frmACBrNFe: TfrmACBrNFe
     Configuracoes.WebServices.TimeOut = 20000
     Configuracoes.WebServices.QuebradeLinha = '|'
     Configuracoes.RespTec.IdCSRT = 0
+    DANFE = ACBrNFeDANFeRL1
     Left = 330
     Top = 239
   end

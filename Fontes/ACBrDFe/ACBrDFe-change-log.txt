@@ -27,12 +27,6 @@
 { Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
 {       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
-Agradecimentos:
-
-* Administradores:
-- Daniel Simões de Almeida
-- André Ferreira de Moraes
-
 {******************************************************************************
 |* ACBrDFeComum
 |*
@@ -44,6 +38,145 @@ Símbolo : Significado
 [+]     : Novo recurso
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
+
+09/03/2021
+-- ACBrXmlBase/ACBrXmlDocument/ACBrXmlWriter/ACBrXmlReader --
+[+] Inclusão da Unit ACBrXmlBase para tormar as outras 3 units idenpendentes das
+    Units PCN.
+  Por: Rafael Dias/Italo Giurizzato Junior
+
+24/12/2020
+-- ACBrDFeSSL --
+[*] Ajuste em "TDFeSSLHttpClass.Enviar", para exibir as informações do Retorno
+    (por: DSA)
+
+13/11/2020
+-- ACBrDFeUtil --
+[+] Incluido a função ObterDFeXML que extrai o XML de um DF-e de um XML informado.
+-- ACBrXmlWriter --
+[*] Remoção de warnings.
+  Por: Italo Giurizzato Junior
+
+12/11/2020
+-- ACBrDFeSSL, ACBrDFeWebService --
+[+] Adicionado o parâmetro ""AuthorizationHeader", no método "Enviar"
+    https://www.projetoacbr.com.br/forum/topic/60033-nfse-em-bragança-paulista/
+
+-- ACBrDFeReportFortes --
+[*] Ajuste para permitir a leitura de imagens em formato PNG e JPG, se a IDE permitir
+    https://www.projetoacbr.com.br/forum/topic/60096-wrong-format-invalid-danfe/
+
+14/09/2020
+-- ACBrDFeWinCrypt --
+[-] Revertendo diretiva para funcionamento correto em Lazarus.
+    https://www.projetoacbr.com.br/forum/topic/59332-n%C3%A3o-lista-certificados-store-windows/?do=findComment&comment=389520&_rid=775
+  Por: Antonio Tota
+
+02/09/2020
+-- ACBrDFeWinCrypt --
+[*] Ajuste em "CalcHash" e "ValidarHash", para inicializar o conteúdo do Buffer do Hash
+    https://www.projetoacbr.com.br/forum/topic/59104-problema-com-certificado-remoteid/
+    (por: DSA)
+
+22/07/2020
+-- ACBrXmlDocument --
+[+] Inclusão do método ImportXml e da propriedade OuterXml.
+  Por: Rafael Dias
+
+27/05/2020
+-- ACBrDFeWinCrypt --
+[-] Correção para remover o terminador #0 no retorno dos métodos "CertSubjectName" 
+    e "CertIssuerName".
+  Por: BigWings / DSA
+
+-- ACBrDFeOpenSSL --
+[*] Ajuste para que o método "CertDataVenc" retorne a hora ajustada para o
+    fuso horário da máquina.
+  Por: BigWings
+
+14/05/2020
+-- ACBrDFeXsMsXmlCapicom --
+[-] Correção para erro 'Conjunto de chaves não está definido' quando usando
+    certificados A3.
+    (por: BigWings)
+
+13/05/2020
+-- ACBrDFeHttpOpenSSL, ACBrDFeSSL --
+[-] Correção para exibir Erros não relacionados a transmissão
+    (por: Bigwings e DSA)
+
+07/05/2020
+-- ACBrDFeUtil --
+[-] Correçao no método: "EncontrarURI", quando "docElement", não for informado
+    https://www.projetoacbr.com.br/forum/topic/57466-erro-cancelamento-nfs-betha/
+
+28/04/2020
+-- ACBrDFeSSL --
+[*] Melhoria na rotina de Download do Certificado por URLPFX
+    - Adicionada verificação do código de retorno HTTP
+    - Adicionada verificação da integridade do Certificado baixado
+    - Adicionada verificação do CNPJ, do novo Certificado
+    O Certificado antigo, somente será substituido, se as condições acima foram
+    válidas e o Faltarem menos de 10 dias para o vencimento do Certificado em
+    ArquivoPFX
+    (por: DSA)
+
+13/04/2020
+-- ACBrXmlDocument --
+[-] Correção na passagem de parametros do método: AddChild.
+   Por: Italo  Jurisato Junior
+
+01/04/2020
+-- ACBrDFeUtil --
+[*] Métodos "ObterCodigoMunicipio" e "ObterNomeMunicipio", modificados para usar
+    o componente ACBrIBGE, e não a antiga e obsoleta listas de TXT de cidades
+    (por: DSA)
+
+31/03/2020
+-- ACBrDFeCapicom --
+[*] Ajustes para compatibilizar com último refactoring
+    (por: DSA)
+
+30/03/2020
+-- ACBrDFe, ACBrDFeConfiguracoes --
+[+] Adicionada a propriedade "Configuracoes.Certificados.URLPFX: String"
+    Permite informar uma URL, para Download de um Certificado PFX (A1)
+    - O URL será chamada com o método GET, e deve ser um Link para download
+      direto ao arquivo (URLs com redirecionamentos podem não funcionar)
+    - Após o arquivo ser baixado, se a propriedade Configuracoes.Certificados.ArquivoPFX,
+      também estiver especificada, uma cópia Local será salva, e usada na próxima
+      carga do certificado
+      - Um novo download será efetuado, quando a Data de Vencimento do Certificado
+        atingir 15 dias para expirar.
+        - A tentativa de baixar um novo certificado ocorrerá apenas uma vez por dia
+
+-- ACBrDFeSSL, ACBrDFeOpenSSL, ACBrDFeWinCrypt --
+[*] TDFeSSLCryptClass, e TDFeSSL, refatoração nas rotinas internas, de
+    Carga do Certificado
+[+] TDFeSSLHttpClass, refatoração e adicionada as Propriedades:
+    DataReq: TMemoryStream -> Stream com Dados a serem enviados na requisição
+    HeaderReq: THttpHeader -> StringList com Header a serem incluídos na requisição
+    DataResp: TMemoryStream -> Stream com Dados da resposta
+    HeaderResp: THttpHeader -> StringList com Header da resposta
+    URL: String -> URL que será ussada na requisição
+    Method: String -> Método que será ussada na requisição (GET, POST, etc)
+    SoapAction: String -> Informação do SoapAction (apenas se for necessário), para inclusão no Header de requisição
+    MimeType: String -> Informação do MimeType, para inclusão no Header de requisição
+    LastErrorDesc: String -> Retorna a Descrição do último Erro
+
+[+] TDFeSSLHttpClass, adicionado as Metodos:
+    procedure HTTPMethod(const AMethod, AURL: String); -> Informa o Método e a URL e Executa a requisição
+    procedure Execute; -> Executa a requisição
+    procedure Clear; -> Limpa da memória, todos os dados enviados e recebidos
+
+[+] TDFeSSL, Adicionada a propriedade: "URLPFX: String"
+[+] TDFeSSL, Adicionado os métodos:
+    procedure HTTPMethod(const AMethod, AURL: String);
+    function HTTPGet(const AURL: String): AnsiString;
+    function HTTPPost(const ADataToSend: AnsiString; const AURL: String): AnsiString;
+
+[-] TDFeSSL.SetSSLCryptLib, correção para evitar A.V., quando atribuindo um
+    Modelo desativado por diretiva de compilação
 
 09/02/2020
 -- ACBrDFe --

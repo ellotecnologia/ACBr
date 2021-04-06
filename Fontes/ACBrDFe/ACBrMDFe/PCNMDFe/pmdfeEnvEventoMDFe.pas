@@ -38,7 +38,7 @@ interface
 
 uses
   SysUtils, Classes,
-  {$IF DEFINED(NEXTGEN)}
+  {$IF DEFINED(HAS_SYSTEM_GENERICS)}
    System.Generics.Collections, System.Generics.Defaults,
   {$ELSEIF DEFINED(DELPHICOMPILER16_UP)}
    System.Contnrs,
@@ -86,11 +86,13 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+
     function GerarXML: Boolean;
     function LerXML(const CaminhoArquivo: String): Boolean;
     function LerXMLFromString(const AXML: String): Boolean;
     function ObterNomeArquivo(tpEvento: TpcnTpEvento): String;
     function LerFromIni(const AIniString: String): Boolean;
+
     property Gerador: TGerador             read FGerador write FGerador;
     property idLote: Integer               read FidLote  write FidLote;
     property Evento: TInfEventoCollection  read FEvento  write SetEvento;
@@ -133,8 +135,8 @@ begin
                                         Format('%.2d', [Evento.Items[0].InfEvento.nSeqEvento]);
 
   Gerador.wGrupo('infEvento Id="' + Evento.Items[0].InfEvento.id + '"');
-  if Length(Evento.Items[0].InfEvento.Id) < 54
-   then Gerador.wAlerta('EP04', 'ID', '', 'ID de Evento inválido');
+  if Length(Evento.Items[0].InfEvento.Id) < 54 then
+    Gerador.wAlerta('EP04', 'ID', '', 'ID de Evento inválido');
 
   Gerador.wCampo(tcInt, 'EP05', 'cOrgao', 1, 2, 1, Evento.Items[0].InfEvento.cOrgao);
   Gerador.wCampo(tcStr, 'EP06', 'tpAmb ', 1, 1, 1, TpAmbToStr(Evento.Items[0].InfEvento.tpAmb), DSC_TPAMB);
@@ -150,31 +152,36 @@ begin
 
   case Length(sDoc) of
     14: begin
-         Gerador.wCampo(tcStr, 'EP07', 'CNPJ', 14, 14, 1, sDoc , DSC_CNPJ);
-         if not ValidarCNPJ(sDoc) then Gerador.wAlerta('HP10', 'CNPJ', DSC_CNPJ, ERR_MSG_INVALIDO);
+          Gerador.wCampo(tcStr, 'EP07', 'CNPJ', 14, 14, 1, sDoc , DSC_CNPJ);
+          if not ValidarCNPJ(sDoc) then
+            Gerador.wAlerta('HP10', 'CNPJ', DSC_CNPJ, ERR_MSG_INVALIDO);
         end;
     11: begin
-         Gerador.wCampo(tcStr, 'EP07', 'CPF ', 11, 11, 1, sDoc, DSC_CPF);
-         if not ValidarCPF(sDoc) then Gerador.wAlerta('HP11', 'CPF', DSC_CPF, ERR_MSG_INVALIDO);
+          Gerador.wCampo(tcStr, 'EP07', 'CPF ', 11, 11, 1, sDoc, DSC_CPF);
+          if not ValidarCPF(sDoc) then
+            Gerador.wAlerta('HP11', 'CPF', DSC_CPF, ERR_MSG_INVALIDO);
         end;
   end;
 
   Gerador.wCampo(tcStr, 'EP08', 'chMDFe', 44, 44, 1, Evento.Items[0].InfEvento.chMDFe, DSC_CHAVE);
 
-  if not ValidarChave(Evento.Items[0].InfEvento.chMDFe)
-   then Gerador.wAlerta('EP08', 'chMDFe', '', 'Chave de MDFe inválida');
+  if not ValidarChave(Evento.Items[0].InfEvento.chMDFe) then
+    Gerador.wAlerta('EP08', 'chMDFe', '', 'Chave de MDFe inválida');
 
   if Versao = '3.00' then
-    Gerador.wCampo(tcStr, 'EP09', 'dhEvento', 01, 25, 1, FormatDateTime('yyyy-mm-dd"T"hh:nn:ss', Evento.Items[0].InfEvento.dhEvento)
-                                                             + GetUTC(CodigoParaUF(Evento.Items[0].InfEvento.cOrgao),
-                                                                       Evento.Items[0].InfEvento.dhEvento))
+    Gerador.wCampo(tcStr, 'EP09', 'dhEvento', 01, 25, 1,
+     FormatDateTime('yyyy-mm-dd"T"hh:nn:ss', Evento.Items[0].InfEvento.dhEvento)
+                        + GetUTC(CodigoParaUF(Evento.Items[0].InfEvento.cOrgao),
+                                            Evento.Items[0].InfEvento.dhEvento))
   else
-    Gerador.wCampo(tcStr, 'EP09', 'dhEvento', 01, 25, 1, FormatDateTime('yyyy-mm-dd"T"hh:nn:ss', Evento.Items[0].InfEvento.dhEvento));
+    Gerador.wCampo(tcStr, 'EP09', 'dhEvento', 01, 25, 1,
+     FormatDateTime('yyyy-mm-dd"T"hh:nn:ss', Evento.Items[0].InfEvento.dhEvento));
 
   Gerador.wCampo(tcInt, 'EP10', 'tpEvento  ', 6, 6, 1, Evento.Items[0].InfEvento.TipoEvento);
   Gerador.wCampo(tcInt, 'EP11', 'nSeqEvento', 1, 2, 1, Evento.Items[0].InfEvento.nSeqEvento);
 
   Gerador.wGrupo('detEvento versaoEvento="' + Versao + '"');
+
   case Evento.Items[0].InfEvento.tpEvento of
    teCancelamento:
      begin
@@ -230,7 +237,7 @@ begin
    tePagamentoOperacao:
      begin
        Gerador.wGrupo('evPagtoOperMDFe');
-       Gerador.wCampo(tcStr, 'HP02', 'descEvento', 05, 13, 1, Evento.Items[0].InfEvento.DescEvento);
+       Gerador.wCampo(tcStr, 'HP02', 'descEvento', 05, 24, 1, Evento.Items[0].InfEvento.DescEvento);
        Gerador.wCampo(tcStr, 'HP03', 'nProt     ', 15, 15, 1, Evento.Items[0].InfEvento.detEvento.nProt);
 
        Gerador.wGrupo('infViagens', '#');
@@ -279,12 +286,17 @@ begin
 
            Gerador.wGrupo('infBanc', '#');
 
-           if infBanc.CNPJIPEF <> '' then
-             Gerador.wCampo(tcStr, '#', 'CNPJIPEF', 14, 14, 1, infBanc.CNPJIPEF, DSC_CNPJIPEF)
+           if infBanc.PIX <> '' then
+             Gerador.wCampo(tcStr, '#', 'PIX', 2, 60, 1, infBanc.PIX, DSC_PIX)
            else
            begin
-             Gerador.wCampo(tcStr, '#', 'codBanco  ', 3, 05, 1, infBanc.codBanco, DSC_CODBANCO);
-             Gerador.wCampo(tcStr, '#', 'codAgencia', 1, 10, 1, infBanc.codAgencia, DSC_CODAGENCIA);
+             if infBanc.CNPJIPEF <> '' then
+               Gerador.wCampo(tcStr, '#', 'CNPJIPEF', 14, 14, 1, infBanc.CNPJIPEF, DSC_CNPJIPEF)
+             else
+             begin
+               Gerador.wCampo(tcStr, '#', 'codBanco  ', 3, 05, 1, infBanc.codBanco, DSC_CODBANCO);
+               Gerador.wCampo(tcStr, '#', 'codAgencia', 1, 10, 1, infBanc.codAgencia, DSC_CODAGENCIA);
+             end;
            end;
 
            Gerador.wGrupo('/infBanc');
@@ -322,10 +334,10 @@ var
 begin
   ArqEvento := TStringList.Create;
   try
-     ArqEvento.LoadFromFile(CaminhoArquivo);
-     Result := LerXMLFromString(ArqEvento.Text);
+    ArqEvento.LoadFromFile(CaminhoArquivo);
+    Result := LerXMLFromString(ArqEvento.Text);
   finally
-     ArqEvento.Free;
+    ArqEvento.Free;
   end;
 end;
 
@@ -410,7 +422,7 @@ begin
           idEstrangeiro := RetEventoMDFe.InfEvento.detEvento.infPag[i].idEstrangeiro;
           CNPJCPF       := RetEventoMDFe.InfEvento.detEvento.infPag[i].CNPJCPF;
 
-          for j := 0 to Comp.Count - 1 do
+          for j := 0 to RetEventoMDFe.InfEvento.detEvento.infPag[i].Comp.Count - 1 do
           begin
             Comp.New;
 
@@ -424,7 +436,7 @@ begin
 
           if indPag = ipPrazo then
           begin
-            for j := 0 to infPrazo.Count - 1 do
+            for j := 0 to RetEventoMDFe.InfEvento.detEvento.infPag[i].infPrazo.Count - 1 do
             begin
               infPrazo.New;
 
@@ -434,6 +446,7 @@ begin
             end;
           end;
 
+          infBanc.PIX        := RetEventoMDFe.InfEvento.detEvento.infPag[i].infBanc.PIX;
           infBanc.CNPJIPEF   := RetEventoMDFe.InfEvento.detEvento.infPag[i].infBanc.CNPJIPEF;
           infBanc.codBanco   := RetEventoMDFe.InfEvento.detEvento.infPag[i].infBanc.codBanco;
           infBanc.codAgencia := RetEventoMDFe.InfEvento.detEvento.infPag[i].infBanc.codAgencia;
@@ -605,12 +618,17 @@ begin
 
               if INIRec.SectionExists(sSecao) then
               begin
-                infBanc.CNPJIPEF := INIRec.ReadString(sSecao, 'CNPJIPEF', '');
+                infBanc.PIX := INIRec.ReadString(sSecao, 'PIX', '');
 
-                if infBanc.CNPJIPEF = '' then
+                if infBanc.PIX = '' then
                 begin
-                  infBanc.codBanco   := INIRec.ReadString(sSecao, 'codBanco', '');
-                  infBanc.codAgencia := INIRec.ReadString(sSecao, 'codAgencia', '');
+                  infBanc.CNPJIPEF := INIRec.ReadString(sSecao, 'CNPJIPEF', '');
+
+                  if infBanc.CNPJIPEF = '' then
+                  begin
+                    infBanc.codBanco   := INIRec.ReadString(sSecao, 'codBanco', '');
+                    infBanc.codAgencia := INIRec.ReadString(sSecao, 'codAgencia', '');
+                  end;
                 end;
               end;
             end;

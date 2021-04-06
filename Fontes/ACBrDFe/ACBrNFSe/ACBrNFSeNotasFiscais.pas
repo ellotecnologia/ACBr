@@ -37,7 +37,7 @@ unit ACBrNFSeNotasFiscais;
 interface
 
 uses
-  Classes, SysUtils, Dialogs, Forms, StrUtils,
+  Classes,
   ACBrNFSeConfiguracoes, ACBrDFeUtil, ACBrDFeSSL,
   pnfsNFSe, pnfsNFSeR, pnfsNFSeW, pcnConversao, pcnAuxiliar, pcnLeitor;
 
@@ -181,6 +181,7 @@ type
 implementation
 
 uses
+  SysUtils, StrUtils,
   ACBrNFSe, ACBrUtil, pnfsConversao, synautil;
 
 { NotaFiscal }
@@ -270,6 +271,7 @@ begin
       proSMARAPD: DocElemento := 'tbnfd';
       proGiap:    DocElemento := 'nfe';
       proInfiscv11: DocElemento := 'infNFSe';
+      proTecnos: DocElemento := 'tcDeclaracaoPrestacaoServico';
     else
       DocElemento := 'Rps';
     end;
@@ -292,7 +294,7 @@ begin
     if Configuracoes.Geral.ConfigAssinar.URI then
       IdAttr := Configuracoes.Geral.ConfigGeral.Identificador
     else
-      IdAttr := '';
+      IdAttr := 'ID';
 
     if Assina then
       FXMLAssinado := SSL.Assinar(String(XMLUTF8), DocElemento, InfElemento,
@@ -477,6 +479,23 @@ begin
     FNFSeW.NFSeWClass.Identificador := Configuracoes.Geral.ConfigGeral.Identificador;
     FNFSeW.NFSeWClass.QuebradeLinha := Configuracoes.Geral.ConfigGeral.QuebradeLinha;
     FNFSeW.NFSeWClass.URL           := Configuracoes.Geral.ConfigXML.NameSpace;
+
+    if Pos('%NomeURL_HP%', FNFSeW.NFSeWClass.URL) > 0 then
+    begin
+      if Configuracoes.WebServices.Ambiente = taHomologacao then
+        FNFSeW.NFSeWClass.URL := StringReplace(FNFSeW.NFSeWClass.URL, '%NomeURL_HP%', Configuracoes.Geral.xNomeURL_H, [rfReplaceAll])
+      else
+        FNFSeW.NFSeWClass.URL := StringReplace(FNFSeW.NFSeWClass.URL, '%NomeURL_HP%', Configuracoes.Geral.xNomeURL_P, [rfReplaceAll]);
+    end;
+
+    if Configuracoes.Geral.Provedor = proActconv202 then
+    begin
+      if Configuracoes.WebServices.Ambiente = taProducao then
+        FNFSeW.NFSeWClass.URL := StringReplace(FNFSeW.NFSeWClass.URL, '%Ambiente%', 'nfseserv', [rfReplaceAll])
+      else
+        FNFSeW.NFSeWClass.URL := StringReplace(FNFSeW.NFSeWClass.URL, '%Ambiente%', 'homologacao', [rfReplaceAll]);
+    end;
+
     FNFSeW.NFSeWClass.VersaoNFSe    := StrToVersaoNFSe(Ok, Configuracoes.Geral.ConfigXML.VersaoXML);
     FNFSeW.NFSeWClass.DefTipos      := Configuracoes.Geral.ConfigSchemas.DefTipos;
     FNFSeW.NFSeWClass.ServicoEnviar := Configuracoes.Geral.ConfigSchemas.ServicoEnviar;
@@ -529,7 +548,7 @@ end;
 
 function NotaFiscal.CorrigirAssinatura(const AXML: string): string;
 var
-  XML:string;
+  XML: string;
 begin
   with TACBrNFSe(TNotasFiscais(Collection).ACBrNFSe) do
   begin
@@ -725,7 +744,7 @@ begin
     if Configuracoes.Geral.ConfigAssinar.URI then
       IdAttr := Configuracoes.Geral.ConfigGeral.Identificador
     else
-      IdAttr := '';
+      IdAttr := 'ID';
 
     if Assina then
     begin
@@ -757,7 +776,7 @@ begin
     if Configuracoes.Geral.ConfigAssinar.URI then
       IdAttr := Configuracoes.Geral.ConfigGeral.Identificador
     else
-      IdAttr := '';
+      IdAttr := 'ID';
 
     if Assina then
     begin
@@ -935,7 +954,7 @@ var
   Ok: Boolean;
   AXML: AnsiString;
   N, TamTAG, i: integer;
-  TagF: Array[1..12] of String;
+  TagF: Array[1..13] of String;
 
   function PosNFSe: Integer;
   begin
@@ -951,6 +970,7 @@ var
     TagF[10] := '</nfeRpsNotaFiscal>'; // Provedor EL
     TagF[11] := '</notasFiscais>';     // Provedor EL
     TagF[12] := '</notaFiscal>';       // Provedor GIAP
+    TagF[13] := '</NOTA>';             // Provedor AssessorPublico
 
     i := 0;
 
@@ -976,20 +996,23 @@ var
     TamTAG := 5;
     if (VersaoNFSe < ve200) and (AProvedor <> proAgili) then
     begin
-      Result := Pos('</Rps>', AXMLString);
+      Result := 0;
+
+      if AProvedor = proGoverna then
+      begin
+        Result := Pos('</LoteRps>', AXMLString);
+        TamTAG := 9;
+      end;
+
+      if Result = 0 then
+        Result := Pos('</Rps>', AXMLString);
+
       // Provedor ISSDSF
       if Result = 0 then
         Result := Pos('</RPS>', AXMLString);
 
       if Result = 0 then  //Equiplano
         Result := Pos('</rps>', AXMLString);
-
-      // Provedor Governa
-      if ((Result = 0) and (AProvedor = proGoverna)) then
-      begin
-        Result := Pos('</LoteRps>', AXMLString);
-        TamTAG := 9;
-      end;
     end
     else
     begin

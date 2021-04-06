@@ -69,8 +69,9 @@ begin
   FReport.ShowProgress := AConfig.MostraStatus;
   FReport.PrintDialog := AConfig.MostraSetup and (not AConfig.MostraPreview);
 
-  if RLPrinter.PrinterName <> AConfig.Impressora then
-    RLPrinter.PrinterName := AConfig.Impressora;
+  if NaoEstaVazio(AConfig.Impressora) then
+    if RLPrinter.PrinterName <> AConfig.Impressora then
+      RLPrinter.PrinterName := AConfig.Impressora;
 
   if RLPrinter.SupportsDuplex Then
      RLPrinter.Duplex := false;
@@ -132,7 +133,11 @@ begin
     LogoStream := TStringStream.Create(ALogo);
     try
       try
-        ALogoImage.Picture.Bitmap.LoadFromStream(LogoStream);
+        {$if defined(DELPHIX_TOKYO_UP) or defined(FPC)}
+         ALogoImage.Picture.LoadFromStream(LogoStream);
+        {$Else}
+         ALogoImage.Picture.Bitmap.LoadFromStream(LogoStream);
+        {$IfEnd}
         Result := True;
       except
         ALogoImage.Picture := nil;

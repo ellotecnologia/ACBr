@@ -49,7 +49,7 @@ echo "****************************************"
 echo
 
 :TEFD
-$LAZRES ACBrTEFD.lrs TACBrTEFD.png
+$LAZRES ACBrTEFD.lrs TACBrTEFD.png TACBrPicPay.png TACBrPOS.png
 mv ACBrTEFD.lrs ../ACBrTEFD
 echo
 echo "****************************************"
@@ -191,6 +191,17 @@ echo "****************************************"
 echo "* Arquivo    ACBrNFSe.lrs     gerado    *"
 echo "****************************************"
 echo
+
+:PagFor
+$LAZRES ACBrPagFor.lrs TACBrPagFor.png 
+mv ACBrPagFor.lrs ../ACBrPagFor/
+
+echo
+echo "****************************************"
+echo "* Arquivo    ACBrPagFor.lrs     gerado    *"
+echo "****************************************"
+echo
+
 
 :CTe
 $LAZRES ACBrCTe.lrs TACBrCTe.png 

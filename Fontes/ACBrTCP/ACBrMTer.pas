@@ -30,13 +30,6 @@
 {       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
-{******************************************************************************
-|* Historico
-|*
-|* 11/05/2016: Elias César Vieira
-|*  - Primeira Versao ACBrMTer
-******************************************************************************}
-
 {$I ACBr.inc}
 
 unit ACBrMTer;
@@ -45,7 +38,7 @@ interface
 
 uses
   Classes, SysUtils,
-  {$IF DEFINED(NEXTGEN)}
+  {$IF DEFINED(HAS_SYSTEM_GENERICS)}
    System.Generics.Collections, System.Generics.Defaults,
   {$ELSEIF DEFINED(DELPHICOMPILER16_UP)}
    System.Contnrs,
@@ -160,7 +153,7 @@ type
 
   { TACBrMTerConexoes }
 
-  TACBrMTerConexoes = class(TObjectList{$IfDef NEXTGEN}<TACBrMTerConexao>{$EndIf})
+  TACBrMTerConexoes = class(TObjectList{$IfDef HAS_SYSTEM_GENERICS}<TACBrMTerConexao>{$EndIf})
   private
     fACBrMTer: TACBrMTer;
     function GetConexao(aIP: String): TACBrMTerConexao;

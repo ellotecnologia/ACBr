@@ -809,7 +809,7 @@ inherited frlDANFeRLRetrato: TfrlDANFeRLRetrato
         ParentFont = False
       end
       object rllNumNF1: TRLLabel
-        Left = 277
+        Left = 276
         Top = 82
         Width = 85
         Height = 16
@@ -852,13 +852,15 @@ inherited frlDANFeRLRetrato: TfrlDANFeRLRetrato
         HoldStyle = hsHorizontally
       end
       object rlbCodigoBarras: TRLBarcode
-        Left = 520
+        Left = 435
         Top = 5
-        Width = 132
+        Width = 298
         Height = 40
         Margins.LeftMargin = 1.000000000000000000
         Margins.RightMargin = 1.000000000000000000
         Alignment = taCenter
+        Anchors = [fkLeft, fkTop]
+        AutoSize = False
         BarcodeType = bcCode128C
       end
       object rllChaveAcesso: TRLLabel
@@ -1167,9 +1169,9 @@ inherited frlDANFeRLRetrato: TfrlDANFeRLRetrato
         BarcodeType = bcCode128C
       end
       object rllPageNumber: TRLSystemInfo
-        Left = 365
+        Left = 368
         Top = 82
-        Width = 37
+        Width = 34
         Height = 16
         Alignment = taRightJustify
         AutoSize = False
@@ -1180,7 +1182,7 @@ inherited frlDANFeRLRetrato: TfrlDANFeRLRetrato
         Font.Style = []
         Info = itPageNumber
         ParentFont = False
-        Text = 'FL. '
+        Text = 'fl. '
       end
       object rllLastPage: TRLSystemInfo
         Left = 402

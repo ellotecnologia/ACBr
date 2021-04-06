@@ -1,3 +1,42 @@
+{******************************************************************************}
+{ Projeto: Componentes ACBr                                                    }
+{  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
+{ mentos de Automação Comercial utilizados no Brasil                           }
+{                                                                              }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{															                                      				   }
+{  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
+{ Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
+{                                                                              }
+{  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la }
+{ sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela  }
+{ Free Software Foundation; tanto a versão 2.1 da Licença, ou (a seu critério) }
+{ qualquer versão posterior.                                                   }
+{                                                                              }
+{  Esta biblioteca é distribuída na expectativa de que seja útil, porém, SEM   }
+{ NENHUMA GARANTIA; nem mesmo a garantia implícita de COMERCIABILIDADE OU      }
+{ ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA. Consulte a Licença Pública Geral Menor}
+{ do GNU para mais detalhes. (Arquivo LICENÇA.TXT ou LICENSE.TXT)              }
+{                                                                              }
+{  Você deve ter recebido uma cópia da Licença Pública Geral Menor do GNU junto}
+{ com esta biblioteca; se não, escreva para a Free Software Foundation, Inc.,  }
+{ no endereço 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.          }
+{ Você também pode obter uma copia da licença em:                              }
+{ http://www.opensource.org/licenses/lgpl-license.php                          }
+{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
+{******************************************************************************}
+
+{******************************************************************************
+|* Historico
+|*
+|* 27/10/2015: Jean Carlo Cantu, Tiago Ravache
+|*  - Doação do componente para o Projeto ACBr
+|* 28/08/2017: Leivio Fontenele - leivio@yahoo.com.br
+|*  - Implementação comunicação, envelope, status e retorno do componente com webservice.
+******************************************************************************}
+
 unit Frm_ACBreSocial;
 
 interface
@@ -366,7 +405,7 @@ begin
             nrSiafi := '12345';
 
             infoEnte.nmEnte := 'Ente federativo teste';
-            infoEnte.uf := tpuf(ufSP);
+            infoEnte.uf := 'SP';
             infoEnte.vrSubteto := 100.00;
           end;
 
@@ -2319,7 +2358,7 @@ begin
 
           CNH.nrRegCnh := '999';
           CNH.DtExped := date;
-          CNH.ufCnh := tpuf(ufPR);
+          CNH.ufCnh := 'SP';
           CNH.DtValid := date;
           CNH.dtPriHab := date;
           CNH.categoriaCnh := tpCnh(cnA);
@@ -2336,7 +2375,7 @@ begin
             Bairro := 'CENTRO';
             Cep := '85500000';
             codMunic := 1234567;
-            uf := tpuf(ufPR);
+            uf := 'SP';
           end;
 
           with Exterior do
@@ -2495,7 +2534,7 @@ begin
               Bairro      := 'Bairro';
               Cep         := '85202630';
               CodMunic    := 1234567;
-              Uf          := tpuf(ufPR);
+              Uf          := 'SP';
             end;
           end;
 
@@ -2625,7 +2664,7 @@ begin
 
           CNH.nrRegCnh := '999';
           CNH.DtExped := date;
-          CNH.ufCnh := tpuf(ufPR);
+          CNH.ufCnh := 'SP';
           CNH.DtValid := date;
           CNH.dtPriHab := date;
           CNH.categoriaCnh := tpCnh(cnA);
@@ -2642,7 +2681,7 @@ begin
             Bairro := 'CENTRO';
             Cep := '85500000';
             codMunic := 11111;
-            uf := tpuf(ufPR);
+            uf := 'SP';
           end;
 
           with Exterior do
@@ -2879,7 +2918,7 @@ begin
           bairro := 'centro';
           cep := '14800000';
           codMunic := 3512345;
-          uf := tpuf(ufPR);
+          uf := 'SP';
           pais := '008';
           CodPostal := '6546';
 
@@ -3002,13 +3041,13 @@ begin
           Medico.nisMed := '12345612345';
           Medico.NmMed  := 'TESTE DE MEDICO EXAMINADOR';
           Medico.nrCRM  := '6655666';
-          Medico.ufCRM := tpuf(ufSP);
+          Medico.ufCRM := 'SP';
         end;
 
         RespMonit.cpfResp := '12345678901';
         RespMonit.nmResp := 'NOME DO RESPONSAVEL';
         RespMonit.nrCRM := '666566';
-        RespMonit.ufCRM := tpuf(ufPR);
+        RespMonit.ufCRM := 'SP';
       end;
     end;
   end;
@@ -3127,7 +3166,7 @@ begin
             nmEmit := 'Nome do emitente na alteração';
             ideOC := idCRM;
             NrOc := '12313';
-            ufOC := ufSP;
+            ufOC := 'SP';
           end;
         end;
 
@@ -3233,7 +3272,7 @@ begin
           ideOC   := idOutros;
           dscOC   := 'ORGAO';
           NrOc    := '51561561';
-          ufOC    := ufSP;
+          ufOC    := 'SP';
         end;
 
         obs.metErg   := 'METODOLOGIA';
@@ -3384,7 +3423,7 @@ begin
             Bairro      := 'Bairro';
             Cep         := '35570000';
             CodMunic    := 3126109;
-            UF          := ufMG;
+            UF          := 'SP';
           end;
         end;
       end;
@@ -3674,7 +3713,7 @@ begin
 
           CNH.nrRegCnh := '123654789632';
           CNH.DtExped := date;
-          CNH.ufCnh := ufPR;
+          CNH.ufCnh := 'SP';
           CNH.DtValid := date;
           CNH.dtPriHab := date;
           CNH.categoriaCnh := cnAB;
@@ -3689,7 +3728,7 @@ begin
           Brasil.Bairro := 'Jd Filosofia';
           Brasil.Cep := '88888888';
           Brasil.codMunic := 4141414;
-          Brasil.uf := ufPR;
+          Brasil.uf := 'SP';
 
           // Dados de trabalhador estrangeiro
           Exterior.PaisResid := '063';
@@ -3821,7 +3860,7 @@ begin
               Bairro := 'Bairro Empresarial';
               Cep := '86086086';
               codMunic := 4141414;
-              uf := ufPR;
+              uf := 'SP';
             end;
 
             supervisorEstagio.cpfSupervisor := '88888888801';
@@ -3895,7 +3934,7 @@ begin
               Bairro := 'Bairro Empresarial';
               Cep := '86086086';
               codMunic := 4141414;
-              uf := ufPR;
+              uf := 'SP';
             end;
 
             supervisorEstagio.cpfSupervisor := '12345678901';
@@ -4067,7 +4106,7 @@ begin
               Bairro := 'Jd Filosofia';
               Cep := '88888888';
               codMunic := 4141414;
-              uf := ufPR;
+              uf := 'SP';
             end;
 
             // Dados de trabalhador estrangeiro
@@ -4730,16 +4769,20 @@ end;
 procedure TfrmACBreSocial.btnCarregarXMLClick(Sender: TObject);
 var
   i: Integer;
+  LidoXML: Boolean;
 begin
-  OpenDialog1.Title := 'Selecione o Evento (Arquivo XML)';
-  OpenDialog1.DefaultExt := '*.xml';
-  OpenDialog1.Filter :=
-    'Arquivos XML (*.xml)|*.xml|Todos os Arquivos (*.*)|*.*';
-  OpenDialog1.InitialDir := ACBreSocial1.Configuracoes.Arquivos.PathSalvar;
+  repeat
+    OpenDialog1.Title := 'Selecione o Evento (Arquivo XML)';
+    OpenDialog1.DefaultExt := '*.xml';
+    OpenDialog1.Filter :=
+      'Arquivos XML (*.xml)|*.xml|Todos os Arquivos (*.*)|*.*';
+    OpenDialog1.InitialDir := ACBreSocial1.Configuracoes.Arquivos.PathSalvar;
 
-  if OpenDialog1.Execute then
-    ACBreSocial1.Eventos.LoadFromFile(OpenDialog1.FileName);
+    LidoXML := OpenDialog1.Execute;
 
+    if LidoXML then
+      ACBreSocial1.Eventos.LoadFromFile(OpenDialog1.FileName);
+  until not LidoXML;
 
   MemoResp.Clear;
   MemoResp.Lines.Clear;

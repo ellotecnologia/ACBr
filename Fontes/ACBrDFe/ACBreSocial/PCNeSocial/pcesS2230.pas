@@ -30,6 +30,15 @@
 {       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
+{******************************************************************************
+|* Historico
+|*
+|* 27/10/2015: Jean Carlo Cantu, Tiago Ravache
+|*  - Doação do componente para o Projeto ACBr
+|* 28/08/2017: Leivio Fontenele - leivio@yahoo.com.br
+|*  - Implementação comunicação, envelope, status e retorno do componente com webservice.
+******************************************************************************}
+
 {$I ACBr.inc}
 
 unit pcesS2230;
@@ -38,13 +47,13 @@ interface
 
 uses
   SysUtils, Classes,
-  {$IF DEFINED(NEXTGEN)}
+  {$IF DEFINED(HAS_SYSTEM_GENERICS)}
    System.Generics.Collections, System.Generics.Defaults,
   {$ELSEIF DEFINED(DELPHICOMPILER16_UP)}
    System.Contnrs,
   {$IfEnd}
   ACBrBase,
-  pcnConversao, pcnGerador, ACBrUtil,
+  pcnConversao, pcnGerador, ACBrUtil, pcnConsts,
   pcesCommon, pcesConversaoeSocial, pcesGerador;
 
 type
@@ -201,14 +210,14 @@ type
     FNmEmit: string;
     FIdeOC: tpIdeOC;
     FNrOc: string;
-    FUfOc: tpuf;
+    FUfOc: string;
   public
     property codCID: String read FCodCID write FCodCID;
     property qtdDiasAfast: integer read FQtdDiasAfast write FQtdDiasAfast;
     property nmEmit: string read FNmEmit write FNmEmit;
     property ideOC: tpIdeOC read FIdeOC write FIdeOC;
     property nrOc: String read FNrOc write FNrOc;
-    property ufOC: tpuf read FUfOc write FUfOc;
+    property ufOC: string read FUfOc write FUfOc;
   end;
 
   TaltAfastamento = class(TObject) //alteração do motivo do afastamento
@@ -478,7 +487,11 @@ begin
 
     Gerador.wCampo(tcStr, '', 'observacao', 1, 255, 0, objInfoAfast.iniAfastamento.Observacao);
 
-    if objInfoAfast.iniAfastamento.infoAtestadoInst then
+    // Critério de geração: F (Se {codMotAfast} = [01, 03, 35]); N (Nos demais casos)
+    if ((objInfoAfast.iniAfastamento.infoAtestadoInst) and
+        (objInfoAfast.iniAfastamento.codMotAfast in [mtvAcidenteDoencaTrabalho,
+                                                   mtvAcidenteDoencaNaoTrabalho,
+                             mtvLicencaMaternidadeAntecipacaoProrrogacao])) then
       GerarInfoAtestado(objInfoAfast.iniAfastamento.infoAtestado);
 
     if Assigned(objInfoAfast.iniAfastamento.infoCessao) then
@@ -508,7 +521,7 @@ begin
     Gerador.wGrupo('infoAtestado');
 
     Gerador.wCampo(tcStr, '', 'codCID',       1, 4, 0, objInfoAtestado[i].codCID);
-    Gerador.wCampo(tcInt, '', 'qtdDiasAfast', 1, 3, 1, objInfoAtestado[i].qtDiasAfast);
+    Gerador.wCampo(tcInt, '', 'qtdDiasAfast', 1, 3, 0, objInfoAtestado[i].qtDiasAfast);
 
     if objInfoAtestado[i].emitenteInst then
       GerarEmitente(objInfoAtestado[i].Emitente, teS2230);
@@ -585,7 +598,7 @@ begin
     Gerador.wCampo(tcStr, '', 'nmEmit', 0,0,0, pAltEmpr.nmEmit);
     Gerador.wCampo(tcInt, '', 'ideOC', 0,0,0, eSIdeOCToStr(pAltEmpr.ideOC));
     Gerador.wCampo(tcStr, '', 'nrOc', 0,0,0, pAltEmpr.nrOc);
-    Gerador.wCampo(tcStr, '', 'ufOC', 0,0,0, eSufToStr(pAltEmpr.ufOC));
+    Gerador.wCampo(tcStr, '', 'ufOC', 0,0,0, pAltEmpr.ufOC);
   Gerador.wGrupo('/altEmpr');
 end;
 *)
@@ -712,7 +725,7 @@ begin
           emitente.nmEmit := INIRec.ReadString(sSecao, 'nmEmit', EmptyStr);
           emitente.ideOC  := eSStrToIdeOC(Ok, INIRec.ReadString(sSecao, 'ideOC', '1'));
           emitente.nrOc   := INIRec.ReadString(sSecao, 'nrOc', EmptyStr);
-          emitente.ufOC   := INIRec.ReadString(sSecao, 'ufOC', 'SP'); //eSStrTouf(Ok, INIRec.ReadString(sSecao, 'ufOC', 'SP'));
+          emitente.ufOC   := INIRec.ReadString(sSecao, 'ufOC', 'SP');
         end;
 
         Inc(I);

@@ -38,7 +38,7 @@ interface
 
 uses
   Classes, SysUtils,
-  ACBrDFe, ACBrDFeWebService,
+  ACBrDFe, ACBrDFeWebService, pcnConsts,
   ACBrCIOTContratos, ACBrCIOTConfiguracoes,
   pcnAuxiliar, pcnConversao, pcnConversaoCIOT, pcnCIOT, pcnRetEnvCIOT;
 
@@ -56,8 +56,6 @@ type
     FPLayout: TLayOutCIOT;
     FPConfiguracoesCIOT: TConfiguracoesCIOT;
 
-    function ExtrairModeloChaveAcesso(AChaveCIOT: String): String;
-
   protected
     procedure InicializarServico; override;
     procedure DefinirEnvelopeSoap; override;
@@ -71,7 +69,7 @@ type
     procedure Clear; override;
 
     property Status: TStatusACBrCIOT read FPStatus;
-    property Layout: TLayOutCIOT read FPLayout;
+    property Layout: TLayOutCIOT     read FPLayout;
   end;
 
   { TCIOTEnviar }
@@ -81,6 +79,7 @@ type
     FContratos: TContratos;
     FRetornoEnvio: TRetornoEnvio;
     FCodRetorno: Integer;
+    FNomePDF: string;
   protected
     procedure DefinirServicoEAction; override;
     procedure DefinirDadosMsg; override;
@@ -98,8 +97,8 @@ type
 
     property RetornoEnvio: TRetornoEnvio read FRetornoEnvio;
     property CodRetorno: Integer         read FCodRetorno     write FCodRetorno;
+    property NomePDF: string             read FNomePDF        write FNomePDF;
   end;
-
 
   { TCIOTEnvioWebService }
 
@@ -123,8 +122,8 @@ type
     function Executar: Boolean; override;
     procedure Clear; override;
 
-    property XMLEnvio: String read FXMLEnvio write FXMLEnvio;
-    property URLEnvio: String read FPURLEnvio write FPURLEnvio;
+    property XMLEnvio: String        read FXMLEnvio        write FXMLEnvio;
+    property URLEnvio: String        read FPURLEnvio       write FPURLEnvio;
     property SoapActionEnvio: String read FSoapActionEnvio write FSoapActionEnvio;
   end;
 
@@ -139,10 +138,10 @@ type
     constructor Create(AOwner: TACBrDFe); overload;
     destructor Destroy; override;
 
-    function Envia: Boolean;
+    function Envia(const ANomePDF: String = ''): Boolean;
 
-    property ACBrCIOT: TACBrDFe read FACBrCIOT write FACBrCIOT;
-    property CIOTEnviar: TCIOTEnviar read FCIOTEnviar write FCIOTEnviar;
+    property ACBrCIOT: TACBrDFe                   read FACBrCIOT         write FACBrCIOT;
+    property CIOTEnviar: TCIOTEnviar              read FCIOTEnviar       write FCIOTEnviar;
     property EnvioWebService: TCIOTEnvioWebService read FEnvioWebService write FEnvioWebService;
   end;
 
@@ -174,16 +173,6 @@ begin
   inherited Clear;
 
   FPStatus := stCIOTIdle;
-end;
-
-function TCIOTWebService.ExtrairModeloChaveAcesso(AChaveCIOT: String): String;
-begin
-  AChaveCIOT := OnlyNumber(AChaveCIOT);
-
-  if ValidarChave('CIOT' + AChaveCIOT) then
-    Result := copy(AChaveCIOT, 21, 2)
-  else
-    Result := '';
 end;
 
 procedure TCIOTWebService.InicializarServico;
@@ -232,11 +221,6 @@ begin
 
   TACBrCIOT(FPDFeOwner).LerServicoDeParams(FPLayout, Versao, FPURL);
   FPVersaoServico := FloatToString(Versao, '.', '0.00');
-
-  // Se o componente estiver configurado para não usar o certificado digital é
-  // preciso trocar o https por http.
-  if not FPDFeOwner.SSL.UseCertificateHTTP then
-    FPURL := StringReplace(FPURL, 'https://', 'http://', [rfReplaceAll]);
 end;
 
 function TCIOTWebService.GerarVersaoDadosSoap: String;
@@ -338,6 +322,7 @@ var
   LeitorXML: TLeitor;
 begin
   LeitorXML := TLeitor.Create;
+
   try
     LeitorXML.Arquivo := FXMLEnvio;
     LeitorXML.Grupo := FXMLEnvio;
@@ -385,8 +370,10 @@ begin
   inherited Destroy;
 end;
 
-function TWebServices.Envia: Boolean;
+function TWebServices.Envia(const ANomePDF: String = ''): Boolean;
 begin
+  CIOTEnviar.NomePDF := ANomePDF;
+
   if not CIOTEnviar.Executar then
     CIOTEnviar.GerarException( CIOTEnviar.Msg );
 
@@ -683,8 +670,14 @@ begin
 
   if FRetornoEnvio.RetEnvio.PDF <> '' then
   begin
-    NomeArq := GerarPathDownload + FRetornoEnvio.RetEnvio.ProtocoloServico + '.pdf';
+    if FNomePDF = '' then
+      NomeArq := PathWithDelim(GerarPathDownload) + FRetornoEnvio.RetEnvio.ProtocoloServico + '.pdf'
+    else
+      NomeArq := PathWithDelim(GerarPathDownload) + FNomePDF + '.pdf';
+
     WriteToTXT(NomeArq, FRetornoEnvio.RetEnvio.PDF, False, False, True);
+
+    FRetornoEnvio.RetEnvio.PDFNomeArquivo := NomeArq;
   end;
 
   FPMsg := '';

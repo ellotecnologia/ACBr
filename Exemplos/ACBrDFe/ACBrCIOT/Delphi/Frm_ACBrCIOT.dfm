@@ -336,22 +336,13 @@ object frmACBrCIOT: TfrmACBrCIOT
                 TabOrder = 2
               end
             end
-            object btnHTTPS: TButton
-              Left = 8
-              Top = 403
-              Width = 128
-              Height = 25
-              Caption = 'HTTPS sem Certificado'
-              TabOrder = 7
-              OnClick = btnHTTPSClick
-            end
             object btnLeituraX509: TButton
               Left = 144
               Top = 403
               Width = 115
               Height = 25
               Caption = 'Leitura de X509'
-              TabOrder = 8
+              TabOrder = 7
               OnClick = btnLeituraX509Click
             end
             object cbSSLLib: TComboBox
@@ -360,7 +351,7 @@ object frmACBrCIOT: TfrmACBrCIOT
               Width = 160
               Height = 21
               Style = csDropDownList
-              TabOrder = 9
+              TabOrder = 8
               OnChange = cbSSLLibChange
             end
             object cbCryptLib: TComboBox
@@ -369,7 +360,7 @@ object frmACBrCIOT: TfrmACBrCIOT
               Width = 160
               Height = 21
               Style = csDropDownList
-              TabOrder = 10
+              TabOrder = 9
               OnChange = cbCryptLibChange
             end
             object cbHttpLib: TComboBox
@@ -378,7 +369,7 @@ object frmACBrCIOT: TfrmACBrCIOT
               Width = 160
               Height = 21
               Style = csDropDownList
-              TabOrder = 11
+              TabOrder = 10
               OnChange = cbHttpLibChange
             end
             object cbXmlSignLib: TComboBox
@@ -387,7 +378,7 @@ object frmACBrCIOT: TfrmACBrCIOT
               Width = 160
               Height = 21
               Style = csDropDownList
-              TabOrder = 12
+              TabOrder = 11
               OnChange = cbXmlSignLibChange
             end
           end
@@ -616,9 +607,9 @@ object frmACBrCIOT: TfrmACBrCIOT
               object Label6: TLabel
                 Left = 8
                 Top = 16
-                Width = 121
+                Width = 126
                 Height = 13
-                Caption = 'Selecione UF de Destino:'
+                Caption = 'Selecione UF do Emitente:'
                 Font.Charset = DEFAULT_CHARSET
                 Font.Color = clWindowText
                 Font.Height = -11
@@ -1327,7 +1318,7 @@ object frmACBrCIOT: TfrmACBrCIOT
       Top = 1
       Width = 567
       Height = 248
-      ActivePage = tsEnvios
+      ActivePage = tsOperacao
       Align = alTop
       TabOrder = 0
       object tsOperacao: TTabSheet
@@ -1356,7 +1347,8 @@ object frmACBrCIOT: TfrmACBrCIOT
             'Cancelar Pag. Progr. para uma Oper. de Trans.'
             'Encerrar uma Opera'#231#227'o de Transporte'
             'Logout (Necess'#225'rio se usado sem Cert.)'
-            'Consultar Tipos de Carga')
+            'Consultar Tipos de Carga'
+            'Alterar Data de Libera'#231#227'o de Pagamento')
           TabOrder = 0
         end
       end
@@ -1389,6 +1381,24 @@ object frmACBrCIOT: TfrmACBrCIOT
           Caption = 'Enviar Ciot Email'
           TabOrder = 2
           OnClick = btnEnviarCiotEmailClick
+        end
+        object Button1: TButton
+          Left = 9
+          Top = 46
+          Width = 177
+          Height = 25
+          Caption = 'Consultar por descri'#231#227'o'
+          TabOrder = 3
+          OnClick = btnGerarCIOTClick
+        end
+        object Button2: TButton
+          Left = 9
+          Top = 77
+          Width = 177
+          Height = 25
+          Caption = 'Consultar por Codigo'
+          TabOrder = 4
+          OnClick = Button2Click
         end
       end
     end
@@ -1516,6 +1526,7 @@ object frmACBrCIOT: TfrmACBrCIOT
     Configuracoes.Geral.SSLHttpLib = httpNone
     Configuracoes.Geral.SSLXmlSignLib = xsNone
     Configuracoes.Geral.FormatoAlerta = 'TAG:%TAGNIVEL% ID:%ID%/%TAG%(%DESCRICAO%) - %MSG%.'
+    Configuracoes.Geral.RetirarAcentos = False
     Configuracoes.Geral.Integradora = ieFrete
     Configuracoes.Arquivos.OrdenacaoPath = <>
     Configuracoes.WebServices.UF = 'SP'

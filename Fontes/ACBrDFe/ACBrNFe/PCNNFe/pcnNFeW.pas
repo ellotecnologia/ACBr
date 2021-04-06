@@ -138,6 +138,7 @@ type
     procedure GerarTranspReboque;
     procedure GerarTranspVol;
     procedure GerarTranspVolLacres(i: Integer);
+    procedure GerarInfIntermed;
     procedure GerarInfAdic;
     procedure GerarInfAdicObsCont;
     procedure GerarInfAdicObsFisco;
@@ -233,6 +234,7 @@ var
   Gerar: Boolean;
   xProtNFe : String;
   xCNPJCPF : string;
+  qrCode: string;
 begin
   Gerador.ListaDeAlertas.Clear;
 
@@ -275,8 +277,11 @@ begin
   if nfe.infNFeSupl.qrCode <> '' then
   begin
     Gerador.wGrupo('infNFeSupl');
-    Gerador.wCampo(tcStr, 'ZX02', 'qrCode', 100, 600, 1,
-                     '<![CDATA[' + nfe.infNFeSupl.qrCode + ']]>', DSC_INFQRCODE,False);
+
+    qrCode := nfe.infNFeSupl.qrCode;
+    if Pos('?p=', qrCode) = 0 then
+      qrCode := '<![CDATA[' + qrCode + ']]>';
+    Gerador.wCampo(tcStr, 'ZX02', 'qrCode', 100, 600, 1, qrCode, DSC_INFQRCODE,False);
 
     if nfe.infNFe.Versao >= 4 then
       Gerador.wCampo(tcStr, 'ZX03', 'urlChave', 21, 85, 1, nfe.infNFeSupl.urlChave, DSC_URLCHAVE, False);
@@ -353,6 +358,9 @@ begin
       (nfe.infNFe.Versao >= 4) then
     Gerarpag;
 
+  if NFe.infNFe.Versao >= 4 then
+    GerarInfIntermed;
+
   GerarInfAdic;
   GerarExporta;
   GerarCompra;
@@ -417,9 +425,12 @@ begin
 
   if nfe.infNFe.Versao >= 3 then
    begin
-    Gerador.wCampo(tcStr, 'B25a', 'indFinal', 01, 01, 1, ConsumidorFinalToStr(nfe.Ide.indFinal), DSC_INDFINAL);
-    Gerador.wCampo(tcStr, 'B25b', 'indPres ', 01, 01, 1, PresencaCompradorToStr(nfe.Ide.indPres), DSC_INDPRES);
+    Gerador.wCampo(tcStr, 'B25a', 'indFinal   ', 01, 01, 1, ConsumidorFinalToStr(nfe.Ide.indFinal), DSC_INDFINAL);
+    Gerador.wCampo(tcStr, 'B25b', 'indPres    ', 01, 01, 1, PresencaCompradorToStr(nfe.Ide.indPres), DSC_INDPRES);
    end;
+
+  if nfe.infNFe.Versao >= 4 then
+    Gerador.wCampo(tcStr, 'B25b', 'indIntermed', 01, 01, 0, IndIntermedToStr(nfe.Ide.indIntermed), DSC_INDINTERMED);
 
   Gerador.wCampo(tcStr, 'B26', 'procEmi', 01, 01, 1, procEmiToStr(nfe.Ide.procEmi), DSC_PROCEMI);
   Gerador.wCampo(tcStr, 'B27', 'verProc', 01, 20, 1, nfe.Ide.verProc, DSC_VERPROC);
@@ -826,15 +837,14 @@ begin
   Gerador.wGrupo('prod', 'I01');
   Gerador.wCampo(tcStr, 'I02 ', 'cProd   ', 01, 60, 1, nfe.Det[i].Prod.cProd, DSC_CPROD);
 
-  // Implementação futura - regra de validação somente em 01/12/2018
-//  if (NFe.infNFe.Versao >= 4) and (trim(nfe.Det[i].Prod.cEAN) = '') then
-//    nfe.Det[i].Prod.cEAN := SEMGTIN;
+  if (NFe.infNFe.Versao >= 4) and (trim(nfe.Det[i].Prod.cEAN) = '') then
+    nfe.Det[i].Prod.cEAN := SEMGTIN;
 
   Gerador.wCampo(tcStr, 'I03 ', 'cEAN', 00, 14, 1, nfe.Det[i].Prod.cEAN, DSC_CEAN);
 
   if (nfe.Det[i].Prod.cEAN <> SEMGTIN) and (nfe.Det[i].Prod.cEAN <> '') then
   begin
-    ErroValidarGTIN := ValidarGTIN(nfe.Det[i].Prod.cEAN);
+    ErroValidarGTIN := ACBrStrToAnsi( ValidarGTIN(nfe.Det[i].Prod.cEAN) );
     if ErroValidarGTIN <> '' then
       Gerador.wAlerta('I03', 'cEAN', DSC_CEAN, ErroValidarGTIN);
   end;
@@ -844,6 +854,9 @@ begin
   else
     Gerador.wCampo(tcStr, 'I04 ', 'xProd   ', 1, 120, 1, nfe.Det[i].Prod.xProd, DSC_XPROD);
   Gerador.wCampo(tcStr, 'I05 ', 'NCM     ', 02, 08,   IIf(NFe.infNFe.Versao >= 2,1,0), nfe.Det[i].Prod.NCM, DSC_NCM);
+  if not (Length(OnlyNumber(nfe.Det[i].Prod.NCM)) in [2, 8]) then
+    Gerador.wAlerta('I05', 'NCM', DSC_NCM, ERR_MSG_INVALIDO);
+
   {**}GerarDetProdNVE(i);
 
   if NFe.infNFe.Versao >= 4 then
@@ -867,15 +880,14 @@ begin
   Gerador.wCampo(IIf(NFe.infNFe.Versao >= 2,tcDe10,tcDe4),'I10a', 'vUnCom  ', 00, 21, 1, nfe.Det[i].Prod.vUnCom, DSC_VUNCOM);
   Gerador.wCampo(tcDe2, 'I11 ', 'vProd   ', 00, 15, 1, nfe.Det[i].Prod.vProd, DSC_VPROD);
 
-  // Implementação futura - regra de validação somente em 01/12/2018
-//  if (NFe.infNFe.Versao >= 4) and (trim(nfe.Det[i].Prod.cEANTrib) = '') then
-//    nfe.Det[i].Prod.cEANTrib := SEMGTIN;
+  if (NFe.infNFe.Versao >= 4) and (trim(nfe.Det[i].Prod.cEANTrib) = '') then
+    nfe.Det[i].Prod.cEANTrib := SEMGTIN;
 
   Gerador.wCampo(tcStr, 'I12 ', 'cEANTrib', 00, 14, 1, nfe.Det[i].Prod.cEANTrib, DSC_CEANTRIB);
 
   if (nfe.Det[i].Prod.cEANTrib <> SEMGTIN) and (nfe.Det[i].Prod.cEANTrib <> '') then
   begin
-    ErroValidarGTIN := ValidarGTIN(nfe.Det[i].Prod.cEANTrib);
+    ErroValidarGTIN := ACBrStrToAnsi( ValidarGTIN(nfe.Det[i].Prod.cEANTrib) );
     if ErroValidarGTIN <> '' then
       Gerador.wAlerta('I12', 'cEANTrib', DSC_CEANTRIB, ErroValidarGTIN);
   end;
@@ -916,8 +928,9 @@ begin
     Gerador.wGrupo('DI', 'I18');
     Gerador.wCampo(tcStr, 'I19', 'nDI', 01, 12, 1, nfe.Det[i].Prod.DI[j].nDI, DSC_NDI);
 
-    if not ValidaDIRE(nfe.Det[i].Prod.DI[j].nDI) and not ValidaDIDSI(nfe.Det[i].Prod.DI[j].nDI) then
-      Gerador.wAlerta('I19', 'nDI', DSC_NDI, ERR_MSG_INVALIDO);
+    // RV I19-10 consta como implementação futura
+    // if not ValidaDIRE(nfe.Det[i].Prod.DI[j].nDI) and not ValidaDIDSI(nfe.Det[i].Prod.DI[j].nDI) then
+    //   Gerador.wAlerta('I19', 'nDI', DSC_NDI, ERR_MSG_INVALIDO);
 
     Gerador.wCampo(tcDat, 'I20', 'dDI        ', 10, 10, 1, nfe.Det[i].Prod.DI[j].dDI, DSC_DDi);
     Gerador.wCampo(tcStr, 'I21', 'xLocDesemb ', 01, 60, 1, nfe.Det[i].Prod.DI[j].xLocDesemb, DSC_XLOCDESEMB);
@@ -1039,11 +1052,11 @@ begin
     Gerador.wGrupo('veicProd', 'J01');
     Gerador.wCampo(tcStr, 'J02', 'tpOp    ', 01, 01, 1, tpOPToStr(nfe.Det[i].Prod.veicProd.tpOP), DSC_TPOP);
     Gerador.wCampo(tcStr, 'J03', 'chassi  ', 17, 17, 1, nfe.Det[i].Prod.veicProd.chassi, DSC_CHASSI);
-    Gerador.wCampo(tcStr, 'J04', 'cCor    ', 04, 04, 1, nfe.Det[i].Prod.veicProd.cCor, DSC_CCOR);
+    Gerador.wCampo(tcStr, 'J04', 'cCor    ', 01, 04, 1, nfe.Det[i].Prod.veicProd.cCor, DSC_CCOR);
     Gerador.wCampo(tcStr, 'J05', 'xCor    ', 01, 40, 1, nfe.Det[i].Prod.veicProd.xCor, DSC_XCOR);
     Gerador.wCampo(tcStr, 'J06', 'pot     ', 01, 04, 1, nfe.Det[i].Prod.veicProd.pot, DSC_POT);
     if NFe.infNFe.Versao >= 2 then
-       Gerador.wCampo(tcStr, 'J07', 'cilin   ', 04, 04, 1, nfe.Det[i].Prod.veicProd.cilin, DSC_CILIN)
+       Gerador.wCampo(tcStr, 'J07', 'cilin   ', 01, 04, 1, nfe.Det[i].Prod.veicProd.cilin, DSC_CILIN)
     else
        Gerador.wCampo(tcStr, 'J07', 'CM3     ', 04, 04, 1, nfe.Det[i].Prod.veicProd.cilin, DSC_CILIN);
     Gerador.wCampo(tcStr, 'J08', 'pesoL   ', 00, 09, 1, nfe.Det[i].Prod.veicProd.pesoL, DSC_PESOL);
@@ -1052,7 +1065,7 @@ begin
     Gerador.wCampo(tcStr, 'J11', 'tpComb  ', 02, 02, 1, nfe.Det[i].Prod.veicProd.tpComb, DSC_TPCOMB);
     Gerador.wCampo(tcStr, 'J12', 'nMotor  ', 00, 21, 1, nfe.Det[i].Prod.veicProd.nMotor, DSC_NMOTOR);
     if NFe.infNFe.Versao >= 2 then
-       Gerador.wCampo(tcStr, 'J13', 'CMT     ', 09, 09, 1, nfe.Det[i].Prod.veicProd.CMT, DSC_CMT)
+       Gerador.wCampo(tcStr, 'J13', 'CMT     ', 01, 09, 1, nfe.Det[i].Prod.veicProd.CMT, DSC_CMT)
     else
        Gerador.wCampo(tcStr, 'J13', 'CMKG    ', 09, 09, 1, nfe.Det[i].Prod.veicProd.CMT, DSC_CMT);
     Gerador.wCampo(tcStr, 'J14', 'dist    ', 00, 04, 1, nfe.Det[i].Prod.veicProd.dist, DSC_DIST);
@@ -1188,7 +1201,7 @@ begin
         else
           Gerador.wCampo(tcDe4, 'LA03c', 'pGNi', 01,  7, 1, nfe.Det[i].Prod.comb.pGNi, DSC_PGNI);
 
-        Gerador.wCampo(tcDe2, 'LA03d', 'vPart ', 01, 15, 0, nfe.Det[i].Prod.comb.vPart, DSC_VPART);
+        Gerador.wCampo(tcDe2, 'LA03d', 'vPart', 01, 15, 1, nfe.Det[i].Prod.comb.vPart, DSC_VPART);
       end;
     end;
 
@@ -2596,6 +2609,17 @@ begin
       Gerador.wCampo(tcStr, 'Z12', 'indProc', 01, 01, 1, indProcToStr(nfe.InfAdic.procRef[i].indProc), DSC_INDPROC);
       Gerador.wGrupo('/procRef');
     end;
+  end;
+end;
+
+procedure TNFeW.GerarInfIntermed;
+begin
+  if trim(nfe.infIntermed.CNPJ) + trim(nfe.infIntermed.idCadIntTran) <> '' then
+  begin
+    Gerador.wGrupo('infIntermed', 'YB01');
+    Gerador.wCampo(tcStr, 'YB02', 'CNPJ        ', 14, 14, 1, nfe.infIntermed.CNPJ, DSC_CNPJINTERM);
+    Gerador.wCampo(tcStr, 'YB03', 'idCadIntTran', 02, 60, 1, nfe.infIntermed.idCadIntTran, DSC_IDCADINTERM);
+    Gerador.wGrupo('/infIntermed');
   end;
 end;
 

@@ -39,7 +39,7 @@ interface
 
 uses
   SysUtils, Classes,
-  {$IF DEFINED(NEXTGEN)}
+  {$IF DEFINED(HAS_SYSTEM_GENERICS)}
    System.Generics.Collections, System.Generics.Defaults,
   {$ELSEIF DEFINED(DELPHICOMPILER16_UP)}
    System.Contnrs,
@@ -119,6 +119,8 @@ type
     FValorICMS: Currency;
     FVersao: TVersaoGNRE;
     FXML: string;
+    FNomeArq: string;
+    FTXT: string;
   public
     property Identificador: Integer read FIdentificador write FIdentificador;
     property SequencialGuia: Integer read FSequencialGuia write FSequencialGuia;
@@ -161,6 +163,8 @@ type
     property ValorICMS: Currency read FValorICMS write FValorICMS;
     property Versao: TVersaoGNRE read FVersao write FVersao;
     property XML: string read FXML write FXML;
+    property NomeArq: string read FNomeArq write FNomeArq;
+    property TXT: string read FTXT write FTXT;
   end;
 
   TGuiaCollection = class(TACBrObjectList)
@@ -216,7 +220,7 @@ type
     property resultado: string read Fresultado write Fresultado;
     property resInfoCabec: TInfoCabec read FresInfoCabec write FresInfoCabec;
     property resGuia: TGuiaCollection read FresGuia write FresGuia;
-    property resRejeicaGuia: TRejeicaoGuiaCollection read FresRejeicaoGuia write FresRejeicaoGuia;
+    property resRejeicaoGuia: TRejeicaoGuiaCollection read FresRejeicaoGuia write FresRejeicaoGuia;
   end;
 
 implementation
@@ -321,18 +325,29 @@ begin
   begin
     FAmbiente     := StrToTpAmb(ok, Leitor.rCampo(tcStr, 'ambiente'));
     FnumeroRecibo := Leitor.rCampo(tcStr, 'numeroRecibo');
-    Fresultado    := Leitor.rCampo(tcStr, 'resultado');
 
-    if Leitor.rExtrai(2, 'situacaoProcess') <> '' then
+    if (Pos('versao="2.00"', Leitor.Grupo) > 0) then
     begin
-      Fcodigo    := Leitor.rCampo(tcInt, 'codigo');
-      Fdescricao := Leitor.rCampo(tcStr, 'descricao');
-    end;
+      if Leitor.rExtrai(2, 'situacaoProcess') <> '' then
+      begin
+        Fcodigo    := Leitor.rCampo(tcInt, 'codigo');
+        Fdescricao := Leitor.rCampo(tcStr, 'descricao');
+      end;
 
-    if (Fresultado <> '') and (Pos('versao="2.00"', Fresultado) > 0) then
-      Result := Ler_Versao_2
+      Result := Ler_Versao_2;
+    end
     else
+    begin
+      Fresultado    := Leitor.rCampo(tcStr, 'resultado');
+
+      if Leitor.rExtrai(2, 'situacaoProcess') <> '' then
+      begin
+        Fcodigo    := Leitor.rCampo(tcInt, 'codigo');
+        Fdescricao := Leitor.rCampo(tcStr, 'descricao');
+      end;
+
       Result := Ler_Versao_1;
+    end;
   end;
 end;
 
@@ -363,6 +378,8 @@ begin
       begin
         resGuia.New;
         Inc(j);
+
+        resGuia.Items[j].XML                    := SLResultGuia.Strings[i];
 
         resGuia.Items[j].Versao := ve100;
         resGuia.Items[j].Identificador          := StrToInt(Copy(SLResultGuia.Strings[i], 1, 1));
@@ -405,14 +422,14 @@ begin
 
       if SameText(Copy(SLResultGuia.Strings[i], 1, 1), '2') then
       begin
-        resRejeicaGuia.New;
+        resRejeicaoGuia.New;
         Inc(k);
 
-        resRejeicaGuia.Items[k].Identificador      := StrToInt(Copy(SLResultGuia.Strings[i], 1, 1));
-        resRejeicaGuia.Items[k].SequencialGuia     := StrToInt(Copy(SLResultGuia.Strings[i], 2, 4));
-        resRejeicaGuia.Items[k].NomeCampo          := Copy(SLResultGuia.Strings[i], 6, 30);
-        resRejeicaGuia.Items[k].CodMotivoRejeicao  := StrToInt(Copy(SLResultGuia.Strings[i], 36, 3));
-        resRejeicaGuia.Items[k].DescMotivoRejeicao := Copy(SLResultGuia.Strings[i], 39, 355);
+        resRejeicaoGuia.Items[k].Identificador      := StrToInt(Copy(SLResultGuia.Strings[i], 1, 1));
+        resRejeicaoGuia.Items[k].SequencialGuia     := StrToInt(Copy(SLResultGuia.Strings[i], 2, 4));
+        resRejeicaoGuia.Items[k].NomeCampo          := Copy(SLResultGuia.Strings[i], 6, 30);
+        resRejeicaoGuia.Items[k].CodMotivoRejeicao  := StrToInt(Copy(SLResultGuia.Strings[i], 36, 3));
+        resRejeicaoGuia.Items[k].DescMotivoRejeicao := Copy(SLResultGuia.Strings[i], 39, 355);
       end;
     end;
 
@@ -424,14 +441,16 @@ end;
 
 function TTResultLote_GNRE.Ler_Versao_2: boolean;
 var
-  i, j, k, l: Integer;
+  i, j, k, l, m: Integer;
   aXML: string;
 begin
   Result := False;
 
   if Leitor.rExtrai(2, 'resultado') <> '' then
   begin
-    i := 0;
+    i := 0; // Utilizado para a leitura Guias
+    m := 0; // Utilizado para a leitura das Rejeições
+
     while Leitor.rExtrai(3, 'guia', '', i + 1) <> '' do
     begin
       resGuia.New;
@@ -443,6 +462,7 @@ begin
       resGuia.Items[i].XML := InserirDeclaracaoXMLSeNecessario(aXML);
 
       resGuia.Items[i].Versao := ve200;
+      resGuia.Items[i].SequencialGuia        := i + 1;
       resGuia.Items[i].SituacaoGuia          := Leitor.rCampo(tcStr, 'situacaoGuia');
       resGuia.Items[i].UFFavorecida          := Leitor.rCampo(tcStr, 'ufFavorecida');
       resGuia.Items[i].tipoGnre              := Leitor.rCampo(tcStr, 'tipoGnre');
@@ -540,6 +560,25 @@ begin
           end;
 
           Inc(j);
+        end;
+      end;
+
+      if Leitor.rExtrai(4, 'motivosRejeicao') <> '' then
+      begin
+        j := 0;
+        while Leitor.rExtrai(5, 'motivo', '', j + 1) <> '' do
+        begin
+          // A classe resRejeicaoGuia vai conter todas as rejeições de todas as Guias
+          // o campo SequencialGuia contem o indice das guias, todas as rejeições
+          // de sequencial 1 se refere a primeira guia e assim por diante.
+          resRejeicaoGuia.New;
+          resRejeicaoGuia.Items[m].SequencialGuia     := i + 1;
+          resRejeicaoGuia.Items[m].CodMotivoRejeicao  := Leitor.rCampo(tcInt, 'codigo');
+          resRejeicaoGuia.Items[m].DescMotivoRejeicao := Leitor.rCampo(tcStr, 'descricao');
+          resRejeicaoGuia.Items[m].NomeCampo          := Leitor.rCampo(tcStr, 'campo');
+
+          Inc(j);
+          Inc(m);
         end;
       end;
 

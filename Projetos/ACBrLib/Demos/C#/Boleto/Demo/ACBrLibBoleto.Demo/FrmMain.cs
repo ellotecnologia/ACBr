@@ -123,7 +123,6 @@ namespace ACBrLibBoleto.Demo
 
         private void SaveConfig()
         {
-            boleto.ConfigGravarValor(ACBrSessao.BoletoBancoFCFortesConfig, "Layout", cmbModeloImpressao.GetSelectedValue<ACBrBolLayOut>());
             boleto.ConfigGravarValor(ACBrSessao.BoletoBancoFCFortesConfig, "MostrarPreview", chkPreview.Checked);
             boleto.ConfigGravarValor(ACBrSessao.BoletoBancoFCFortesConfig, "MostrarProgresso", chkProgresso.Checked);
             boleto.ConfigGravarValor(ACBrSessao.BoletoBancoFCFortesConfig, "MostrarSetup", chkSetup.Checked);
@@ -132,6 +131,9 @@ namespace ACBrLibBoleto.Demo
             boleto.ConfigGravarValor(ACBrSessao.BoletoBancoFCFortesConfig, "PrinterName", cmbImpressora.Text);
             boleto.ConfigGravarValor(ACBrSessao.BoletoBancoFCFortesConfig, "DirLogo", txtDirLogo.Text);
             boleto.ConfigGravarValor(ACBrSessao.BoletoBancoConfig, "TipoCobranca", cmbBanco.GetSelectedValue<ACBrTipoCobranca>());
+            boleto.ConfigGravarValor(ACBrSessao.BoletoCedenteConfig, "TipoCarteira", cmbTipoCarteira.GetSelectedValue<ACBrTipoCarteira>());
+            boleto.ConfigGravarValor(ACBrSessao.BoletoCedenteConfig, "TipoDocumento", cmbTipoDocumento.GetSelectedValue<ACBrTipoDocumento>());
+            boleto.ConfigGravarValor(ACBrSessao.BoletoCedenteConfig, "TipoInscricao", cmbTipoInscricao.GetSelectedValue<ACBrPessoa>());
             boleto.ConfigGravarValor(ACBrSessao.BoletoCedenteConfig, "Agencia", txtAgencia.Text);
             boleto.ConfigGravarValor(ACBrSessao.BoletoCedenteConfig, "AgenciaDigito", txtDigAgencia.Text);
             boleto.ConfigGravarValor(ACBrSessao.BoletoCedenteConfig, "Conta", txtConta.Text);
@@ -151,9 +153,6 @@ namespace ACBrLibBoleto.Demo
             boleto.ConfigGravarValor(ACBrSessao.BoletoCedenteConfig, "NumeroRes", txtNumeroRes.Text);
             boleto.ConfigGravarValor(ACBrSessao.BoletoCedenteConfig, "Telefone", txtTelefone.Text);
             boleto.ConfigGravarValor(ACBrSessao.BoletoCedenteConfig, "UF", cmbUF.Text);
-            boleto.ConfigGravarValor(ACBrSessao.BoletoCedenteConfig, "TipoCarteira", cmbTipoCarteira.GetSelectedValue<ACBrTipoCarteira>());
-            boleto.ConfigGravarValor(ACBrSessao.BoletoCedenteConfig, "TipoDocumento", cmbTipoDocumento.GetSelectedValue<ACBrTipoDocumento>());
-            boleto.ConfigGravarValor(ACBrSessao.BoletoCedenteConfig, "TipoInscricao", cmbTipoInscricao.GetSelectedValue<ACBrPessoa>());
             boleto.ConfigGravarValor(ACBrSessao.BoletoDiretorioConfig, "DirArqRemessa", txtDirRemessa.Text);
             boleto.ConfigGravarValor(ACBrSessao.BoletoDiretorioConfig, "DirArqRetorno", txtDirRetorno.Text);
             boleto.ConfigGravarValor(ACBrSessao.BoletoDiretorioConfig, "LayoutRemessa", cmbLayoutCNAB.GetSelectedValue<ACBrLayoutRemessa>());
@@ -213,9 +212,9 @@ namespace ACBrLibBoleto.Demo
         private void BtnGerarRemessa_Click(object sender, EventArgs e)
         {
             string ret = "";
-            if (string.IsNullOrEmpty(txtDirRemessa.Text))       
+            if (string.IsNullOrEmpty(txtDirRemessa.Text))
                 ret = Application.StartupPath;
-            else 
+            else
                 ret = txtDirRemessa.Text;
             boleto.GerarRemessa(ret, 1, txtNomeRemessa.Text);
             rtbRespostas.AppendLine("Remessa Gerada.");
@@ -242,14 +241,6 @@ namespace ACBrLibBoleto.Demo
 
             var ret = boleto.ConfigurarDados(iniPath);
             rtbRespostas.AppendLine(ret);
-
-
-        }
-
-        private void Button1_Click(object sender, EventArgs e)
-        {
-            var ret = boleto.ListaOcorrenciasEX();
-            rtbRespostas.AppendLine(ret);
         }
 
         private void BtnGerarPDF_Click(object sender, EventArgs e)
@@ -266,7 +257,6 @@ namespace ACBrLibBoleto.Demo
 
         private void FrmMain_Load(object sender, EventArgs e)
         {
-
         }
 
         private void BtnEnviarEmail_Click(object sender, EventArgs e)
@@ -282,11 +272,11 @@ namespace ACBrLibBoleto.Demo
                     "Teste envio Boleto",
                     "Boleto em anexo", "");
                 rtbRespostas.AppendLine("e-mail enviado!");
-
-            } catch (Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 rtbRespostas.AppendLine(ex.Message);
             }
-
         }
 
         private void BtnListaBancos_Click(object sender, EventArgs e)
@@ -305,6 +295,107 @@ namespace ACBrLibBoleto.Demo
         {
             boleto.LerRetorno(txtDirRetorno.Text, txtNomeRetorno.Text);
             rtbRespostas.AppendLine("Retorno Gerado.");
+        }
+
+        private void BtnListarOcorrencias_Click(object sender, EventArgs e)
+        {
+            var ret = boleto.ListaOcorrencias();
+            rtbRespostas.AppendLine(ret);
+        }
+
+        private void BtnListarOcorrenciasEx_Click(object sender, EventArgs e)
+        {
+            var ret = boleto.ListaOcorrenciasEX();
+            rtbRespostas.AppendLine(ret);
+        }
+
+        private void BtnImprimirBoleto_Click(object sender, EventArgs e)
+        {
+            int indice;
+
+            indice = 0;
+
+            boleto.ImprimirBoleto(indice);
+            rtbRespostas.AppendLine("Boletos impressos.");
+        }
+
+        private void BtnSelecionaBanco_Click(object sender, EventArgs e)
+        {
+            string codBanco;
+
+            codBanco = "001";
+
+            var ret = boleto.SelecionaBanco(codBanco);
+            rtbRespostas.AppendLine(ret);
+        }
+
+        private void BtnGerarHTML_Click(object sender, EventArgs e)
+        {
+            boleto.GerarHTML();
+            rtbRespostas.AppendLine("HTML Gerado");
+        }
+
+        private void BtnCaracTitulos_Click(object sender, EventArgs e)
+        {
+            var ret = boleto.ListaCaractTitulo();
+            rtbRespostas.AppendLine(ret);
+        }
+
+        private void BtnCodigoMoraAceitos_Click(object sender, EventArgs e)
+        {
+            var ret = boleto.CodigosMoraAceitos();
+            rtbRespostas.AppendLine(ret);
+        }
+
+        private void BtnSetDiretorioArquivos_Click(object sender, EventArgs e)
+        {
+            string sDiretorio;
+            sDiretorio = Helpers.SelectFolder();
+
+            boleto.SetDiretorioArquivo(sDiretorio, "Arquivo");
+            rtbRespostas.AppendLine("Direto setado");
+
+        }
+
+        private void BtnTamNossoNumero_Click(object sender, EventArgs e)
+        {
+            string sCarteira, sNossoNumero, sConvenio;
+
+            sCarteira = "0";
+            sNossoNumero = "0";
+            sConvenio = "0";
+
+            var ret = boleto.TamNossoNumero(sCarteira, sNossoNumero, sConvenio);
+            rtbRespostas.AppendLine(ret);
+        }
+
+        private void BtnMontarNossoNumero_Click(object sender, EventArgs e)
+        {
+            int indice;
+            indice = 0;
+
+            var ret = boleto.MontarNossoNumero(indice);
+            rtbRespostas.AppendLine(ret);
+        }
+
+        private void BtnEnviarEmailBoleto_Click(object sender, EventArgs e)
+        {
+            int i = 0;
+            Int32.TryParse(boleto.TotalTitulosLista(), out i);
+
+            if (i == 0) return;
+
+            try
+            {
+                boleto.EnviarEmailBoleto(0, txtEmail.Text,
+                    "Teste envio Boleto",
+                    "Boleto em anexo", "");
+                rtbRespostas.AppendLine("e-mail enviado!");
+            }
+            catch (Exception ex)
+            {
+                rtbRespostas.AppendLine(ex.Message);
+            }
         }
     }
 }

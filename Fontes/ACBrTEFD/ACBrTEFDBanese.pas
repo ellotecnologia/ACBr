@@ -3,9 +3,9 @@
 {  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
 {                                                                              }
-{ Direitos Autorais Reservados (c) 2004 Daniel Simoes de Almeida               }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
 {                                                                              }
-{ Colaboradores nesse arquivo:                                                 }
+{ Colaboradores nesse arquivo: Márcio Delfino Carvalho                         }
 {                                                                              }
 {  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
@@ -26,20 +26,9 @@
 { Você também pode obter uma copia da licença em:                              }
 { http://www.opensource.org/licenses/lgpl-license.php                          }
 {                                                                              }
-{ Daniel Simões de Almeida  -  daniel@djsystem.com.br  -  www.djsystem.com.br  }
-{              Praça Anita Costa, 34 - Tatuí - SP - 18270-410                  }
-{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
-
-{******************************************************************************
-|* Historico
-|*
-|* 18/03/2011: Márcio Delfino Carvalho
-|*  - Primeira Versao: Criaçao e Distribuiçao da Primeira Versao
-|* 10/08/2011: Márcio Delfino Carvalho
-|*  - Exibição da msg "IMPRIMINDO", durante a impressão
-******************************************************************************}
-
 
 {$I ACBr.inc}
 
@@ -51,7 +40,7 @@ uses
   {$IFDEF MSWINDOWS}
   Windows,
   {$ENDIF}
-  Classes, SysUtils, ACBrTEFDClass
+  Classes, SysUtils, ACBrTEFDClass, ACBrTEFComum
   {$IfNDef NOGUI}
     {$If DEFINED(VisualCLX)}
       ,QControls, QForms
@@ -81,6 +70,7 @@ type
   protected
     function GetTransacaoAprovada : Boolean; override;
   public
+    procedure ProcessarTipoInterno(ALinha: TACBrTEFLinha); override;
     procedure ConteudoToProperty; override;
     procedure GravaInformacao( const Identificacao : Integer;
       const Informacao : AnsiString );
@@ -148,7 +138,7 @@ type
      Procedure CNF(Rede, NSU, Finalizacao : String;
         DocumentoVinculado : String = ''); override;
      Function CNC(Rede, NSU : String; DataHoraTransacao : TDateTime;
-        Valor : Double) : Boolean; overload; override;
+        Valor : Double; CodigoAutorizacaoTransacao: String = '') : Boolean; overload; override;
    published
      property ArqTemp  : String read fArqTmp    write SetArqTmp ;
      property ArqReq   : String read fArqReq    write SetArqReq ;
@@ -161,7 +151,8 @@ type
 
 implementation
 
-Uses dateutils, strutils, math,
+Uses
+  strutils, math, dateutils,
   ACBrTEFD, ACBrUtil;
 
 { TACBrTEFDRespBanese }
@@ -171,11 +162,19 @@ begin
    Result := True ;
 end;
 
+procedure TACBrTEFDRespBanese.ProcessarTipoInterno(ALinha: TACBrTEFLinha);
+begin
+  if (ALinha.Identificacao = 899) and (ALinha.Sequencia = 130) then
+    fpTextoEspecialOperador := ALinha.Informacao.AsString
+  else
+    inherited ProcessarTipoInterno(ALinha);
+end;
+
 procedure TACBrTEFDRespBanese.ConteudoToProperty;
 var
-   Linha : TACBrTEFDLinha ;
+   Linha : TACBrTEFLinha ;
    I     : Integer;
-   Parc  : TACBrTEFDRespParcela;
+   Parc  : TACBrTEFRespParcela;
    LinStr: AnsiString ;
 begin
    fpValorTotal := 0 ;
@@ -185,7 +184,7 @@ begin
    for I := 0 to Conteudo.Count - 1 do
    begin
      Linha  := Conteudo.Linha[I];
-     LinStr := StringToBinaryString( Linha.Informacao.AsString );
+     LinStr := Linha.Informacao.AsBinary;
 
      case Linha.Identificacao of
        100 :fpModalidadePagto              := LinStr;
@@ -225,23 +224,8 @@ begin
        629 : fpConta                       := LinStr;
        630 : fpContaDC                     := LinStr;
        527 : fpDataVencimento              := Linha.Informacao.AsDate ; {Data Vencimento}
-
-       //
-
-       899 :  // Tipos de Uso Interno do ACBrTEFD
-        begin
-          case Linha.Sequencia of
-              1 : fpCNFEnviado         := (UpperCase( Linha.Informacao.AsString ) = 'S' );
-              2 : fpIndiceFPG_ECF      := Linha.Informacao.AsString ;
-              3 : fpOrdemPagamento     := Linha.Informacao.AsInteger ;
-            100 : fpHeader             := LinStr;
-            101 : fpID                 := Linha.Informacao.AsInteger;
-            102 : fpDocumentoVinculado := LinStr;
-            103 : fpValorTotal         := fpValorTotal + Linha.Informacao.AsFloat;
-            104 : fpRede               := Linha.Informacao.AsString ;
-            130 : fpTextoEspecialOperador := Linha.Informacao.AsString;
-          end;
-        end;
+     else
+       ProcessarTipoInterno(Linha);
      end;
    end ;
 
@@ -251,7 +235,7 @@ begin
    fpParcelas.Clear;
    for I := 1 to fpQtdParcelas do
    begin
-      Parc := TACBrTEFDRespParcela.create;
+      Parc := TACBrTEFRespParcela.create;
       Parc.Vencimento := LeInformacao( 141, I).AsDate ;
       Parc.Valor      := LeInformacao( 142, I).AsFloat ;
 
@@ -377,13 +361,13 @@ begin
   end;
 end;
 
-Function TACBrTEFDBanese.ADM : Boolean;
+function TACBrTEFDBanese.ADM: Boolean;
 begin
   Result := FazerRequisicao('ADM', 0, '0' );
 end;
 
-Function TACBrTEFDBanese.CRT( Valor : Double; IndiceFPG_ECF : String;
-   DocumentoVinculado : String = ''; Moeda : Integer = 0 ) : Boolean;
+function TACBrTEFDBanese.CRT(Valor: Double; IndiceFPG_ECF: String;
+  DocumentoVinculado: String; Moeda: Integer): Boolean;
 begin
   Result := False;
 
@@ -396,17 +380,17 @@ begin
     end;
 end;
 
-Function TACBrTEFDBanese.CHQ(Valor : Double; IndiceFPG_ECF : String;
-   DocumentoVinculado : String; CMC7 : String; TipoPessoa : AnsiChar;
-   DocumentoPessoa : String; DataCheque : TDateTime; Banco : String;
-   Agencia : String; AgenciaDC : String; Conta : String; ContaDC : String;
-   Cheque : String; ChequeDC : String; Compensacao: String) : Boolean ;
+function TACBrTEFDBanese.CHQ(Valor: Double; IndiceFPG_ECF: String;
+  DocumentoVinculado: String; CMC7: String; TipoPessoa: AnsiChar;
+  DocumentoPessoa: String; DataCheque: TDateTime; Banco: String;
+  Agencia: String; AgenciaDC: String; Conta: String; ContaDC: String;
+  Cheque: String; ChequeDC: String; Compensacao: String): Boolean;
 begin
   Result := False;
 end;
 
-Procedure TACBrTEFDBanese.CNF(Rede, NSU, Finalizacao : String;
-   DocumentoVinculado : String) ;
+procedure TACBrTEFDBanese.CNF(Rede, NSU, Finalizacao: String;
+  DocumentoVinculado: String);
 var ArquivoReq : TStringList;   
 begin
   {O CNF é sempre padrão, não necessitando ser montado dinamicamente}
@@ -422,22 +406,22 @@ begin
   ArquivoReq.Free;
 end;
 
-Function TACBrTEFDBanese.CNC(Rede, NSU : String;
-   DataHoraTransacao : TDateTime; Valor : Double) : Boolean;
+function TACBrTEFDBanese.CNC(Rede, NSU: String; DataHoraTransacao: TDateTime;
+  Valor: Double; CodigoAutorizacaoTransacao: String): Boolean;
 begin
   {Não existe CNC}
   Result := True;
 end;
 
-Procedure TACBrTEFDBanese.NCN(Rede, NSU, Finalizacao : String;
-   Valor : Double; DocumentoVinculado : String) ;
+procedure TACBrTEFDBanese.NCN(Rede, NSU, Finalizacao: String; Valor: Double;
+  DocumentoVinculado: String);
 begin
   {Não existe NCN}
   //
 end;
 
-Function TACBrTEFDBanese.FazerRequisicao(AHeader : AnsiString = '';
-  Valor : Double = 0; IndiceFPG_ECF : String = '') : Boolean ;
+function TACBrTEFDBanese.FazerRequisicao(AHeader: AnsiString; Valor: Double;
+  IndiceFPG_ECF: String): Boolean;
 Var
   aNSU : AnsiString;
   ArquivoResposta : TStringList;

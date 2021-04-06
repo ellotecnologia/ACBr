@@ -55,6 +55,7 @@ type
 
     function ConverterOrientacao(aOrientacao: TACBrETQOrientacao): String;
 
+    function ComandoTamanhoBarras( aBarraFina, aBarraLargaa , aAlturaBarra:Integer ):String;
     function ComandoCoordenadas(aVertical, aHorizontal: Integer): String;
     function ComandoReverso(aImprimirReverso: Boolean): String;
     function ComandoFonte(const aFonte: String; aMultVertical, aMultHorizontal: Integer;
@@ -67,10 +68,12 @@ type
     function ComandoLinhaCaixa(aAltura, aLargura, Espessura: Integer): String;
     function AjustarNomeArquivoImagem( const aNomeImagem: String): String;
     function ConverterMultiplicadorImagem(aMultiplicador: Integer): String;
+    function ConverterPaginaDeCodigo(aPaginaDeCodigo: TACBrETQPaginaCodigo): String;
   protected
     function ComandoAbertura: AnsiString; override;
     function ComandoUnidade: AnsiString; override;
     function ComandoTemperatura: AnsiString; override;
+    function ComandoPaginaDeCodigo: AnsiString; override;
     function ComandoOrigemCoordenadas: AnsiString; override;
     function ComandoResolucao: AnsiString; override;
     function ComandoVelocidade: AnsiString; override;
@@ -95,6 +98,9 @@ type
       aBarraLarga, aBarraFina, aVertical, aHorizontal: Integer; aTexto: String;
       aAlturaBarras: Integer; aExibeCodigo: TACBrETQBarraExibeCodigo = becPadrao
       ): AnsiString; override;
+    function ComandoImprimirQRCode(aVertical, aHorizontal: Integer;
+      const aTexto: String; aLarguraModulo: Integer; aErrorLevel: Integer;
+      aTipo: Integer): AnsiString; override;
 
     function ComandoImprimirLinha(aVertical, aHorizontal, aLargura, aAltura: Integer
       ): AnsiString; override;
@@ -107,6 +113,10 @@ type
     function ComandoCarregarImagem(aStream: TStream; aNomeImagem: String;
       aFlipped: Boolean; aTipo: String): AnsiString; override;
     function ComandoBMP2GRF(aStream: TStream; aNomeImagem: String; Inverter: Boolean = True): AnsiString;
+
+    function ComandoGravaRFIDHexaDecimal(aValue:String): AnsiString; override;
+    function ComandoGravaRFIDASCII( aValue:String ): AnsiString; override;
+
   end;
 
 implementation
@@ -176,6 +186,16 @@ begin
                    IntToStr(Max(aMultHorizontal,1));
 end;
 
+function TACBrETQZplII.ComandoGravaRFIDASCII(aValue:String): AnsiString;
+begin
+  result := '^RFW,A^FD' + aValue + '^FS';
+end;
+
+function TACBrETQZplII.ComandoGravaRFIDHexaDecimal(aValue: String): AnsiString;
+begin
+  result := '^RFW,H^FD' + aValue+ '^FS';
+end;
+
 function TACBrETQZplII.ComandoCoordenadas(aVertical, aHorizontal: Integer
   ): String;
 begin
@@ -227,6 +247,18 @@ begin
     raise Exception.Create('Multiplicador Imagem deve ser de 1 a 10');
 
   Result := IntToStr(aMultiplicador);
+end;
+
+function TACBrETQZplII.ConverterPaginaDeCodigo(
+  aPaginaDeCodigo: TACBrETQPaginaCodigo): String;
+begin
+  case aPaginaDeCodigo of
+    pce437 : Result := '0';
+    pce850, pce852, pce860 : Result := '13';
+    pce1250, pce1252: Result := '27';
+  else
+    Result := '';
+  end;
 end;
 
 function TACBrETQZplII.ConverterExibeCodigo(
@@ -287,12 +319,28 @@ begin
   Result := '';  // Todos os comandos são convertidos para etqDots;
 end;
 
+function TACBrETQZplII.ComandoTamanhoBarras(aBarraFina, aBarraLargaa , aAlturaBarra:Integer): String;
+begin
+  result := '^BY' + intToStr( aBarraFina )+ ',,'+ intToStr( aAlturaBarra );
+end;
+
 function TACBrETQZplII.ComandoTemperatura: AnsiString;
 begin
   if (Temperatura < 0) or (Temperatura > 30) then
     raise Exception.Create('Temperatura deve ser de 0 a 30');
 
   Result := '~SD' + IntToStrZero(Temperatura, 2);
+end;
+
+function TACBrETQZplII.ComandoPaginaDeCodigo: AnsiString;
+var
+  APagCod: String;
+begin
+  APagCod := ConverterPaginaDeCodigo(PaginaDeCodigo);
+  if (APagCod <> '') then
+    Result := '^CI' + APagCod
+  else
+    Result := '';
 end;
 
 function TACBrETQZplII.ComandoOrigemCoordenadas: AnsiString;
@@ -404,8 +452,21 @@ function TACBrETQZplII.ComandoImprimirBarras(aOrientacao: TACBrETQOrientacao;
   aExibeCodigo: TACBrETQBarraExibeCodigo): AnsiString;
 begin
   Result := ComandoCoordenadas(aVertical, aHorizontal) +
+            ComandoTamanhoBarras(aBarraFina, aBarraLarga , aAlturaBarras ) +
             ComandoBarras(aTipoBarras, aOrientacao, aAlturaBarras, aExibeCodigo ) +
             ComandoCampo(aTexto);
+end;
+
+function TACBrETQZplII.ComandoImprimirQRCode(aVertical, aHorizontal: Integer;
+  const aTexto: String; aLarguraModulo: Integer; aErrorLevel: Integer;
+  aTipo: Integer): AnsiString;
+begin
+  Result := ComandoCoordenadas(aVertical, aHorizontal) +
+            '^BQ'+
+            ConverterOrientacao(orNormal) + ',' +
+            IntToStr(aTipo) + ',' +
+            IntToStr(aLarguraModulo) + ',' +
+            ComandoCampo( ConverterQRCodeErrorLevel(aErrorLevel) +'A,'+ aTexto);
 end;
 
 function TACBrETQZplII.ComandoImprimirLinha(aVertical, aHorizontal, aLargura,

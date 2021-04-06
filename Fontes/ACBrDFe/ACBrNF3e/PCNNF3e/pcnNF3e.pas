@@ -38,7 +38,7 @@ interface
 
 uses
   SysUtils, Classes,
-  {$IF DEFINED(NEXTGEN)}
+  {$IF DEFINED(HAS_SYSTEM_GENERICS)}
    System.Generics.Collections, System.Generics.Defaults,
   {$ELSEIF DEFINED(DELPHICOMPILER16_UP)}
    System.Contnrs,
@@ -469,6 +469,7 @@ type
     FvMed: Double;
     FpPerdaTran: Double;
     FvMedPerdaTran: Double;
+    FvMedPerdaTec: Double;
     FtpMotNaoLeitura: TtpMotNaoLeitura;
   public
     procedure Assign(Source: TgMedicao);
@@ -484,6 +485,7 @@ type
     property vMed: Double                      read FvMed            write FvMed;
     property pPerdaTran: Double                read FpPerdaTran      write FpPerdaTran;
     property vMedPerdaTran: Double             read FvMedPerdaTran   write FvMedPerdaTran;
+    property vMedPerdaTec: Double              read FvMedPerdaTec    write FvMedPerdaTec;
     property tpMotNaoLeitura: TtpMotNaoLeitura read FtpMotNaoLeitura write FtpMotNaoLeitura;
   end;
 
@@ -886,7 +888,7 @@ type
   private
     FchNF3e: String;
     FCNPJ: String;
-    Fserie: Integer;
+    Fserie: String;
     FnNF: Integer;
     FCompetEmis: TDateTime;
     FCompetApur: TDateTime;
@@ -897,7 +899,7 @@ type
 
     property chNF3e: String        read FchNF3e     write FchNF3e;
     property CNPJ: String          read FCNPJ       write FCNPJ;
-    property serie: Integer        read Fserie      write Fserie;
+    property serie: String         read Fserie      write Fserie;
     property nNF: Integer          read FnNF        write FnNF;
     property CompetEmis: TDateTime read FCompetEmis write FCompetEmis;
     property CompetApur: TDateTime read FCompetApur write FCompetApur;

@@ -5,7 +5,7 @@
 {                                                                              }
 { Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
 {                                                                              }
-{ Colaboradores nesse arquivo: Ivan Carlos Martello                                                 }
+{ Colaboradores nesse arquivo: Ivan Carlos Martello                                                }
 {                                                                              }
 {  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
@@ -29,16 +29,6 @@
 { Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
 {       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
-
-{******************************************************************************
-|* Historico
-|*
-|* 27/08/2010: João Paulo
-|*  - Primeira Versao ACBrBALLucasTec
-|*
-|* 11/10/2016: Elias César Vieira
-|*  - Refatoração de ACBrBALLucasTec
-******************************************************************************}
 
 {$I ACBr.inc}
 

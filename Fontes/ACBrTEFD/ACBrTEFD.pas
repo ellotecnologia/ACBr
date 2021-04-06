@@ -3,7 +3,7 @@
 {  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
 {                                                                              }
-{ Direitos Autorais Reservados (c) 2004 Daniel Simoes de Almeida               }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
 {                                                                              }
 { Colaboradores nesse arquivo:                                                 }
 {                                                                              }
@@ -26,17 +26,9 @@
 { Você também pode obter uma copia da licença em:                              }
 { http://www.opensource.org/licenses/lgpl-license.php                          }
 {                                                                              }
-{ Daniel Simões de Almeida  -  daniel@djsystem.com.br  -  www.djsystem.com.br  }
-{              Praça Anita Costa, 34 - Tatuí - SP - 18270-410                  }
-{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
-
-{******************************************************************************
-|* Historico
-|*
-|* 21/11/2009: Daniel Simoes de Almeida
-|*  - Primeira Versao: Criaçao e Distribuiçao da Primeira Versao
-******************************************************************************}
 
 {$I ACBr.inc}
 
@@ -45,9 +37,9 @@ unit ACBrTEFD;
 interface
 
 uses
-  Classes, SysUtils, ACBrBase, ACBrTEFDClass, ACBrTEFDAuttar,
-  ACBrTEFDDial, ACBrTEFDDisc, ACBrTEFDHiper, ACBrTEFDCliSiTef, ACBrTEFDGpu,
-  ACBrTEFDVeSPague, ACBrTEFDBanese, ACBrTEFDGoodCard, ACBrTEFDFoxWin,
+  Classes, SysUtils, ACBrBase, ACBrTEFDClass, ACBrTEFDPayGo, ACBrTEFDPayGoWeb,
+  ACBrTEFDAuttar, ACBrTEFDDial, ACBrTEFDDisc, ACBrTEFDHiper, ACBrTEFDCliSiTef,
+  ACBrTEFDGpu, ACBrTEFDVeSPague, ACBrTEFDBanese, ACBrTEFDGoodCard, ACBrTEFDFoxWin,
   ACBrTEFDCliDTEF, ACBrTEFDPetroCard, ACBrTEFDCrediShop, ACBrTEFDTicketCar,
   ACBrTEFDConvCard, ACBrTEFDCappta
   {$IfNDef NOGUI}
@@ -99,7 +91,7 @@ type
 
    { TACBrTEFD }
   {$IFDEF RTL230_UP}
-  [ComponentPlatformsAttribute(piacbrAllPlatforms)]
+  [ComponentPlatformsAttribute(piacbrAllDesktopPlatforms)]
   {$ENDIF RTL230_UP}
    TACBrTEFD = class( TACBrComponent )
    private
@@ -108,6 +100,7 @@ type
      fAutoEfetuarPagamento : Boolean;
      fCHQEmGerencial: Boolean;
      fConfirmarAntesDosComprovantes: Boolean;
+     fOnExibeQRCode: TACBrTEFDExibeQRCode;
      fTrocoMaximo: Double;
      fEsperaSleep : Integer;
      fEstadoReq : TACBrTEFDReqEstado;
@@ -142,12 +135,12 @@ type
      fTecladoBloqueado : Boolean;
      fSuportaDesconto : Boolean;
      fSuportaSaque : Boolean;
-     fSuportaReajusteValor : Boolean;
-     fSuportaNSUEstendido: Boolean;
      fTempoInicialMensagemOperador: TDateTime;
      fTempoInicialMensagemCliente: TDateTime;
 
      fTefClass     : TACBrTEFDClass ;
+     fTefPayGo     : TACBrTEFDPayGo ;
+     fTefPayGoWeb  : TACBrTEFDPayGoWeb ;
      fTefDial      : TACBrTEFDDial ;
      fTefGPU       : TACBrTEFDGpu ;
      fTefCliSiTef  : TACBrTEFDCliSiTef;
@@ -200,7 +193,8 @@ type
         DefaultValue: Integer = -98787158) : Double ;
      Function EstadoECF : AnsiChar ;
      function DoExibeMsg( Operacao : TACBrTEFDOperacaoMensagem;
-        Mensagem : String; ManterTempoMinimo : Boolean = False ) : TModalResult;
+        const Mensagem : String; ManterTempoMinimo : Boolean = False ) : TModalResult;
+     procedure DoExibeQRCode(const Dados: String);
      function ComandarECF(Operacao : TACBrTEFDOperacaoECF) : Integer;
      function ECFSubtotaliza(DescAcres: Double) : Integer;
      function ECFPagamento(Indice : String; Valor : Double) : Integer;
@@ -256,7 +250,7 @@ type
         const Cheque     : String = ''; const ChequeDC  : String = '';
         const Compensacao: String = '' ) : Boolean ;
      Function CNC(const Rede, NSU : String; const DataHoraTransacao :
-        TDateTime; const Valor : Double) : Boolean ;
+        TDateTime; const Valor : Double; CodigoAutorizacaoTransacao: String = '') : Boolean ;
      procedure CNF(const Rede, NSU, Finalizacao : String;
         const DocumentoVinculado : String = '');
      procedure NCN(const Rede, NSU, Finalizacao : String;
@@ -268,9 +262,11 @@ type
      procedure CancelarTransacoesPendentes;
      procedure ConfirmarTransacoesPendentes(ApagarRespostasPendentes: Boolean = True);
      procedure ImprimirTransacoesPendentes;
+     procedure ApagarRespostasPendentes;
 
      procedure AgruparRespostasPendentes(
         var Grupo : TACBrTEFDArrayGrupoRespostasPendentes) ;
+     procedure ExibirMensagemPinPad(const MsgPinPad: String);
 
    published
      property Identificacao : TACBrTEFDIdentificacao read fIdentificacao
@@ -300,20 +296,15 @@ type
         write fEsperaMinimaMensagemFinal default CACBrTEFD_EsperaMinimaMensagemFinal;
      property PathBackup : String read GetPathBackup write SetPathBackup ;
      property ArqLOG : String read fArqLOG write SetArqLOG ;
-     property CHQEmGerencial : Boolean read fCHQEmGerencial
-        write fCHQEmGerencial default False ;
+     property CHQEmGerencial : Boolean read fCHQEmGerencial write fCHQEmGerencial default False ;
      property TrocoMaximo : Double read fTrocoMaximo write fTrocoMaximo ;
-     Property SuportaSaque : Boolean read fSuportaSaque write fSuportaSaque
-       default True;
-     Property SuportaDesconto : Boolean read fSuportaDesconto write fSuportaDesconto
-       default True;
-     Property SuportaReajusteValor : Boolean read fSuportaReajusteValor write fSuportaReajusteValor
-       default False;
-     Property SuportaNSUEstendido : Boolean read fSuportaNSUEstendido write fSuportaNSUEstendido
-       default False;
+     Property SuportaSaque : Boolean read fSuportaSaque write fSuportaSaque default True;
+     Property SuportaDesconto : Boolean read fSuportaDesconto write fSuportaDesconto default True;
      property ConfirmarAntesDosComprovantes: Boolean read fConfirmarAntesDosComprovantes
        write fConfirmarAntesDosComprovantes default False;
 
+     property TEFPayGo   : TACBrTEFDPayGo    read fTefPayGo ;
+     property TEFPayGoWeb: TACBrTEFDPayGoWeb read FTEFPayGoWeb ;
      property TEFDial    : TACBrTEFDDial     read fTefDial ;
      property TEFDisc    : TACBrTEFDDisc     read fTefDisc ;
      property TEFHiper   : TACBrTEFDHiper    read fTefHiper ;
@@ -335,6 +326,8 @@ type
         write fOnAguardaResp ;
      property OnExibeMsg    : TACBrTEFDExibeMsg read fOnExibeMsg
         write fOnExibeMsg ;
+     property OnExibeQRCode: TACBrTEFDExibeQRCode read fOnExibeQRCode
+        write fOnExibeQRCode;
      property OnBloqueiaMouseTeclado : TACBrTEFDBloqueiaMouseTeclado
         read fOnBloqueiaMouseTeclado write fOnBloqueiaMouseTeclado ;
      property OnRestauraFocoAplicacao : TACBrTEFDExecutaAcao
@@ -372,7 +365,9 @@ procedure ApagaEVerifica( const Arquivo : String ) ;
 
 implementation
 
-Uses ACBrUtil, dateutils, TypInfo, StrUtils, Math;
+Uses
+  dateutils, TypInfo, StrUtils, Math,
+  ACBrUtil, ACBrTEFComum;
 
 {$IFNDEF FPC}
    {$R ACBrTEFD.dcr}
@@ -384,7 +379,7 @@ begin
 
   SysUtils.DeleteFile( Arquivo );
   if FileExists( Arquivo ) then
-     raise EACBrTEFDArquivo.Create( ACBrStr( 'Erro ao apagar o arquivo:' + sLineBreak + Arquivo ) );
+     raise EACBrTEFArquivo.Create( ACBrStr( 'Erro ao apagar o arquivo:' + sLineBreak + Arquivo ) );
 end;
 
 { TACBrTEFDIdentificacao }
@@ -392,7 +387,7 @@ end;
 procedure TACBrTEFDIdentificacao.SetSoftwareHouse(AValue: String);
 begin
    if FSoftwareHouse=AValue then Exit;
-   FSoftwareHouse := LeftStr(Trim(AValue),8);
+   FSoftwareHouse := Trim(AValue);
 end;
 
 procedure TACBrTEFDIdentificacao.SetNomeAplicacao(AValue: String);
@@ -444,8 +439,6 @@ begin
   fTrocoMaximo          := 0;
   fSuportaDesconto      := True;
   fSuportaSaque         := True;
-  fSuportaReajusteValor := False;
-  fSuportaNSUEstendido  := False;
 
   fTempoInicialMensagemCliente  := 0;
   fTempoInicialMensagemOperador := 0;
@@ -462,6 +455,7 @@ begin
   fOnComandaECFImprimeVia     := nil ;
   fOnInfoECF                  := nil ;
   fOnExibeMsg                 := nil ;
+  fOnExibeQRCode              := nil ;
   fOnMudaEstadoReq            := nil ;
   fOnMudaEstadoResp           := nil ;
   fOnBloqueiaMouseTeclado     := nil ;
@@ -474,6 +468,20 @@ begin
   fTEFList := TACBrTEFDClassList.create(True);
   { Lista de Objetos TACBrTEFDresp com todas as Respostas Pendentes para Impressao }
   fpRespostasPendentes := TACBrTEFDRespostasPendentes.create(True);
+
+  { Criando Classe TEF_PayGo }
+  fTefPayGo := TACBrTEFDPayGo.Create(self);
+  fTEFList.Add(fTefPayGo);     // Adicionando "fTefPayGo" na Lista Objetos de Classes de TEF
+  {$IFDEF COMPILER6_UP}
+   fTefPayGo.SetSubComponent(True);   // Ajustando como SubComponente para aparecer no ObjectInspector
+  {$ENDIF}
+
+  { Criando Classe TEF_PayGo }
+  fTefPayGoWeb := TACBrTEFDPayGoWeb.Create(self);
+  fTEFList.Add(fTefPayGoWeb);     // Adicionando "fTefPayGoWeb" na Lista Objetos de Classes de TEF
+  {$IFDEF COMPILER6_UP}
+   fTefPayGoWeb.SetSubComponent(True);   // Ajustando como SubComponente para aparecer no ObjectInspector
+  {$ENDIF}
 
   { Criando Classe TEF_DIAL }
   fTefDial := TACBrTEFDDial.Create(self);
@@ -587,7 +595,7 @@ begin
    fTefCappta.SetSubComponent(True);   // Ajustando como SubComponente para aparecer no ObjectInspector
   {$ENDIF}
 
-  GPAtual := gpTefDial;
+  GPAtual := gpPayGo;
 end;
 
 destructor TACBrTEFD.Destroy;
@@ -611,7 +619,7 @@ begin
      raise EACBrTEFDErro.Create( ACBrStr('Evento "OnComandaECF" não programado' ) ) ;
 
   if not Assigned( OnAguardaResp) and (GP = gpCliSiTef) then
-	raise EACBrTEFDErro.Create( ACBrStr('Evento "OnAguardaResp" não programado' ) ) ;
+     raise EACBrTEFDErro.Create( ACBrStr('Evento "OnAguardaResp" não programado' ) ) ;
 
   if not Assigned( OnComandaECFAbreVinculado )  then
      raise EACBrTEFDErro.Create( ACBrStr('Evento "OnComandaECFAbreVinculado" não programado' ) ) ;
@@ -688,6 +696,8 @@ begin
   if AValue = fGPAtual then exit ;
 
   case AValue of
+    gpPayGo     : fTefClass := fTefPayGo ;
+    gpPayGoWeb  : fTefClass := fTefPayGoWeb ;
     gpTefDial   : fTefClass := fTefDial ;
     gpTefDisc   : fTefClass := fTefDisc ;
     gpHiperTef  : fTefClass := fTefHiper ;
@@ -784,9 +794,10 @@ begin
 end;
 
 function TACBrTEFD.CNC(const Rede, NSU: String;
-  const DataHoraTransacao: TDateTime; const Valor: Double): Boolean;
+  const DataHoraTransacao: TDateTime; const Valor: Double;
+  CodigoAutorizacaoTransacao: String): Boolean;
 begin
-  Result := fTefClass.CNC( Rede, NSU, DataHoraTransacao, Valor);
+  Result := fTefClass.CNC( Rede, NSU, DataHoraTransacao, Valor, CodigoAutorizacaoTransacao);
 end;
 
 procedure TACBrTEFD.CNF(const Rede, NSU, Finalizacao : String;
@@ -813,18 +824,13 @@ Var
 begin
   { Ajustando o mesmo valor nas Classes de TEF, caso elas usem o valor default }
   try
-     For I := 0 to fTEFList.Count-1 do
-     begin
-       if fTEFList[I].Habilitado then
-          fTEFList[I].CancelarTransacoesPendentesClass;
-     end;
+    For I := 0 to fTEFList.Count-1 do
+    begin
+      if fTEFList[I].Habilitado then
+        fTEFList[I].CancelarTransacoesPendentesClass;
+    end;
   finally
-     try
-        if Assigned( fOnDepoisCancelarTransacoes ) then
-           fOnDepoisCancelarTransacoes( RespostasPendentes );
-     finally
-        RespostasPendentes.Clear;
-     end;
+    RespostasPendentes.Clear;
   end;
 end;
 
@@ -835,25 +841,22 @@ end;
 
 procedure TACBrTEFD.ConfirmarTransacoesPendentes(ApagarRespostasPendentes: Boolean);
 var
-  HouveConfirmacao: Boolean;
   I : Integer;
 begin
   fTefClass.GravaLog( 'ConfirmarTransacoesPendentes' );
 
-  HouveConfirmacao := False;
   I := 0;
   while I < RespostasPendentes.Count do
   begin
     try
-      with RespostasPendentes[I] do
+      with TACBrTEFDResp(RespostasPendentes[I]) do
       begin
         GPAtual := TipoGP;   // Seleciona a Classe do GP
 
         if not CNFEnviado then
         begin
           CNF( Rede, NSU, Finalizacao, DocumentoVinculado );
-          CNFEnviado       := True;
-          HouveConfirmacao := True;
+          CNFEnviado := True;
         end;
 
         if ApagarRespostasPendentes then
@@ -870,7 +873,7 @@ begin
   end ;
 
   try
-    if HouveConfirmacao and Assigned( fOnDepoisConfirmarTransacoes ) then
+    if (RespostasPendentes.Count > 0) and Assigned( fOnDepoisConfirmarTransacoes ) then
       fOnDepoisConfirmarTransacoes( RespostasPendentes );
   finally
     if ApagarRespostasPendentes then
@@ -907,7 +910,7 @@ begin
   end;
 
   if fConfirmarAntesDosComprovantes then
-    ConfirmarTransacoesPendentes(False);
+    ConfirmarTransacoesPendentes(False); //Não apaga agora, pois será usado na impressão
 
   ImpressaoOk            := False ;
   Gerencial              := False ;
@@ -945,7 +948,7 @@ begin
 
                  For J := 0 to RespostasPendentes.Count-1 do
                  begin
-                    with RespostasPendentes[J] do
+                    with TACBrTEFDResp(RespostasPendentes[J]) do
                     begin
                        GPAtual := TipoGP;  // Seleciona a Classe do GP
 
@@ -953,9 +956,9 @@ begin
 
                        // Calcula numero de vias //
                        NVias := fTefClass.NumVias ;
-                       if ImagemComprovante2aVia.Text = '' then   // Tem 2a via ?
+                       if (ImagemComprovante2aVia.Count = 0) then   // Tem 2a via ?
                           NVias := 1 ;
-                       if ImagemComprovante1aVia.Text = '' then   // Tem alguma via ?
+                       if (ImagemComprovante1aVia.Count = 0) then   // Tem alguma via ?
                           NVias := 0 ;
 
                        if NVias > 0 then   // Com Impressao, deixe a MSG na Tela
@@ -1044,7 +1047,7 @@ begin
 
                     For J := 0 to RespostasPendentes.Count-1 do
                     begin
-                       with RespostasPendentes[J] do
+                       with TACBrTEFDResp(RespostasPendentes[J]) do
                        begin
                           if GrupoVinc[K].OrdemPagamento <> OrdemPagamento then
                              continue ;
@@ -1055,9 +1058,9 @@ begin
 
                           // Calcula numero de vias //
                           NVias := fTefClass.NumVias ;
-                          if ImagemComprovante2aVia.Text = '' then   // Tem 2a via ?
+                          if (ImagemComprovante2aVia.Count = 0) then   // Tem 2a via ?
                              NVias := 1 ;
-                          if ImagemComprovante1aVia.Text = '' then   // Tem alguma via ?
+                          if (ImagemComprovante1aVia.Count = 0) then   // Tem alguma via ?
                              NVias := 0 ;
 
                           if NVias > 0 then   // Com Impressao, deixe a MSG na Tela
@@ -1192,8 +1195,11 @@ begin
       try ComandarECF(opeCancelaCupom); except {Exceção Muda} end;
       CancelarTransacoesPendentes;
     end
+    else if (not fConfirmarAntesDosComprovantes) then
+      ConfirmarTransacoesPendentes
     else
-      ConfirmarTransacoesPendentes;
+      ApagarRespostasPendentes;
+
 
     BloquearMouseTeclado( False );
 
@@ -1204,8 +1210,35 @@ begin
   RespostasPendentes.Clear;
 end;
 
+procedure TACBrTEFD.ApagarRespostasPendentes;
+var
+  I : Integer;
+begin
+  fTefClass.GravaLog( 'ApagarRespostasPendentes' );
+
+  I := 0;
+  while I < RespostasPendentes.Count do
+  begin
+    try
+      with TACBrTEFDResp(RespostasPendentes[I]) do
+      begin
+        GPAtual := TipoGP;   // Seleciona a Classe do GP
+
+        ApagaEVerifica( ArqRespPendente );
+        ApagaEVerifica( ArqBackup );
+
+        Inc( I ) ;
+      end;
+    except
+      { Exceção Muda... Fica em Loop até conseguir confirmar e apagar Backup }
+    end;
+  end ;
+
+  RespostasPendentes.Clear;
+end;
+
 function TACBrTEFD.DoExibeMsg(Operacao: TACBrTEFDOperacaoMensagem;
-  Mensagem: String; ManterTempoMinimo: Boolean): TModalResult;
+  const Mensagem: String; ManterTempoMinimo: Boolean): TModalResult;
 var
   OldTecladoBloqueado : Boolean;
   TempoInicial : TDateTime;
@@ -1245,6 +1278,14 @@ begin
      fTempoInicialMensagemCliente  := TempoInicial
   else
      fTempoInicialMensagemOperador := TempoInicial ;
+end;
+
+procedure TACBrTEFD.DoExibeQRCode(const Dados: String);
+begin
+  if not Assigned(fOnExibeQRCode) then
+    DoExibeMsg( opmExibirMsgCliente, 'QRCODE=' + Dados)
+  else
+    fOnExibeQRCode(Dados);
 end;
 
 function TACBrTEFD.ComandarECF(Operacao: TACBrTEFDOperacaoECF): Integer;
@@ -1438,16 +1479,19 @@ begin
                                       ECFPagamento( GrupoFPG[I].IndiceFPG_ECF, GrupoFPG[I].Total );
 
                                    For J := 0 to RespostasPendentes.Count-1 do
-                                      if RespostasPendentes[J].IndiceFPG_ECF = GrupoFPG[I].IndiceFPG_ECF then
+                                   with TACBrTEFDResp(RespostasPendentes[J]) do
+                                   begin
+                                      if IndiceFPG_ECF = GrupoFPG[I].IndiceFPG_ECF then
                                       begin
-                                        if (RespostasPendentes[J].Header = 'CHQ') and CHQEmGerencial then
+                                        if (Header = 'CHQ') and CHQEmGerencial then
                                          begin
-                                           RespostasPendentes[J].OrdemPagamento := 999;
+                                           OrdemPagamento := 999;
                                            Dec( Ordem ) ;
                                          end
                                         else
-                                           RespostasPendentes[J].OrdemPagamento := Ordem;
+                                           OrdemPagamento := Ordem;
                                       end;
+                                   end;
                                  end
                                 else
                                    Ordem := GrupoFPG[I].OrdemPagamento ;
@@ -1552,8 +1596,11 @@ begin
 
   For I := 0 to RespostasPendentes.Count-1 do
   begin
-     IndiceFPG := RespostasPendentes[I].IndiceFPG_ECF ;
-     Ordem     := RespostasPendentes[I].OrdemPagamento ;
+     with TACBrTEFDResp(RespostasPendentes[I]) do
+     begin
+       IndiceFPG := IndiceFPG_ECF ;
+       Ordem     := OrdemPagamento ;
+     end;
 
      J := 0 ;
      LenArr := Length( Grupo ) ;
@@ -1606,6 +1653,10 @@ begin
   until not Trocou;
 end;
 
+procedure TACBrTEFD.ExibirMensagemPinPad(const MsgPinPad: String);
+begin
+  fTefClass.ExibirMensagemPinPad(MsgPinPad);
+end;
 
 function TACBrTEFD.Inicializado( GP : TACBrTEFDTipo = gpNenhum ) : Boolean;
 begin
@@ -1712,9 +1763,9 @@ var
 begin
   For I := 0 to fTEFList.Count-1 do
   begin
-    if fTEFList[I] is TACBrTEFDClassTXT then
+    if fTEFList[I] is TACBrTEFDClass then
     begin
-       with TACBrTEFDClassTXT( fTEFList[I] ) do
+       with TACBrTEFDClass( fTEFList[I] ) do
        begin
           if NumVias = fNumVias then
              NumVias := AValue;

@@ -170,6 +170,9 @@ begin
     if CTe.infCTe.versao >= 3 then
       CTe.ide.indIEToma := StrToindIEDest(Ok, Leitor.rCampo(tcStr, 'indIEToma'));
 
+    CTe.Ide.dhSaidaOrig   := Leitor.rCampo(tcDatHor, 'dhSaidaOrig');
+    CTe.Ide.dhChegadaDest := Leitor.rCampo(tcDatHor, 'dhChegadaDest');
+
     i01 := 0;
     while Leitor.rExtrai(2, 'infPercurso', '', i01 + 1) <> '' do
     begin
@@ -182,7 +185,8 @@ begin
   (* Grupo da TAG <ide><toma03> ***********************************************)
   if Leitor.rExtrai(1, 'ide') <> '' then
   begin
-    if (Leitor.rExtrai(2, 'toma03') <> '') or (Leitor.rExtrai(2, 'toma3') <> '') then
+    if (Leitor.rExtrai(2, 'toma03') <> '') or (Leitor.rExtrai(2, 'toma3') <> '') or
+       (Leitor.rExtrai(2, 'toma') <> '') then
     begin
       (*B29*)CTe.Ide.Toma03.Toma := StrToTpTomador(ok, Leitor.rCampo(tcStr, 'toma'));
     end;
@@ -191,7 +195,7 @@ begin
   (* Grupo da TAG <ide><toma4> ************************************************)
   if Leitor.rExtrai(1, 'ide') <> '' then
   begin
-    if Leitor.rExtrai(2, 'toma4') <> '' then
+    if (Leitor.rExtrai(2, 'toma4') <> '') or (Leitor.rExtrai(2, 'tomaTerceiro') <> '') then
     begin
       (*B29*)CTe.Ide.Toma4.toma    := StrToTpTomador(ok, Leitor.rCampo(tcStr, 'toma'));
              CTe.Ide.Toma03.Toma   := CTe.Ide.Toma4.toma;
@@ -534,6 +538,58 @@ begin
     end;
   end;
 
+  if Leitor.rExtrai(1, 'origem') <> '' then
+  begin
+    CTe.origem.xLgr    := Leitor.rCampo(tcStr, 'xLgr');
+    CTe.origem.Nro     := Leitor.rCampo(tcStr, 'nro');
+    CTe.origem.xCpl    := Leitor.rCampo(tcStr, 'xCpl');
+    CTe.origem.xBairro := Leitor.rCampo(tcStr, 'xBairro');
+    CTe.origem.cMun    := Leitor.rCampo(tcInt, 'cMun');
+    CTe.origem.xMun    := Leitor.rCampo(tcStr, 'xMun');
+    CTe.origem.CEP     := Leitor.rCampo(tcInt, 'CEP');
+    CTe.origem.UF      := Leitor.rCampo(tcStr, 'UF');
+  end;
+
+  if Leitor.rExtrai(1, 'destino') <> '' then
+  begin
+    CTe.destino.xLgr    := Leitor.rCampo(tcStr, 'xLgr');
+    CTe.destino.Nro     := Leitor.rCampo(tcStr, 'nro');
+    CTe.destino.xCpl    := Leitor.rCampo(tcStr, 'xCpl');
+    CTe.destino.xBairro := Leitor.rCampo(tcStr, 'xBairro');
+    CTe.destino.cMun    := Leitor.rCampo(tcInt, 'cMun');
+    CTe.destino.xMun    := Leitor.rCampo(tcStr, 'xMun');
+    CTe.destino.CEP     := Leitor.rCampo(tcInt, 'CEP');
+    CTe.destino.UF      := Leitor.rCampo(tcStr, 'UF');
+  end;
+
+  if Leitor.rExtrai(1, 'detGTV') <> '' then
+  begin
+    CTe.detGTV.qCarga := Leitor.rCampo(tcDe4, 'qCarga');
+
+    i01 := 0;
+    while Leitor.rExtrai(2, 'infEspecie', '', i01 + 1) <> '' do
+    begin
+      CTe.detGTV.infEspecie.New;
+      CTe.detGTV.infEspecie[i01].tpEspecie   := StrToTEspecie(ok, Leitor.rCampo(tcStr, 'tpEspecie'));
+      CTe.detGTV.infEspecie[i01].vEspecie    := Leitor.rCampo(tcDe2, 'vEspecie');
+      CTe.detGTV.infEspecie[i01].tpNumerario := StrTotpNumerario(ok, Leitor.rCampo(tcStr, 'tpNumerario'));
+      CTe.detGTV.infEspecie[i01].xMoedaEstr  := Leitor.rCampo(tcStr, 'xMoedaEstr');
+
+      inc(i01);
+    end;
+
+    i01 := 0;
+    while Leitor.rExtrai(2, 'infVeiculo', '', i01 + 1) <> '' do
+    begin
+      CTe.detGTV.infVeiculo.New;
+      CTe.detGTV.infVeiculo[i01].placa := Leitor.rCampo(tcStr, 'placa');
+      CTe.detGTV.infVeiculo[i01].UF    := Leitor.rCampo(tcStr, 'UF');
+      CTe.detGTV.infVeiculo[i01].RNTRC := Leitor.rCampo(tcStr, 'RNTRC');
+
+      inc(i01);
+    end;
+  end;
+
   (* Grupo da TAG <vPrest> ****************************************************)
   if Leitor.rExtrai(1, 'vPrest') <> '' then
   begin
@@ -687,6 +743,9 @@ begin
       CTe.infCTeNorm.infDocRef[i01].subserie := Leitor.rCampo(tcStr, 'subserie');
       CTe.infCTeNorm.infDocRef[i01].dEmi     := Leitor.rCampo(tcDat, 'dEmi');
       CTe.infCTeNorm.infDocRef[i01].vDoc     := Leitor.rCampo(tcDe2, 'vDoc');
+
+      CTe.infCTeNorm.infDocRef[i01].chBPe := Leitor.rCampo(tcStr, 'chBPe');
+
       inc(i01);
     end;
 
@@ -1284,48 +1343,87 @@ begin
       CTe.infCTeNorm.ferrov.tpTraf := StrToTpTrafego(ok, Leitor.rCampo(tcStr, 'tpTraf'));
       CTe.infCTeNorm.ferrov.fluxo  := Leitor.rCampo(tcStr,'fluxo');
       CTe.infCTeNorm.ferrov.idTrem := Leitor.rCampo(tcStr,'idTrem');
-      CTe.infCTeNorm.ferrov.vFrete := Leitor.rCampo(tcDe2,'vFrete');
 
-      if Leitor.rExtrai(3, 'trafMut') <> '' then
+      if CTe.infCTe.versao >= 3 then
       begin
-        CTe.infCTeNorm.ferrov.trafMut.respFat := StrToTrafegoMutuo(ok, Leitor.rCampo(tcStr, 'respFat'));
-        CTe.infCTeNorm.ferrov.trafMut.ferrEmi := StrToTrafegoMutuo(ok, Leitor.rCampo(tcStr, 'ferrEmi'));
-      end;
-
-      i01 := 0;
-      while Leitor.rExtrai(3, 'ferroEnv', '', i01 + 1) <> '' do
-      begin
-        CTe.infCTeNorm.ferrov.ferroEnv.New;
-        CTe.infCTeNorm.ferrov.ferroEnv[i01].CNPJ  := Leitor.rCampo(tcStr,'CNPJ');
-        CTe.infCTeNorm.ferrov.ferroEnv[i01].cInt  := Leitor.rCampo(tcStr,'cInt');
-        CTe.infCTeNorm.ferrov.ferroEnv[i01].IE    := Leitor.rCampo(tcStr,'IE');
-        CTe.infCTeNorm.ferrov.ferroEnv[i01].xNome := Leitor.rCampo(tcStr,'xNome');
-
-        if Leitor.rExtrai(4, 'enderFerro') <> '' then
+        if Leitor.rExtrai(3, 'trafMut') <> '' then
         begin
-          CTe.infCTeNorm.ferrov.ferroEnv[i01].EnderFerro.xLgr    := Leitor.rCampo(tcStr, 'xLgr');
-          CTe.infCTeNorm.ferrov.ferroEnv[i01].EnderFerro.nro     := Leitor.rCampo(tcStr, 'nro');
-          CTe.infCTeNorm.ferrov.ferroEnv[i01].EnderFerro.xCpl    := Leitor.rCampo(tcStr, 'xCpl');
-          CTe.infCTeNorm.ferrov.ferroEnv[i01].EnderFerro.xBairro := Leitor.rCampo(tcStr, 'xBairro');
-          CTe.infCTeNorm.ferrov.ferroEnv[i01].EnderFerro.cMun    := Leitor.rCampo(tcInt, 'cMun');
-          CTe.infCTeNorm.ferrov.ferroEnv[i01].EnderFerro.xMun    := Leitor.rCampo(tcStr, 'xMun');
-          CTe.infCTeNorm.ferrov.ferroEnv[i01].EnderFerro.CEP     := Leitor.rCampo(tcInt, 'CEP');
-          CTe.infCTeNorm.ferrov.ferroEnv[i01].EnderFerro.UF      := Leitor.rCampo(tcStr, 'UF');
+          CTe.infCTeNorm.ferrov.trafMut.respFat := StrToTrafegoMutuo(ok, Leitor.rCampo(tcStr, 'respFat'));
+          CTe.infCTeNorm.ferrov.trafMut.ferrEmi := StrToTrafegoMutuo(ok, Leitor.rCampo(tcStr, 'ferrEmi'));
+          CTe.infCTeNorm.ferrov.vFrete          := Leitor.rCampo(tcDe2,'vFrete');
+
+          CTe.infCTeNorm.ferrov.trafMut.chCTeFerroOrigem := Leitor.rCampo(tcStr,'chCTeFerroOrigem');
+
+          i01 := 0;
+          while Leitor.rExtrai(4, 'ferroEnv', '', i01 + 1) <> '' do
+          begin
+            CTe.infCTeNorm.ferrov.ferroEnv.New;
+            CTe.infCTeNorm.ferrov.ferroEnv[i01].CNPJ  := Leitor.rCampo(tcStr,'CNPJ');
+            CTe.infCTeNorm.ferrov.ferroEnv[i01].cInt  := Leitor.rCampo(tcStr,'cInt');
+            CTe.infCTeNorm.ferrov.ferroEnv[i01].IE    := Leitor.rCampo(tcStr,'IE');
+            CTe.infCTeNorm.ferrov.ferroEnv[i01].xNome := Leitor.rCampo(tcStr,'xNome');
+
+            if Leitor.rExtrai(5, 'enderFerro') <> '' then
+            begin
+              CTe.infCTeNorm.ferrov.ferroEnv[i01].EnderFerro.xLgr    := Leitor.rCampo(tcStr, 'xLgr');
+              CTe.infCTeNorm.ferrov.ferroEnv[i01].EnderFerro.nro     := Leitor.rCampo(tcStr, 'nro');
+              CTe.infCTeNorm.ferrov.ferroEnv[i01].EnderFerro.xCpl    := Leitor.rCampo(tcStr, 'xCpl');
+              CTe.infCTeNorm.ferrov.ferroEnv[i01].EnderFerro.xBairro := Leitor.rCampo(tcStr, 'xBairro');
+              CTe.infCTeNorm.ferrov.ferroEnv[i01].EnderFerro.cMun    := Leitor.rCampo(tcInt, 'cMun');
+              CTe.infCTeNorm.ferrov.ferroEnv[i01].EnderFerro.xMun    := Leitor.rCampo(tcStr, 'xMun');
+              CTe.infCTeNorm.ferrov.ferroEnv[i01].EnderFerro.CEP     := Leitor.rCampo(tcInt, 'CEP');
+              CTe.infCTeNorm.ferrov.ferroEnv[i01].EnderFerro.UF      := Leitor.rCampo(tcStr, 'UF');
+            end;
+            inc(i01);
+          end;
         end;
-        inc(i01);
+      end
+      else
+      begin
+        CTe.infCTeNorm.ferrov.vFrete := Leitor.rCampo(tcDe2,'vFrete');
+
+        if Leitor.rExtrai(3, 'trafMut') <> '' then
+        begin
+          CTe.infCTeNorm.ferrov.trafMut.respFat := StrToTrafegoMutuo(ok, Leitor.rCampo(tcStr, 'respFat'));
+          CTe.infCTeNorm.ferrov.trafMut.ferrEmi := StrToTrafegoMutuo(ok, Leitor.rCampo(tcStr, 'ferrEmi'));
+        end;
+
+        i01 := 0;
+        while Leitor.rExtrai(3, 'ferroEnv', '', i01 + 1) <> '' do
+        begin
+          CTe.infCTeNorm.ferrov.ferroEnv.New;
+          CTe.infCTeNorm.ferrov.ferroEnv[i01].CNPJ  := Leitor.rCampo(tcStr,'CNPJ');
+          CTe.infCTeNorm.ferrov.ferroEnv[i01].cInt  := Leitor.rCampo(tcStr,'cInt');
+          CTe.infCTeNorm.ferrov.ferroEnv[i01].IE    := Leitor.rCampo(tcStr,'IE');
+          CTe.infCTeNorm.ferrov.ferroEnv[i01].xNome := Leitor.rCampo(tcStr,'xNome');
+
+          if Leitor.rExtrai(4, 'enderFerro') <> '' then
+          begin
+            CTe.infCTeNorm.ferrov.ferroEnv[i01].EnderFerro.xLgr    := Leitor.rCampo(tcStr, 'xLgr');
+            CTe.infCTeNorm.ferrov.ferroEnv[i01].EnderFerro.nro     := Leitor.rCampo(tcStr, 'nro');
+            CTe.infCTeNorm.ferrov.ferroEnv[i01].EnderFerro.xCpl    := Leitor.rCampo(tcStr, 'xCpl');
+            CTe.infCTeNorm.ferrov.ferroEnv[i01].EnderFerro.xBairro := Leitor.rCampo(tcStr, 'xBairro');
+            CTe.infCTeNorm.ferrov.ferroEnv[i01].EnderFerro.cMun    := Leitor.rCampo(tcInt, 'cMun');
+            CTe.infCTeNorm.ferrov.ferroEnv[i01].EnderFerro.xMun    := Leitor.rCampo(tcStr, 'xMun');
+            CTe.infCTeNorm.ferrov.ferroEnv[i01].EnderFerro.CEP     := Leitor.rCampo(tcInt, 'CEP');
+            CTe.infCTeNorm.ferrov.ferroEnv[i01].EnderFerro.UF      := Leitor.rCampo(tcStr, 'UF');
+          end;
+          inc(i01);
+        end;
+
+        i01 := 0;
+        while Leitor.rExtrai(3, 'detVag', '', i01 + 1) <> '' do
+        begin
+          CTe.infCTeNorm.ferrov.detVag.New;
+          CTe.infCTeNorm.ferrov.detVag[i01].nVag   := Leitor.rCampo(tcInt, 'nVag');
+          CTe.infCTeNorm.ferrov.detVag[i01].cap    := Leitor.rCampo(tcDe2, 'cap');
+          CTe.infCTeNorm.ferrov.detVag[i01].tpVag  := Leitor.rCampo(tcStr, 'tpVag');
+          CTe.infCTeNorm.ferrov.detVag[i01].pesoR  := Leitor.rCampo(tcDe2, 'pesoR');
+          CTe.infCTeNorm.ferrov.detVag[i01].pesoBC := Leitor.rCampo(tcDe2, 'pesoBC');
+          inc(i01);
+        end;
       end;
 
-      i01 := 0;
-      while Leitor.rExtrai(3, 'detVag', '', i01 + 1) <> '' do
-      begin
-        CTe.infCTeNorm.ferrov.detVag.New;
-        CTe.infCTeNorm.ferrov.detVag[i01].nVag   := Leitor.rCampo(tcInt, 'nVag');
-        CTe.infCTeNorm.ferrov.detVag[i01].cap    := Leitor.rCampo(tcDe2, 'cap');
-        CTe.infCTeNorm.ferrov.detVag[i01].tpVag  := Leitor.rCampo(tcStr, 'tpVag');
-        CTe.infCTeNorm.ferrov.detVag[i01].pesoR  := Leitor.rCampo(tcDe2, 'pesoR');
-        CTe.infCTeNorm.ferrov.detVag[i01].pesoBC := Leitor.rCampo(tcDe2, 'pesoBC');
-        inc(i01);
-      end;
     end; // fim das informações do modal Ferroviário
 
     if Leitor.rExtrai(2, 'duto') <> '' then
@@ -1391,6 +1489,25 @@ begin
         CTe.infCTeNorm.cobr.dup[i01].vDup  := Leitor.rCampo(tcDe2, 'vDup');
         inc(i01);
       end;
+    end;
+
+    i01 := 0;
+    while Leitor.rExtrai(2, 'infGTVe', '', i01 + 1) <> '' do
+    begin
+      CTe.infCTeNorm.infGTVe.New;
+      CTe.infCTeNorm.infGTVe[i01].chCTe  := Leitor.rCampo(tcStr, 'chCTe');
+
+      i02 := 0;
+      while Leitor.rExtrai(3, 'Comp', '', i02 + 1) <> '' do
+      begin
+        CTe.infCTeNorm.infGTVe[i01].Comp.New;
+        CTe.infCTeNorm.infGTVe[i01].Comp[i02].tpComp := StrTotpComp(Ok, Leitor.rCampo(tcStr, 'tpComp'));
+        CTe.infCTeNorm.infGTVe[i01].Comp[i02].vComp  := Leitor.rCampo(tcDe2, 'vComp');
+        CTe.infCTeNorm.infGTVe[i01].Comp[i02].xComp  := Leitor.rCampo(tcStr, 'xComp');
+        inc(i02);
+      end;
+
+      inc(i01);
     end;
 
     if Leitor.rExtrai(2, 'infCteSub') <> '' then

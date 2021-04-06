@@ -1,3 +1,33 @@
+{******************************************************************************}
+{ Projeto: Componentes ACBr                                                    }
+{  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
+{ mentos de Automação Comercial utilizados no Brasil                           }
+{                                                                              }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{																			   }
+{  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
+{ Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
+{                                                                              }
+{  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la }
+{ sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela  }
+{ Free Software Foundation; tanto a versão 2.1 da Licença, ou (a seu critério) }
+{ qualquer versão posterior.                                                   }
+{                                                                              }
+{  Esta biblioteca é distribuída na expectativa de que seja útil, porém, SEM   }
+{ NENHUMA GARANTIA; nem mesmo a garantia implícita de COMERCIABILIDADE OU      }
+{ ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA. Consulte a Licença Pública Geral Menor}
+{ do GNU para mais detalhes. (Arquivo LICENÇA.TXT ou LICENSE.TXT)              }
+{                                                                              }
+{  Você deve ter recebido uma cópia da Licença Pública Geral Menor do GNU junto}
+{ com esta biblioteca; se não, escreva para a Free Software Foundation, Inc.,  }
+{ no endereço 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.          }
+{ Você também pode obter uma copia da licença em:                              }
+{ http://www.opensource.org/licenses/lgpl-license.php                          }
+{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
+{******************************************************************************}
+
 unit Frm_ACBrReinf;
 
 interface
@@ -179,6 +209,7 @@ type
     mmoXMLEnv: TMemo;
     mmoXMLRet: TMemo;
     memoLog: TMemo;
+    chk2055: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure btnSalvarConfigClick(Sender: TObject);
     procedure sbPathReinfClick(Sender: TObject);
@@ -233,6 +264,7 @@ type
     procedure GerarReinf2030;
     procedure GerarReinf2040;
     procedure GerarReinf2050;
+    procedure GerarReinf2055;
     procedure GerarReinf2060;
     procedure GerarReinf2070;
     procedure GerarReinf2098;
@@ -1314,6 +1346,9 @@ begin
   if chk2050.Checked then
     GerarReinf2050;
 
+  if chk2055.Checked then
+    GerarReinf2055;
+
   if chk2060.Checked then
     GerarReinf2060;
 
@@ -1763,6 +1798,57 @@ begin
             vlrCPSusp    := 0.00;
             vlrRatSusp   := 0.00;
             vlrSenarSusp := 0.00;
+          end;
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure TfrmACBrReinf.GerarReinf2055;
+begin
+  ACBrReinf1.Eventos.ReinfEventos.R2055.Clear;
+  with ACBrReinf1.Eventos.ReinfEventos.R2055.New do
+  begin
+    with evtAqProd do
+    begin
+      Sequencial := 0;
+
+      ideEvento.indRetif := trOriginal;
+      ideEvento.NrRecibo := '123';
+      ideEvento.perApur  := '2018-04';
+      IdeEvento.ProcEmi  := peAplicEmpregador;
+      IdeEvento.VerProc  := '1.0';
+
+      ideContri.TpInsc := tiCNPJ;
+      ideContri.NrInsc := edtEmitCNPJ.Text;
+
+      with infoAquisProd.ideEstabAdquir do
+      begin
+        tpInscAdq := tiCNPJ;
+        nrInscAdq := '12345678000123';
+
+        tpInscProd := tiCNPJ;
+        nrInscProd := '12345678000123';
+        indOpcCP   := 'S';
+
+        detAquis.Clear;
+        with detAquis.New do
+        begin
+          indAquis     := iaProdRuralPF;
+          vlrBruto     := 100.00;
+          vlrCPDescPR  := 0.00;
+          vlrRatDescPR := 0.00;
+          vlrRatDescPR := 0.00;
+
+          infoProc.Clear;
+          with infoProc.New do
+          begin
+            nrProc       := '123';
+            codSusp      := '456';
+            vlrCPNRet    := 0.00;
+            vlrRatNRet   := 0.00;
+            vlrSenarNRet := 0.00;
           end;
         end;
       end;
@@ -2228,12 +2314,14 @@ begin
 
   ChkRetificadora.Visible := ( chk2010.Checked or chk2020.Checked or
                                chk2030.Checked or chk2040.Checked or
-                               chk2050.Checked or chk2060.Checked or
-                               chk2070.Checked or chk3010.Checked );
+                               chk2050.Checked or chk2055.Checked or
+                               chk2060.Checked or chk2070.Checked or
+                               chk3010.Checked );
 
   edRecibo.Visible := ( chk2010.Checked or chk2020.Checked or chk2030.Checked or
-                        chk2040.Checked or chk2050.Checked or chk2060.Checked or
-                        chk2070.Checked or chk3010.Checked or chk9000.Checked );
+                        chk2040.Checked or chk2050.Checked or chk2050.Checked or
+                        chk2060.Checked or chk2070.Checked or chk3010.Checked or
+                        chk9000.Checked );
 
   lblRecibo.Visible := edRecibo.Visible;
 

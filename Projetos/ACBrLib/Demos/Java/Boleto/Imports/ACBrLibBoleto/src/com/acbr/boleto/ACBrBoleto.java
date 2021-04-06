@@ -45,6 +45,10 @@ public final class ACBrBoleto extends ACBrLibBase implements AutoCloseable {
 
         int Boleto_UltimoRetorno(ByteBuffer buffer, IntByReference bufferSize);
 
+        int Boleto_ConfigImportar(String eArqConfig);
+        
+        int Boleto_ConfigExportar(ByteBuffer buffer, IntByReference bufferSize);
+        
         int Boleto_ConfigLer(String eArqConfig);
 
         int Boleto_ConfigGravar(String eArqConfig);
@@ -75,6 +79,8 @@ public final class ACBrBoleto extends ACBrLibBase implements AutoCloseable {
 
         int Boleto_EnviarEmail(String ePara, String eAssunto, String eMensagem, String eCC);
 
+        int Boleto_EnviarEmailBoleto(int eIndice, String ePara, String eAssunto, String eMensagem, String eCC);
+        
         int Boleto_SetDiretorioArquivo(String eDir, String eArq, ByteBuffer buffer, IntByReference bufferSize);
 
         int Boleto_ListaBancos(ByteBuffer buffer, IntByReference bufferSize);
@@ -261,6 +267,11 @@ public final class ACBrBoleto extends ACBrLibBase implements AutoCloseable {
         checkResult(ret);
     }
     
+    public void EnviarEmailBoleto(int eIndice, String ePara, String eAssunto, String eMensagem, String eCC) throws Exception {
+        int ret = ACBrBoletoLib.INSTANCE.Boleto_EnviarEmailBoleto(eIndice, ePara, eAssunto, eMensagem, eCC);
+        checkResult(ret);
+    }
+    
     public String SetDiretorioArquivo(String eDir, String eArq) throws Exception {
         ByteBuffer buffer = ByteBuffer.allocate(STR_BUFFER_LEN);
         IntByReference bufferLen = new IntByReference(STR_BUFFER_LEN);
@@ -371,6 +382,25 @@ public final class ACBrBoleto extends ACBrLibBase implements AutoCloseable {
         return processResult(buffer, bufferLen);
     }    
         
+    public void ConfigImportar(String eArqConfig) throws Exception {
+        
+        int ret = ACBrBoletoLib.INSTANCE.Boleto_ConfigImportar(eArqConfig);
+        checkResult(ret);
+        
+    }
+    
+    public String ConfigExportar() throws Exception {
+		
+        ByteBuffer buffer = ByteBuffer.allocate(STR_BUFFER_LEN);
+        IntByReference bufferLen = new IntByReference(STR_BUFFER_LEN);
+
+        int ret = ACBrBoletoLib.INSTANCE.Boleto_ConfigExportar(buffer, bufferLen);
+        checkResult(ret);
+
+        return fromUTF8(buffer, bufferLen.getValue());
+		
+    }
+    
     @Override
     protected void UltimoRetorno(ByteBuffer buffer, IntByReference bufferLen) {
         ACBrBoletoLib.INSTANCE.Boleto_UltimoRetorno(buffer, bufferLen);

@@ -1,3 +1,33 @@
+{******************************************************************************}
+{ Projeto: Componentes ACBr                                                    }
+{  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
+{ mentos de Automação Comercial utilizados no Brasil                           }
+{                                                                              }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{																			   }
+{  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
+{ Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
+{                                                                              }
+{  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la }
+{ sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela  }
+{ Free Software Foundation; tanto a versão 2.1 da Licença, ou (a seu critério) }
+{ qualquer versão posterior.                                                   }
+{                                                                              }
+{  Esta biblioteca é distribuída na expectativa de que seja útil, porém, SEM   }
+{ NENHUMA GARANTIA; nem mesmo a garantia implícita de COMERCIABILIDADE OU      }
+{ ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA. Consulte a Licença Pública Geral Menor}
+{ do GNU para mais detalhes. (Arquivo LICENÇA.TXT ou LICENSE.TXT)              }
+{                                                                              }
+{  Você deve ter recebido uma cópia da Licença Pública Geral Menor do GNU junto}
+{ com esta biblioteca; se não, escreva para a Free Software Foundation, Inc.,  }
+{ no endereço 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.          }
+{ Você também pode obter uma copia da licença em:                              }
+{ http://www.opensource.org/licenses/lgpl-license.php                          }
+{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
+{******************************************************************************}
+
 unit Frm_ACBrGNRe;
 
 interface
@@ -220,6 +250,7 @@ type
     procedure GravarConfiguracao;
     procedure LerConfiguracao;
     procedure ConfigurarComponente;
+    procedure ConfigurarEmail;
     Procedure AlimentarComponente;
     procedure LoadXML(RetWS: String; MyWebBrowser: TWebBrowser);
     procedure AtualizarSSLLibsCombo;
@@ -312,7 +343,7 @@ begin
     referencia.ano := 2019;
     referencia.parcela := 1;
 
-    with camposExtras.Add do
+    with camposExtras.New do
     begin
       CampoExtra.codigo := 123;
       CampoExtra.tipo := '1';
@@ -357,36 +388,27 @@ begin
 
   OpenDialog1.InitialDir := ACBrGNRE1.Configuracoes.Arquivos.PathSalvar;
 
-  if OpenDialog1.Execute then
-  begin
-    ACBrGNRE1.Guias.Clear;
-    ACBrGNRE1.Guias.LoadFromFile(OpenDialog1.FileName);
-    CC:=TstringList.Create;
+  if not OpenDialog1.Execute then
+    Exit;
 
-    try
-      CC.Add('andrefmoraes@gmail.com'); // especifique um email valido
-      CC.Add('anfm@zipmail.com.br');    // especifique um email valido
-
-      ACBrMail1.Host := edtSmtpHost.Text;
-      ACBrMail1.Port := edtSmtpPort.Text;
-      ACBrMail1.Username := edtSmtpUser.Text;
-      ACBrMail1.Password := edtSmtpPass.Text;
-      ACBrMail1.From := edtSmtpUser.Text;
-      ACBrMail1.SetSSL := cbEmailSSL.Checked; // SSL - Conexao Segura
-      ACBrMail1.SetTLS := cbEmailSSL.Checked; // Auto TLS
-      ACBrMail1.ReadingConfirmation := False; // Pede confirmacao de leitura do email
-      ACBrMail1.UseThread := False;           // Aguarda Envio do Email(nao usa thread)
-      ACBrMail1.FromName := 'Projeto ACBr - ACBrGNRE';
-
-      ACBrGNRE1.Guias.Items[0].EnviarEmail(Para, edtEmailAssunto.Text,
-                                               mmEmailMsg.Lines
-                                               , True  // Enviar PDF junto
-                                               , CC    // Lista com emails que serao enviado copias - TStrings
-                                               , nil); // Lista de anexos - TStrings
-    finally
-      CC.Free;
-    end;
+  ACBrGNRE1.Guias.Clear;
+  ACBrGNRE1.Guias.LoadFromFile(OpenDialog1.FileName);
+  CC := TStringList.Create;
+  try
+    //CC.Add('email_1@provedor.com'); // especifique um email valido
+    //CC.Add('email_2@provedor.com.br');    // especifique um email valido
+    ConfigurarEmail;
+    ACBrGNRE1.Guias.Items[0].EnviarEmail(Para
+      , edtEmailAssunto.Text
+      , mmEmailMsg.Lines
+      , True  // Enviar PDF junto
+      , CC    // Lista com emails que serao enviado copias - TStrings
+      , nil // Lista de anexos - TStrings
+      );
+  finally
+    CC.Free;
   end;
+
 end;
 
 procedure TfrmACBrGNRe.btnHTTPSClick(Sender: TObject);
@@ -651,6 +673,7 @@ begin
     StreamMemo.Free;
 
     ConfigurarComponente;
+    ConfigurarEmail;
   finally
     Ini.Free;
   end;
@@ -768,6 +791,7 @@ begin
     StreamMemo.Free;
 
     ConfigurarComponente;
+    ConfigurarEmail;
   finally
     Ini.Free;
   end;
@@ -847,6 +871,20 @@ begin
     PathMensal       := GetPathGNRE(0);
     PathSalvar       := PathMensal;
   end;
+end;
+
+procedure TfrmACBrGNRe.ConfigurarEmail;
+begin
+  ACBrMail1.Host := edtSmtpHost.Text;
+  ACBrMail1.Port := edtSmtpPort.Text;
+  ACBrMail1.Username := edtSmtpUser.Text;
+  ACBrMail1.Password := edtSmtpPass.Text;
+  ACBrMail1.From := edtSmtpUser.Text;
+  ACBrMail1.SetSSL := cbEmailSSL.Checked; // SSL - Conexao Segura
+  ACBrMail1.SetTLS := cbEmailSSL.Checked; // Auto TLS
+  ACBrMail1.ReadingConfirmation := False; // Pede confirmacao de leitura do email
+  ACBrMail1.UseThread := False;           // Aguarda Envio do Email(nao usa thread)
+  ACBrMail1.FromName := 'Projeto ACBr - ACBrGNRE';
 end;
 
 procedure TfrmACBrGNRe.LoadXML(RetWS: String; MyWebBrowser: TWebBrowser);
@@ -1006,6 +1044,8 @@ begin
 end;
 
 procedure TfrmACBrGNRe.btnCriarEnviarClick(Sender: TObject);
+var
+  i: Integer;
 begin
   ACBrGNRE1.Guias.Clear;
   AlimentarComponente;
@@ -1023,6 +1063,20 @@ begin
   MemoDados.Lines.Add('descricao: ' + ACBrGNRE1.WebServices.Retorno.descricao);
   MemoDados.Lines.Add('Recibo: '    + ACBrGNRE1.WebServices.Retorno.numeroRecibo);
   MemoDados.Lines.Add('Protocolo: ' + ACBrGNRE1.WebServices.Retorno.protocolo);
+  MemoDados.Lines.Add('');
+
+  for i := 0 to ACBrGNRE1.WebServices.Retorno.GNRERetorno.resGuia.Count -1 do
+    MemoDados.Lines.Add('Guia salva em: ' + ACBrGNRE1.WebServices.Retorno.GNRERetorno.resGuia[i].NomeArq);
+
+  // Para versão 1 temos o retorno no formato txt se deseja salvar no banco de dados
+  // deve ler a propriedade
+  //     guiatxt := ACBrGNRE1.WebServices.Retorno.GNRERetorno.resGuia[i].TXT;
+
+  // Para versão 2 temos o retorno no formato xml se deseja salvar no banco de dados
+  // deve ler a propriedade
+  //     guiaxml := ACBrGNRE1.WebServices.Retorno.GNRERetorno.resGuia[i].XML;
+
+  // onde i varia de zero até a quantidade -1 de guias retornadas.
 
   ACBrGNRE1.Guias.Clear;
 end;

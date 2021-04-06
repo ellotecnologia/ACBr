@@ -2,33 +2,32 @@
 { Projeto: Componentes ACBr                                                    }
 {  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
-
-{ Direitos Autorais Reservados (c) 2018 Daniel Simoes de Almeida               }
-
+{                                                                              }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{                                                                              }
 { Colaboradores nesse arquivo: Italo Jurisato Junior                           }
-
+{                                                                              }
 {  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
-
+{                                                                              }
 {  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la }
 { sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela  }
 { Free Software Foundation; tanto a versão 2.1 da Licença, ou (a seu critério) }
 { qualquer versão posterior.                                                   }
-
+{                                                                              }
 {  Esta biblioteca é distribuída na expectativa de que seja útil, porém, SEM   }
 { NENHUMA GARANTIA; nem mesmo a garantia implícita de COMERCIABILIDADE OU      }
 { ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA. Consulte a Licença Pública Geral Menor}
 { do GNU para mais detalhes. (Arquivo LICENÇA.TXT ou LICENSE.TXT)              }
-
+{                                                                              }
 {  Você deve ter recebido uma cópia da Licença Pública Geral Menor do GNU junto}
 { com esta biblioteca; se não, escreva para a Free Software Foundation, Inc.,  }
 { no endereço 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.          }
 { Você também pode obter uma copia da licença em:                              }
-{ http://www.opensource.org/licenses/gpl-license.php                           }
-
-{ Daniel Simões de Almeida  -  daniel@djsystem.com.br  -  www.djsystem.com.br  }
-{        Rua Cel.Aureliano de Camargo, 973 - Tatuí - SP - 18270-170            }
-
+{ http://www.opensource.org/licenses/lgpl-license.php                          }
+{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
 {$I ACBr.inc}
@@ -143,56 +142,56 @@ end;
 function IBGE_Inicializar(const eArqConfig, eChaveCrypt: PChar): longint;
   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
 begin
-  Result := LIB_Inicializar(eArqConfig, eChaveCrypt);
+  Result := LIB_Inicializar(pLib, TACBrLibIBGE, eArqConfig, eChaveCrypt);
 end;
 
 function IBGE_Finalizar: longint;
   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
 begin
-  Result := LIB_Finalizar;
+  Result := LIB_Finalizar(pLib);
 end;
 
 function IBGE_Nome(const sNome: PChar; var esTamanho: longint): longint;
   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
 begin
-  Result := LIB_Nome(sNome, esTamanho);
+  Result := LIB_Nome(pLib, sNome, esTamanho);
 end;
 
 function IBGE_Versao(const sVersao: PChar; var esTamanho: longint): longint;
   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
 begin
-  Result := LIB_Versao(sVersao, esTamanho);
+  Result := LIB_Versao(pLib, sVersao, esTamanho);
 end;
 
 function IBGE_UltimoRetorno(const sMensagem: PChar; var esTamanho: longint): longint;
   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
 begin
-  Result := LIB_UltimoRetorno(sMensagem, esTamanho);
+  Result := LIB_UltimoRetorno(pLib, sMensagem, esTamanho);
 end;
 
 function IBGE_ConfigLer(const eArqConfig: PChar): longint;
   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
 begin
-  Result := LIB_ConfigLer(eArqConfig);
+  Result := LIB_ConfigLer(pLib, eArqConfig);
 end;
 
 function IBGE_ConfigGravar(const eArqConfig: PChar): longint;
   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
 begin
-  Result := LIB_ConfigGravar(eArqConfig);
+  Result := LIB_ConfigGravar(pLib, eArqConfig);
 end;
 
 function IBGE_ConfigLerValor(const eSessao, eChave: PChar; sValor: PChar;
   var esTamanho: longint): longint;
   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
 begin
-  Result := LIB_ConfigLerValor(eSessao, eChave, sValor, esTamanho);
+  Result := LIB_ConfigLerValor(pLib, eSessao, eChave, sValor, esTamanho);
 end;
 
 function IBGE_ConfigGravarValor(const eSessao, eChave, eValor: PChar): longint;
   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
 begin
-  Result := LIB_ConfigGravarValor(eSessao, eChave, eValor);
+  Result := LIB_ConfigGravarValor(pLib, eSessao, eChave, eValor);
 end;
 {%endregion}
 
@@ -202,9 +201,11 @@ var
   Resp: TLibIBGEResposta;
 begin
   Resp := TLibIBGEResposta.Create(
-          CSessaoRespConsulta + IntToStr(ItemID +1), pLib.Config.TipoResposta, pLib.Config.CodResposta);
+          CSessaoRespConsulta + IntToStr(ItemID +1),
+          TACBrLibIBGE(pLib^.Lib).Config.TipoResposta,
+          TACBrLibIBGE(pLib^.Lib).Config.CodResposta);
   try
-    with TACBrLibIBGE(pLib).IBGEDM.ACBrIBGE1.Cidades[ItemID] do
+    with TACBrLibIBGE(pLib^.Lib).IBGEDM.ACBrIBGE1.Cidades[ItemID] do
     begin
       Resp.UF := UF;
       Resp.CodUF := IntToStr(CodUF);
@@ -227,14 +228,14 @@ var
   I: Integer;
 begin
   try
-    VerificarLibInicializada;
+    VerificarLibInicializada(pLib);
 
-    if pLib.Config.Log.Nivel > logNormal then
-      pLib.GravarLog('IBGE_BuscarPorCodigo( ' + IntToStr(ACodMun) + ' )', logCompleto, True)
+    if TACBrLibIBGE(pLib^.Lib).Config.Log.Nivel > logNormal then
+      TACBrLibIBGE(pLib^.Lib).GravarLog('IBGE_BuscarPorCodigo( ' + IntToStr(ACodMun) + ' )', logCompleto, True)
     else
-      pLib.GravarLog('IBGE_BuscarPorCodigo', logNormal);
+      TACBrLibIBGE(pLib^.Lib).GravarLog('IBGE_BuscarPorCodigo', logNormal);
 
-    with TACBrLibIBGE(pLib) do
+    with TACBrLibIBGE(pLib^.Lib) do
     begin
       IBGEDM.Travar;
       try
@@ -256,10 +257,10 @@ begin
     end;
   except
     on E: EACBrLibException do
-      Result := SetRetorno(E.Erro, E.Message);
+      Result := TACBrLibIBGE(pLib^.Lib).SetRetorno(E.Erro, E.Message);
 
     on E: Exception do
-      Result := SetRetorno(ErrExecutandoMetodo, E.Message);
+      Result := TACBrLibIBGE(pLib^.Lib).SetRetorno(ErrExecutandoMetodo, E.Message);
   end;
 end;
 
@@ -273,17 +274,17 @@ var
   I: Integer;
 begin
   try
-    VerificarLibInicializada;
+    VerificarLibInicializada(pLib);
     ACidade := AnsiString(eCidade);
     AUF := AnsiString(eUF);
 
-    if pLib.Config.Log.Nivel > logNormal then
-      pLib.GravarLog('IBGE_BuscarPorNome( ' + ACidade + ',' + AUF +
+    if TACBrLibIBGE(pLib^.Lib).Config.Log.Nivel > logNormal then
+      TACBrLibIBGE(pLib^.Lib).GravarLog('IBGE_BuscarPorNome( ' + ACidade + ',' + AUF +
                               BoolToStr(Exata, False) + ' )', logCompleto, True)
     else
-      pLib.GravarLog('IBGE_BuscarPorNome', logNormal);
+      TACBrLibIBGE(pLib^.Lib).GravarLog('IBGE_BuscarPorNome', logNormal);
 
-    with TACBrLibIBGE(pLib) do
+    with TACBrLibIBGE(pLib^.Lib) do
     begin
       IBGEDM.Travar;
       try
@@ -305,10 +306,10 @@ begin
     end;
   except
     on E: EACBrLibException do
-      Result := SetRetorno(E.Erro, E.Message);
+      Result := TACBrLibIBGE(pLib^.Lib).SetRetorno(E.Erro, E.Message);
 
     on E: Exception do
-      Result := SetRetorno(ErrExecutandoMetodo, E.Message);
+      Result := TACBrLibIBGE(pLib^.Lib).SetRetorno(ErrExecutandoMetodo, E.Message);
   end;
 end;
 {%endregion}

@@ -30,18 +30,6 @@
 {       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
-{******************************************************************************
-|* Historico
-|*
-|* 28/09/2004: Daniel Simoes de Almeida
-|*  - Primeira Versao ACBrDIS
-|* 15/03/2007: Daniel Simoes de Almeida
-|*  - Adicionada a propriedade "PausaVai_e_Volta" em ACBrDISLinha. (default 3)
-|*    - Permite deifinir uma pausa antes de inverter a direção
-|* 15/05/2007: Daniel Simoes de Almeida
-|*  - Adicionada a propriedade "RemoveAcentos : Boolean" default = True
-******************************************************************************}
-
 {$I ACBr.inc}
 
 unit ACBrDIS;
@@ -49,7 +37,7 @@ unit ACBrDIS;
 interface
 uses
   Classes, SysUtils,
-  {$IF DEFINED(NEXTGEN)}
+  {$IF DEFINED(HAS_SYSTEM_GENERICS)}
     System.Generics.Collections, System.Generics.Defaults,
   {$ELSEIF DEFINED(DELPHICOMPILER16_UP)}
     System.Contnrs,
@@ -127,7 +115,7 @@ TACBrDISLinha = class
 end ;
 
 { Lista de Objetos do tipo TACBrDISLinha }
-TACBrDISLinhas = class(TObjectList{$IfDef NEXTGEN}<TACBrDISLinha>{$EndIf})
+TACBrDISLinhas = class(TObjectList{$IfDef HAS_SYSTEM_GENERICS}<TACBrDISLinha>{$EndIf})
   protected
     procedure SetObject (Index: Integer; Item: TACBrDISLinha);
     function GetObject (Index: Integer): TACBrDISLinha;

@@ -1,35 +1,34 @@
-{*******************************************************************************}
-{ Projeto: Componentes ACBr                                                     }
-{  Biblioteca multiplataforma de componentes Delphi para interação com equipa-  }
-{ mentos de Automação Comercial utilizados no Brasil                            }
-{                                                                               }
-{ Direitos Autorais Reservados (c) 2018 Daniel Simoes de Almeida                }
-{                                                                               }
-{ Colaboradores nesse arquivo: Rafael Teno Dias                                 }
-{                                                                               }
-{  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr     }
-{ Componentes localizado em      http://www.sourceforge.net/projects/acbr       }
-{                                                                               }
-{  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la  }
-{ sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela   }
-{ Free Software Foundation; tanto a versão 2.1 da Licença, ou (a seu critério)  }
-{ qualquer versão posterior.                                                    }
-{                                                                               }
-{  Esta biblioteca é distribuída na expectativa de que seja útil, porém, SEM    }
-{ NENHUMA GARANTIA; nem mesmo a garantia implícita de COMERCIABILIDADE OU       }
-{ ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA. Consulte a Licença Pública Geral Menor }
-{ do GNU para mais detalhes. (Arquivo LICENÇA.TXT ou LICENSE.TXT)               }
-{                                                                               }
-{  Você deve ter recebido uma cópia da Licença Pública Geral Menor do GNU junto }
-{ com esta biblioteca; se não, escreva para a Free Software Foundation, Inc.,   }
-{ no endereço 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.           }
-{ Você também pode obter uma copia da licença em:                               }
-{ http://www.opensource.org/licenses/gpl-license.php                            }
-{                                                                               }
-{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br }
-{        Rua Cel.Aureliano de Camargo, 963 - Tatuí - SP - 18270-170             }
-{                                                                               }
-{*******************************************************************************}
+{******************************************************************************}
+{ Projeto: Componentes ACBr                                                    }
+{  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
+{ mentos de Automação Comercial utilizados no Brasil                           }
+{                                                                              }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{                                                                              }
+{ Colaboradores nesse arquivo: Rafael Teno Dias                                }
+{                                                                              }
+{  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
+{ Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
+{                                                                              }
+{  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la }
+{ sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela  }
+{ Free Software Foundation; tanto a versão 2.1 da Licença, ou (a seu critério) }
+{ qualquer versão posterior.                                                   }
+{                                                                              }
+{  Esta biblioteca é distribuída na expectativa de que seja útil, porém, SEM   }
+{ NENHUMA GARANTIA; nem mesmo a garantia implícita de COMERCIABILIDADE OU      }
+{ ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA. Consulte a Licença Pública Geral Menor}
+{ do GNU para mais detalhes. (Arquivo LICENÇA.TXT ou LICENSE.TXT)              }
+{                                                                              }
+{  Você deve ter recebido uma cópia da Licença Pública Geral Menor do GNU junto}
+{ com esta biblioteca; se não, escreva para a Free Software Foundation, Inc.,  }
+{ no endereço 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.          }
+{ Você também pode obter uma copia da licença em:                              }
+{ http://www.opensource.org/licenses/lgpl-license.php                          }
+{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
+{******************************************************************************}
 
 {$I ACBr.inc}
 
@@ -38,12 +37,13 @@ unit ACBrLibConsts;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, ACBrLibComum;
 
 const
   CACBrLib = 'ACBrLib';
   CACBrLibVersaoConfig = '0.0.2';
   CLibChaveCrypt = 'tYk*5W@';
+  CLibMemory = '[Memory]';
 
   {$IfDef MSWINDOWS}
   CNomeArqConf = 'ACBrLib.ini';
@@ -209,8 +209,8 @@ resourcestring
   SErrLibNaoCarregada = 'Biblioteca %s não pode ser carregada';
 
   SErrDiretorioInvalido = 'Diretório Invalido: %s';
-  SErrConfSessaoNaoExiste = 'Sessão não existe no arquivo de configuração';
-  SErrConfChaveNaoExiste = 'Chave não existe no arquivo de configuração';
+  SErrConfSessaoNaoExiste = 'Sessão não [%s] existe no arquivo de configuração';
+  SErrConfChaveNaoExiste = 'Chave [%s] não existe na Sessão [%s] no arquivo de configuração';
 
   SErrArquivoNaoExiste = 'Arquivo % não encontrado';
   SErrIndex = 'Indice informado % não encontrado';
@@ -220,19 +220,19 @@ resourcestring
 const
 {$I ACBrLibErros.inc}
 
-function SetRetornoWebService(const CodigoHTTP: Integer; const WebService: String; const Message: String = ''): Integer;
-function GerarRetornoWebService(const CodigoHTTP: Integer; const WebService: String; const Message: String = ''): String;
+function SetRetornoWebService(const libHandle: PLibHandle; const CodigoHTTP: Integer; const WebService: String; const Message: String = ''): Integer;
+function GerarRetornoWebService(const libHandle: PLibHandle; const CodigoHTTP: Integer; const WebService: String; const Message: String = ''): String;
 
 implementation
 uses
-  ACBrLibComum, ACBrLibResposta, ACBrUtil;
+  ACBrLibResposta, ACBrUtil;
 
-function GerarRetornoWebService(const CodigoHTTP: Integer; const WebService: String; const Message: String = ''): String;
+function GerarRetornoWebService(const libHandle: PLibHandle; const CodigoHTTP: Integer; const WebService: String; const Message: String = ''): String;
 Var
   Resp: TACBrLibHttpResposta;
 begin
   Result := '';
-  Resp := TACBrLibHttpResposta.Create(pLib.Config.TipoResposta, pLib.Config.CodResposta);
+  Resp := TACBrLibHttpResposta.Create(libHandle^.Lib.Config.TipoResposta, libHandle^.Lib.Config.CodResposta);
   try
     Resp.CodigoHTTP := CodigoHTTP;
     Resp.WebService := WebService;
@@ -243,12 +243,12 @@ begin
   end;
 end;
 
-function SetRetornoWebService(const CodigoHTTP: Integer; const WebService: String; const Message: String = ''): Integer;
+function SetRetornoWebService(const libHandle: PLibHandle; const CodigoHTTP: Integer; const WebService: String; const Message: String = ''): Integer;
 Var
   Resposta: String;
 begin
-  Resposta := GerarRetornoWebService(CodigoHTTP, WebService, Message);
-  Result := SetRetorno(ErrHttp, Resposta);
+  Resposta := GerarRetornoWebService(libHandle, CodigoHTTP, WebService, Message);
+  Result := libHandle^.Lib.SetRetorno(ErrHttp, Resposta);
 end;
 
 end.

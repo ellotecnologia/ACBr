@@ -2,33 +2,32 @@
 { Projeto: Componentes ACBr                                                    }
 {  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
-
-{ Direitos Autorais Reservados (c) 2018 Daniel Simoes de Almeida               }
-
+{                                                                              }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{                                                                              }
 { Colaboradores nesse arquivo: Rafael Teno Dias                                }
-
+{                                                                              }
 {  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
-
+{                                                                              }
 {  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la }
 { sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela  }
 { Free Software Foundation; tanto a versão 2.1 da Licença, ou (a seu critério) }
 { qualquer versão posterior.                                                   }
-
+{                                                                              }
 {  Esta biblioteca é distribuída na expectativa de que seja útil, porém, SEM   }
 { NENHUMA GARANTIA; nem mesmo a garantia implícita de COMERCIABILIDADE OU      }
 { ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA. Consulte a Licença Pública Geral Menor}
 { do GNU para mais detalhes. (Arquivo LICENÇA.TXT ou LICENSE.TXT)              }
-
+{                                                                              }
 {  Você deve ter recebido uma cópia da Licença Pública Geral Menor do GNU junto}
 { com esta biblioteca; se não, escreva para a Free Software Foundation, Inc.,  }
 { no endereço 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.          }
 { Você também pode obter uma copia da licença em:                              }
-{ http://www.opensource.org/licenses/gpl-license.php                           }
-
-{ Daniel Simões de Almeida  -  daniel@djsystem.com.br  -  www.djsystem.com.br  }
-{        Rua Cel.Aureliano de Camargo, 973 - Tatuí - SP - 18270-170            }
-
+{ http://www.opensource.org/licenses/lgpl-license.php                          }
+{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
 {$I ACBr.inc}
@@ -40,7 +39,7 @@ interface
 uses
   Classes, SysUtils, IniFiles,
   ACBrCTeConfiguracoes, ACBrCTeDACTeRLClass,
-  pcnConversao,
+  pcnConversao, ACBrLibComum,
   ACBrLibConfig, DFeReportConfig;
 
 type
@@ -62,10 +61,9 @@ type
     FImprimirDescPorc: boolean;
 
   protected
-    procedure ImportChild(const AIni: TCustomIniFile); override;
     procedure LerIniChild(const AIni: TCustomIniFile); override;
     procedure GravarIniChild(const AIni: TCustomIniFile); override;
-    procedure ApplyChild(const DFeReport: TACBrCTeDACTeRL); override;
+    procedure ApplyChild(const DFeReport: TACBrCTeDACTeRL; const Lib: TACBrLib); override;
     procedure DefinirValoresPadroesChild; override;
 
   public
@@ -94,7 +92,6 @@ type
     procedure INIParaClasse; override;
     procedure ClasseParaINI; override;
     procedure ClasseParaComponentes; override;
-    procedure ImportarIni(FIni: TCustomIniFile); override;
 
     procedure Travar; override;
     procedure Destravar; override;
@@ -110,9 +107,9 @@ type
 implementation
 
 uses
-  blcksock, pcnAuxiliar, pcteConversaoCTe, ACBrDFeSSL,
-  ACBrMonitorConsts, ACBrLibConsts, ACBrLibCTeConsts,
-  ACBrLibComum, ACBrLibCTeClass, ACBrUtil;
+  blcksock, pcnAuxiliar, pcteConversaoCTe,
+  ACBrLibConsts, ACBrLibCTeConsts,
+  ACBrLibCTeBase, ACBrUtil;
 
 { TDACTeConfig }
 constructor TDACTeConfig.Create;
@@ -135,11 +132,6 @@ begin
   FProtocoloCTe := '';
   FUsuario := '';
   FTamanhoPapel := tpA4;
-end;
-
-procedure TDACTeConfig.ImportChild(const AIni: TCustomIniFile);
-begin
-  TamanhoPapel := TpcnTamanhoPapel(AIni.ReadInteger(CSecDACTE, CKeyDACTETamanhoPapel, Integer(TamanhoPapel)));
 end;
 
 procedure TDACTeConfig.LerIniChild(const AIni: TCustomIniFile);
@@ -172,7 +164,7 @@ begin
   AIni.WriteBool(FSessao, CChaveImprimirDescPorc, FImprimirDescPorc);
 end;
 
-procedure TDACTeConfig.ApplyChild(const DFeReport: TACBrCTeDACTeRL);
+procedure TDACTeConfig.ApplyChild(const DFeReport: TACBrCTeDACTeRL; const Lib: TACBrLib);
 begin
   with DFeReport do
   begin
@@ -234,103 +226,6 @@ begin
 
   if Assigned(Owner) then
     TACBrLibCTe(Owner).CTeDM.AplicarConfiguracoes;
-end;
-
-procedure TLibCTeConfig.ImportarIni(FIni: TCustomIniFile);
-Var
-  AuxStr: String;
-  Ok: Boolean;
-begin
-  with CTe.Certificados do
-  begin
-    //Sessão Certificado
-    ArquivoPFX := FIni.ReadString(CSecCertificado, CKeyArquivoPFX, ArquivoPFX);
-    NumeroSerie := FIni.ReadString(CSecCertificado, CKeyNumeroSerie, NumeroSerie);
-
-    AuxStr := '';
-    AuxStr := FIni.ReadString(CSecCertificado, CKeySenha, '');
-    if NaoEstaVazio(AuxStr) then
-      Senha := AuxStr;
-  end;
-
-  with CTe.Geral do
-  begin
-    //Sessão Certificado
-    SSLCryptLib := TSSLCryptLib(FIni.ReadInteger(CSecCertificado, CKeyCryptLib, Integer(SSLCryptLib)));
-    SSLHttpLib := TSSLHttpLib(FIni.ReadInteger(CSecCertificado, CKeyHttpLib, Integer(SSLHttpLib)));
-    SSLXmlSignLib := TSSLXmlSignLib(FIni.ReadInteger(CSecCertificado, CKeyXmlSignLib, Integer(SSLXmlSignLib)));
-
-    //ACBrNFeMonitor
-    RetirarAcentos := FIni.ReadBool(CSecACBrNFeMonitor, CKeyRetirarAcentos,RetirarAcentos);
-    ValidarDigest := FIni.ReadBool(CSecACBrNFeMonitor, CKeyValidarDigest, ValidarDigest);
-
-    //Webservices
-    FormaEmissao := TpcnTipoEmissao(FIni.ReadInteger(CSecWebService, CKeyVersaoCTe, Integer(FormaEmissao)));
-    VersaoDF := StrToVersaoCTe(Ok, FIni.ReadString(CSecWebService, CKeyVersaoCTe, VersaoCTeToStr(VersaoDF)));
-  end;
-
-  with CTe.Arquivos do
-  begin
-    //ACBrNFeMonitor
-    IniServicos := FIni.ReadString(CSecACBrNFeMonitor, CKeyArquivoWebServices, IniServicos);
-
-    //Arquivos
-    Salvar := FIni.ReadBool(CSecArquivos, CKeyArquivosSalvar, Salvar);
-    SepararPorMes := FIni.ReadBool(CSecArquivos, CKeyArquivosPastaMensal, SepararPorMes);
-    SepararPorCNPJ := FIni.ReadBool(CSecArquivos, CKeyArquivosSepararPorCNPJ, SepararPorCNPJ);
-    SepararPorModelo := FIni.ReadBool(CSecArquivos, CKeyArquivosSepararPorModelo, SepararPorModelo);
-    SepararPorModelo := FIni.ReadBool(CSecArquivos, CKeyArquivosSepararPorModelo, SepararPorModelo);
-    AdicionarLiteral := FIni.ReadBool(CSecArquivos, CKeyArquivosAddLiteral, AdicionarLiteral);
-    SalvarApenasCTeProcessados := FIni.ReadBool(CSecArquivos, CKeyArquivosSalvarApenasNFesAutorizadas, SalvarApenasCTeProcessados);
-    NormatizarMunicipios := FIni.ReadBool(CSecArquivos, CKeyArquivosNormatizarMunicipios, NormatizarMunicipios);
-    EmissaoPathCTe := FIni.ReadBool(CSecArquivos, CKeyArquivosEmissaoPathNFe, EmissaoPathCTe);
-    PathCTe := FIni.ReadString(CSecArquivos, CKeyArquivosPathNFe, PathCTe);
-    PathInu := FIni.ReadString(CSecArquivos, CKeyArquivosPathInu, PathInu);
-    PathEvento := FIni.ReadString(CSecArquivos, CKeyArquivosPathEvento, PathEvento);
-
-    AuxStr := FIni.ReadString(CSecArquivos, CKeyArquivosPathSchemasDFe, '');
-    if NaoEstaVazio(AuxStr) then
-      PathSchemas := PathWithDelim(AuxStr) + 'CTe';
-
-    with DownloadDFe do
-    begin
-      SepararPorNome := FIni.ReadBool(CSecArquivos, CKeyArquivosSepararPorNome, SepararPorNome);
-      PathDownload := FIni.ReadString(CSecArquivos, CKeyArquivosPathDownload, PathDownload);
-    end;
-  end;
-
-  with CTe.WebServices do
-  begin
-    // ACBrNFeMonitor
-    TimeOut := FIni.ReadInteger(CSecACBrNFeMonitor, CKeyTimeoutWebService, TimeOut);
-
-    // Certificado
-    SSLType := TSSLType(FIni.ReadInteger(CSecCertificado, CKeySSLType, Integer(SSLType)));
-
-    //Webservices
-    Ambiente := TpcnTipoAmbiente(FIni.ReadInteger(CSecWebService, CKeyAmbiente, Integer(Ambiente)));
-    UF := FIni.ReadString(CSecWebService, CKeyUF, UF);
-    AjustaAguardaConsultaRet := FIni.ReadBool(CSecWebService, CKeyAjustarAut, AjustaAguardaConsultaRet);
-    AguardarConsultaRet := FIni.ReadInteger(CSecWebService, CKeyAguardar, AguardarConsultaRet);
-    Tentativas := FIni.ReadInteger(CSecWebService, CKeyTentativas, Tentativas);
-    IntervaloTentativas := FIni.ReadInteger(CSecWebService, CKeyWebServiceIntervalo, IntervaloTentativas);
-
-    with TimeZoneConf do
-    begin
-      ModoDeteccao := TTimeZoneModoDeteccao(FIni.ReadInteger(CSecWebService, CKeyTimeZoneMode, Integer(ModoDeteccao)));
-      TimeZoneStr := FIni.ReadString(CSecWebService, CKeyTimeZoneStr, TimeZoneStr);
-    end;
-  end;
-
-  with CTe.RespTec do
-  begin
-    // RespTecnico
-    IdCSRT := FIni.ReadInteger(CSecRespTecnico, CKeyidCSRT, IdCSRT);
-    CSRT := FIni.ReadString(CSecRespTecnico, CKeyCSRT, CSRT);
-  end;
-
-  //Impressão
-  DACTe.Import(FIni);
 end;
 
 procedure TLibCTeConfig.Travar;

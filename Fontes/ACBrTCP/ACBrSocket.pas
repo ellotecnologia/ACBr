@@ -30,13 +30,6 @@
 {       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
-{******************************************************************************
-|* Historico
-|*
-|* 24/10/2008: Primeira Versao
-|*    Daniel Simoes de Almeida
-******************************************************************************}
-
 {$I ACBr.inc}
 
 unit ACBrSocket;
@@ -878,6 +871,7 @@ var
    CT, Location, HtmlHead: String ;
    RespIsUTF8, AddUTF8InHeader: Boolean;
    ContaRedirecionamentos: Integer;
+   HeadersOld: string;
 begin
   {$IFDEF UPDATE_SCREEN_CURSOR}
    OldCursor := Screen.Cursor ;
@@ -916,6 +910,7 @@ begin
       end;
     end;
 
+    HeadersOld := HTTPSend.Headers.Text;
     HTTPSend.HTTPMethod(Method, fURL);
 
     while ContaRedirecionamentos <= 10 do
@@ -932,20 +927,19 @@ begin
 
           //Location pode ser relativa ou absoluta http://stackoverflow.com/a/25643550/460775
           if IsAbsoluteURL(Location) then
-          begin
-            fURL := Location;
-          end
+            fURL := Location
           else
             fURL := GetURLBasePath( fURL ) + Location;
 
           HTTPSend.Clear;
+          HTTPSend.Headers.Text := HeadersOld;
 
           // Tipo de método usado não deveria ser trocado...
           // https://tools.ietf.org/html/rfc2616#page-62
           // ... mas talvez seja necessário, pois a maioria dos browsers o fazem
           // http://blogs.msdn.com/b/ieinternals/archive/2011/08/19/understanding-the-impact-of-redirect-response-status-codes-on-http-methods-like-head-get-post-and-delete.aspx
           if (HttpSend.ResultCode = 303) or
-             (((HttpSend.ResultCode = 301) or (HttpSend.ResultCode = 302)) and (Method = 'POST')) then
+             ( ((HttpSend.ResultCode = 301) or (HttpSend.ResultCode = 302)) and (Method = 'POST')) then
           begin
             HTTPSend.HTTPMethod('GET', fURL ) ;
           end

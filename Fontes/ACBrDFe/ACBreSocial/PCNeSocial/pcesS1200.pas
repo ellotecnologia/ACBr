@@ -33,6 +33,15 @@
 {       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
+{******************************************************************************
+|* Historico
+|*
+|* 27/10/2015: Jean Carlo Cantu, Tiago Ravache
+|*  - Doação do componente para o Projeto ACBr
+|* 28/08/2017: Leivio Fontenele - leivio@yahoo.com.br
+|*  - Implementação comunicação, envelope, status e retorno do componente com webservice.
+******************************************************************************}
+
 {$I ACBr.inc}
 
 unit pcesS1200;
@@ -41,13 +50,13 @@ interface
 
 uses
   SysUtils, Classes, Dialogs, Controls,
-  {$IF DEFINED(NEXTGEN)}
+  {$IF DEFINED(HAS_SYSTEM_GENERICS)}
    System.Generics.Collections, System.Generics.Defaults,
   {$ELSEIF DEFINED(DELPHICOMPILER16_UP)}
    System.Contnrs,
   {$IfEnd}
   ACBrBase,
-  pcnConversao, pcnGerador, ACBrUtil,
+  pcnConversao, pcnGerador, ACBrUtil, pcnConsts,
   pcesCommon, pcesConversaoeSocial, pcesGerador;
 
 type
@@ -965,7 +974,8 @@ begin
     if (dmDev[i].infoPerApurInst()) then
       GerarInfoPerApur(dmDev[i].infoPerApur);
 
-    if (dmDev[i].infoPerAntInst()) then
+    if (dmDev[i].infoPerAntInst()) and
+       (dmDev[i].infoPerAnt.ideADC.Count > 0) then
       GerarInfoPerAnt(dmDev[i].infoPerAnt);
 
     if (VersaoDF < ve02_04_02) and (dmDev[i].infoTrabIntermInst()) then
@@ -1173,6 +1183,11 @@ begin
 
         Inc(I);
       end;
+
+      sSecao := 'infoInterm';
+      if INIRec.SectionExists(sSecao) then
+        if INIRec.ReadString(sSecao, 'qtdDiasInterm', '') <> '' then
+          ideTrabalhador.infoInterm.qtdDiasInterm := INIRec.ReadInteger(sSecao, 'qtdDiasInterm', 0);
 
       I := 1;
       while true do

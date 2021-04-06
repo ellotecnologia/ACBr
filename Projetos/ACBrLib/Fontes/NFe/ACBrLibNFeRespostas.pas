@@ -45,7 +45,6 @@ uses
 type
 
   { TLibNFeResposta }
-
   TLibNFeResposta = class(TACBrLibRespostaBase)
   private
     FMsg: string;
@@ -60,7 +59,6 @@ type
   end;
 
   { TLibNFeServiceResposta }
-
   TLibNFeServiceResposta = class abstract(TACBrLibResposta<TACBrNFe>)
   private
     FMsg: string;
@@ -87,10 +85,10 @@ type
     property XMotivo: string read FxMotivo write FxMotivo;
     property CUF: integer read FcUF write FcUF;
     property DhRecbto: TDateTime read FdhRecbto write FdhRecbto;
+
   end;
 
   { TStatusServicoResposta }
-
   TStatusServicoResposta = class(TLibNFeServiceResposta)
   private
     FTMed: integer;
@@ -105,10 +103,10 @@ type
     property TMed: integer read FTMed write FTMed;
     property DhRetorno: TDateTime read FdhRetorno write FdhRetorno;
     property XObs: string read FxObs write FxObs;
+
   end;
 
   { TInutilizarNFeResposta }
-
   TInutilizarNFeResposta = class(TLibNFeServiceResposta)
   private
     FNomeArquivo: String;
@@ -123,10 +121,10 @@ type
     property NomeArquivo: String read FNomeArquivo write FNomeArquivo;
     property Xml: String read FXml write FXml;
     property NProt: String read FNProt write FNProt;
+
   end;
 
   { TEnvioResposta }
-
   TEnvioResposta = class(TLibNFeServiceResposta)
   private
     FtMed: integer;
@@ -175,6 +173,7 @@ type
     property emailDest: string read FemailDest write FemailDest;
     property XML: string read Fxml write Fxml;
     property Arquivo: string read FArquivo write FArquivo;
+
   end;
 
   { TEventoItemResposta }
@@ -230,20 +229,17 @@ type
     FcOrgao: Integer;
     FItems: TObjectList;
 
-    function GetItem(Index: Integer): TEventoItemResposta;
-
   public
     constructor Create(const ATipo: TACBrLibRespostaTipo; const AFormato: TACBrLibCodificacao); reintroduce;
     destructor Destroy; override;
 
     procedure Processar(const ACBrNFe: TACBrNFe); override;
-    function Gerar: String; override;
-
-    property Items[Index: Integer]: TEventoItemResposta read GetItem;
 
   published
     property idLote: Integer read FidLote write FidLote;
     property cOrgao: Integer read FcOrgao write FcOrgao;
+    property Items: TObjectList read FItems;
+
   end;
 
   { TConsultaNFeInfCanResposta }
@@ -295,63 +291,59 @@ type
   end;
 
   { TConsultaNFeRetEventoResposta }
-   TConsultaNFeRetEventoResposta  = class(TACBrLibRespostaBase)
-   private
-     FAId: Integer;
-     FAIndex: Integer;
-     FId: String;
-     Fversao: String;
-     FtpAmb: String;
-     FverAplic: String;
-     FcStat: Integer;
-     FxMotivo: String;
-     FNomeArquivo: String;
-     FcOrgao: String;
-     FchNFe: String;
-     FtpEvento: String;
-     FxEvento: String;
-     FnSeqEvento: Integer;
-     FCNPJDest: String;
-     FemailDest: String;
-     FcOrgaoAutor: String;
-     FdhRegEvento: TDateTime;
-     FnProt: String;
-     FXML: String;
-     FItems: TObjectList;
+  TConsultaNFeRetEventoResposta  = class(TACBrLibRespostaBase)
+  private
+    FAId: Integer;
+    FAIndex: Integer;
+    FId: String;
+    Fversao: String;
+    FtpAmb: String;
+    FverAplic: String;
+    FcStat: Integer;
+    FxMotivo: String;
+    FNomeArquivo: String;
+    FcOrgao: String;
+    FchNFe: String;
+    FtpEvento: String;
+    FxEvento: String;
+    FnSeqEvento: Integer;
+    FCNPJDest: String;
+    FemailDest: String;
+    FcOrgaoAutor: String;
+    FdhRegEvento: TDateTime;
+    FnProt: String;
+    FXML: String;
+    FItems: TObjectList;
 
-     function GetItem(Index: Integer): TConsultaNFeChNFePendResposta;
+  public
+    constructor Create(const AId, AIndex: Integer; const ATipo: TACBrLibRespostaTipo;
+      const AFormato: TACBrLibCodificacao); reintroduce;
+    destructor Destroy; override;
 
-   public
-     constructor Create(const AId, AIndex: Integer; const ATipo: TACBrLibRespostaTipo;
-       const AFormato: TACBrLibCodificacao); reintroduce;
-     destructor Destroy; override;
+    procedure Processar(const ARetInfEvento: TRetInfEvento);
 
-     procedure Processar(const ARetInfEvento: TRetInfEvento);
-     function Gerar: String; override;
+  published
+    property Id: String read FId;
+    property Versao: string read Fversao write Fversao;
+    property tpAmb: string read FtpAmb write FtpAmb;
+    property VerAplic: string read FverAplic write FverAplic;
+    property CStat: integer read FcStat write FcStat;
+    property XMotivo: string read FxMotivo write FxMotivo;
+    property NomeArquivo: String read FNomeArquivo write FNomeArquivo;
+    property cOrgao: String read FcOrgao write FcOrgao;
+    property chNFe: String read FchNFe write FchNFe;
+    property tpEvento: String read FtpEvento write FtpEvento;
+    property xEvento: String read FxEvento write FxEvento;
+    property nSeqEvento: Integer read FnSeqEvento write FnSeqEvento;
+    property CNPJDest: String read FCNPJDest write FCNPJDest;
+    property emailDest: String read FemailDest write FemailDest;
+    property cOrgaoAutor: String read FcOrgaoAutor write FcOrgaoAutor;
+    property dhRegEvento: TDateTime read FdhRegEvento write FdhRegEvento;
+    property nProt: String read FnProt write FnProt;
+    property XML: String read FXML write FXML;
+    property Items: TObjectList read FItems;
 
-     property Items[Index: Integer]: TConsultaNFeChNFePendResposta read GetItem;
-
-   published
-     property Id: String read FId;
-     property Versao: string read Fversao write Fversao;
-     property tpAmb: string read FtpAmb write FtpAmb;
-     property VerAplic: string read FverAplic write FverAplic;
-     property CStat: integer read FcStat write FcStat;
-     property XMotivo: string read FxMotivo write FxMotivo;
-     property NomeArquivo: String read FNomeArquivo write FNomeArquivo;
-     property cOrgao: String read FcOrgao write FcOrgao;
-     property chNFe: String read FchNFe write FchNFe;
-     property tpEvento: String read FtpEvento write FtpEvento;
-     property xEvento: String read FxEvento write FxEvento;
-     property nSeqEvento: Integer read FnSeqEvento write FnSeqEvento;
-     property CNPJDest: String read FCNPJDest write FCNPJDest;
-     property emailDest: String read FemailDest write FemailDest;
-     property cOrgaoAutor: String read FcOrgaoAutor write FcOrgaoAutor;
-     property dhRegEvento: TDateTime read FdhRegEvento write FdhRegEvento;
-     property nProt: String read FnProt write FnProt;
-     property XML: String read FXML write FXML;
-
-   end;
+  end;
 
   { TConsultaNFeDetEventoResposta }
   TConsultaNFeDetEventoResposta  = class(TACBrLibRespostaBase)
@@ -379,17 +371,12 @@ type
     FidPedidoCancelado : String;
     FItems: TObjectList;
 
-    function GetItem(Index: Integer): TConsultaNFeItemPedidoResposta;
-
   public
     constructor Create(const AId: Integer; const ATipo: TACBrLibRespostaTipo;
       const AFormato: TACBrLibCodificacao); reintroduce;
     destructor Destroy; override;
 
     procedure Processar(const AEvento: TDetEvento);
-    function Gerar: String; override;
-
-    property Items[Index: Integer]: TConsultaNFeItemPedidoResposta read GetItem;
 
   published
     property Versao: string read Fversao write Fversao;
@@ -412,6 +399,7 @@ type
     property vICMS: Double read FvICMS write FvICMS;
     property vST: Double read FvST write FvST;
     property idPedidoCancelado: String read FidPedidoCancelado write FidPedidoCancelado;
+    property Items: TObjectList read FItems;
 
   end;
 
@@ -430,18 +418,12 @@ type
     FDetEvento: TConsultaNFeDetEventoResposta;
     FRetEventos: TObjectList;
 
-    function GetEventos(Index: Integer): TConsultaNFeRetEventoResposta;
-
   public
     constructor Create(const AId: Integer; const ATipo: TACBrLibRespostaTipo;
       const AFormato: TACBrLibCodificacao); reintroduce;
     destructor Destroy; override;
 
     procedure Processar(const AEvento: TRetEventoNFeCollectionItem); reintroduce;
-    function Gerar: String; override;
-
-    property detEvento: TConsultaNFeDetEventoResposta read FDetEvento write FDetEvento;
-    property RetEventos[Index: Integer]: TConsultaNFeRetEventoResposta read GetEventos;
 
   published
     property ID: Integer read FID;
@@ -453,6 +435,8 @@ type
     property tpEvento: String read FtpEvento write FtpEvento;
     property nSeqEvento: Integer read FnSeqEvento write FnSeqEvento;
     property verEvento: String read FverEvento write FverEvento;
+    property detEvento: TConsultaNFeDetEventoResposta read FDetEvento write FDetEvento;
+    property RetEventos: TObjectList read FRetEventos;
 
   end;
 
@@ -467,17 +451,11 @@ type
     FInfCan: TConsultaNFeInfCanResposta;
     FEventos: TObjectList;
 
-    function GetEvento(Index: Integer): TConsultaNFeProcEventoResposta;
-
   public
     constructor Create(const ATipo: TACBrLibRespostaTipo; const AFormato: TACBrLibCodificacao); reintroduce;
     destructor Destroy; override;
 
     procedure Processar(const ACBrNFe: TACBrNFe); override;
-    function Gerar: String; override;
-
-    property InfCan: TConsultaNFeInfCanResposta read FInfCan write FInfCan;
-    property Eventos[Index: Integer]: TConsultaNFeProcEventoResposta read GetEvento;
 
   published
     property ChNFe: String read FChNFe write FChNFe;
@@ -485,6 +463,47 @@ type
     property DigVal: String read FDigVal write FDigVal;
     property cMsg: Integer read FcMsg write FcMsg;
     property xMsg: String read FxMsg write FxMsg;
+    property InfCan: TConsultaNFeInfCanResposta read FInfCan write FInfCan;
+    property Eventos: TObjectList read FEventos;
+
+  end;
+
+  { TPathNFeResposta }
+  TPathNFeResposta  = class(TACBrLibRespostaBase)
+  private
+    FArquivo: String;
+
+  public
+    constructor Create(const AnNF: Integer; const ATipo: TACBrLibRespostaTipo;
+      const AFormato: TACBrLibCodificacao); reintroduce;
+    destructor Destroy; override;
+
+    procedure Processar(const APathNFe: String); reintroduce;
+
+  published
+    property Arquivo: string read FArquivo write FArquivo;
+
+  end;
+
+  { TEnvioRetornoResposta }
+
+  TEnvioRetornoResposta = class(TACBrLibRespostaBase)
+  private
+    FEnvioResposta: TEnvioResposta;
+    FRetornoResposta: TRetornoResposta;
+    FNFe_Arq: TObjectList;
+
+  public
+    constructor Create(const ATipo: TACBrLibRespostaTipo; const AFormato: TACBrLibCodificacao); reintroduce;
+    destructor Destroy; override;
+
+    procedure Processar(const ACBrNFe: TACBrNFe); reintroduce;
+
+  published
+
+    property EnvioResposta: TEnvioResposta read FEnvioResposta write FEnvioResposta;
+    property RetornoResposta: TRetornoResposta read FRetornoResposta write FRetornoResposta;
+    property NFe_Arq: TObjectList read FNFe_Arq;
 
   end;
 
@@ -493,6 +512,92 @@ implementation
 uses
   pcnAuxiliar, pcnConversao,
   ACBrUtil, ACBrLibNFeConsts;
+
+{ TPathNFeResposta }
+
+constructor TPathNFeResposta.Create(const AnNF: Integer;
+  const ATipo: TACBrLibRespostaTipo; const AFormato: TACBrLibCodificacao);
+begin
+  inherited Create('NFe_Arq' + Trim(IntToStr(AnNF)), ATipo, AFormato);
+
+end;
+
+destructor TPathNFeResposta.Destroy;
+begin
+  inherited Destroy;
+end;
+
+procedure TPathNFeResposta.Processar(const APathNFe: String);
+begin
+  FArquivo:= APathNFe;
+end;
+
+{ TEnvioAssincronoResposta }
+
+constructor TEnvioRetornoResposta.Create(const ATipo: TACBrLibRespostaTipo;
+  const AFormato: TACBrLibCodificacao);
+begin
+  inherited Create(CSessaoResposta, ATipo, AFormato);
+  FEnvioResposta := TEnvioResposta.Create( Tipo, Formato);
+  FNFe_Arq := TObjectList.Create;
+
+end;
+
+destructor TEnvioRetornoResposta.Destroy;
+begin
+  if Assigned(FEnvioResposta) then FEnvioResposta.Free;
+  if Assigned(FRetornoResposta) then FRetornoResposta.Free;
+
+  FNFe_Arq.Clear;
+  FNFe_Arq.Free;
+
+  inherited Destroy;
+
+end;
+
+procedure TEnvioRetornoResposta.Processar(const ACBrNFe: TACBrNFe);
+var
+  lPathNFe: TPathNFeResposta;
+  I, J: Integer;
+begin
+    EnvioResposta.Processar(ACBrNFe);
+
+    if Assigned(ACBrNFe.WebServices.Retorno) and (ACBrNFe.WebServices.Enviar.Recibo <> '') then //Assincrono
+    begin
+      RetornoResposta := TRetornoResposta.Create('NFe', Tipo, Formato);
+      try
+        RetornoResposta.Processar(ACBrNFe.WebServices.Retorno.NFeRetorno,
+                                 ACBrNFe.WebServices.Retorno.Recibo,
+                                 ACBrNFe.WebServices.Retorno.Msg,
+                                 ACBrNFe.WebServices.Retorno.Protocolo,
+                                 ACBrNFe.WebServices.Retorno.ChaveNFe);
+
+        for I := 0 to ACBrNFe.WebServices.Retorno.NFeRetorno.ProtDFe.Count - 1 do
+        begin
+          for J := 0 to ACBrNFe.NotasFiscais.Count - 1 do
+          begin
+            if ('NFe' + ACBrNFe.WebServices.Retorno.NFeRetorno.ProtDFe.Items[I].chDFe =
+              ACBrNFe.NotasFiscais.Items[J].NFe.infNFe.Id) then
+            begin
+              lPathNFe := TPathNFeResposta.Create(
+                       ExtrairNumeroChaveAcesso(ACBrNFe.WebServices.Retorno.NFeRetorno.ProtDFe.Items[I].chDFe)
+                       , Tipo
+                       , Formato);
+              lPathNFe.Processar( ACBrNFe.NotasFiscais.Items[J].NomeArq );
+              if Assigned(FNFe_Arq) then
+                FNFe_Arq.Add(lPathNFe);
+            end;
+
+          end;
+
+        end;
+      finally
+        //Deve Realizar Free  no Destructor da classe
+      end;
+
+    end;
+
+end;
 
 { TLibNFeResposta }
 constructor TLibNFeResposta.Create(const ASessao: String;
@@ -540,23 +645,6 @@ begin
   FItems.Free;
 
   inherited Destroy;
-end;
-
-function TConsultaNFeRetEventoResposta.Gerar: String;
-Var
-  i: Integer;
-begin
-  Result := Inherited Gerar;
-
-  for i := 0 to FItems.Count - 1  do
-  begin
-    Result := Result + sLineBreak + TConsultaNFeChNFePendResposta(FItems.Items[i]).Gerar;
-  end;
-end;
-
-function TConsultaNFeRetEventoResposta.GetItem(Index: Integer): TConsultaNFeChNFePendResposta;
-begin
-  Result := TConsultaNFeChNFePendResposta(FItems.Items[Index]);
 end;
 
 procedure TConsultaNFeRetEventoResposta.Processar(const ARetInfEvento: TRetInfEvento);
@@ -619,23 +707,6 @@ begin
   inherited Destroy;
 end;
 
-function TConsultaNFeDetEventoResposta.Gerar: String;
-Var
-  i: Integer;
-begin
-  Result := Inherited Gerar;
-
-  for i := 0 to FItems.Count - 1  do
-  begin
-    Result := Result + sLineBreak + TConsultaNFeItemPedidoResposta(FItems.Items[i]).Gerar;
-  end;
-end;
-
-function TConsultaNFeDetEventoResposta.GetItem(Index: Integer): TConsultaNFeItemPedidoResposta;
-begin
-  Result := TConsultaNFeItemPedidoResposta(FItems.Items[Index]);
-end;
-
 procedure TConsultaNFeDetEventoResposta.Processar(const AEvento: TDetEvento);
 Var
   i: Integer;
@@ -689,24 +760,6 @@ begin
   FRetEventos.Free;
 
   inherited Destroy;
-end;
-
-function TConsultaNFeProcEventoResposta.GetEventos(Index: Integer): TConsultaNFeRetEventoResposta;
-begin
-  Result := TConsultaNFeRetEventoResposta(FRetEventos.Items[Index]);
-end;
-
-function TConsultaNFeProcEventoResposta.Gerar: String;
-Var
-  i: Integer;
-begin
-  Result := Inherited Gerar;
-  Result := Result + sLineBreak + FDetEvento.Gerar;
-
-  for i := 0 to FRetEventos.Count - 1  do
-  begin
-    Result := Result + sLineBreak + TConsultaNFeRetEventoResposta(FRetEventos.Items[i]).Gerar;
-  end;
 end;
 
 procedure TConsultaNFeProcEventoResposta.Processar(const AEvento: TRetEventoNFeCollectionItem);
@@ -797,23 +850,6 @@ begin
   inherited Destroy;
 end;
 
-function TEventoResposta.GetItem(Index: Integer): TEventoItemResposta;
-begin
-  Result := TEventoItemResposta(FItems.Items[Index]);
-end;
-
-function TEventoResposta.Gerar: String;
-Var
-  i: Integer;
-begin
-  Result := Inherited Gerar;
-
-  for i := 0 to FItems.Count - 1  do
-  begin
-    Result := Result + sLineBreak + TEventoItemResposta(FItems.Items[i]).Gerar;
-  end;
-end;
-
 procedure TEventoResposta.Processar(const ACBrNFe: TACBrNFe);
 Var
   I: Integer;
@@ -879,6 +915,8 @@ begin
 end;
 
 procedure TEnvioResposta.Processar(const ACBrNFe: TACBrNFe);
+Var
+  NumeroNota: string;
 begin
   if Assigned(FItemRetorno) then FreeAndNil(FItemRetorno);
 
@@ -899,7 +937,10 @@ begin
 
   if (ACBrNFe.WebServices.Enviar.Sincrono) and (ACBrNFe.NotasFiscais.Count > 0) then
   begin
-    FItemRetorno := TRetornoItemResposta.Create('NFe' + Trim(ACBrNFe.NotasFiscais.Items[0].NFe.procNFe.chNFe), Tipo, Formato);
+    NumeroNota := IntToStr(ExtrairNumeroChaveAcesso(ACBrNFe.NotasFiscais.Items[0].NFe.procNFe.chNFe));
+    if Trim(NumeroNota) = '' then Exit;
+
+    FItemRetorno := TRetornoItemResposta.Create('NFe' + NumeroNota, Tipo, Formato);
     FItemRetorno.Id := 'ID' + ACBrNFe.NotasFiscais.Items[0].NFe.procNFe.nProt;
     FItemRetorno.tpAmb := TpAmbToStr(ACBrNFe.NotasFiscais.Items[0].NFe.procNFe.tpAmb);
     FItemRetorno.verAplic := ACBrNFe.NotasFiscais.Items[0].NFe.procNFe.verAplic;
@@ -967,40 +1008,18 @@ constructor TConsultaNFeResposta.Create(const ATipo: TACBrLibRespostaTipo; const
 begin
   inherited Create(CSessaoRespConsulta, ATipo, AFormato);
 
-  FInfCan := TConsultaNFeInfCanResposta.Create(ATipo, AFormato);
+  FInfCan := nil;
   FEventos := TObjectList.Create;
 end;
 
 destructor TConsultaNFeResposta.Destroy;
 begin
-  FInfCan.Free;
+  if Assigned(FInfCan) then FInfCan.Free;
 
   FEventos.Clear;
   FEventos.Free;
 
   inherited Destroy;
-end;
-
-function TConsultaNFeResposta.GetEvento(Index: Integer): TConsultaNFeProcEventoResposta;
-begin
-  Result := TConsultaNFeProcEventoResposta(FEventos.Items[Index]);
-end;
-
-function TConsultaNFeResposta.Gerar: String;
-Var
-  i: Integer;
-begin
-  Result := Inherited Gerar;
-
-  if NaoEstaVazio(Trim(InfCan.nProt)) then
-  begin
-    Result := Result + sLineBreak + InfCan.Gerar;
-  end;
-
-  for i := 0 to FEventos.Count - 1 do
-  begin
-    Result := Result + sLineBreak + TConsultaNFeProcEventoResposta(FEventos.Items[i]).Gerar;
-  end;
 end;
 
 procedure TConsultaNFeResposta.Processar(const ACBrNFe: TACBrNFe);
@@ -1027,6 +1046,7 @@ begin
 
   if NaoEstaVazio(Trim(ACBrNFe.WebServices.Consulta.retCancNFe.nProt)) then
   begin
+    InfCan := TConsultaNFeInfCanResposta.Create(Tipo, Formato);
     InfCan.Processar(ACBrNFe);
   end;
 

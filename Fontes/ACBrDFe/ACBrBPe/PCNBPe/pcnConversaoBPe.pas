@@ -43,15 +43,18 @@ uses
 type
   TVersaoBPe = (ve100);
 
-  TTipoBPe = (tbNormal, tbSubstituicao);
+  TModeloBPe = (moBPe, moBPeTM);
+
+  TTipoBPe = (tbNormal, tbSubstituicao, tbBPeTM);
 
   TModalBPe = (moRodoviario, moAquaviario, moFerroviario);
 
-  TSchemaBPe = (schErro, schBPe, schconsSitBPe, schconsStatServ, schEventoBPe,
-                schdistDFeInt, schevCancBPe, schevNaoEmbBPe, schevAlteracaoPoltrona{,
+  TSchemaBPe = (schErro, schBPe, schBPeTM, schconsSitBPe, schconsStatServ, schEventoBPe,
+                schdistDFeInt, schevCancBPe, schevNaoEmbBPe, schevAlteracaoPoltrona,
+                schevExcessoBagagem{,
                 schresBPe, schresEventoBPe, schprocBPe, schprocEventoBPe});
 
-  TLayOutBPe = (LayBPeRecepcao, LayBPeRetRecepcao, LayBPeConsulta,
+  TLayOutBPe = (LayBPeRecepcao, LayBPeRecepcaoTM, LayBPeRetRecepcao, LayBPeConsulta,
                 LayBPeStatusServico, LayBPeEvento, LayBPeEventoAN, LayDistDFeInt);
 
   TStatusACBrBPe = (stIdleBPe, stBPeRecepcao, stBPeRetRecepcao, stBPeConsulta,
@@ -66,7 +69,8 @@ type
 
   TTipoServico = (tsConvencionalComSanitario, tsConvencionalSemSanitario,
                   tsSemileito, tsLeitoComAr, tsLeitoSemAr, tsExecutivo,
-                  tsSemiurbano, tsLongitudinal, tsTravessia);
+                  tsSemiurbano, tsLongitudinal, tsTravessia, tsCama,
+                  tsMicroOnibus);
 
   TTipoAcomodacao = (taAssento, taRede, taRedeComAr, taCabine, taOutros);
 
@@ -94,8 +98,10 @@ type
   TBandeiraCard = (bcVisa, bcMasterCard, bcAmericanExpress, bcSorocred, bcElo,
                    bcDinersClub, bcHipercard, bcAura, bcCabal, bcOutros);
 
-  TFormaPagamento = (fpDinheiro, fpCheque, fpCartaoCredito, fpCartaoDebito, fpValeTransporte,
-                        fpOutro);
+  TFormaPagamento = (fpDinheiro, fpCheque, fpCartaoCredito, fpCartaoDebito,
+                     fpValeTransporte, fpPIX, fpOutro);
+
+  TTipoEmissao = (teNormal, teOffLine);
 
 function StrToVersaoBPe(out ok: Boolean; const s: String): TVersaoBPe;
 function VersaoBPeToStr(const t: TVersaoBPe): String;
@@ -161,6 +167,13 @@ function FormaPagamentoBPeToStr(const t: TFormaPagamento): string;
 function FormaPagamentoBPeToDescricao(const t: TFormaPagamento): string;
 function StrToFormaPagamentoBPe(out ok: boolean; const s: string): TFormaPagamento;
 
+function ModeloBPeToStr(const t: TModeloBPe): String;
+function StrToModeloBPe(out ok: Boolean; const s: String): TModeloBPe;
+function ModeloBPeToPrefixo(const t: TModeloBPe): String;
+
+function TpEmisBPeToStr(const t: TTipoEmissao): string;
+function StrToTpEmisBPe(out ok: boolean; const s: string): TTipoEmissao;
+
 implementation
 
 uses
@@ -200,12 +213,12 @@ end;
 
 function tpBPeToStr(const t: TTipoBPe): String;
 begin
-  Result := EnumeradoToStr(t, ['0', '3'], [tbNormal, tbSubstituicao]);
+  Result := EnumeradoToStr(t, ['0', '3', '4'], [tbNormal, tbSubstituicao, tbBPeTM]);
 end;
 
 function StrToTpBPe(out ok: Boolean; const s: String): TTipoBPe;
 begin
-  Result := StrToEnumerado(ok, s, ['0', '3'], [tbNormal, tbSubstituicao]);
+  Result := StrToEnumerado(ok, s, ['0', '3', '4'], [tbNormal, tbSubstituicao, tbBPeTM]);
 end;
 
 function ModalBPeToStr(const t: TModalBPe): String;
@@ -226,6 +239,7 @@ function LayOutToSchema(const t: TLayOutBPe): TSchemaBPe;
 begin
   case t of
     LayBPeRecepcao:      Result := schBPe;
+    LayBPeRecepcaoTM:    Result := schBPeTM;
     LayBPeConsulta:      Result := schconsSitBPe;
     LayBPeStatusServico: Result := schconsStatServ;
     LayBPeEvento,
@@ -270,19 +284,19 @@ end;
 function LayOutBPeToServico(const t: TLayOutBPe): String;
 begin
   Result := EnumeradoToStr(t,
-    ['BPeRecepcao', 'BPeConsultaProtocolo', 'BPeStatusServico', 'BPeRetRecepcao',
-     'BPeRecepcaoEvento', 'BPeRecepcaoEvento', 'BPeDistribuicaoDFe'],
-    [ LayBPeRecepcao, LayBPeConsulta, LayBPeStatusServico, LayBPeRetRecepcao,
-      LayBPeEvento, LayBPeEventoAN, LayDistDFeInt ] );
+    ['BPeRecepcao', 'BPeRecepcaoTM', 'BPeConsultaProtocolo', 'BPeStatusServico',
+     'BPeRetRecepcao', 'BPeRecepcaoEvento', 'BPeRecepcaoEvento', 'BPeDistribuicaoDFe'],
+    [ LayBPeRecepcao, LayBPeRecepcaoTM, LayBPeConsulta, LayBPeStatusServico,
+      LayBPeRetRecepcao, LayBPeEvento, LayBPeEventoAN, LayDistDFeInt ] );
 end;
 
 function ServicoToLayOutBPe(out ok: Boolean; const s: String): TLayOutBPe;
 begin
   Result := StrToEnumerado(ok, s,
-    ['BPeRecepcao', 'BPeConsultaProtocolo', 'BPeStatusServico', 'BPeRetRecepcao',
-     'BPeRecepcaoEvento', 'BPeRecepcaoEvento', 'BPeDistribuicaoDFe'],
-    [ LayBPeRecepcao, LayBPeConsulta, LayBPeStatusServico, LayBPeRetRecepcao,
-      LayBPeEvento, LayBPeEventoAN, LayDistDFeInt ] );
+    ['BPeRecepcao', 'BPeRecepcaoTM', 'BPeConsultaProtocolo', 'BPeStatusServico',
+     'BPeRetRecepcao', 'BPeRecepcaoEvento', 'BPeRecepcaoEvento', 'BPeDistribuicaoDFe'],
+    [ LayBPeRecepcao, LayBPeRecepcaoTM, LayBPeConsulta, LayBPeStatusServico,
+      LayBPeRetRecepcao, LayBPeEvento, LayBPeEventoAN, LayDistDFeInt ] );
 end;
 
 function tpSubstituicaoToStr(const t: TTipoSubstituicao): String;
@@ -337,19 +351,23 @@ end;
 function tpServicoToStr(const t: TTipoServico): String;
 begin
   result := EnumeradoToStr(t,
-                           ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
+                           ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
+                            '11'],
                            [tsConvencionalComSanitario, tsConvencionalSemSanitario,
                             tsSemileito, tsLeitoComAr, tsLeitoSemAr, tsExecutivo,
-                            tsSemiurbano, tsLongitudinal, tsTravessia]);
+                            tsSemiurbano, tsLongitudinal, tsTravessia, tsCama,
+                            tsMicroOnibus]);
 end;
 
 function StrTotpServico(out ok: Boolean; const s: String): TTipoServico;
 begin
   result := StrToEnumerado(ok, s,
-                           ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
+                           ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
+                            '11'],
                            [tsConvencionalComSanitario, tsConvencionalSemSanitario,
                             tsSemileito, tsLeitoComAr, tsLeitoSemAr, tsExecutivo,
-                            tsSemiurbano, tsLongitudinal, tsTravessia]);
+                            tsSemiurbano, tsLongitudinal, tsTravessia, tsCama,
+                            tsMicroOnibus]);
 end;
 
 function tpServicoToDesc(const t: TTipoServico): String;
@@ -357,10 +375,12 @@ begin
   result := EnumeradoToStr(t,
                            ['Convencional com Sanitario', 'Convencional sem Sanitario',
                             'Semileito', 'Leito com Ar', 'Leito sem Ar', 'Executivo',
-                            'Semiurbano', 'Longitudinal', 'Travessia'],
+                            'Semiurbano', 'Longitudinal', 'Travessia', 'Cama',
+                            'Micro-Onibus'],
                            [tsConvencionalComSanitario, tsConvencionalSemSanitario,
                             tsSemileito, tsLeitoComAr, tsLeitoSemAr, tsExecutivo,
-                            tsSemiurbano, tsLongitudinal, tsTravessia]);
+                            tsSemiurbano, tsLongitudinal, tsTravessia, tsCama,
+                            tsMicroOnibus]);
 end;
 
 function tpAcomodacaoToStr(const t: TTipoAcomodacao): String;
@@ -501,7 +521,8 @@ end;
 
 function BandeiraCardToStr(const t: TBandeiraCard): string;
 begin
-  result := EnumeradoToStr(t, ['01', '02', '03', '04', '05', '06', '07', '08', '09', '99'],
+  result := EnumeradoToStr(t, ['01', '02', '03', '04', '05', '06', '07', '08',
+                               '09', '99'],
                               [bcVisa, bcMasterCard, bcAmericanExpress, bcSorocred,
                               bcElo, bcDinersClub, bcHipercard, bcAura, bcCabal,
                               bcOutros]);
@@ -525,39 +546,76 @@ end;
 
 function StrToBandeiraCard(out ok: boolean; const s: string): TBandeiraCard;
 begin
-  result := StrToEnumerado(ok, s, ['01', '02', '03', '04', '05', '06', '07', '08', '09', '99'],
+  result := StrToEnumerado(ok, s, ['01', '02', '03', '04', '05', '06', '07', '08',
+                                   '09', '99'],
                                   [bcVisa, bcMasterCard, bcAmericanExpress, bcSorocred,
-                                  bcElo, bcDinersClub, bcHipercard, bcAura, bcCabal,
-                                  bcOutros]);
+                                   bcElo, bcDinersClub, bcHipercard, bcAura, bcCabal,
+                                   bcOutros]);
 end;
 
 function StrToTpEventoBPe(out ok: boolean; const s: string): TpcnTpEvento;
 begin
   Result := StrToEnumerado(ok, s,
-            ['-99999', '110111', '110115', '110116'],
-            [teNaoMapeado, teCancelamento, teNaoEmbarque, teAlteracaoPoltrona]);
+            ['-99999', '110111', '110115', '110116', '110117'],
+            [teNaoMapeado, teCancelamento, teNaoEmbarque, teAlteracaoPoltrona,
+             teExcessoBagagem]);
 end;
 
 function FormaPagamentoBPeToStr(const t: TFormaPagamento): string;
 begin
-  result := EnumeradoToStr(t, ['01', '02', '03', '04', '05', '99'],
-                              [fpDinheiro, fpCheque, fpCartaoCredito, fpCartaoDebito, fpValeTransporte,
+  result := EnumeradoToStr(t, ['01', '02', '03', '04', '05', '06', '99'],
+                              [fpDinheiro, fpCheque, fpCartaoCredito,
+                               fpCartaoDebito, fpValeTransporte, fpPIX,
                                fpOutro]);
 end;
 
 function FormaPagamentoBPeToDescricao(const t: TFormaPagamento): string;
 begin
-  result := EnumeradoToStr(t,  ['Dinheiro', 'Cheque', 'Cartão de Crédito', 'Cartão de Débito', 'Vale Transporte',
+  result := EnumeradoToStr(t,  ['Dinheiro', 'Cheque', 'Cartão de Crédito',
+                                'Cartão de Débito', 'Vale Transporte', 'PIX',
                                'Outro'],
-                               [fpDinheiro, fpCheque, fpCartaoCredito, fpCartaoDebito, fpValeTransporte,
+                               [fpDinheiro, fpCheque, fpCartaoCredito,
+                                fpCartaoDebito, fpValeTransporte, fpPIX,
                                 fpOutro]);
 end;
 
 function StrToFormaPagamentoBPe(out ok: boolean; const s: string): TFormaPagamento;
 begin
-  result := StrToEnumerado(ok, s, ['01', '02', '03', '04', '05', '99'],
-                                  [fpDinheiro, fpCheque, fpCartaoCredito, fpCartaoDebito, fpValeTransporte,
+  result := StrToEnumerado(ok, s, ['01', '02', '03', '04', '05', '06', '99'],
+                                  [fpDinheiro, fpCheque, fpCartaoCredito,
+                                   fpCartaoDebito, fpValeTransporte, fpPIX,
                                    fpOutro]);
+end;
+
+function ModeloBPeToStr(const t: TModeloBPe): String;
+begin
+  Result := EnumeradoToStr(t, ['63', '63'], [moBPe, moBPeTM]);
+end;
+
+function StrToModeloBPe(out ok: Boolean; const s: String): TModeloBPe;
+begin
+  Result := StrToEnumerado(ok, s, ['63', '63'], [moBPe, moBPeTM]);
+end;
+
+function ModeloBPeToPrefixo(const t: TModeloBPe): String;
+begin
+  Case t of
+    moBPeTM: Result := 'BPeTM';
+  else
+    Result := 'BPe';
+  end;
+end;
+
+function TpEmisBPeToStr(const t: TTipoEmissao): string;
+begin
+  result := EnumeradoToStr(t, ['1', '2'],
+                              [teNormal, teOffLine]);
+end;
+
+function StrToTpEmisBPe(out ok: boolean; const s: string): TTipoEmissao;
+begin
+  result := StrToEnumerado(ok, s, ['1', '2'],
+                                  [teNormal, teOffLine]);
 end;
 
 initialization

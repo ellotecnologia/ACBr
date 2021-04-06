@@ -573,9 +573,9 @@ object frmACBrCTe: TfrmACBrCTe
               object Label6: TLabel
                 Left = 8
                 Top = 16
-                Width = 121
+                Width = 126
                 Height = 13
-                Caption = 'Selecione UF de Destino:'
+                Caption = 'Selecione UF do Emitente:'
                 Font.Charset = DEFAULT_CHARSET
                 Font.Color = clWindowText
                 Font.Height = -11
@@ -1670,7 +1670,7 @@ object frmACBrCTe: TfrmACBrCTe
       Top = 198
       Width = 567
       Height = 413
-      ActivePage = TabSheet5
+      ActivePage = Dados
       Align = alClient
       TabOrder = 1
       object TabSheet5: TTabSheet
@@ -1755,7 +1755,6 @@ object frmACBrCTe: TfrmACBrCTe
             '')
           ScrollBars = ssVertical
           TabOrder = 0
-          WordWrap = False
         end
       end
     end
@@ -1803,7 +1802,7 @@ object frmACBrCTe: TfrmACBrCTe
     MargemInferior = 8.000000000000000000
     MargemSuperior = 8.000000000000000000
     MargemEsquerda = 6.000000000000000000
-    MargemDireita = 5.100000000000000000
+    MargemDireita = 5.099999999999999000
     ExpandeLogoMarcaConfig.Altura = 0
     ExpandeLogoMarcaConfig.Esquerda = 0
     ExpandeLogoMarcaConfig.Topo = 0

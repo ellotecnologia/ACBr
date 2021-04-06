@@ -3,7 +3,7 @@
 {  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
 {                                                                              }
-{ Direitos Autorais Reservados (c) 2004 Daniel Simoes de Almeida               }
+{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
 {                                                                              }
 { Colaboradores nesse arquivo:                                                 }
 {                                                                              }
@@ -26,17 +26,9 @@
 { Você também pode obter uma copia da licença em:                              }
 { http://www.opensource.org/licenses/lgpl-license.php                          }
 {                                                                              }
-{ Daniel Simões de Almeida  -  daniel@djsystem.com.br  -  www.djsystem.com.br  }
-{              Praça Anita Costa, 34 - Tatuí - SP - 18270-410                  }
-{                                                                              }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
-
-{******************************************************************************
-|* Historico
-|*
-|* 10/08/2011: Márcio D. Carvalho
-|*  - Primeira Versao: Criaçao e Distribuiçao da Primeira Versao
-******************************************************************************}
 
 {$I ACBr.inc}
 
@@ -48,7 +40,7 @@ uses
   {$IfDef MSWINDOWS}
   Windows,
   {$EndIf}
-  Classes, SysUtils, ACBrTEFDClass
+  Classes, SysUtils, ACBrTEFDClass, ACBrTEFComum
   {$IfNDef NOGUI}
     {$If DEFINED(VisualCLX)}
       ,QControls
@@ -101,8 +93,8 @@ type
 
      fRespostas: TStringList;
 
-     fConteudoResp : TACBrTEFDArquivo;
-     fConteudoRet  : TACBrTEFDArquivo;
+     fConteudoResp : TACBrTEFArquivo;
+     fConteudoRet  : TACBrTEFArquivo;
 
      fNumLoja  : Integer;
      fNumCaixa : Integer;
@@ -154,7 +146,7 @@ type
      Procedure CNF(Rede, NSU, Finalizacao : String;
         DocumentoVinculado : String = ''); override;
      Function CNC(Rede, NSU : String; DataHoraTransacao : TDateTime;
-        Valor : Double) : Boolean; overload; override;
+        Valor : Double; CodigoAutorizacaoTransacao: String = '') : Boolean; overload; override;
    published
      property ArqTemp  : String read fArqTmp    write SetArqTmp ;
      property ArqReq   : String read fArqReq    write SetArqReq ;
@@ -172,7 +164,9 @@ type
 
 implementation
 
-Uses ACBrUtil, dateutils, ACBrTEFD, Math, strutils;
+Uses
+  strutils, math, dateutils,
+  ACBrTEFD, ACBrUtil;
 
 { TACBrTEFDRespTicketCar }
 
@@ -183,9 +177,9 @@ end;
 
 procedure TACBrTEFDRespTicketCar.ConteudoToProperty;
 var
-   Linha : TACBrTEFDLinha ;
+   Linha : TACBrTEFLinha ;
    I     : Integer;
-   Parc  : TACBrTEFDRespParcela;
+   Parc  : TACBrTEFRespParcela;
    LinStr: AnsiString ;
 begin
    fpValorTotal := 0 ;
@@ -236,22 +230,8 @@ begin
        629 : fpConta                       := LinStr;
        630 : fpContaDC                     := LinStr;
        527 : fpDataVencimento              := Linha.Informacao.AsDate ; {Data Vencimento}
-
-       //
-
-       899 :  // Tipos de Uso Interno do ACBrTEFD
-        begin
-          case Linha.Sequencia of
-              1 : fpCNFEnviado         := (UpperCase( Linha.Informacao.AsString ) = 'S' );
-              2 : fpIndiceFPG_ECF      := Linha.Informacao.AsString ;
-              3 : fpOrdemPagamento     := Linha.Informacao.AsInteger ;
-            100 : fpHeader             := LinStr;
-            101 : fpID                 := Linha.Informacao.AsInteger;
-            102 : fpDocumentoVinculado := LinStr;
-            103 : fpValorTotal         := fpValorTotal + Linha.Informacao.AsFloat;
-            104 : fpRede               := Linha.Informacao.AsString ;
-          end;
-        end;
+     else
+       ProcessarTipoInterno(Linha);
      end;
    end ;
 
@@ -261,7 +241,7 @@ begin
    fpParcelas.Clear;
    for I := 1 to fpQtdParcelas do
    begin
-      Parc := TACBrTEFDRespParcela.create;
+      Parc := TACBrTEFRespParcela.create;
       Parc.Vencimento := LeInformacao( 141, I).AsDate ;
       Parc.Valor      := LeInformacao( 142, I).AsFloat ;
 
@@ -289,8 +269,8 @@ begin
   GPExeName := CACBrTEFDCrediShop_GPExeName;
   fpTipo    := gpTicketCar;
 
-  fConteudoRet  := TACBrTEFDArquivo.Create;
-  fConteudoResp := TACBrTEFDArquivo.Create;
+  fConteudoRet  := TACBrTEFArquivo.Create;
+  fConteudoResp := TACBrTEFArquivo.Create;
 
   Name      := 'TicketCar' ;
 end;
@@ -400,13 +380,13 @@ begin
   end;
 end;
 
-Function TACBrTEFDTicketCar.ADM : Boolean;
+function TACBrTEFDTicketCar.ADM: Boolean;
 begin
   Result := FazerRequisicao('ADM', 0, '0' );
 end;
 
-Function TACBrTEFDTicketCar.CRT( Valor : Double; IndiceFPG_ECF : String;
-   DocumentoVinculado : String = ''; Moeda : Integer = 0 ) : Boolean;
+function TACBrTEFDTicketCar.CRT(Valor: Double; IndiceFPG_ECF: String;
+  DocumentoVinculado: String; Moeda: Integer): Boolean;
 begin
   Result := False;
 
@@ -419,35 +399,36 @@ begin
     end;
 end;
 
-Function TACBrTEFDTicketCar.CHQ(Valor : Double; IndiceFPG_ECF : String;
-   DocumentoVinculado : String; CMC7 : String; TipoPessoa : AnsiChar;
-   DocumentoPessoa : String; DataCheque : TDateTime; Banco : String;
-   Agencia : String; AgenciaDC : String; Conta : String; ContaDC : String;
-   Cheque : String; ChequeDC : String; Compensacao: String) : Boolean ;
+function TACBrTEFDTicketCar.CHQ(Valor: Double; IndiceFPG_ECF: String;
+  DocumentoVinculado: String; CMC7: String; TipoPessoa: AnsiChar;
+  DocumentoPessoa: String; DataCheque: TDateTime; Banco: String;
+  Agencia: String; AgenciaDC: String; Conta: String; ContaDC: String;
+  Cheque: String; ChequeDC: String; Compensacao: String): Boolean;
 begin
   Result := False;
 end;
 
-Procedure TACBrTEFDTicketCar.CNF(Rede, NSU, Finalizacao : String;
-   DocumentoVinculado : String) ;
+procedure TACBrTEFDTicketCar.CNF(Rede, NSU, Finalizacao: String;
+  DocumentoVinculado: String);
 begin
   //
 end;
 
-Function TACBrTEFDTicketCar.CNC(Rede, NSU : String;
-   DataHoraTransacao : TDateTime; Valor : Double) : Boolean;
+function TACBrTEFDTicketCar.CNC(Rede, NSU: String;
+  DataHoraTransacao: TDateTime; Valor: Double;
+  CodigoAutorizacaoTransacao: String): Boolean;
 begin
   Result := True;
 end;
 
-Procedure TACBrTEFDTicketCar.NCN(Rede, NSU, Finalizacao : String;
-   Valor : Double; DocumentoVinculado : String) ;
+procedure TACBrTEFDTicketCar.NCN(Rede, NSU, Finalizacao: String; Valor: Double;
+  DocumentoVinculado: String);
 begin
   //
 end;
 
-Function TACBrTEFDTicketCar.FazerRequisicao(AHeader : AnsiString = '';
-  Valor : Double = 0; IndiceFPG_ECF : String = '') : Boolean ;
+function TACBrTEFDTicketCar.FazerRequisicao(AHeader: AnsiString; Valor: Double;
+  IndiceFPG_ECF: String): Boolean;
 Var
   Erro, aNSU : AnsiString;
   ArquivoResposta : TStringList;
