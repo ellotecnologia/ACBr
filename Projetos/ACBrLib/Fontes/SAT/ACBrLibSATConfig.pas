@@ -140,7 +140,6 @@ type
     property EhUTF8: boolean read GetEhUTF8 write SetEhUTF8;
     property PaginaDeCodigo: word read FPaginaDeCodigo write FPaginaDeCodigo;
     property ArqSchema: string read FArqSchema write FArqSchema;
-    property XmlSignLib: TSSLXmlSignLib read FXmlSignLib write FXmlSignLib;
   end;
 
   { TSATCertificado }
@@ -223,8 +222,6 @@ type
     FExtrato: TExtratoConfig;
     FIntegrador: TIntegradorConfig;
 
-    function GetIsMFe: Boolean;
-
   protected
     procedure INIParaClasse; override;
     procedure ClasseParaINI; override;
@@ -248,7 +245,6 @@ type
     property ValidarNumeroSessaoResposta: boolean read FValidarNumeroSessaoResposta write FValidarNumeroSessaoResposta;
     property NumeroTentativasValidarSessao: integer read FNumeroTentativasValidarSessao write FNumeroTentativasValidarSessao;
     property ArqLOG: string read FArqLOG write FArqLOG;
-    property IsMFe: boolean read GetIsMFe;
     property Config: TSATConfig read FConfig;
     property Arquivos: TSATConfigArquivo read FConfigArquivos;
     property Certificado: TSATCertificado read FSATCertificado;
@@ -407,7 +403,6 @@ begin
   EhUTF8 := AIni.ReadBool(CSessaoSATConfig, CChaveEhUTF8, EhUTF8);
   PaginaDeCodigo := AIni.ReadInteger(CSessaoSATConfig, CChavePaginaDeCodigo, PaginaDeCodigo);
   ArqSchema := AIni.ReadString(CSessaoSATConfig, CChaveArqSchema, ArqSchema);
-  XmlSignLib := TSSLXmlSignLib(AIni.ReadInteger(CSessaoSATConfig, CChaveXmlSignLib, integer(XmlSignLib)));
 end;
 
 procedure TSATConfig.GravarIni(const AIni: TCustomIniFile);
@@ -425,7 +420,6 @@ begin
   AIni.WriteBool(CSessaoSATConfig, CChaveEhUTF8, EhUTF8);
   AIni.WriteInteger(CSessaoSATConfig, CChavePaginaDeCodigo, PaginaDeCodigo);
   AIni.WriteString(CSessaoSATConfig, CChaveArqSchema, ArqSchema);
-  AIni.WriteInteger(CSessaoSATConfig, CChaveXmlSignLib, integer(XmlSignLib));
 end;
 
 function TSATConfig.GetEhUTF8: boolean;
@@ -567,11 +561,6 @@ begin
   FExtrato.Free;
 
   inherited Destroy;
-end;
-
-function TLibSATConfig.GetIsMFe: Boolean;
-begin
-  Result := FModelo = mfe_Integrador_XML;
 end;
 
 procedure TLibSATConfig.LerIni(const AIni: TCustomIniFile);

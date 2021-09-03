@@ -56,7 +56,12 @@ uses
   {$ELSE}
   EncdDecd,
   {$ENDIF}
-  Jsons, httpsend, synautil,
+//  {$IfDef USE_JSONDATAOBJECTS_UNIT}
+//    JsonDataObjects_ACBr,
+//  {$Else}
+    Jsons,
+//  {$EndIf}
+  httpsend, synautil,
    ACBRBase, ACBRValidador, ACBrUtil, ACBrSocket
    , SyncObjs
    //, ACBrPicpayThreadCallback
@@ -175,6 +180,7 @@ type
     fStatus: string;
     fProduto: string;
     fValor: Currency;
+    fExpirar : TDateTime;
     fCancelarAguardoRetorno: Boolean;
 
     fTipoRetorno: TACBrTipoRetornoPicpay;
@@ -217,6 +223,7 @@ type
     property AuthorizationId: string read fAuthorizationId;
     property Produto: string read fProduto write fProduto;
     property Valor: Currency read fValor write fValor;
+    property Expirar : TDateTime read fExpirar write fExpirar;// expiresAt
 
     property Comprador: TACBrPicPayComprador read fComprador write fComprador;
     property Lojista: TACBrPicPayLojista read fLojista write fLojista;
@@ -235,7 +242,8 @@ uses
   {$IFDEF DELPHIXE8_UP}
     System.NetEncoding,
   {$ENDIF}
-  StrUtils;
+  StrUtils,
+  DateUtils;
 
 { *** TACBrPicPayThread *** }
 
@@ -585,6 +593,8 @@ begin
     Json.Add('returnUrl').Value.AsString   := fLojista.fURLReturn;
     Json.Add('productName').Value.AsString := fProduto;
     Json.Add('value').Value.AsNumber       := fValor;
+    if fExpirar <> 0 then
+       Json.Add('expiresAt').Value.AsString := DateTimeToIso8601(fExpirar) ;
     JsonCliente := TJSONObject.Create;
     try
       JsonCliente.Add('firstName').Value.AsString := fComprador.fNome;
@@ -745,6 +755,7 @@ begin
   {$IFDEF COMPILER6_UP}
    fComprador.SetSubComponent(True);   // Ajustando como SubComponente para aparecer no ObjectInspector
   {$ENDIF}
+  fExpirar := 0;
 
   fTipoRetorno := trThread;
   fThreadAguardaRetorno := TACBrPicPayThread.Create(Self);

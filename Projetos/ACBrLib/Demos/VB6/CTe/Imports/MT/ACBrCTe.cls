@@ -22,7 +22,7 @@ Private Declare Function CTE_Inicializar _
                                      ByVal eArqConfig As String, _
                                      ByVal eChaveCrypt As String) As Long
                    
-Private Declare Function CTE_Finalizar Lib "ACBrCTE32.dll" (ByRef libHandler As Long) As Long
+Private Declare Function CTE_Finalizar Lib "ACBrCTE32.dll" (ByVal libHandler As Long) As Long
 
 Private Declare Function CTE_Nome _
                 Lib "ACBrCTE32.dll" (ByVal libHandler As Long, _
@@ -414,7 +414,7 @@ End Sub
 
 Public Sub CarregarINI(ByVal eArquivoOuIni As String)
     Dim retorno   As Long
-    retorno = CTE_CarregarINI(eArquivoOuIni)
+    retorno = CTE_CarregarINI(libHandler, eArquivoOuIni)
     CheckResult retorno
 End Sub
 
@@ -801,10 +801,6 @@ End Sub
 
 Public Sub ImprimirInutilizacaoPDF(ByVal eArquivoXml As String)
     Dim retorno   As Long
-
-    bufferLen = BUFFER_LENGTH
-    
-    buffer = String$(bufferLen, " ")
     
     retorno = CTE_ImprimirInutilizacaoPDF(libHandler, eArquivoXml)
     CheckResult retorno

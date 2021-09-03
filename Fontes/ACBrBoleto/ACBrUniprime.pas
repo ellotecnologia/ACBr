@@ -77,7 +77,7 @@ uses {$IFDEF COMPILER6_UP} dateutils {$ELSE} ACBrD5 {$ENDIF},
 constructor TACBrUniprime.create(AOwner: TACBrBanco);
 begin
    inherited create(AOwner);
-   fpDigito                 := 4;
+   fpDigito                 := 10;
    fpNome                   := 'Uniprime';
    fpNumero                 := 099;
    fpTamanhoMaximoNossoNum  := 11;   
@@ -600,7 +600,10 @@ begin
   end;
 
   if (Result <> '') then
+  begin
+    Result := ACBrSTr(Result);
     Exit;
+  end;
 
   case CodOcorrencia of
     02: Result := '02-Entrada Confirmada';
@@ -621,6 +624,8 @@ begin
     35: Result := '35-Desagendamento do débito automático';
     73: Result := '73-Confirmação Recebimento Pedido de Negativação';
   end;
+
+  Result := ACBrSTr(Result);
 end;
 
 function TACBrUniprime.CodOcorrenciaToTipo(const CodOcorrencia:
@@ -800,7 +805,7 @@ begin
   end;
 end;
 
-function TACBrUniprime.COdMotivoRejeicaoToDescricao( const TipoOcorrencia:TACBrTipoOcorrencia ;CodMotivo: Integer) : String;
+function TACBrUniprime.CodMotivoRejeicaoToDescricao( const TipoOcorrencia:TACBrTipoOcorrencia ;CodMotivo: Integer) : String;
 begin
    case TipoOcorrencia of
       toRetornoRegistroConfirmado:
@@ -1152,6 +1157,8 @@ begin
    else
       Result:= IntToStrZero(CodMotivo,2) +' - Outros Motivos';
    end;
+
+   Result := ACBrSTr(Result);
 end;
 
 

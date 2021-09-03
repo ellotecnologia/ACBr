@@ -355,6 +355,10 @@ begin
     Result := fpValePresente
   else if Descricao = 'vale combustivel' then
     Result := fpValeCombustivel
+  else if Descricao = 'pix' then
+    Result := fpPagamentoInstantaneo
+  else if Descricao = 'carteira digital' then
+    Result := fpTransfBancario
   else
   begin
     if pos('cartao', Descricao) > 0 then
@@ -492,6 +496,8 @@ begin
     with fsACBrNFCe do
     begin
       NotasFiscais.Clear;
+      WebServices.EnvEvento.Clear;
+
       NotasFiscais.Add;
       Consumidor.Enviado := False;
 
@@ -760,6 +766,9 @@ begin
       NFCePagto.vPag := Pagto.ValorPago;
       NFCePagto.tPag := AdivinharFormaPagamento(fpFormasPagamentos[Pagto.PosFPG].Descricao);
 
+      if NFCePagto.tPag = fpOutro then
+        NFCePagto.xPag := fpFormasPagamentos[Pagto.PosFPG].Descricao;
+
       if (NFCePagto.tPag in [fpCartaoCredito, fpCartaoDebito]) then
       begin
         NFCePagto.tpIntegra := tiPagNaoIntegrado;
@@ -881,7 +890,7 @@ begin
 
         if NotasFiscais.Items[0].Confirmada then
           FazerImpressaoDocumento;
-    end;
+      end;
     end;
   end
   else

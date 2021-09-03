@@ -116,7 +116,7 @@ begin
     sTipoSacado := DefineTipoSacado(ACBrTitulo);
 
     {Pegando campo Intruções}
-    sProtesto:= DefineTipoDiasProtesto(ACBrTitulo); //InstrucoesProtesto(ACBrTitulo);
+    sProtesto:= DefineCodigoProtesto(ACBrTitulo); //InstrucoesProtesto(ACBrTitulo);
 
     with ACBrBoleto do
     begin
@@ -379,7 +379,7 @@ begin
     ADataDesconto := DefineDataDesconto(ACBrTitulo);
 
     {Código para Protesto}
-    ACodProtesto := DefineTipoDiasProtesto(ACBrTitulo);
+    ACodProtesto := DefineCodigoProtesto(ACBrTitulo);
 
     {Define Codigo Multa}
     ACodMulta := DefineCodigoMulta(ACBrTitulo);
@@ -519,6 +519,8 @@ begin
     13: Result := '13-Título Utilizado Como Garantia em Operação de Desconto';
     14: Result := '14-Título Com Desistência de Garantia em Operação de Desconto';
   end;
+
+  Result := ACBrSTr(Result);
 end;
 
 function TACBrBancoUnicredES.CodOcorrenciaToTipo(const CodOcorrencia: Integer ) : TACBrTipoOcorrencia;

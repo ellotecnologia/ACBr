@@ -39,36 +39,26 @@ interface
 uses
   Classes, SysUtils, syncobjs,
   ACBrMDFe, ACBrMDFeDAMDFeRLClass, ACBrMail,
-  ACBrLibComum, ACBrLibConfig;
+  ACBrLibComum, ACBrLibDataModule, ACBrLibConfig;
 
 type
 
   { TLibMDFeDM }
 
-  TLibMDFeDM = class(TDataModule)
+  TLibMDFeDM = class(TLibDataModule)
     ACBrMail1: TACBrMail;
     ACBrMDFe1: TACBrMDFe;
 
-    procedure DataModuleCreate(Sender: TObject);
-    procedure DataModuleDestroy(Sender: TObject);
   private
     fpLib: TACBrLib;
     DAMDFe: TACBrMDFeDAMDFeRL;
 
-  protected
-    FLock: TCriticalSection;
-
   public
-    procedure AplicarConfiguracoes;
+    procedure AplicarConfiguracoes; override;
     procedure AplicarConfigMail;
     procedure ConfigurarImpressao(NomeImpressora: String = ''; GerarPDF: Boolean = False;
                                   Protocolo: String = ''; MostrarPreview: String = '');
     procedure FinalizarImpressao;
-    procedure GravarLog(AMsg: String; NivelLog: TNivelLog; Traduzir: Boolean = False);
-    procedure Travar;
-    procedure Destravar;
-
-    property Lib: TACBrLib read fpLib write fpLib;
 
   end;
 
@@ -76,21 +66,12 @@ implementation
 
 uses
   ACBrUtil, FileUtil,
+{$IFDEF Demo}ACBrMDFeManifestos, pmdfeEnvEventoMDFe, pcnConversao,{$ENDIF}
   ACBrLibMDFeConfig, ACBrLibMDFeBase;
 
 {$R *.lfm}
 
 { TLibMDFeDM }
-procedure TLibMDFeDM.DataModuleCreate(Sender: TObject);
-begin
-  FLock := TCriticalSection.Create;
-end;
-
-procedure TLibMDFeDM.DataModuleDestroy(Sender: TObject);
-begin
-  FLock.Destroy;
-end;
-
 procedure TLibMDFeDM.AplicarConfiguracoes;
 var
   LibConfig: TLibMDFeConfig;
@@ -98,6 +79,10 @@ begin
   ACBrMDFe1.SSL.DescarregarCertificado;
   LibConfig := TLibMDFeConfig(TACBrLibMDFe(Lib).Config);
   ACBrMDFe1.Configuracoes.Assign(LibConfig.MDFe);
+
+{$IFDEF Demo}
+  ACBrMDFe1.Configuracoes.WebServices.Ambiente := taHomologacao;
+{$ENDIF}
 
   AplicarConfigMail;
 end;
@@ -128,6 +113,12 @@ end;
 
 procedure TLibMDFeDM.ConfigurarImpressao(NomeImpressora: String = ''; GerarPDF: Boolean = False;
                                          Protocolo: String = ''; MostrarPreview: String = '');
+{$IFDEF Demo}
+Var
+  I: Integer;
+  AItem: Manifesto;
+  AEvento: TInfEventoCollectionItem;
+{$ENDIF}
 begin
   GravarLog('ConfigurarImpressao - Iniciado', logNormal);
 
@@ -143,6 +134,20 @@ begin
   end;
 
   TLibMDFeConfig(Lib.Config).DAMDFe.Apply(DAMDFe, Lib);
+
+{$IFDEF Demo}
+    for I:= 0 to ACBrMDFe1.Manifestos.Count -1 do
+    begin
+      AItem := ACBrMDFe1.Manifestos.Items[I];
+      AItem.MDFe.Ide.tpAmb := taHomologacao;
+    end;
+
+    for I:= 0 to ACBrMDFe1.EventoMDFe.Evento.Count -1 do
+    begin
+      AEvento := ACBrMDFe1.EventoMDFe.Evento.Items[I];
+      AEvento.InfEvento.tpAmb := taHomologacao;
+    end;
+{$ENDIF}
 
   if NaoEstaVazio(NomeImpressora) then
     ACBrMDFe1.DAMDFe.Impressora := NomeImpressora;
@@ -169,24 +174,6 @@ begin
   if Assigned(DAMDFe) then FreeAndNil(DAMDFe);
 
   GravarLog('FinalizarImpressao - Feito', logNormal);
-end;
-
-procedure TLibMDFeDM.GravarLog(AMsg: String; NivelLog: TNivelLog; Traduzir: Boolean);
-begin
-  if Assigned(Lib) then
-    Lib.GravarLog(AMsg, NivelLog, Traduzir);
-end;
-
-procedure TLibMDFeDM.Travar;
-begin
-  GravarLog('Travar', logParanoico);
-  FLock.Acquire;
-end;
-
-procedure TLibMDFeDM.Destravar;
-begin
-  GravarLog('Destravar', logParanoico);
-  FLock.Release;
 end;
 
 end.

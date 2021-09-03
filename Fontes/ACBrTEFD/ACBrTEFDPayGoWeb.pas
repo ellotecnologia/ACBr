@@ -3,7 +3,7 @@
 {  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
 {                                                                              }
-{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{ Direitos Autorais Reservados (c) 2021 Daniel Simoes de Almeida               }
 {                                                                              }
 { Colaboradores nesse arquivo:                                                 }
 {                                                                              }
@@ -89,7 +89,7 @@ type
     fsPGWebAPI: TACBrTEFPGWebAPI;
     function GetConfirmarTransacoesPendentes: Boolean;
     function GetExibicaoQRCode: TACBrTEFPGWebAPIExibicaoQRCode;
-    function GetParametrosAdicionais: TACBrTEFPGWebAPIParametros;
+    function GetParametrosAdicionais: TACBrTEFParametros;
     function GetPerguntarCartaoDigitadoAposCancelarLeitura: Boolean;
     function GetPortaPinPad: Integer;
     procedure GravaLogAPI(const ALogLine: String; var Tratado: Boolean);
@@ -139,7 +139,7 @@ type
     property PGWebAPI: TACBrTEFPGWebAPI read fsPGWebAPI;
     property PathDLL: string read GetPathDLL write SetPathDLL;
     property DiretorioTrabalho: String read GetDiretorioTrabalho write SetDiretorioTrabalho;
-    property ParametrosAdicionais: TACBrTEFPGWebAPIParametros read GetParametrosAdicionais;
+    property ParametrosAdicionais: TACBrTEFParametros read GetParametrosAdicionais;
 
     constructor Create( AOwner : TComponent ) ; override;
     destructor Destroy ; override;
@@ -392,7 +392,7 @@ end;
 function TACBrTEFDPayGoWeb.CNC(Rede, NSU: String; DataHoraTransacao: TDateTime;
   Valor: Double; CodigoAutorizacaoTransacao: String): Boolean;
 var
-  PA: TACBrTEFPGWebAPIParametros;
+  PA: TACBrTEFParametros;
 
   procedure CopiarValorDaUltimaResposta(AInfo: Integer);
   var
@@ -404,13 +404,13 @@ var
   end;
 
 begin
-  PA := TACBrTEFPGWebAPIParametros.Create;
+  PA := TACBrTEFParametros.Create;
   try
     PA.ValueInfo[PWINFO_AUTHSYST] := Rede;
     PA.ValueInfo[PWINFO_TRNORIGNSU] := NSU;                                            // Mandatorio
     PA.ValueInfo[PWINFO_TRNORIGDATE] := FormatDateTime('DDMMYY', DataHoraTransacao);   // Mandatorio
     PA.ValueInfo[PWINFO_TRNORIGTIME] := FormatDateTime('hhnnss', DataHoraTransacao);   // Mandatorio
-    PA.ValueInfo[PWINFO_TRNORIGDATETIME] := FormatDateTime('YYYYMMDDhhnnss', DataHoraTransacao);
+    //PA.ValueInfo[PWINFO_TRNORIGDATETIME] := FormatDateTime('YYYYMMDDhhnnss', DataHoraTransacao);
     PA.ValueInfo[PWINFO_TRNORIGAMNT] :=  IntToStr(Trunc(RoundTo(Valor * 100,-2)));     // Mandatorio
     if (CodigoAutorizacaoTransacao <> '') then
     begin
@@ -424,7 +424,7 @@ begin
     begin
       PA.ValueInfo[PWINFO_TRNORIGLOCREF] := Resp.Finalizacao;
       PA.ValueInfo[PWINFO_TRNORIGREQNUM] := IntToStr(Resp.NumeroLoteTransacao);
-      CopiarValorDaUltimaResposta(PWINFO_MERCHCNPJCPF);
+      //CopiarValorDaUltimaResposta(PWINFO_MERCHCNPJCPF);
       CopiarValorDaUltimaResposta(PWINFO_CARDTYPE);
       CopiarValorDaUltimaResposta(PWINFO_VIRTMERCH);
       CopiarValorDaUltimaResposta(PWINFO_AUTMERCHID);
@@ -463,7 +463,7 @@ begin
   else if EntidadeCliente = 'X' then
     TipoMsg := PWDPIN_DIGITE_O_TELEFONE
   else if EntidadeCliente = 'J' then
-    raise EACBrTEFDErro.Create( ACBrStr('Captura de CNPJ não suportada por: ')+ClassName )
+    TipoMsg := PWDPIN_DIGITE_O_CNPJ
   else
     TipoMsg := StrToIntDef(EntidadeCliente, 0);
 
@@ -496,6 +496,11 @@ begin
     begin
       MinLen := 3; MaxLen := 5;
     end;
+    PWDPIN_DIGITE_O_CNPJ, PWDPIN_REDIGITE_O_CNPJ:
+    begin
+      MinLen := 14; MaxLen := 14;
+    end;
+
   else
     raise EACBrTEFDErro.CreateFmt( ACBrStr('Captura Tipo: %s não suportada por: %s'), [EntidadeCliente, ClassName] )
   end;
@@ -646,7 +651,7 @@ procedure TACBrTEFDPayGoWeb.FazerRequisicao(PWOPER: Word; AHeader: String;
   AValor: Double; ADocumentoVinculado: String; AMoeda: Integer;
   ParametrosAdicionaisTransacao: TStrings);
 var
-  PA: TACBrTEFPGWebAPIParametros;
+  PA: TACBrTEFParametros;
 begin
   GravaLog('FazerRequisicao: Oper:'+PWOPERToString(PWOPER)+', Header:'+AHeader+
            ', Valor:'+FloatToStr(AValor)+', Documento:'+ADocumentoVinculado);
@@ -664,7 +669,7 @@ begin
   Req.DocumentoVinculado := ADocumentoVinculado;
   Req.ValorTotal := AValor;
 
-  PA := TACBrTEFPGWebAPIParametros.Create;
+  PA := TACBrTEFParametros.Create;
   try
     if (AValor > 0) then
     begin
@@ -876,7 +881,7 @@ begin
   TACBrTEFD(Owner).DoExibeQRCode(Dados);
 end;
 
-function TACBrTEFDPayGoWeb.GetParametrosAdicionais: TACBrTEFPGWebAPIParametros;
+function TACBrTEFDPayGoWeb.GetParametrosAdicionais: TACBrTEFParametros;
 begin
   Result := fsPGWebAPI.ParametrosAdicionais;
 end;

@@ -102,6 +102,7 @@ type
     procedure GerarTpComerc(pTpComerc: TTpComercColecao);
     procedure GerarIdeAdquir(pIdeAdquir: TIdeAdquirColecao);
     procedure GerarInfoProcJud(pInfoProcJud: TInfoProcJudCollection);
+    procedure GerarNfs(pNfs: TNfsColecao);
   public
     constructor Create(AACBreSocial: TObject); override;
     destructor Destroy; override;
@@ -393,6 +394,27 @@ begin
   Gerador.wGrupo('/ideEstabel');
 end;
 
+procedure TEvtComProd.GerarNfs(pNfs: TNfsColecao);
+var
+  i: integer;
+begin
+  for i := 0 to pNfs.Count - 1 do
+  begin
+    Gerador.wGrupo('nfs');
+    Gerador.wCampo(tcStr, '', 'serie',        1,  5, 0, pNfs.Items[i].serie);
+    Gerador.wCampo(tcStr, '', 'nrDocto',      1, 20, 1, pNfs.Items[i].nrDocto);
+    Gerador.wCampo(tcDat, '', 'dtEmisNF',    10, 10, 1, pNfs.Items[i].dtEmisNF);
+    Gerador.wCampo(tcDe2, '', 'vlrBruto',     1, 14, 1, pNfs.Items[i].vlrBruto);
+    Gerador.wCampo(tcDe2, '', 'vrCPDescPR',   1, 14, 1, pNfs.Items[i].vrCPDescPR);
+    Gerador.wCampo(tcDe2, '', 'vrRatDescPR',  1, 14, 1, pNfs.Items[i].vrRatDescPR);
+    Gerador.wCampo(tcDe2, '', 'vrSenarDesc',  1, 14, 1, pNfs.Items[i].vrSenarDesc);
+    Gerador.wGrupo('/nfs');
+  end;
+
+  if pNfs.Count > 9999 then
+    Gerador.wAlerta('', 'nfs', 'Lista de Notas Fiscais', ERR_MSG_MAIOR_MAXIMO + '9999');
+end;
+
 procedure TEvtComProd.GerarIdeAdquir(pIdeAdquir: TIdeAdquirColecao);
 var
   i: integer;
@@ -454,8 +476,8 @@ begin
     Gerador.wGrupo('/tpComerc');
   end;
 
-  if pTpComerc.Count > 4 then
-    Gerador.wAlerta('', 'tpComerc', 'Lista de Comercialização', ERR_MSG_MAIOR_MAXIMO + '4');
+  if pTpComerc.Count > 5 then
+    Gerador.wAlerta('', 'tpComerc', 'Lista de Comercialização', ERR_MSG_MAIOR_MAXIMO + '5');
 end;
 
 function TEvtComProd.GerarXML: boolean;

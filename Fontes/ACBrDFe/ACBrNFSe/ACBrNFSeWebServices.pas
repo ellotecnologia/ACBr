@@ -1004,7 +1004,7 @@ begin
 
   FPDFeOwner.SSL.UseCertificateHTTP := FPConfiguracoesNFSe.Geral.ConfigGeral.UseCertificateHTTP;
 
-  if FProvedor = proGiap then
+  if FProvedor in [proGiap, proIPM] then
     self.FPAuthorizationHeader := FPConfiguracoesNFSe.Geral.Emitente.WebChaveAcesso;
 
   TACBrNFSe(FPDFeOwner).SetStatus(FPStatus);
@@ -1285,7 +1285,11 @@ begin
   end;
 
   if FPConfiguracoesNFSe.Geral.ConfigRemover.EComercial then
-    Result := FastStringReplace(Result, '&amp;', '', [rfReplaceAll]);
+    begin
+      Result := FastStringReplace(Result, '&amp;', '', [rfReplaceAll]);
+      if FProvedor = proIPM then
+        Result := FastStringReplace(Result, '&', '', [rfReplaceAll]);
+    end;
 
   // Remover o CDATA
   Result := FastStringReplace(Result, '<![CDATA[', '', [rfReplaceAll]);
@@ -1683,7 +1687,7 @@ begin
       então uma validação específica para o provedor Tecnos, assim, se em outras
       consultas ele estiver vazio ele será preenchido.
       }
-    if (FProtocolo = '') and (FProvedor in [proTecnos, proTiplanv2]) then
+    if (FProtocolo = '') and (FProvedor in [proTecnos, proTiplanv2, proIPM]) then
       FProtocolo := FRetornoNFSe.ListaNFSe.CompNFSe[0].NFSe.Protocolo;
   end
   else
@@ -2710,7 +2714,7 @@ begin
     ChaveAcessoPrefeitura := FPConfiguracoesNFSe.Geral.Emitente.WebChaveAcesso;
     if (ChaveAcessoPrefeitura = '') and
        (Provedor in [proAgili, proAgiliv2, proCTA, proGoverna,
-                     proGiap, proiiBrasilv2, proAEG]) then
+                     proGiap, proiiBrasilv2, proAEG, proAsten]) then
       GerarException(ACBrStr('O provedor ' + FPConfiguracoesNFSe.Geral.xProvedor +
         ' necessita que a propriedade: Configuracoes.Geral.Emitente.WebChaveAcesso seja informada.'));
 
@@ -5036,6 +5040,7 @@ begin
       proSP,
       proNotaBlu,
       proSMARAPD,
+      proSmarAPDv23,
       proGiap,
       proIPM,
       proSigISS: FURI := '';
@@ -5060,9 +5065,12 @@ begin
 
       proAdm: FURI := NumeroLote;
     else
-      FURI := 'pedidoCancelamento_' + FPConfiguracoesNFSe.Geral.Emitente.CNPJ +
-                                   FPConfiguracoesNFSe.Geral.Emitente.InscMun +
-                                   TNFSeCancelarNfse(Self).FNumeroNFSe;
+      FURI := 'Canc_' + FPConfiguracoesNFSe.Geral.Emitente.CNPJ +
+                        FPConfiguracoesNFSe.Geral.Emitente.InscMun +
+                        TNFSeCancelarNfse(Self).FNumeroNFSe;
+//      FURI := 'pedidoCancelamento_' + FPConfiguracoesNFSe.Geral.Emitente.CNPJ +
+//                                   FPConfiguracoesNFSe.Geral.Emitente.InscMun +
+//                                   TNFSeCancelarNfse(Self).FNumeroNFSe;
     end;
 
     InicializarTagITagF;
@@ -5199,12 +5207,16 @@ begin
       end;
 
       case FProvedor of
-        proISSNet: if FPConfiguracoesNFSe.WebServices.AmbienteCodigo = 2 then
-                     CodMunicipio := 999;
-                     
+        proISSNet:
+          if FPConfiguracoesNFSe.WebServices.AmbienteCodigo = 2 then
+            CodMunicipio := 999;
+
         proBetha,
-        proBethav2: CodMunicipio  := StrToIntDef(FNotasFiscais.Items[0].NFSe.PrestadorServico.Endereco.CodigoMunicipio, 0);
-        proFiorilli: CodMunicipio := FNotasFiscais.Items[0].NFSe.Servico.MunicipioIncidencia;
+        proBethav2:
+          CodMunicipio  := StrToIntDef(FNotasFiscais.Items[0].NFSe.PrestadorServico.Endereco.CodigoMunicipio, 0);
+
+        proFiorilli:
+          CodMunicipio := FNotasFiscais.Items[0].NFSe.Servico.MunicipioIncidencia;
       else
         CodMunicipio := FPConfiguracoesNFSe.Geral.CodigoMunicipio;
       end;
@@ -5572,9 +5584,12 @@ begin
       proTecnos: FURI := TNFSeSubstituirNfse(Self).FNumeroNFSe;
 
     else
-      FURI := 'pedidoCancelamento_' + FPConfiguracoesNFSe.Geral.Emitente.CNPJ +
-                      FPConfiguracoesNFSe.Geral.Emitente.InscMun +
-                      TNFSeSubstituirNfse(Self).FNumeroNFSe;
+      FURI := 'Canc_' + {FPConfiguracoesNFSe.Geral.Emitente.CNPJ +
+                        FPConfiguracoesNFSe.Geral.Emitente.InscMun +}
+                        TNFSeSubstituirNfse(Self).FNumeroNFSe;
+//      FURI := 'pedidoCancelamento_' + FPConfiguracoesNFSe.Geral.Emitente.CNPJ +
+//                      FPConfiguracoesNFSe.Geral.Emitente.InscMun +
+//                      TNFSeSubstituirNfse(Self).FNumeroNFSe;
     end;
 
     InicializarTagITagF;
@@ -5635,7 +5650,8 @@ begin
   // O procedimento recebe como parametro o XML a ser assinado e retorna o
   // mesmo assinado da propriedade FPDadosMsg
   if (FPConfiguracoesNFSe.Geral.ConfigAssinar.Cancelar) and (FPDadosMsg <> '') then
-    AssinarXML(FPDadosMsg, FdocElemento, FinfElemento, 'Falha ao Assinar - Cancelar: ');
+    AssinarXML(FPDadosMsg, FdocElemento, FinfElemento,
+               'Falha ao Assinar - Cancelar: ');
 
   if Provedor = proDSFv2 then
     FPDadosMsg := '<' + FPrefixo3 + 'SubstituirNfseEnvio>' +
@@ -5650,7 +5666,8 @@ begin
 
   if (Provedor in [proWebISSv2, proDeISS]) or
      (FPConfiguracoesNFSe.Geral.ConfigAssinar.Substituir) then
-    AssinarXML(FPDadosMsg, 'SubstituirNfseEnvio', 'SubstituicaoNfse', 'Falha ao Assinar - SubstituirNfseEnvio: ');
+    AssinarXML(FPDadosMsg, 'SubstituirNfseEnvio', 'SubstituicaoNfse',
+               'Falha ao Assinar - SubstituirNfseEnvio: ');
 
   if FPConfiguracoesNFSe.Geral.ConfigSchemas.Validar then
     FNotasFiscais.ValidarLote(FPDadosMsg,

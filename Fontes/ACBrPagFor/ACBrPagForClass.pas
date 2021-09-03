@@ -81,9 +81,13 @@ type
   private
     FTipo: TTipoInscricao; // Tamanho 1
     FNumero: String; // Tamanho 14 ou 15
+	FPixTipoChave: String;
+    FPixMensagem: String;
   public
     property Tipo: TTipoInscricao read FTipo write FTipo;
     property Numero: String read FNumero write FNumero;
+	property PixTipoChave: String read FPixTipoChave write FPixTipoChave;
+    property PixMensagem: String read FPixMensagem write FPixMensagem;
   end;
 
   TAgencia = class(TObject)
@@ -484,6 +488,7 @@ type
     FAcrescimo: Double;
     FCodOcorrencia: string;
     FDescOcorrencia: String;
+    FCodigoISPB: Integer;
   public
     constructor Create;
     destructor Destroy; override;
@@ -505,6 +510,7 @@ type
     property Acrescimo: Double read FAcrescimo write FAcrescimo;
     property CodOcorrencia: string read FCodOcorrencia write FCodOcorrencia;
     property DescOcorrencia: String read FDescOcorrencia write FDescOcorrencia;
+    property CodigoISPB: Integer read FCodigoISPB write FCodigoISPB;
   end;
 
   TSegmentoBList = class(TObjectList)

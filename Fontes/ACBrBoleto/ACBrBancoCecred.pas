@@ -753,7 +753,9 @@ begin
                   PadRight( trim(Sacado.Cidade), 15) +                          // 335 a 349 - Cidade do sacado
                   PadRight( Sacado.UF, 2 ) +                                    // 350 a 351 - UF da cidade do sacado
                   PadRight( AMensagem, 40) +                                    // 352 a 391 - Observações
-                  PadLeft(DiasProtesto,2,' ') +                                 // 392 a 393 - Número de dias para protesto (deixar em branco se não houver instrução de protesto)
+                  IfThen( DiasProtesto <> EmptyStr,
+                          PadLeft(DiasProtesto ,2,'0'),
+                          Space(2)) +                                           // 392 a 393 - Número de dias para protesto (deixar em branco se não houver instrução de protesto)
                   ' ' +                                                         // 394 a 394 - Branco
                   IntToStrZero( aRemessa.Count + 1, 6 );                        // 395 a 400 - Sequencial de Registro 
 
@@ -934,7 +936,10 @@ begin
   end;
 
   if (Result <> '') then
-  Exit;
+  begin
+    Result := ACBrSTr(Result);
+    Exit;
+  end;
 
   case CodOcorrencia of
     02: Result := '02-Confirmação de Entrada de Título';
@@ -948,6 +953,8 @@ begin
     19: Result := '19-Confirmação de Recebimento de Instruções para Protesto';
     23: Result := '23-Indicação de Encaminhamento a Cartório';
   end;
+
+  Result := ACBrSTr(Result);
 end;
 
 function TACBrBancoCecred.CodOcorrenciaToTipo(const CodOcorrencia:
@@ -1084,6 +1091,8 @@ begin
         90: Result:='90-Baixa automática';
       end;
   end;
+
+  Result := ACBrSTr(Result);
 end;
 
 procedure TACBrBancoCecred.LerRetorno240(ARetorno: TStringList);

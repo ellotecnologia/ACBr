@@ -617,7 +617,6 @@ type
     RLLabel200: TRLLabel;
     rlsQuadro3: TRLDraw;
     RLSystemInfo1: TRLSystemInfo;
-    RLSystemInfo2: TRLSystemInfo;
     rlb_06_VeiculosNovos: TRLBand;
     RLLabel222: TRLLabel;
     RLDraw229: TRLDraw;
@@ -814,11 +813,13 @@ begin
         cdsDocumentos.Append;
         cdsDocumentos.FieldByName('TIPO_1').AsString := 'NF-E ' + copy(chave, 26, 9);
         cdsDocumentos.FieldByName('CNPJCPF_1').AsString := FormatarChaveAcesso(chave);
+        cdsDocumentos.FieldByName('DOCUMENTO_1').AsString := '';
       end
       else
       begin
         cdsDocumentos.FieldByName('TIPO_2').AsString := 'NF-E ' + copy(chave, 26, 9);
         cdsDocumentos.FieldByName('CNPJCPF_2').AsString := FormatarChaveAcesso(chave);
+        cdsDocumentos.FieldByName('DOCUMENTO_2').AsString := '';
         cdsDocumentos.Post;
       end;
       Inc(Item);
@@ -857,6 +858,7 @@ begin
               'NFC-e ' + copy(trim(descOutros), 26, 9);
             cdsDocumentos.FieldByName('CNPJCPF_1').AsString :=
               FormatarChaveAcesso(trim(descOutros));
+            cdsDocumentos.FieldByName('DOCUMENTO_1').AsString := '';
           end;
           tdDutoviario:
           begin
@@ -872,7 +874,7 @@ begin
             cdsDocumentos.FieldByName('CNPJCPF_1').AsString :=
               FormatarCNPJouCPF(fpCTe.Rem.CNPJCPF);
             cdsDocumentos.FieldByName('DOCUMENTO_1').AsString :=
-              copy(trim(descOutros), 1, 20) + ' Doc.: ' + nDoc;
+              copy(trim(descOutros), 1, 25) + ' Doc.: ' + nDoc;
           end;
 
         end;
@@ -910,6 +912,7 @@ begin
               'NFC-E ' + copy(trim(descOutros), 26, 9);
             cdsDocumentos.FieldByName('CNPJCPF_2').AsString :=
               FormatarChaveAcesso(trim(descOutros));
+            cdsDocumentos.FieldByName('DOCUMENTO_2').AsString :=  '';
           end;
           tdOutros:
           begin
@@ -917,7 +920,7 @@ begin
             cdsDocumentos.FieldByName('CNPJCPF_2').AsString :=
               FormatarCNPJouCPF(fpCTe.Rem.CNPJCPF);
             cdsDocumentos.FieldByName('DOCUMENTO_2').AsString :=
-              copy(trim(descOutros), 1, 20) + ' Doc.: ' + nDoc;
+              copy(trim(descOutros), 1, 25) + ' Doc.: ' + nDoc;
           end;
         end;
         cdsDocumentos.Post;
@@ -1007,12 +1010,15 @@ begin
             cdsDocumentos.Append;
 
             cdsDocumentos.FieldByName('TIPO_1').AsString := 'CT-E';
+
             if fpCTe.infCTe.versao >= 3 then
               cdsDocumentos.FieldByName('CNPJCPF_1').AsString :=
                 FormatarChaveAcesso(chCTe)
             else
               cdsDocumentos.FieldByName('CNPJCPF_1').AsString :=
                 FormatarChaveAcesso(chave);
+
+            cdsDocumentos.FieldByName('DOCUMENTO_1').AsString := '';
           end
           else
           begin
@@ -1023,6 +1029,8 @@ begin
             else
               cdsDocumentos.FieldByName('CNPJCPF_2').AsString :=
                 FormatarChaveAcesso(chave);
+
+            cdsDocumentos.FieldByName('DOCUMENTO_2').AsString := '';
             cdsDocumentos.Post;
           end;
           Inc(Item);
@@ -1694,16 +1702,27 @@ begin
     begin
       if cdsDocumentos.FieldByName('TIPO_1').AsString <> '' then
       begin
-        rlDocOrig_tpDoc1.Lines.Add(PadRight(cdsDocumentos.FieldByName('TIPO_1').AsString,
-          33, ' ') + PadRight(cdsDocumentos.FieldByName('CNPJCPF_1').AsString, 54, ' ') +
-          cdsDocumentos.FieldByName('DOCUMENTO_1').AsString);
+        if Length(cdsDocumentos.FieldByName('CNPJCPF_1').AsString) > 18 then
+          rlDocOrig_tpDoc1.Lines.Add(PadRight(cdsDocumentos.FieldByName('TIPO_1').AsString,
+            33, ' ') + PadRight(cdsDocumentos.FieldByName('CNPJCPF_1').AsString, 54, ' ') +
+            cdsDocumentos.FieldByName('DOCUMENTO_1').AsString)
+        else
+          rlDocOrig_tpDoc1.Lines.Add(PadRight(cdsDocumentos.FieldByName('TIPO_1').AsString,
+            33, ' ') + PadRight(cdsDocumentos.FieldByName('CNPJCPF_1').AsString, 20, ' ') +
+            cdsDocumentos.FieldByName('DOCUMENTO_1').AsString);
       end;
       if cdsDocumentos.FieldByName('TIPO_2').AsString <> '' then
       begin
-        rlDocOrig_tpDoc2.Lines.Add(PadRight(cdsDocumentos.FieldByName('TIPO_2').AsString,
-          33, ' ') + PadRight(cdsDocumentos.FieldByName('CNPJCPF_2').AsString, 54, ' ') +
-          cdsDocumentos.FieldByName('DOCUMENTO_2').AsString);
+        if Length(cdsDocumentos.FieldByName('CNPJCPF_2').AsString) > 18 then
+          rlDocOrig_tpDoc2.Lines.Add(PadRight(cdsDocumentos.FieldByName('TIPO_2').AsString,
+            33, ' ') + PadRight(cdsDocumentos.FieldByName('CNPJCPF_2').AsString, 54, ' ') +
+            cdsDocumentos.FieldByName('DOCUMENTO_2').AsString)
+        else
+          rlDocOrig_tpDoc2.Lines.Add(PadRight(cdsDocumentos.FieldByName('TIPO_2').AsString,
+            33, ' ') + PadRight(cdsDocumentos.FieldByName('CNPJCPF_2').AsString, 20, ' ') +
+            cdsDocumentos.FieldByName('DOCUMENTO_2').AsString);
       end;
+      // italo 54 -> 44
       cdsDocumentos.Next;
 
       if (RLCTe.PageNumber > 1) then
@@ -2437,12 +2456,15 @@ begin
   PrintIt := RLCTe.PageNumber = 1;
 
   rlLabel15.Visible := fpDACTe.ImprimirHoraSaida;
-  RLSystemInfo2.Visible := fpDACTe.ImprimirHoraSaida;
 
-  if (fpDACTe.Sistema <> '') or (fpDACTe.Usuario <> '') then
-    rllblSistema.Caption := fpDACTe.Sistema + ' - ' + fpDACTe.Usuario
-  else
-    rllblSistema.Caption := '';
+  if rlLabel15.Visible then
+    rlLabel15.Caption := ACBrStr('DATA / HORA DA IMPRESSÃO: ') + FormatDateTimeBr(Now);
+
+  if rlLabel15.Visible and (fpDACTe.Usuario <> '') then
+    rlLabel15.Caption := rlLabel15.Caption + ' - ' + fpDACTe.Usuario;
+
+  rllblSistema.Visible := NaoEstaVazio(fpDACTe.Sistema);
+  rllblSistema.Caption := fpDACTe.Sistema;
 end;
 
 procedure TfrmDACTeRLRetrato.rlb_18_ReciboBeforePrint(Sender: TObject;

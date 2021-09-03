@@ -3,7 +3,7 @@
 {  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
 {                                                                              }
-{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{ Direitos Autorais Reservados (c) 2021 Daniel Simoes de Almeida               }
 {                                                                              }
 { Colaboradores nesse arquivo:                                                 }
 {                                                                              }
@@ -95,6 +95,7 @@ const
   PWOPER_OTHERADMIN  = 76;   // Realiza uma transação administrativa especificada pelo autorizador.
   PWOPER_BILLPAYMENTVOID = 78;  // Cancela uma transação PWOPER_BILLPAYMENT.
   PWOPER_TSTKEY      = 240; // Teste de chaves de criptografia do PIN-pad
+  PWOPER_EXPORTLOGS  = 241; // Envio de logs para o servidor.
   PWOPER_COMMONDATA  = 250; // Realiza uma operação para obter os dados básicos do PdC. O resultado dessa operação deve ser consultado por meio da chamada de PW_iGetResult para as informações: PWINFO_AUTADDRESS, PWINFO_APN, PWINFO_LIBVERSION, PWINFO_POSID, PWINFO_DESTTCPIP, PWINFO_LOCALIP, PWINFO_GATEWAY, PWINFO_SUBNETMASK, PWINFO_PPPPWD , PWINFO_SSID.
   PWOPER_SHOWPDC     = 251; // Exibe o ponto de captura configurado.
   PWOPER_VERSION     = 252; // (Versão) Permite consultar a versão da biblioteca atualmente em uso.
@@ -285,25 +286,28 @@ const
   MAX_PWINFO = PWINFO_UNIQUEID;
 
 type
-  { TACBrTEFPGWebAPIParametros }
+  EACBrTEFPayGoWeb = class(EACBrTEFErro);
 
-  TACBrTEFPGWebAPIParametros = class(TStringList)
-  private
-    function GetValueInfo(AInfo: Word): string;
-    procedure SetValueInfo(AInfo: Word; AValue: string);
+  { TACBrTEFRespPayGoWeb }
+
+  TACBrTEFRespPayGoWeb = class( TACBrTEFResp )
   public
-    property ValueInfo[AInfo: Word]: string read GetValueInfo write SetValueInfo;
+    procedure ConteudoToProperty; override;
   end;
 
 procedure ConteudoToPropertyPayGoWeb(AACBrTEFResp: TACBrTEFResp);
+procedure DadosDaTransacaoToTEFResp(ADadosDaTransacao: TACBrTEFParametros; ATefResp: TACBrTEFResp);
 
-function ParseKeyValue(AKeyValueStr: String; out TheKey: String; out TheValue: String): Boolean;
+function ParseKeyValue(const AKeyValueStr: String; out TheKey: String; out TheValue: String): Boolean;
 function PWINFOToString(iINFO: Word): String;
 function PWOPERToString(iOPER: Byte): String;
 function PWCNFToString(iCNF: LongWord): String;
 
 function MoedaToISO4217(AMoeda: Byte): Word;
 function ISO4217ToMoeda(AIso4217: Word): Byte;
+
+function StatusTransacaoToPWCNF_( AStatus: TACBrTEFStatusTransacao): LongWord;
+function OperacaoAdminToPWOPER_( AOperacao: TACBrTEFOperacaoAdmin): Byte;
 
 implementation
 
@@ -558,11 +562,15 @@ begin
         PWINFO_AUTEXTREF:
         begin
           NSU := LinStr;
+          CodigoPSP := LinStr;
           NFCeSAT.Autorizacao := NSU;
         end;
 
         PWINFO_REQNUM:
+        begin
           NumeroLoteTransacao := Linha.Informacao.AsInt64;
+          NSU_TEF := LinStr;
+        end;
 
         PWINFO_VIRTMERCH:
           Estabelecimento := LinStr;
@@ -640,7 +648,9 @@ begin
     if (TipoOperacao <> opPreDatado) then
       DataPreDatado := 0;
 
-    if (LeInformacao(PWINFO_RET, 0).AsInteger = PWRET_OK) then
+    Sucesso := (LeInformacao(PWINFO_RET, 0).AsInteger = PWRET_OK);
+
+    if Sucesso then
       TextoEspecialOperador := LeInformacao(PWINFO_RESULTMSG, 0).AsBinary
     else
       TextoEspecialOperador := LeInformacao(PWINFO_CNCDSPMSG, 0).AsBinary;
@@ -652,8 +662,32 @@ begin
   end;
 end;
 
-function ParseKeyValue(AKeyValueStr: String; out TheKey: String;
-  out TheValue: String): Boolean;
+procedure DadosDaTransacaoToTEFResp(ADadosDaTransacao: TACBrTEFParametros;
+  ATefResp: TACBrTEFResp);
+var
+  i, p, AInfo: Integer;
+  Lin, AValue: String;
+begin
+  for i := 0 to ADadosDaTransacao.Count-1 do
+  begin
+    Lin := ADadosDaTransacao[i];
+    p := pos('=', Lin);
+    if (p > 0) then
+    begin
+      AInfo := StrToIntDef(copy(Lin, 1, p-1), -1);
+      if (AInfo >= 0) then
+      begin
+        AValue := copy(Lin, P+1, Length(Lin));
+        ATefResp.Conteudo.GravaInformacao(Ainfo, 0, AValue);
+      end;
+    end;
+  end;
+
+  ConteudoToPropertyPayGoWeb( ATefResp );
+end;
+
+function ParseKeyValue(const AKeyValueStr: String; out TheKey: String; out
+  TheValue: String): Boolean;
 var
   p: Integer;
 begin
@@ -888,6 +922,7 @@ begin
     PWOPER_OTHERADMIN:   Result := 'PWOPER_OTHERADMIN';
     PWOPER_BILLPAYMENTVOID:  Result := 'PWOPER_BILLPAYMENTVOID';
     PWOPER_TSTKEY:       Result := 'PWOPER_TSTKEY';
+    PWOPER_EXPORTLOGS:   Result := 'PWOPER_EXPORTLOGS';
     PWOPER_COMMONDATA:   Result := 'PWOPER_COMMONDATA';
     PWOPER_SHOWPDC:      Result := 'PWOPER_SHOWPDC';
     PWOPER_VERSION:      Result := 'PWOPER_VERSION';
@@ -938,18 +973,45 @@ begin
   end;
 end;
 
-{ TACBrTEFPGWebAPIParametros }
-
-function TACBrTEFPGWebAPIParametros.GetValueInfo(AInfo: Word): string;
+function StatusTransacaoToPWCNF_( AStatus: TACBrTEFStatusTransacao): LongWord;
 begin
-   Result := Values[IntToStr(AInfo)];
+  case AStatus of
+    tefstsSucessoAutomatico: Result := PWCNF_CNF_AUTO;
+    tefstsSucessoManual: Result := PWCNF_CNF_MANU_AUT;
+    tefstsErroImpressao: Result := PWCNF_REV_PRN_AUT;
+    tefstsErroDispesador: Result := PWCNF_REV_DISP_AUT;
+  else
+    Result := PWCNF_REV_MANU_AUT;
+  end;
 end;
 
-procedure TACBrTEFPGWebAPIParametros.SetValueInfo(AInfo: Word; AValue: string);
+function OperacaoAdminToPWOPER_( AOperacao: TACBrTEFOperacaoAdmin): Byte;
 begin
-  Values[IntToStr(AInfo)] := AValue;
+  case AOperacao of
+    tefadmTesteComunicacao: Result := PWOPER_NULL;
+    tefadmVersao: Result := PWOPER_VERSION;
+    tefadmFechamento: Result := PWOPER_SETTLEMNT;
+    tefadmCancelamento: Result := PWOPER_SALEVOID;
+    tefadmReimpressao:  Result := PWOPER_REPRINT;
+    tefadmPrePago: Result := PWOPER_PREPAID;
+    tefadmPreAutorizacao: Result := PWOPER_PREAUTH;
+    tefadmConsultaSaldo: Result := PWOPER_CRDBALINQ;
+    tefadmConsultaCheque: Result := PWOPER_CHECKINQ;
+    tefadmPagamentoConta: Result := PWOPER_BILLPAYMENT;
+    tefadmRelatResumido: Result := PWOPER_RPTSUMMARY;
+    tefadmRelatSintetico: Result := PWOPER_RPTTRUNC;
+    tefadmRelatDetalhado: Result := PWOPER_RPTDETAIL;
+  else
+    Result := PWOPER_ADMIN;
+  end;
 end;
 
+{ TACBrTEFRespPayGoWeb }
+
+procedure TACBrTEFRespPayGoWeb.ConteudoToProperty;
+begin
+  ConteudoToPropertyPayGoWeb( Self );
+end;
 
 end.
 

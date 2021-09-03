@@ -248,6 +248,7 @@ begin
             MDFe.rodo.infANTT.infPag[i01].vContrato     := Leitor.rCampo(tcDe2, 'vContrato');
             MDFe.rodo.infANTT.infPag[i01].indAltoDesemp := StrToindAltoDesemp(ok, Leitor.rCampo(tcStr, 'indAltoDesemp'));
             MDFe.rodo.infANTT.infPag[i01].indPag        := StrToTIndPag(ok, Leitor.rCampo(tcStr, 'indPag'));
+            MDFe.rodo.infANTT.infPag[i01].vAdiant       := Leitor.rCampo(tcDe2, 'vAdiant');
 
             i02 := 0;
             while Leitor.rExtrai(5, 'Comp', '', i02 + 1) <> '' do
@@ -308,7 +309,7 @@ begin
 
         if pos('<prop>', Leitor.Grupo) = 0 then
           MDFe.rodo.veicTracao.UF := Leitor.rCampo(tcStr, 'UF')
-        else
+        else if (copy(Leitor.Grupo, (Pos('</tpCar>', Leitor.Grupo)+8), 4) = '<UF>') then
           MDFe.rodo.veicTracao.UF := copy(Leitor.Grupo, (Pos('</tpCar>', Leitor.Grupo)+12), 2);
 
         if Leitor.rExtrai(4, 'prop') <> '' then
@@ -345,7 +346,7 @@ begin
 
         if pos('<prop>', Leitor.Grupo) = 0 then
           MDFe.rodo.veicReboque[i01].UF := Leitor.rCampo(tcStr, 'UF')
-        else
+        else if (copy(Leitor.Grupo, (Pos('</tpCar>', Leitor.Grupo)+8), 4) = '<UF>') then
           MDFe.rodo.veicReboque[i01].UF := copy(Leitor.Grupo, (Pos('</tpCar>', Leitor.Grupo)+12), 2);
 
         if Leitor.rExtrai(4, 'prop') <> '' then

@@ -56,7 +56,7 @@ type
     function InstrucoesProtesto(const ACBrTitulo: TACBrTitulo): String; override;
     function DefineTipoCarteira(const ACBrTitulo: TACBrTitulo): String;
     function DefineCarteira(const ACBrTitulo: TACBrTitulo): String;
-    function DefineTipoDocumento(const ACBrTitulo: TACBrTitulo): String;
+    function DefineTipoDocumento(const ACBrTitulo: TACBrTitulo): String; reintroduce;
     function MontaInstrucoes1CNAB240(const ACBrTitulo: TACBrTitulo): String;
     function MontaInstrucoes2CNAB240(const ACBrTitulo: TACBrTitulo): String;
   public
@@ -814,7 +814,7 @@ begin
                   PadRight( OnlyNumber(Sacado.CEP) , 8, ' ' )                 +  // 327 a 334
                   PadRight( Sacado.Cidade, 15, ' ')                           +
                   PadRight( Sacado.UF, 2 )                                    +  // 335 a 351
-                  Space(30)                                                   +  // 352 a 381
+                  PadRight(Sacado.Avalista, 30, ' ' )                         +  // 352 a 381
                   ' I'                                                        +  // 382 a 383
                   Copy( Cedente.Conta, length( Cedente.Conta ),1 )            +  //
                   PadLeft( Cedente.ContaDigito, 1 )                           +  // 384 a 385
@@ -1253,7 +1253,10 @@ begin
   end;
 
   if (Result <> '') then
+  begin
+    Result := ACBrSTr(Result);
     Exit;
+  end;
 
   case CodOcorrencia of
     01: Result := '01-Título Não Existe';
@@ -1284,6 +1287,8 @@ begin
     32: Result := '32-Código IOF Inválido';
     38: Result := '38-Recebimento da Instrução Não Protestar'
   end;
+
+  Result := ACBrSTr(Result);
 end;
 
 function TACBrBancoSantander.CodOcorrenciaToTipo(const CodOcorrencia:
@@ -1775,11 +1780,10 @@ begin
     else
       Result := IntToStrZero(CodMotivo, 2) + ' - Outros Motivos';
     end;
-
   end;
 
+  Result := ACBrSTr(Result);
 end;
-
 
 end.
 

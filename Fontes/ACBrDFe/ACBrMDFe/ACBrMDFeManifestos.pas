@@ -615,13 +615,13 @@ begin
               INIRec.WriteString(sSecao, 'CIOT', CIOT);
               INIRec.WriteString(sSecao, 'CNPJCPF', CNPJCPF);
             end;
-
-            INIRec.WriteString(sSecao, 'categCombVeic', categCombVeicToStr(Rodo.infANTT.valePed.categCombVeic));
           end;
+
+          INIRec.WriteString('valePed', 'categCombVeic', categCombVeicToStr(Rodo.infANTT.valePed.categCombVeic));
 
           for i := 0 to rodo.infANTT.valePed.disp.Count - 1 do
           begin
-            sSecao := 'valePed' + IntToStrZero(I + 1, 3);
+            sSecao := 'disp' + IntToStrZero(I + 1, 3);
             with rodo.infANTT.valePed.disp.Items[i] do
             begin
               INIRec.WriteString(sSecao, 'CNPJForn', CNPJForn);
@@ -654,6 +654,7 @@ begin
               INIRec.WriteFloat(sSecao, 'vContrato', vContrato);
               INIRec.WriteString(sSecao, 'indAltoDesemp', indAltoDesempToStr(indAltoDesemp));
               INIRec.WriteString(sSecao, 'indPag', TindPagToStr(indPag));
+              INIRec.WriteFloat(sSecao, 'vAdiant', vAdiant);
 
               for j := 0 to rodo.infANTT.infPag[I].Comp.Count - 1 do
               begin
@@ -1168,6 +1169,20 @@ begin
         INIRec.WriteString(sSecao, 'infAdFisco', infAdFisco);
         INIRec.WriteString(sSecao, 'infCpl', infCpl);
       end;
+
+      INIRec.WriteString('infRespTec', 'CNPJ', infRespTec.CNPJ);
+      INIRec.WriteString('infRespTec', 'xContato', infRespTec.xContato);
+      INIRec.WriteString('infRespTec', 'email', infRespTec.email);
+      INIRec.WriteString('infRespTec', 'fone', infRespTec.fone);
+
+      INIRec.WriteString('procMDFe', 'tpAmb', TpAmbToStr(procMDFe.tpAmb));
+      INIRec.WriteString('procMDFe', 'verAplic', procMDFe.verAplic);
+      INIRec.WriteString('procMDFe', 'chMDFe', procMDFe.chMDFe);
+      INIRec.WriteString('procMDFe', 'dhRecbto', DateTimeToStr(procMDFe.dhRecbto));
+      INIRec.WriteString('procMDFe', 'nProt', procMDFe.nProt);
+      INIRec.WriteString('procMDFe', 'digVal', procMDFe.digVal);
+      INIRec.WriteString('procMDFe', 'cStat', IntToStr(procMDFe.cStat));
+      INIRec.WriteString('procMDFe', 'xMotivo', procMDFe.xMotivo);
     end;
 
     IniDFe := TStringList.Create;
@@ -1445,7 +1460,7 @@ begin
       //
       //*********************************************************************
 
-      Rodo.codAgPorto := INIRec.ReadString('Rodo', 'codAgPorto', '');
+      rodo.codAgPorto := INIRec.ReadString('Rodo', 'codAgPorto', '');
 
       // Dados sobre Informações para Agencia Reguladora (Opcional) - Nível 1 - Versão 3.00
 
@@ -1475,17 +1490,21 @@ begin
             CNPJCPF := sFim;
           end;
 
-          rodo.infANTT.valePed.categCombVeic := StrTocategCombVeic(OK, INIRec.ReadString(sSecao, 'categCombVeic', ''));
-
           Inc(I);
         end;
 
         // Dados do Vale Pedágio (Opcional) - Nível 2 - Versão 3.00
 
+        rodo.infANTT.valePed.categCombVeic := StrTocategCombVeic(OK, INIRec.ReadString('valePed', 'categCombVeic', ''));
+
         I := 1;
         while true do
         begin
-          sSecao := 'valePed' + IntToStrZero(I, 3);
+          sSecao := 'disp' + IntToStrZero(I, 3);
+
+          if not INIRec.SectionExists(sSecao) then
+            sSecao := 'valePed' + IntToStrZero(I, 3);
+
           sFim   := INIRec.ReadString(sSecao, 'CNPJForn', 'FIM');
 
           if sFim = 'FIM' then
@@ -1548,6 +1567,7 @@ begin
               vContrato     := StringToFloatDef(INIRec.ReadString(sSecao, 'vContrato', ''), 0 );
               indAltoDesemp := StrToindAltoDesemp(ok, INIRec.ReadString(sSecao, 'indAltoDesemp', ''));
               indPag        := StrToTIndPag(ok, INIRec.ReadString(sSecao, 'indPag', '0'));
+              vAdiant       := StringToFloatDef(INIRec.ReadString(sSecao, 'vAdiant', ''), 0 );
 
               J := 1;
               while true do

@@ -44,8 +44,7 @@ unit ACBrXmlDocument;
 interface
 
 uses
-  Classes, SysUtils,
-  ACBrLibXml2;
+  Classes, SysUtils, ACBrLibXml2;
 
 type
   TSaveOption = (xmlNone = 0, xmlFormat = 1, xmlNoDecl = 2, xmlNoEmpty = 4,
@@ -82,6 +81,7 @@ type
     constructor Create(xmlDoc: TACBrXmlDocument; xmlNode: xmlNodePtr);
 
     function GetName: string;
+    function GetLocalName: string;
     function GetContent: string;
     function GetOuterXml: string;
     procedure SetName(AName: string);
@@ -92,6 +92,7 @@ type
 
     property Document: TACBrXmlDocument read FXmlDoc;
     property Name: string read GetName write SetName;
+    property LocalName: string read GetLocalName;
     property Namespaces: TACBrXMLNamespaceList read FNamespaceList;
     property Childrens: TACBrXMLNodeList read FNodeList;
     property Attributes: TACBrXMLAttributeList read FAttributeList;
@@ -112,8 +113,8 @@ type
     function AsInteger: Integer;
     function AsDouble: Double;
     function AsDateTime(const Format: string = ''): TDateTime;
-    function AsDate(const Format: string = ''): TDate;
-    function AsTime(const Format: string = ''): TTime;
+    function AsDate(const Format: string = ''): TDateTime;
+    function AsTime(const Format: string = ''): TDateTime;
 
   end;
 
@@ -167,10 +168,9 @@ type
     FParent: TACBrXmlNode;
     FItems: array of TACBrXmlNamespace;
 
-    procedure Insert(Item: TACBrXmlNamespace);
-
     function GetCount: integer;
     function GetItem(Index: integer): TACBrXmlNamespace;
+    procedure Insert(Item: TACBrXmlNamespace);
 
     constructor Create(AParent: TACBrXmlNode);
 
@@ -181,6 +181,7 @@ type
     property Count: integer read GetCount;
     property Items[Index: integer]: TACBrXmlNamespace read GetItem;
 
+    procedure Add(ANamespace: string; APrefix: string = '');
     procedure Remove(Item: TACBrXmlNamespace);
     function GetEnumerator: TACBrXMLNamespaceListEnumerator;
 
@@ -362,9 +363,17 @@ begin
   Result := string(FXmlNode^.Name);
 end;
 
+function TACBrXmlNode.GetLocalName: string;
+Var
+  AName: string;
+begin
+  AName := string(FXmlNode^.Name);;
+  Result := copy(AName, Pos(':', AName) + 1, Length(AName));
+end;
+
 function TACBrXmlNode.GetContent: string;
 begin
-  Result := string(xmlNodeGetContent(FXmlNode));
+  Result := UTF8ToNativeString(AnsiString(xmlNodeGetContent(FXmlNode)));
 end;
 
 function TACBrXmlNode.GetOuterXml: string;
@@ -404,7 +413,7 @@ begin
     cdataValue := RetornarConteudoEntre(AContent, '<![CDATA[', ']]>');
     cdataNode := xmlNewCDataBlock(FXmlDoc.xmlDocInternal,
                PAnsichar(ansistring(cdataValue)), Length(cdataValue));
-    xmlAddChild(FXmlNode, FXmlCdataNode);
+    xmlAddChild(FXmlNode, cdataNode);
   end
   else
     xmlNodeSetContent(FXmlNode, PAnsichar(ansistring(AContent)));
@@ -534,12 +543,12 @@ begin
   Result := StringToDateTime(Content, Format);
 end;
 
-function TACBrXmlNode.AsDate(const Format: string): TDate;
+function TACBrXmlNode.AsDate(const Format: string): TDateTime;
 begin
   Result := StringToDateTime(Content, Format);
 end;
 
-function TACBrXmlNode.AsTime(const Format: string): TTime;
+function TACBrXmlNode.AsTime(const Format: string): TDateTime;
 begin
   Result := StringToDateTime(Content, Format);
 end;
@@ -588,15 +597,14 @@ end;
 
 function TACBrXmlNamespace.GetContent: string;
 begin
-  Result := string(xmlNsInternal^.href);
+  Result := UTF8ToNativeString(AnsiString(xmlNsInternal^.href));
 end;
 
 procedure TACBrXmlNamespace.SetPrefixo(AName: string);
 Var
   xmlNs: xmlNsPtr;
 begin
-  xmlNs := xmlNewNs(FParentNode.FXmlNode, xmlNsInternal^.href,
-    PAnsichar(ansistring(AName)));
+  xmlNs := xmlNewNs(FParentNode.FXmlNode, xmlNsInternal^.href, PAnsichar(ansistring(AName)));
   ReplaceNamespace(xmlNs);
 end;
 
@@ -656,7 +664,7 @@ end;
 
 function TACBrXmlAttribute.GetContent: string;
 begin
-  Result := string(xmlGetNoNsProp(FParentNode.FXmlNode, xmlAttInternal^.Name));
+  Result := UTF8ToNativeString(AnsiString(xmlGetNoNsProp(FParentNode.FXmlNode, xmlAttInternal^.Name)));
 end;
 
 procedure TACBrXmlAttribute.SetName(AName: string);
@@ -723,9 +731,21 @@ begin
   Result := FItems[Index];
 end;
 
+procedure TACBrXMLNamespaceList.Add(ANamespace: string; APrefix: string = '');
+var
+  ns: xmlNsPtr;
+  Item: TACBrXmlNamespace;
+begin
+  ns := xmlNewNs(FParent.FXmlNode, PAnsiChar(ansistring(ANamespace)), PAnsiChar(ansistring(APrefix)));
+  xmlSetNs(FParent.FXmlNode, ns);
+  Item := TACBrXmlNamespace.Create(FParent, ns);
+  Insert(Item);
+end;
+
 procedure TACBrXMLNamespaceList.Insert(Item: TACBrXmlNamespace);
 var
   idx: integer;
+//  ns: xmlNsPtr;
 begin
   idx := Count + 1;
   SetLength(FItems, idx);
@@ -741,6 +761,7 @@ begin
   begin
     if FItems[idx] = Item then
     begin
+      xmlUnsetNsProp(Item.FParentNode.FXmlNode, Item.xmlNsInternal, Item.xmlNsInternal.href);
       Item.Destroy;
       SetLength(FItems, ALength - 1);
       Exit;
@@ -897,15 +918,13 @@ function TACBrXMLNodeList.FindAnyNs(const Name: string):TACBrXmlNode;
 Var
   i, ACount: integer;
   Node: TACBrXmlNode;
-  NodeName: String;
 begin
   Result := nil;
   ACount := Count - 1;
   for i := 0 to ACount do
   begin
     Node := Items[i];
-    NodeName := copy(Node.Name, Pos(':', Node.Name) + 1, Length(Node.Name));
-    if NodeName <> Name then continue;
+    if Node.LocalName <> Name then continue;
 
     Result := Node;
     Exit;
@@ -916,7 +935,6 @@ function TACBrXMLNodeList.FindAllAnyNs(const Name: string):TACBrXmlNodeArray;
 Var
   Node: TACBrXmlNode;
   i, j, ACount: integer;
-  NodeName: String;
 begin
   Result := nil;
   SetLength(Result, 0);
@@ -926,8 +944,7 @@ begin
   for i := 0 to ACount do
   begin
     Node := Items[i];
-    NodeName := copy(Node.Name, Pos(':', Node.Name) + 1, Length(Node.Name));
-    if NodeName <> Name then continue;
+    if Node.LocalName <> Name then continue;
 
     SetLength(Result, j+1);
     Result[j] := Node;
@@ -1125,16 +1142,22 @@ function TACBrXmlDocument.GetXml: string;
 var
   buffer: xmlBufferPtr;
   xmlSaveCtx: xmlSaveCtxtPtr;
+  ret: integer;
 begin
     buffer := xmlBufferCreate();
-  try
     xmlSaveCtx := xmlSaveToBuffer(buffer, PAnsiChar(ansistring('UTF-8')), GetSaveOptions);
-    xmlSaveDoc(xmlSaveCtx, xmlDocInternal);
-    xmlSaveClose(xmlSaveCtx);
+
+  try
+    try
+      ret := xmlSaveDoc(xmlSaveCtx, xmlDocInternal);
+      if ret = -1 then
+        raise EACBrXmlException.Create(xmlGetLastError()^.message);
+    finally
+      if Assigned(xmlSaveCtx) then xmlSaveClose(xmlSaveCtx);
+    end;
     Result := string(buffer.content);
   finally
-    if (buffer <> nil) then
-      xmlBufferFree(buffer);
+    if Assigned(buffer) then xmlBufferFree(buffer);
   end;
 end;
 
