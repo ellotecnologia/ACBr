@@ -89,7 +89,6 @@ type
     procedure InterpretarRetornoCliSiTef(const Ret: Integer);
 
   protected
-    procedure InicializarChamadaAPI(AOperacao: TACBrTEFAPIOperacao); override;
     procedure InterpretarRespostaAPI; override;
 
   public
@@ -107,7 +106,7 @@ type
       Parcelas: Byte = 0;
       DataPreDatado: TDateTime = 0): Boolean; override;
 
-    function EfetuarAdministrativa(OperacaoAdm: TACBrTEFOperacaoAdmin = tefadmGeral): Boolean; overload; override;
+    function EfetuarAdministrativa(OperacaoAdm: TACBrTEFOperacao = tefopAdministrativo): Boolean; overload; override;
     function EfetuarAdministrativa(const CodOperacaoAdm: string = ''): Boolean; overload; override;
 
     function CancelarTransacao(
@@ -123,6 +122,7 @@ type
 
     procedure ResolverTransacaoPendente(
       AStatus: TACBrTEFStatusTransacao = tefstsSucessoManual); override;
+    procedure AbortarTransacaoEmAndamento; override;
 
     procedure ExibirMensagemPinPad(const MsgPinPad: String); override;
     function ObterDadoPinPad(TipoDado: TACBrTEFAPIDadoPinPad; TimeOut: SmallInt = 30000
@@ -348,7 +348,7 @@ var
   Mensagem, TituloMenu: String ;
   Resposta: String;
   SL: TStringList ;
-  Interromper, Digitado, Voltar, Validado: Boolean ;
+  Interromper, Digitado, Voltar, Validado, EhCarteiraDigital: Boolean ;
 
   DefinicaoCampo: TACBrTEFAPIDefinicaoCampo;
   TefAPI: TACBrTEFAPI;
@@ -365,6 +365,9 @@ begin
   Interromper := False;
   fCancelamento := False ;
   fReimpressao := False;
+  EhCarteiraDigital := False;
+  Continua := 0;
+  Resposta := '';
   Buffer := '';
 
   TefAPI := TACBrTEFAPI(fpACBrTEFAPI);
@@ -372,8 +375,6 @@ begin
   RespCliSiTef.Clear;
   try
     repeat
-      Continua := 0;
-      Resposta := '';
       fpACBrTEFAPI.GravarLog( 'ContinuaFuncaoSiTefInterativo, Chamando: Continua = '+
                               IntToStr(Continua)+' Buffer = '+Resposta ) ;
 
@@ -389,6 +390,8 @@ begin
                              Buffer, sizeof(Buffer),
                              Continua );
 
+      Continua := 0;
+      Resposta := '';
       Mensagem := TrimRight(Buffer);
       fpACBrTEFAPI.GravarLog( 'ContinuaFuncaoSiTefInterativo, '+
                               ' Retornos: STS = '+IntToStr(fUltimoRetornoAPI)+
@@ -427,6 +430,8 @@ begin
                 RespCliSiTef.GravaInformacao(TipoCampo, 'True'); //Cartão Digitado;
               56,57,58:
                 fReimpressao := True;
+              107:
+                EhCarteiraDigital := True;
               110:
                 fCancelamento:= True;
             end;
@@ -447,8 +452,12 @@ begin
           3:  // Mensagem para os dois visores
           begin
             Mensagem := AjustarMensagemTela(Mensagem);
-            TefAPI.QuandoExibirMensagem(Mensagem, telaOperador, EsperaMensagem);
-            TefAPI.QuandoExibirMensagem(Mensagem, telaCliente, EsperaMensagem);
+            TefAPI.QuandoExibirMensagem(Mensagem, telaTodas, EsperaMensagem);
+            if EhCarteiraDigital then
+            begin
+              Interromper := False;
+              TefAPI.QuandoEsperarOperacao(opapiLeituraQRCode, Interromper);
+            end;
           end;
 
           4:  // Texto que deverá ser utilizado como título na apresentação do menu ( vide comando 21)
@@ -461,10 +470,7 @@ begin
             TefAPI.QuandoExibirMensagem('', telaCliente, -1);
 
            13: // Deve remover mensagem apresentada no visor do operador e do cliente (comando 3)
-           begin
-             TefAPI.QuandoExibirMensagem('', telaOperador, -1);
-             TefAPI.QuandoExibirMensagem('', telaCliente, -1);
-           end;
+             TefAPI.QuandoExibirMensagem('', telaTodas, -1);
 
            14:  // Deve limpar o texto utilizado como título na apresentação do menu (comando 4)
              TituloMenu := '';
@@ -621,21 +627,22 @@ begin
              TefAPI.QuandoEsperarOperacao(opapiLeituraQRCode, Interromper);
            end;
         end;
-      end
-      else
+      end;
+
+      if (fUltimoRetornoAPI <> 10000) then
+      begin
         fpACBrTEFAPI.GravarLog( '*** ContinuaFuncaoSiTefInterativo, Finalizando: STS = '+
                                 IntToStr(fUltimoRetornoAPI) ) ;
+        Interromper := True;
+      end;
 
       if Voltar then
         Continua := 1     // Volta para o menu anterior
       else if (not Digitado) or Interromper then
         Continua := -1 ;  // Cancela operacao
 
-      if (Voltar and (fUltimoRetornoAPI = 10000)) or (not Digitado) then
-      begin
-        TefAPI.QuandoExibirMensagem('', telaOperador, -1);
-        TefAPI.QuandoExibirMensagem('', telaCliente, -1);
-      end ;
+      if Interromper or (not Digitado) or (Voltar and (fUltimoRetornoAPI = 10000)) then
+        TefAPI.QuandoExibirMensagem('', telaTodas, -1);
 
       StrPCopy(Buffer, Resposta);
     until (fUltimoRetornoAPI <> 10000);
@@ -724,12 +731,6 @@ begin
   fTEFCliSiTefAPI.PathDLL := AValue;
 end;
 
-procedure TACBrTEFAPIClassCliSiTef.InicializarChamadaAPI(
-  AOperacao: TACBrTEFAPIOperacao);
-begin
-  inherited;
-end;
-
 procedure TACBrTEFAPIClassCliSiTef.InterpretarRespostaAPI;
 begin
   inherited;
@@ -739,34 +740,37 @@ begin
     fpACBrTEFAPI.UltimaRespostaTEF.TextoEspecialOperador := fTEFCliSiTefAPI.TraduzirErroTransacao(fUltimoRetornoAPI);
 end;
 
-function TACBrTEFAPIClassCliSiTef.EfetuarAdministrativa(OperacaoAdm: TACBrTEFOperacaoAdmin): Boolean;
+function TACBrTEFAPIClassCliSiTef.EfetuarAdministrativa(
+  OperacaoAdm: TACBrTEFOperacao): Boolean;
 var
   Op: Integer;
 begin
   case OperacaoAdm of
-    tefadmGeral:
+    tefopPagamento:
+      Op := CSITEF_OP_Venda;
+    tefopAdministrativo:
       Op := CSITEF_OP_Administrativo;
-    tefadmTesteComunicacao, tefadmVersao:
+    tefopTesteComunicacao, tefopVersao:
       Op := 111;
-    tefadmFechamento:
+    tefopFechamento:
       Op := 999;
-    tefadmCancelamento:
+    tefopCancelamento:
       Op := 200;
-    tefadmReimpressao:
+    tefopReimpressao:
       Op := 112;
-    tefadmPrePago:
+    tefopPrePago:
       Op := 314;
-    tefadmPreAutorizacao:
+    tefopPreAutorizacao:
       Op := 115;
-    tefadmConsultaSaldo:
+    tefopConsultaSaldo:
       Op := 600;
-    tefadmConsultaCheque:
+    tefopConsultaCheque:
       Op := 1;
-    tefadmPagamentoConta:
+    tefopPagamentoConta:
       Op := 310;
-    tefadmRelatResumido, tefadmRelatSintetico, tefadmRelatDetalhado:
-      fpACBrTEFAPI.DoException(Format(ACBrStr(sACBrTEFAPIAdministrativaNaoSuportada),
-        [GetEnumName(TypeInfo(TACBrTEFOperacaoAdmin), integer(OperacaoAdm) ), ClassName] ));
+  else
+    fpACBrTEFAPI.DoException(Format(ACBrStr(sACBrTEFAPIAdministrativaNaoSuportada),
+      [GetEnumName(TypeInfo(TACBrTEFOperacao), integer(OperacaoAdm) ), ClassName] ));
   end;
 
   Result := EfetuarAdministrativa(IntToStr(Op));
@@ -914,6 +918,11 @@ begin
                       fpACBrTEFAPI.UltimaRespostaTEF.NSU,
                       fpACBrTEFAPI.UltimaRespostaTEF.Finalizacao,
                       AStatus );
+end;
+
+procedure TACBrTEFAPIClassCliSiTef.AbortarTransacaoEmAndamento;
+begin
+  fUltimoRetornoAPI := -10000;
 end;
 
 function TACBrTEFAPIClassCliSiTef.CancelarTransacao(const NSU,

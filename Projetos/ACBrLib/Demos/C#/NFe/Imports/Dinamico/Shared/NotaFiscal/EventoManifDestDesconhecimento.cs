@@ -8,7 +8,7 @@ namespace ACBrLib.NFe
 
         public EventoManifDestDesconhecimento()
         {
-            tpEvento = TipoEvento.teManifDestDesconhecimento;
+            tpEvento = TipoEventoNFe.teManifDestDesconhecimento;
             cOrgao = 91;
         }
 

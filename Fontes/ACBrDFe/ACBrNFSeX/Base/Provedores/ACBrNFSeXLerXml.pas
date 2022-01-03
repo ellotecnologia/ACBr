@@ -37,9 +37,6 @@ unit ACBrNFSeXLerXml;
 interface
 
 uses
-{$IFDEF FPC}
-  LResources, Controls, Graphics, Dialogs,
-{$ENDIF}
   SysUtils, Classes,
   ACBrUtil, ACBrDFeException, ACBrXmlReader, ACBrNFSeXInterface,
   ACBrNFSeXParametros, ACBrNFSeXClass, ACBrNFSeXConversao;
@@ -51,13 +48,11 @@ type
   private
     FNFSe: TNFSe;
     FtpXML: TtpXML;
-    FProvedorConf: TNFSeProvedor;
     FProvedor: TnfseProvedor;
 
   protected
     FAOwner: IACBrNFSeXProvider;
 
-    function LerDatas(const DataStr: string): TDateTime;
     function NormatizaItemListaServico(const Codigo: string): string;
     function ItemListaServicoDescricao(const Codigo: string): string;
     function TipodeXMLLeitura(const aArquivo: string): TtpXML;
@@ -66,10 +61,9 @@ type
 
     function LerXml: Boolean; Override;
 
-    property NFSe: TNFSe                 read FNFSe         write FNFSe;
-    property Provedor: TnfseProvedor     read FProvedor     write FProvedor;
-    property ProvedorConf: TNFSeProvedor read FProvedorConf write FProvedorConf;
-    property tpXML: TtpXML               read FtpXML        write FtpXML;
+    property NFSe: TNFSe             read FNFSe     write FNFSe;
+    property Provedor: TnfseProvedor read FProvedor write FProvedor;
+    property tpXML: TtpXML           read FtpXML    write FtpXML;
   end;
 
 implementation
@@ -91,55 +85,6 @@ begin
     Result := ObterDescricaoServico(xCodigo)
   else
     Result := CodItemServToDesc(xCodigo);
-end;
-
-function TNFSeRClass.LerDatas(const DataStr: string): TDateTime;
-var
-  xData: string;
-begin
-  xData := Trim(DataStr);
-
-  if xData = '' then
-    Result := 0
-  else
-  begin
-    xData := StringReplace(xData, '-', '/', [rfReplaceAll]);
-
-    if (Length(xData) >= 16) and CharInSet(xData[11], ['T', ' ']) then
-    begin
-      if Pos('/', xData) = 5 then
-        // Le a data/hora no formato YYYY/MM/DDTHH:MM:SS
-        Result := EncodeDate(StrToInt(copy(xData, 1, 4)),
-                             StrToInt(copy(xData, 6, 2)),
-                             StrToInt(copy(xData, 9, 2))) +
-                  EncodeTime(StrToIntDef(copy(xData, 12, 2), 0),
-                             StrToIntDef(copy(xData, 15, 2), 0),
-                             StrToIntDef(copy(xData, 18, 2), 0),
-                             0)
-      else
-        // Le a data/hora no formato DD/MM/YYYYTHH:MM:SS
-        Result := EncodeDate(StrToInt(copy(xData, 7, 4)),
-                             StrToInt(copy(xData, 4, 2)),
-                             StrToInt(copy(xData, 1, 2))) +
-                  EncodeTime(StrToIntDef(copy(xData, 12, 2), 0),
-                             StrToIntDef(copy(xData, 15, 2), 0),
-                             StrToIntDef(copy(xData, 18, 2), 0),
-                             0)
-    end
-    else
-    begin
-      if Pos('/', xData) = 5 then
-        // Le a data no formato YYYY/MM/DD
-        Result := EncodeDate(StrToInt(copy(xData, 1, 4)),
-                             StrToInt(copy(xData, 6, 2)),
-                             StrToInt(copy(xData, 9, 2)))
-      else
-        // Le a data no formato DD/MM/YYYY
-        Result := EncodeDate(StrToInt(copy(xData, 7, 4)),
-                             StrToInt(copy(xData, 4, 2)),
-                             StrToInt(copy(xData, 1, 2)));
-    end;
-  end;
 end;
 
 function TNFSeRClass.LerXml: Boolean;
@@ -166,8 +111,7 @@ end;
 
 function TNFSeRClass.TipodeXMLLeitura(const aArquivo: string): TtpXML;
 begin
-  if (Pos('CompNfse', Arquivo) > 0) or (Pos('ComplNfse', Arquivo) > 0) or
-     (Pos('tcCompNfse', Arquivo) > 0) then
+  if (Pos('nfse>', LowerCase(Arquivo)) > 0) then
     Result := txmlNFSe
   else
     Result := txmlRPS;

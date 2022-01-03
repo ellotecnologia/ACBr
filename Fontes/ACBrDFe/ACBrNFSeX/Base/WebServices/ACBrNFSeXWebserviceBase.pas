@@ -55,6 +55,8 @@ uses
 
 resourcestring
   ERR_NAO_IMP = 'Serviço não implementado para este provedor.';
+  ERR_SEM_URL_PRO = 'Não informado a URL de Produção, favor entrar em contato com a Prefeitura ou Provedor.';
+  ERR_SEM_URL_HOM = 'Não informado a URL de Homologação, favor entrar em contato com a Prefeitura ou Provedor.';
 
 type
 
@@ -115,7 +117,6 @@ type
     function ConsultarSituacao(ACabecalho, AMSG: String): string; virtual;
     function ConsultarNFSePorRps(ACabecalho, AMSG: String): string; virtual;
     function ConsultarNFSe(ACabecalho, AMSG: String): string; virtual;
-    function ConsultarNFSeUrl(ACabecalho, AMSG: String): string; virtual;
     function ConsultarNFSePorFaixa(ACabecalho, AMSG: String): string; virtual;
     function ConsultarNFSeServicoPrestado(ACabecalho, AMSG: String): string; virtual;
     function ConsultarNFSeServicoTomado(ACabecalho, AMSG: String): string; virtual;
@@ -167,22 +168,32 @@ type
 
   TACBrNFSeXWebserviceRest = class(TACBrNFSeXWebserviceNoSoap)
   protected
-    FPBound: string;
-
     function PrepararEnvio(const Message, SoapAction, SoapHeader: string;
                            namespace: array of string): string; override;
 
   public
-    constructor Create(AOwner: TACBrDFe; AMetodo: TMetodo; AURL: string);
+    constructor Create(AOwner: TACBrDFe; AMetodo: TMetodo; AURl: string);
 
   end;
 
-  TACBrNFSeXWebserviceMulti = class(TACBrNFSeXWebserviceNoSoap)
+  TACBrNFSeXWebserviceMulti1 = class(TACBrNFSeXWebserviceNoSoap)
   protected
     FPBound: string;
 
     function PrepararEnvio(const Message, SoapAction, SoapHeader: string;
                                   namespace: array of string): string; override;
+  public
+    constructor Create(AOwner: TACBrDFe; AMetodo: TMetodo; AURL: string);
+
+  end;
+
+  TACBrNFSeXWebserviceMulti2 = class(TACBrNFSeXWebserviceNoSoap)
+  protected
+    FPBound: string;
+
+    function PrepararEnvio(const Message, SoapAction, SoapHeader: string;
+                           namespace: array of string): string; override;
+
   public
     constructor Create(AOwner: TACBrDFe; AMetodo: TMetodo; AURL: string);
 
@@ -208,7 +219,8 @@ type
    FtpConsulta: TtpConsulta;
    FtpPeriodo: TtpPeriodo;
    FTipo: String;
-   FCodTribMun: String;
+   FCadEconomico: String;
+   FSerieNFSe: String;
 
  public
    constructor Create;
@@ -231,7 +243,8 @@ type
    property tpConsulta: TtpConsulta read FtpConsulta    write FtpConsulta;
    property tpPeriodo: TtpPeriodo   read FtpPeriodo     write FtpPeriodo;
    property Tipo: String            read FTipo          write FTipo;
-   property CodTribMun: String      read FCodTribMun    write FCodTribMun;
+   property CadEconomico: String    read FCadEconomico  write FCadEconomico;
+   property SerieNFSe: String       read FSerieNFSe     write FSerieNFSe;
  end;
 
   TInfCancelamento = class
@@ -320,12 +333,6 @@ begin
       begin
         FPArqEnv := 'con-nfse';
         FPArqResp := 'lista-nfse-con';
-      end;
-
-    tmConsultarNFSeURL:
-      begin
-        FPArqEnv := 'con-url-nfse';
-        FPArqResp := 'lista-nfse-url';
       end;
 
     tmConsultarNFSePorFaixa:
@@ -525,16 +532,16 @@ begin
 
   if (ANode <> nil) then
   begin
-    aMsg := ProcessarConteudoXml(ANode.Childrens.FindAnyNs(FPFaultCodeNode), tcStr) +
+    aMsg := ObterConteudoTag(ANode.Childrens.FindAnyNs(FPFaultCodeNode), tcStr) +
        ' - ' +
-       ProcessarConteudoXml(ANode.Childrens.FindAnyNs(FPFaultMsgNode), tcStr);
+       ObterConteudoTag(ANode.Childrens.FindAnyNs(FPFaultMsgNode), tcStr);
 
     if aMsg = ' - ' then
-      aMsg := ProcessarConteudoXml(ANode.Childrens.FindAnyNs('Code'), tcStr) +
+      aMsg := ObterConteudoTag(ANode.Childrens.FindAnyNs('Code'), tcStr) +
        ' - ' +
-       ProcessarConteudoXml(ANode.Childrens.FindAnyNs('Reason'), tcStr) +
+       ObterConteudoTag(ANode.Childrens.FindAnyNs('Reason'), tcStr) +
        ' - ' +
-       ProcessarConteudoXml(ANode.Childrens.FindAnyNs('Detail'), tcStr);
+       ObterConteudoTag(ANode.Childrens.FindAnyNs('Detail'), tcStr);
 
     raise EACBrDFeException.Create(aMsg);
   end;
@@ -620,6 +627,7 @@ var
   Tentar, Tratado, TemCertificadoConfigurado: Boolean;
   HTTPResultCode, InternalErrorCode: Integer;
   aRetorno: TACBrXmlDocument;
+  CharSet: string;
 begin
   FPEnvio := PrepararEnvio(Message, SoapAction, SoapHeader, namespace);
 
@@ -675,7 +683,13 @@ begin
             HttpClient.Execute;
 
             HttpClient.DataResp.Position := 0;
-            FPRetorno := ReadStrFromStream(HttpClient.DataResp, HttpClient.DataResp.Size);
+
+            CharSet := LowerCase(HttpClient.HeaderResp.GetHeaderValue('Content-Type'));
+
+            if (Pos('application/xml', CharSet) > 0) and (Pos('utf-8', CharSet) > 0) then
+              FPRetorno := UTF8ToNativeString(ReadStrFromStream(HttpClient.DataResp, HttpClient.DataResp.Size))
+            else
+              FPRetorno := string(ReadStrFromStream(HttpClient.DataResp, HttpClient.DataResp.Size));
 
             // Alsuns provedores retorna uma string apenas com a mensagem de erro
             if Pos('Body', FPRetorno) = 0 then
@@ -684,8 +698,11 @@ begin
             if Pos('ISO-8859-1', FPRetorno) > 0 then
             begin
               FPRetorno := RemoverDeclaracaoXML(FPRetorno);
-              FPRetorno := TranslateString(FPRetorno, 0, 28591);
+              FPRetorno := string(TranslateString(AnsiString(FPRetorno), 0, 28591));
             end;
+
+            if Pos('<?xml version="1.0" ?>', FPRetorno) > 0 then
+              FPRetorno := RemoverDeclaracaoXML(FPRetorno);
 
             // Alguns provedores não retornam o XML em UTF-8
             FPRetorno := ConverteXMLtoUTF8(FPRetorno);
@@ -767,12 +784,6 @@ begin
 end;
 
 function TACBrNFSeXWebservice.ConsultarNFSe(ACabecalho, AMSG: String): string;
-begin
-  Result := '';
-  raise EACBrDFeException.Create(ERR_NAO_IMP);
-end;
-
-function TACBrNFSeXWebservice.ConsultarNFSeUrl(ACabecalho, AMSG: String): string;
 begin
   Result := '';
   raise EACBrDFeException.Create(ERR_NAO_IMP);
@@ -961,39 +972,44 @@ end;
 { TACBrNFSeXWebserviceRest }
 
 constructor TACBrNFSeXWebserviceRest.Create(AOwner: TACBrDFe; AMetodo: TMetodo;
-  AURL: string);
+  AURl: string);
 begin
-  inherited Create(AOwner, AMetodo, AURL);
+  inherited Create(AOwner, AMetodo, AURl);
 
-  FPBound := '----=_Part_1_' + IntToHex(Random(MaxInt), 8);
-  FPMimeType := 'multipart/form-data; boundary=' + AnsiQuotedStr(FPBound, '"');
+  FPMimeType := 'application/json';
 end;
 
 function TACBrNFSeXWebserviceRest.PrepararEnvio(const Message, SoapAction,
   SoapHeader: string; namespace: array of string): string;
 var
-  NomeArq: String;
+  UsuarioWeb, SenhaWeb, Texto: String;
 begin
-  NomeArq := GerarPrefixoArquivo + '-' + FPArqEnv + '.xml';
+  UsuarioWeb := Trim(TConfiguracoesNFSe(FPConfiguracoes).Geral.Emitente.WSUser);
 
-  Result := '--' + FPBound + sLineBreak +
-            'Content-Type: text/xml; charset=Cp1252; name=' +
-            NomeArq + sLineBreak +
-            'Content-Transfer-Encoding: binary' + sLineBreak +
-            'Content-Disposition: form-data; name=' + AnsiQuotedStr(NomeArq, '"') +
-            '; filename=' + AnsiQuotedStr(NomeArq, '"') + sLineBreak +
-            sLineBreak +
-            Message + sLineBreak +
-            '--' + FPBound + '--' + sLineBreak;
+  if UsuarioWeb = '' then
+    GerarException(ACBrStr('O provedor ' + TConfiguracoesNFSe(FPConfiguracoes).Geral.xProvedor +
+      ' necessita que a propriedade: Configuracoes.Geral.Emitente.WSUser seja informada.'));
+
+  SenhaWeb := Trim(TConfiguracoesNFSe(FPConfiguracoes).Geral.Emitente.WSSenha);
+
+  if SenhaWeb = '' then
+    GerarException(ACBrStr('O provedor ' + TConfiguracoesNFSe(FPConfiguracoes).Geral.xProvedor +
+      ' necessita que a propriedade: Configuracoes.Geral.Emitente.WSSenha seja informada.'));
+
+  Texto := StringReplace(Message, '"', '''', [rfReplaceAll]);
+  Texto := StringReplace(Texto, #10, '', [rfReplaceAll]);
+  Texto := StringReplace(Texto, #13, '', [rfReplaceAll]);
+
+  Result := Format('{"xml": "%s", "usuario": "%s", "senha": "%s"}', [Texto, UsuarioWeb, SenhaWeb]);
 
   HttpClient := FPDFeOwner.SSL.SSLHttpClass;
 
   HttpClient.Clear;
 end;
 
-{ TACBrNFSeXWebserviceMulti }
+{ TACBrNFSeXWebserviceMulti1 }
 
-constructor TACBrNFSeXWebserviceMulti.Create(AOwner: TACBrDFe; AMetodo: TMetodo;
+constructor TACBrNFSeXWebserviceMulti1.Create(AOwner: TACBrDFe; AMetodo: TMetodo;
   AURL: string);
 begin
   inherited Create(AOwner, AMetodo, AURL);
@@ -1002,7 +1018,7 @@ begin
   FPMimeType := 'multipart/form-data; boundary=' + AnsiQuotedStr(FPBound, '"');
 end;
 
-function TACBrNFSeXWebserviceMulti.PrepararEnvio(const Message, SoapAction,
+function TACBrNFSeXWebserviceMulti1.PrepararEnvio(const Message, SoapAction,
   SoapHeader: string; namespace: array of string): string;
 var
   UsuarioWeb, SenhaWeb: String;
@@ -1037,6 +1053,39 @@ begin
   HttpClient.Clear;
 end;
 
+{ TACBrNFSeXWebserviceMulti2 }
+
+constructor TACBrNFSeXWebserviceMulti2.Create(AOwner: TACBrDFe; AMetodo: TMetodo;
+  AURL: string);
+begin
+  inherited Create(AOwner, AMetodo, AURL);
+
+  FPBound := '----=_Part_1_' + IntToHex(Random(MaxInt), 8);
+  FPMimeType := 'multipart/form-data; boundary=' + AnsiQuotedStr(FPBound, '"');
+end;
+
+function TACBrNFSeXWebserviceMulti2.PrepararEnvio(const Message, SoapAction,
+  SoapHeader: string; namespace: array of string): string;
+var
+  NomeArq: String;
+begin
+  NomeArq := GerarPrefixoArquivo + '-' + FPArqEnv + '.xml';
+
+  Result := '--' + FPBound + sLineBreak +
+            'Content-Type: text/xml; charset=Cp1252; name=' +
+            NomeArq + sLineBreak +
+            'Content-Transfer-Encoding: binary' + sLineBreak +
+            'Content-Disposition: form-data; name=' + AnsiQuotedStr(NomeArq, '"') +
+            '; filename=' + AnsiQuotedStr(NomeArq, '"') + sLineBreak +
+            sLineBreak +
+            Message + sLineBreak +
+            '--' + FPBound + '--' + sLineBreak;
+
+  HttpClient := FPDFeOwner.SSL.SSLHttpClass;
+
+  HttpClient.Clear;
+end;
+
 { TInfConsulta }
 
 constructor TInfConsultaNFSe.Create;
@@ -1055,7 +1104,8 @@ begin
   CNPJInter     := '';
   IMInter       := '';
   RazaoInter    := '';
-  CodTribMun    := '';
+  CadEconomico  := '';
+  SerieNFSe     := '';
   Pagina        := 1;
   Tipo          := '';
 end;
@@ -1093,7 +1143,8 @@ begin
     IMInter       := INIRec.ReadString(sSecao, 'IMInter', '');
     RazaoInter    := INIRec.ReadString(sSecao, 'RazaoInter', '');
     Tipo          := INIRec.ReadString(sSecao, 'Tipo', '');
-    CodTribMun    := INIRec.ReadString(sSecao, 'CodTribMun', '');
+    CadEconomico  := INIRec.ReadString(sSecao, 'CadEconomico', '');
+    SerieNFSe     := INIRec.ReadString(sSecao, 'SerieNFSe', '');
 
     Pagina        := INIRec.ReadInteger(sSecao, 'Pagina', 1);
 

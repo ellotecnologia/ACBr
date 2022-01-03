@@ -8,7 +8,7 @@ namespace ACBrLib.MDFe
 
         public EventoCancelamento()
         {
-            tpEvento = TipoEvento.teCancelamento;
+            tpEvento = TipoEventoMDFe.teCancelamento;
         }
 
         #endregion Constructor

@@ -11,7 +11,7 @@ namespace ACBrLib.NFe
 
         public EventoEPEC()
         {
-            tpEvento = TipoEvento.teEPEC;
+            tpEvento = TipoEventoNFe.teEPEC;
             DEST = new EventDEST();
         }
 

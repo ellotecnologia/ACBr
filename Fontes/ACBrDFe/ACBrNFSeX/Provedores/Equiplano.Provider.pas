@@ -68,6 +68,8 @@ type
 
     function PrepararRpsParaLote(const aXml: string): string; override;
 
+    function GerarXmlNota(const aXmlRps, aXmlRetorno: string): string;
+
     procedure GerarMsgDadosEmitir(Response: TNFSeEmiteResponse;
       Params: TNFSeParamsResponse); override;
     procedure TratarRetornoEmitir(Response: TNFSeEmiteResponse); override;
@@ -89,8 +91,8 @@ type
 
     procedure ProcessarMensagemErros(const RootNode: TACBrXmlNode;
                                      const Response: TNFSeWebserviceResponse;
-                                     AListTag: string = '';
-                                     AMessageTag: string = 'Erro'); override;
+                                     AListTag: string = 'listaErros';
+                                     AMessageTag: string = 'erro'); override;
 
   end;
 
@@ -200,7 +202,12 @@ begin
   if URL <> '' then
     Result := TACBrNFSeXWebserviceEquiplano.Create(FAOwner, AMetodo, URL)
   else
-    raise EACBrDFeException.Create(ERR_NAO_IMP);
+  begin
+    if ConfigGeral.Ambiente = taProducao then
+      raise EACBrDFeException.Create(ERR_SEM_URL_PRO)
+    else
+      raise EACBrDFeException.Create(ERR_SEM_URL_HOM);
+  end;
 end;
 
 procedure TACBrNFSeProviderEquiplano.ProcessarMensagemErros(
@@ -224,8 +231,8 @@ begin
   for I := Low(ANodeArray) to High(ANodeArray) do
   begin
     AErro := Response.Erros.New;
-    AErro.Codigo := ProcessarConteudoXml(ANodeArray[I].Childrens.FindAnyNs('cdMensagem'), tcStr);
-    AErro.Descricao := ProcessarConteudoXml(ANodeArray[I].Childrens.FindAnyNs('dsMensagem'), tcStr);
+    AErro.Codigo := ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('cdMensagem'), tcStr);
+    AErro.Descricao := ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('dsMensagem'), tcStr);
     AErro.Correcao := '';
   end;
 end;
@@ -287,6 +294,22 @@ begin
   end;
 end;
 
+function TACBrNFSeProviderEquiplano.GerarXmlNota(const aXmlRps,
+  aXmlRetorno: string): string;
+var
+  aRPS, aNFSE: string;
+begin
+  aRPS  := SeparaDados(aXmlRps, 'rps', False);
+  aNFSE := aXmlRetorno;
+
+  Result := '<compNfse xmlns="http://www.equiplano.com.br/esnfs">' +
+              '<nfse>' +
+                aNFSE +
+                aRPS +
+              '</nfse>' +
+            '</compNfse>';
+end;
+
 procedure TACBrNFSeProviderEquiplano.TratarRetornoEmitir(Response: TNFSeEmiteResponse);
 var
   Document: TACBrXmlDocument;
@@ -313,14 +336,18 @@ begin
       AuxNode := ANode.Childrens.FindAnyNs('mensagemRetorno');
 
       if AuxNode <> nil then
+        ProcessarMensagemErros(AuxNode, Response);
+
+      Response.Sucesso := (Response.Erros.Count = 0);
+
+      AuxNode := ANode.Childrens.FindAnyNs('protocolo');
+
+      if AuxNode <> nil then
       begin
-        ProcessarMensagemErros(AuxNode, Response, 'listaErros', 'erro');
-
-        Response.Sucesso := (Response.Erros.Count = 0);
-
         with Response do
         begin
-          Protocolo := ProcessarConteudoXml(AuxNode.Childrens.FindAnyNs('protocolo'), tcStr);
+          Data := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('dtRecebimento'), tcDatHor);
+          Protocolo := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('nrProtocolo'), tcStr);
         end;
       end;
     except
@@ -328,7 +355,7 @@ begin
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod999;
-        AErro.Descricao := E.Message;
+        AErro.Descricao := Desc999 + E.Message;
       end;
     end;
   finally
@@ -343,8 +370,12 @@ var
   Emitente: TEmitenteConfNFSe;
   NameSpace, xConsulta: string;
 begin
-  if EstaVazio(Response.Lote) then
+  if EstaVazio(Response.Protocolo) and EstaVazio(Response.Lote) then
   begin
+    AErro := Response.Erros.New;
+    AErro.Codigo := Cod101;
+    AErro.Descricao := Desc101;
+
     AErro := Response.Erros.New;
     AErro.Codigo := Cod111;
     AErro.Descricao := Desc111;
@@ -406,23 +437,21 @@ begin
       AuxNode := ANode.Childrens.FindAnyNs('mensagemRetorno');
 
       if AuxNode <> nil then
-      begin
-        ProcessarMensagemErros(AuxNode, Response, 'listaErros', 'erro');
-      end;
+        ProcessarMensagemErros(AuxNode, Response);
 
       Response.Sucesso := (Response.Erros.Count = 0);
 
       with Response do
       begin
-        Lote := ProcessarConteudoXml(AuxNode.Childrens.FindAnyNs('nrLoteRps'), tcStr);
-        Situacao := ProcessarConteudoXml(AuxNode.Childrens.FindAnyNs('stLote'), tcStr);
+        Lote := ObterConteudoTag(ANode.Childrens.FindAnyNs('nrLoteRps'), tcStr);
+        Situacao := ObterConteudoTag(ANode.Childrens.FindAnyNs('stLote'), tcStr);
       end;
     except
       on E:Exception do
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod999;
-        AErro.Descricao := E.Message;
+        AErro.Descricao := Desc999 + E.Message;
       end;
     end;
   finally
@@ -437,8 +466,12 @@ var
   Emitente: TEmitenteConfNFSe;
   NameSpace, xConsulta: string;
 begin
-  if EstaVazio(Response.Lote) then
+  if EstaVazio(Response.Protocolo) and EstaVazio(Response.Lote) then
   begin
+    AErro := Response.Erros.New;
+    AErro.Codigo := Cod101;
+    AErro.Descricao := Desc101;
+
     AErro := Response.Erros.New;
     AErro.Codigo := Cod111;
     AErro.Descricao := Desc111;
@@ -504,16 +537,11 @@ begin
       AuxNode := ANode.Childrens.FindAnyNs('mensagemRetorno');
 
       if AuxNode <> nil then
-      begin
-        ProcessarMensagemErros(AuxNode, Response, 'listaErros', 'erro');
-      end;
+        ProcessarMensagemErros(AuxNode, Response);
 
       Response.Sucesso := (Response.Erros.Count = 0);
 
-      AuxNode := AuxNode.Childrens.FindAnyNs('nrProtocolo');
-
-      if AuxNode <> nil then
-        Response.Protocolo := AuxNode.AsString;
+//      Response.Protocolo := ObterConteudoTag(ANode.Childrens.FindAnyNs('nrProtocolo'), tcStr);
 
       AuxNode := ANode.Childrens.FindAnyNs('listaNfse');
 
@@ -523,8 +551,8 @@ begin
         if not Assigned(ANodeArray) then
         begin
           AErro := Response.Erros.New;
-        AErro.Codigo := Cod203;
-        AErro.Descricao := Desc203;
+          AErro.Codigo := Cod203;
+          AErro.Descricao := Desc203;
           Exit;
         end;
 
@@ -557,7 +585,7 @@ begin
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod999;
-        AErro.Descricao := E.Message;
+        AErro.Descricao := Desc999 + E.Message;
       end;
     end;
   finally
@@ -613,6 +641,9 @@ var
   Document: TACBrXmlDocument;
   AErro: TNFSeEventoCollectionItem;
   ANode, AuxNode: TACBrXmlNode;
+  ANota: NotaFiscal;
+  aXmlNota: string;
+  i: Integer;
 begin
   Document := TACBrXmlDocument.Create;
 
@@ -633,9 +664,7 @@ begin
       AuxNode := ANode.Childrens.FindAnyNs('mensagemRetorno');
 
       if AuxNode <> nil then
-      begin
-        ProcessarMensagemErros(AuxNode, Response, 'listaErros', 'erro');
-      end;
+        ProcessarMensagemErros(AuxNode, Response);
 
       Response.Sucesso := (Response.Erros.Count = 0);
 
@@ -643,11 +672,28 @@ begin
 
       if AuxNode <> nil then
       begin
-        Response.CodVerificacao := ProcessarConteudoXml(AuxNode.Childrens.FindAnyNs('cdAutenticacao'), tcStr);
-
         with Response do
         begin
-          NumeroNota := ProcessarConteudoXml(AuxNode.Childrens.FindAnyNs('nrNfse'), tcInt);
+          NumeroNota := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('nrNfse'), tcStr);
+          CodVerificacao := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('cdAutenticacao'), tcStr);
+          Data := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('dtEmissaoNfs'), tcDatHor);
+          NumeroRps := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('nrRps'), tcStr);
+        end;
+
+        i := TACBrNFSeX(FAOwner).NotasFiscais.Count;
+
+        if i > 0 then
+        begin
+          ANota := TACBrNFSeX(FAOwner).NotasFiscais.Items[i-1];
+
+          if ANota.NFSe.IdentificacaoRps.Numero = Response.NumeroRps  then
+          begin
+            aXmlNota := GerarXmlNota(ANota.XMLAssinado, Response.XmlRetorno);
+
+            ANota.XML := aXmlNota;
+
+            SalvarXmlNfse(ANota);
+          end;
         end;
       end;
     except
@@ -655,7 +701,7 @@ begin
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod999;
-        AErro.Descricao := E.Message;
+        AErro.Descricao := Desc999 + E.Message;
       end;
     end;
   finally
@@ -732,9 +778,7 @@ begin
       AuxNode := ANode.Childrens.FindAnyNs('mensagemRetorno');
 
       if AuxNode <> nil then
-      begin
-        ProcessarMensagemErros(AuxNode, Response, 'listaErros', 'erro');
-      end;
+        ProcessarMensagemErros(AuxNode, Response);
 
       Response.Sucesso := (Response.Erros.Count = 0);
 
@@ -746,8 +790,8 @@ begin
         if not Assigned(ANodeArray) then
         begin
           AErro := Response.Erros.New;
-        AErro.Codigo := Cod203;
-        AErro.Descricao := Desc203;
+          AErro.Codigo := Cod203;
+          AErro.Descricao := Desc203;
           Exit;
         end;
 
@@ -780,7 +824,7 @@ begin
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod999;
-        AErro.Descricao := E.Message;
+        AErro.Descricao := Desc999 + E.Message;
       end;
     end;
   finally
@@ -862,26 +906,21 @@ begin
       AuxNode := ANode.Childrens.FindAnyNs('mensagemRetorno');
 
       if AuxNode <> nil then
-      begin
-        ProcessarMensagemErros(AuxNode, Response, 'listaErros', 'erro');
-      end;
+        ProcessarMensagemErros(AuxNode, Response);
 
       Response.Sucesso := (Response.Erros.Count = 0);
 
-      if ANode <> nil then
+      with Response.RetCancelamento do
       begin
-        with Response.RetCancelamento do
-        begin
-          Situacao := ProcessarConteudoXml(AuxNode.Childrens.FindAnyNs('sucesso'), tcStr);
-          DataHora := ProcessarConteudoXml(AuxNode.Childrens.FindAnyNs('dtCancelamento'), tcDatHor);
-        end;
+        Situacao := ObterConteudoTag(ANode.Childrens.FindAnyNs('sucesso'), tcStr);
+        DataHora := ObterConteudoTag(ANode.Childrens.FindAnyNs('dtCancelamento'), tcDatHor);
       end;
     except
       on E:Exception do
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod999;
-        AErro.Descricao := E.Message;
+        AErro.Descricao := Desc999 + E.Message;
       end;
     end;
   finally

@@ -37,9 +37,6 @@ unit SmarAPD.GravarXml;
 interface
 
 uses
-{$IFDEF FPC}
-  LResources, Controls, Graphics, Dialogs,
-{$ENDIF}
   SysUtils, Classes, StrUtils,
   ACBrUtil,
   ACBrXmlBase, ACBrXmlDocument,
@@ -62,17 +59,17 @@ type
 
   end;
 
-  { TNFSeW_SmarAPDv203 }
+  { TNFSeW_SmarAPD203 }
 
-  TNFSeW_SmarAPDv203 = class(TNFSeW_ABRASFv2)
+  TNFSeW_SmarAPD203 = class(TNFSeW_ABRASFv2)
   protected
     procedure Configuracao; override;
 
   end;
 
-  { TNFSeW_SmarAPDv204 }
+  { TNFSeW_SmarAPD204 }
 
-  TNFSeW_SmarAPDv204 = class(TNFSeW_ABRASFv2)
+  TNFSeW_SmarAPD204 = class(TNFSeW_ABRASFv2)
   protected
     procedure Configuracao; override;
 
@@ -263,8 +260,8 @@ begin
                                                       NFSe.DataEmissaoRps, ''));
 
   if NFSe.Competencia <> 0 then
-    NFSeNode.AppendChild(AddNode(tcDatVcto, '#2', 'fatorgerador', 1, 21, 1,
-                                                         NFSe.Competencia, ''));
+    NFSeNode.AppendChild(AddNode(tcStr, '#2', 'fatorgerador', 1, 21, 1,
+                                 FormatDateBr(NFSe.Competencia, 'MMYYYY'), ''));
 
   Result := True;
 end;
@@ -374,31 +371,38 @@ begin
   end;
 end;
 
-{ TNFSeW_SmarAPDv203 }
+{ TNFSeW_SmarAPD203 }
 
-procedure TNFSeW_SmarAPDv203.Configuracao;
+procedure TNFSeW_SmarAPD203.Configuracao;
 begin
   inherited Configuracao;
 
   FormatoAliq := tcDe2;
+
   NrOcorrInformacoesComplemetares := 0;
   NrOcorrNIFTomador := 0;
+  NrOcorrValTotTrib := 0;
   NrOcorrCodigoPaisServico := -1;
+
   GerarEnderecoExterior := True;
 end;
 
-{ TNFSeW_SmarAPDv204 }
+{ TNFSeW_SmarAPD204 }
 
-procedure TNFSeW_SmarAPDv204.Configuracao;
+procedure TNFSeW_SmarAPD204.Configuracao;
 begin
   inherited Configuracao;
 
   FormatoAliq := tcDe2;
+
   NrOcorrInformacoesComplemetares := 0;
   NrOcorrNIFTomador := 0;
+  NrOcorrValTotTrib := 0;
   NrOcorrCodigoPaisServico := -1;
   NrOcorrCodigoPaisTomador := -1;
+
   GerarEnderecoExterior := True;
+
   TagTomador := 'TomadorServico';
 end;
 

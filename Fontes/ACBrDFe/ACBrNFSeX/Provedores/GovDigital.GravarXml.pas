@@ -37,16 +37,13 @@ unit GovDigital.GravarXml;
 interface
 
 uses
-{$IFDEF FPC}
-  LResources, Controls, Graphics, Dialogs,
-{$ENDIF}
   SysUtils, Classes, StrUtils,
   ACBrNFSeXParametros, ACBrNFSeXGravarXml_ABRASFv2, ACBrNFSeXConversao;
 
 type
-  { TNFSeW_GovDigital }
+  { TNFSeW_GovDigital200 }
 
-  TNFSeW_GovDigital = class(TNFSeW_ABRASFv2)
+  TNFSeW_GovDigital200 = class(TNFSeW_ABRASFv2)
   protected
     procedure Configuracao; override;
 
@@ -59,13 +56,14 @@ implementation
 //     GovDigital
 //==============================================================================
 
-{ TNFSeW_GovDigital }
+{ TNFSeW_GovDigital200 }
 
-procedure TNFSeW_GovDigital.Configuracao;
+procedure TNFSeW_GovDigital200.Configuracao;
 begin
   inherited Configuracao;
 
-  DivAliq100  := True;
+  // Comentado a linha abaixo para atender a cidade Ouro Preto
+//  DivAliq100  := True;
 end;
 
 end.

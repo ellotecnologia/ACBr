@@ -68,7 +68,7 @@ type
 implementation
 
 uses
-  ACBrUtil, ACBrDFeException,
+  ACBrXmlBase, ACBrUtil, ACBrDFeException,
   ISSCuritiba.GravarXml, ISSCuritiba.LerXml;
 
 { TACBrNFSeProviderISSCuritiba }
@@ -82,8 +82,6 @@ begin
   SetXmlNameSpace('http://srv2-isscuritiba.curitiba.pr.gov.br/iss/nfse.xsd');
 
   ConfigAssinar.LoteRps := True;
-
-  SetNomeXSD('nfse.xsd');
 end;
 
 function TACBrNFSeProviderISSCuritiba.CriarGeradorXml(const ANFSe: TNFSe): TNFSeWClass;
@@ -107,7 +105,12 @@ begin
   if URL <> '' then
     Result := TACBrNFSeXWebserviceISSCuritiba.Create(FAOwner, AMetodo, URL)
   else
-    raise EACBrDFeException.Create(ERR_NAO_IMP);
+  begin
+    if ConfigGeral.Ambiente = taProducao then
+      raise EACBrDFeException.Create(ERR_SEM_URL_PRO)
+    else
+      raise EACBrDFeException.Create(ERR_SEM_URL_HOM);
+  end;
 end;
 
 { TACBrNFSeXWebserviceISSCuritiba }

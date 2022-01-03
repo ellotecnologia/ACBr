@@ -2,7 +2,7 @@
 
 namespace ACBrLib.Core.DFe
 {
-    public abstract class EventoBase
+    public abstract class EventoBase<TEnum> where TEnum : Enum 
     {
         #region Constructor
 
@@ -22,7 +22,7 @@ namespace ACBrLib.Core.DFe
 
         public DateTime dhEvento { get; set; }
 
-        public TipoEvento tpEvento { get; protected set; }
+        public TEnum tpEvento { get; set; }
 
         public int nSeqEvento { get; set; }
 

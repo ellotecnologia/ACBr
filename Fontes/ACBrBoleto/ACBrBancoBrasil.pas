@@ -138,7 +138,7 @@ begin
 
    if (Length(trim(NossoNumero)) > 10) and
       (((wTamConvenio = 6) and ((wCarteira = '16') or (wCarteira = '18'))) or
-      ((wTamConvenio = 7) and (wCarteira = '18'))) then
+      ((wTamConvenio = 7) and ((wCarteira = '17') or (wCarteira = '18')))) then
       Result:= 17
    else if (wTamConvenio <= 4) then
       Result := 7
@@ -1199,7 +1199,11 @@ begin
                 PadRight( trim(Sacado.Cidade), 15)                      + // Cidade do sacado
                 PadRight( Sacado.UF, 2 )                                + // UF da cidade do sacado
                 PadRight( AMensagem, 40)                                + // Observações
-                PadLeft(DiasProtesto,2,'0')+ ' '                        + // Número de dias para protesto + Branco
+
+                IfThen(DiasDeNegativacao > 0,
+                  PadLeft(IntToStr(DiasDeNegativacao),2,'0'),
+                  PadLeft(DiasProtesto,2,'0')  ) + ' '                  + // Número de dias para protesto ou negativacao + Branco
+
                 IntToStrZero( aRemessa.Count + 1, 6 );
 
        if ATipoOcorrencia = '01' then
@@ -1311,7 +1315,7 @@ begin
 
             TempData := copy(Linha, 74, 2) + '/'+copy(Linha, 76, 2)+'/'+copy(Linha, 78, 4);
             if TempData<>'00/00/0000' then
-              Vencimento := StringToDateTimeDef(TempData, 0, 'DDMMYY');
+              Vencimento := StringToDateTimeDef(TempData, 0, 'DD/MM/YYYY');
 
             ValorDocumento := StrToFloatDef(copy(Linha, 82, 15), 0) / 100;
 
@@ -1361,10 +1365,10 @@ begin
             ValorRecebido       := StrToFloatDef(copy(Linha, 93, 15), 0) / 100;
             TempData := copy(Linha, 138, 2)+'/'+copy(Linha, 140, 2)+'/'+copy(Linha, 142, 4);
             if TempData<>'00/00/0000' then
-              DataOcorrencia := StringToDateTimeDef(TempData, 0, 'DDMMYY');
+              DataOcorrencia := StringToDateTimeDef(TempData, 0, 'DD/MM/YYYY');
             TempData := copy(Linha, 146, 2)+'/'+copy(Linha, 148, 2)+'/'+copy(Linha, 150, 4);
             if TempData<>'00/00/0000' then
-              DataCredito := StringToDateTimeDef(TempData, 0, 'DDMMYYYY');
+              DataCredito := StringToDateTimeDef(TempData, 0, 'DD/MM/YYYY');
           end;
       end;
    end;

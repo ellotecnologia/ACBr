@@ -37,9 +37,6 @@ unit Simple.GravarXml;
 interface
 
 uses
-{$IFDEF FPC}
-  LResources, Controls, Graphics, Dialogs,
-{$ENDIF}
   SysUtils, Classes, StrUtils,
   ACBrUtil,
   ACBrXmlBase, ACBrXmlDocument, pcnConsts,
@@ -176,7 +173,7 @@ begin
                                                                        '', ''));
 
   NFSeNode.AppendChild(AddNode(tcStr, '#1', 'sContribuinte', 1, 14, 1,
-                               NFSe.Prestador.IdentificacaoPrestador.Cnpj, ''));
+                            NFSe.Prestador.IdentificacaoPrestador.CpfCnpj, ''));
 
   NFSeNode.AppendChild(AddNode(tcInt, '#1', 'iRecibo', 1, 8, 1,
                                              NFSe.IdentificacaoRps.Numero, ''));

@@ -9,7 +9,7 @@ namespace ACBrLib.MDFe
 
         public EventoEncerramento()
         {
-            tpEvento = TipoEvento.teEncerramento;
+            tpEvento = TipoEventoMDFe.teEncerramento;
             versaoEvento = "3.00";
         }
 

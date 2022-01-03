@@ -56,7 +56,7 @@ type
 
   end;
 
-  TACBrNFSeXWebserviceAbacov204 = class(TACBrNFSeXWebserviceSoap11)
+  TACBrNFSeXWebserviceAbaco204 = class(TACBrNFSeXWebserviceSoap11)
 
   public
     function Recepcionar(ACabecalho, AMSG: String): string; override;
@@ -80,13 +80,13 @@ type
 
   end;
 
-  TACBrNFSeProviderAbacoA = class(TACBrNFSeProviderAbaco)
+  TACBrNFSeProviderAbaco101 = class(TACBrNFSeProviderAbaco)
   protected
     procedure Configuracao; override;
 
   end;
 
-  TACBrNFSeProviderAbacov204 = class(TACBrNFSeProviderABRASFv2)
+  TACBrNFSeProviderAbaco204 = class(TACBrNFSeProviderABRASFv2)
   protected
     procedure Configuracao; override;
 
@@ -146,7 +146,7 @@ begin
   Request := Request + '</e:ConsultarSituacaoLoteRps.Execute>';
 
   Result := Executar('http://www.e-nfs.com.braction/ACONSULTARSITUACAOLOTERPS.Execute', Request,
-                     ['Outputxml', 'ConsultarLoteRpsResposta'],
+                     ['Outputxml', 'ConsultarSituacaoLoteRpsResposta'],
                      ['xmlns:e="http://www.e-nfs.com.br"']);
 end;
 
@@ -162,7 +162,7 @@ begin
   Request := Request + '</e:ConsultarNfsePorRps.Execute>';
 
   Result := Executar('http://www.e-nfs.com.braction/ACONSULTARNFSEPORRPS.Execute', Request,
-                     ['Outputxml', 'ConsultarLoteRpsResposta'],
+                     ['Outputxml', 'ConsultarNfseRpsResposta'],
                      ['xmlns:e="http://www.e-nfs.com.br"']);
 end;
 
@@ -178,7 +178,7 @@ begin
   Request := Request + '</e:ConsultarNfse.Execute>';
 
   Result := Executar('http://www.e-nfs.com.braction/ACONSULTARNFSE.Execute', Request,
-                     ['Outputxml', 'ConsultarLoteRpsResposta'],
+                     ['Outputxml', 'ConsultarNfseResposta'],
                      ['xmlns:e="http://www.e-nfs.com.br"']);
 end;
 
@@ -207,6 +207,11 @@ begin
   ConfigGeral.Identificador := 'id';
 
   SetXmlNameSpace('http://www.e-nfs.com.br');
+
+  with ConfigAssinar do
+  begin
+    LoteRps := True;
+  end;
 
   with ConfigWebServices do
   begin
@@ -240,25 +245,34 @@ begin
   if URL <> '' then
     Result := TACBrNFSeXWebserviceAbaco.Create(FAOwner, AMetodo, URL)
   else
-    raise EACBrDFeException.Create(ERR_NAO_IMP);
+  begin
+    if ConfigGeral.Ambiente = taProducao then
+      raise EACBrDFeException.Create(ERR_SEM_URL_PRO)
+    else
+      raise EACBrDFeException.Create(ERR_SEM_URL_HOM);
+  end;
 end;
 
-{ TACBrNFSeProviderAbacoA }
+{ TACBrNFSeProviderAbaco101 }
 
-procedure TACBrNFSeProviderAbacoA.Configuracao;
+procedure TACBrNFSeProviderAbaco101.Configuracao;
 begin
   inherited Configuracao;
 
   SetXmlNameSpace('');
 end;
 
-{ TACBrNFSeProviderAbacov204 }
+{ TACBrNFSeProviderAbaco204 }
 
-procedure TACBrNFSeProviderAbacov204.Configuracao;
+procedure TACBrNFSeProviderAbaco204.Configuracao;
 begin
   inherited Configuracao;
 
-  ConfigGeral.ModoEnvio := meLoteAssincrono;
+  with ConfigGeral do
+  begin
+    ModoEnvio := meLoteAssincrono;
+    ConsultaPorFaixaPreencherNumNfseFinal := True;
+  end;
 
   with ConfigAssinar do
   begin
@@ -278,33 +292,38 @@ begin
   end;
 end;
 
-function TACBrNFSeProviderAbacov204.CriarGeradorXml(const ANFSe: TNFSe): TNFSeWClass;
+function TACBrNFSeProviderAbaco204.CriarGeradorXml(const ANFSe: TNFSe): TNFSeWClass;
 begin
-  Result := TNFSeW_Abacov204.Create(Self);
+  Result := TNFSeW_Abaco204.Create(Self);
   Result.NFSe := ANFSe;
 end;
 
-function TACBrNFSeProviderAbacov204.CriarLeitorXml(const ANFSe: TNFSe): TNFSeRClass;
+function TACBrNFSeProviderAbaco204.CriarLeitorXml(const ANFSe: TNFSe): TNFSeRClass;
 begin
-  Result := TNFSeR_Abacov204.Create(Self);
+  Result := TNFSeR_Abaco204.Create(Self);
   Result.NFSe := ANFSe;
 end;
 
-function TACBrNFSeProviderAbacov204.CriarServiceClient(const AMetodo: TMetodo): TACBrNFSeXWebservice;
+function TACBrNFSeProviderAbaco204.CriarServiceClient(const AMetodo: TMetodo): TACBrNFSeXWebservice;
 var
   URL: string;
 begin
   URL := GetWebServiceURL(AMetodo);
 
   if URL <> '' then
-    Result := TACBrNFSeXWebserviceAbacov204.Create(FAOwner, AMetodo, URL)
+    Result := TACBrNFSeXWebserviceAbaco204.Create(FAOwner, AMetodo, URL)
   else
-    raise EACBrDFeException.Create(ERR_NAO_IMP);
+  begin
+    if ConfigGeral.Ambiente = taProducao then
+      raise EACBrDFeException.Create(ERR_SEM_URL_PRO)
+    else
+      raise EACBrDFeException.Create(ERR_SEM_URL_HOM);
+  end;
 end;
 
-{ TACBrNFSeXWebserviceAbacov204 }
+{ TACBrNFSeXWebserviceAbaco204 }
 
-function TACBrNFSeXWebserviceAbacov204.Cancelar(ACabecalho,
+function TACBrNFSeXWebserviceAbaco204.Cancelar(ACabecalho,
   AMSG: String): string;
 var
   Request: string;
@@ -321,7 +340,7 @@ begin
                      ['xmlns:e="http://www.e-nfs.com.br"']);
 end;
 
-function TACBrNFSeXWebserviceAbacov204.ConsultarLote(ACabecalho,
+function TACBrNFSeXWebserviceAbaco204.ConsultarLote(ACabecalho,
   AMSG: String): string;
 var
   Request: string;
@@ -338,7 +357,7 @@ begin
                      ['xmlns:e="http://www.e-nfs.com.br"']);
 end;
 
-function TACBrNFSeXWebserviceAbacov204.ConsultarNFSePorFaixa(ACabecalho,
+function TACBrNFSeXWebserviceAbaco204.ConsultarNFSePorFaixa(ACabecalho,
   AMSG: String): string;
 var
   Request: string;
@@ -355,7 +374,7 @@ begin
                      ['xmlns:e="http://www.e-nfs.com.br"']);
 end;
 
-function TACBrNFSeXWebserviceAbacov204.ConsultarNFSePorRps(ACabecalho,
+function TACBrNFSeXWebserviceAbaco204.ConsultarNFSePorRps(ACabecalho,
   AMSG: String): string;
 var
   Request: string;
@@ -372,7 +391,7 @@ begin
                      ['xmlns:e="http://www.e-nfs.com.br"']);
 end;
 
-function TACBrNFSeXWebserviceAbacov204.ConsultarNFSeServicoPrestado(ACabecalho,
+function TACBrNFSeXWebserviceAbaco204.ConsultarNFSeServicoPrestado(ACabecalho,
   AMSG: String): string;
 var
   Request: string;
@@ -389,7 +408,7 @@ begin
                      ['xmlns:e="http://www.e-nfs.com.br"']);
 end;
 
-function TACBrNFSeXWebserviceAbacov204.ConsultarNFSeServicoTomado(ACabecalho,
+function TACBrNFSeXWebserviceAbaco204.ConsultarNFSeServicoTomado(ACabecalho,
   AMSG: String): string;
 var
   Request: string;
@@ -406,7 +425,7 @@ begin
                      ['xmlns:e="http://www.e-nfs.com.br"']);
 end;
 
-function TACBrNFSeXWebserviceAbacov204.Recepcionar(ACabecalho,
+function TACBrNFSeXWebserviceAbaco204.Recepcionar(ACabecalho,
   AMSG: String): string;
 var
   Request: string;
@@ -423,7 +442,7 @@ begin
                      ['xmlns:e="http://www.e-nfs.com.br"']);
 end;
 
-function TACBrNFSeXWebserviceAbacov204.SubstituirNFSe(ACabecalho,
+function TACBrNFSeXWebserviceAbaco204.SubstituirNFSe(ACabecalho,
   AMSG: String): string;
 var
   Request: string;

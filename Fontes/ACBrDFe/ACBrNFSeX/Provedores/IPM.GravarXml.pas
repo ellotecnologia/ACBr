@@ -37,9 +37,6 @@ unit IPM.GravarXml;
 interface
 
 uses
-{$IFDEF FPC}
-  LResources, Controls, Graphics, Dialogs,
-{$ENDIF}
   SysUtils, Classes, StrUtils,
   ACBrUtil,
   ACBrXmlBase, ACBrXmlDocument,
@@ -52,6 +49,7 @@ type
   TNFSeW_IPM = class(TNFSeWClass)
   private
     FpGerarID: Boolean;
+    FpNrOcorrTagsTomador: Integer;
   protected
     procedure Configuracao; override;
 
@@ -61,24 +59,19 @@ type
     function GerarTomador: TACBrXmlNode;
     function GerarItens: TACBrXmlNode;
     function GerarLista: TACBrXmlNodeArray;
-    function GerarCondicaoPagamento: TACBrXmlNode;
+    function GerarFormaPagamento: TACBrXmlNode;
     function GerarParcelas: TACBrXmlNode;
     function GerarParcela: TACBrXmlNodeArray;
+    function GerarGenericos: TACBrXmlNode;
+    function GerarLinha: TACBrXmlNodeArray;
   public
     function GerarXml: Boolean; override;
 
   end;
 
-  { TNFSeW_IPMV110 }
+  { TNFSeW_IPM101 }
 
-  TNFSeW_IPMV110 = class(TNFSeW_IPM)
-  protected
-
-  end;
-
-  { TNFSeW_IPMV120 }
-
-  TNFSeW_IPMV120 = class(TNFSeW_IPM)
+  TNFSeW_IPM101 = class(TNFSeW_IPM)
   protected
     procedure Configuracao; override;
 
@@ -121,6 +114,9 @@ begin
   NFSeNode.AppendChild(AddNode(tcStr, '#2', 'identificador', 1, 80, 0,
     'nfse_' + NFSe.IdentificacaoRps.Numero + '.' + NFSe.IdentificacaoRps.Serie, ''));
 
+  if (VersaoNFSe = ve100) and (Ambiente = taHomologacao) then
+    NFSeNode.AppendChild(AddNode(tcStr, '#3', 'nfse_teste', 1, 1, 1, '1', ''));
+
   xmlNode := GerarIdentificacaoRPS;
   NFSeNode.AppendChild(xmlNode);
 
@@ -136,9 +132,15 @@ begin
   xmlNode := GerarItens;
   NFSeNode.AppendChild(xmlNode);
 
-  if (NFSe.Status = srNormal) and (Provedor in [proIPM_110, proIPM_120]) then
+  xmlNode := GerarGenericos;
+  NFSeNode.AppendChild(xmlNode);
+
+  // Removido a condição da versão para gerar o grupo Forma de Pagamento para
+  // a cidade de Panambi/RS
+//  if (NFSe.Status = srNormal) and (VersaoNFSe = ve101 ) then
+  if (NFSe.Status = srNormal) then
   begin
-    xmlNode := GerarCondicaoPagamento;
+    xmlNode := GerarFormaPagamento;
     NFSeNode.AppendChild(xmlNode);
   end;
 
@@ -150,9 +152,10 @@ begin
   inherited Configuracao;
 
   FpGerarID := False;
+  FpNrOcorrTagsTomador := 0;
 end;
 
-function TNFSeW_IPM.GerarCondicaoPagamento: TACBrXmlNode;
+function TNFSeW_IPM.GerarFormaPagamento: TACBrXmlNode;
 var
   codFp: String;
   xmlNode: TACBrXmlNode;
@@ -172,6 +175,29 @@ begin
   end;
 end;
 
+function TNFSeW_IPM.GerarGenericos: TACBrXmlNode;
+var
+  nodeArray: TACBrXmlNodeArray;
+  i: Integer;
+begin
+  Result := nil;
+
+  if NFSe.Genericos.Count > 0 then
+  begin
+    Result := CreateElement('genericos');
+
+    nodeArray := GerarLinha;
+
+    if nodeArray <> nil then
+    begin
+      for i := 0 to Length(nodeArray) - 1 do
+      begin
+        Result.AppendChild(nodeArray[i]);
+      end;
+    end;
+  end;
+end;
+
 function TNFSeW_IPM.GerarIdentificacaoRPS: TACBrXmlNode;
 begin
   Result :=  nil;
@@ -186,10 +212,10 @@ begin
     Result.AppendChild(AddNode(tcStr, '#1', 'serie_recibo_provisorio', 1, 2, 1,
                                     NFSe.IdentificacaoRps.Serie, DSC_SERIERPS));
 
-    Result.AppendChild(AddNode(tcStr, '#1', 'data_emissao_recibo_provisorio', 1, 10, 1,
-                FormatDateTimeBr(NFSe.DataEmissaoRps, 'dd/mm/yyyy'), DSC_DEMI));
+    Result.AppendChild(AddNode(tcDatVcto, '#1', 'data_emissao_recibo_provisorio', 1, 10, 1,
+                                                NFSe.DataEmissaoRps, DSC_DEMI));
 
-    Result.AppendChild(AddNode(tcStr, '#1', 'hora_emissao_recibo_provisorio', 1, 10, 1,
+    Result.AppendChild(AddNode(tcStr, '#1', 'hora_emissao_recibo_provisorio', 1, 8, 1,
                   FormatDateTimeBr(NFSe.DataEmissaoRps, 'hh:mm:ss'), DSC_HEMI));
   end;
 end;
@@ -212,6 +238,29 @@ begin
   end;
 end;
 
+function TNFSeW_IPM.GerarLinha: TACBrXmlNodeArray;
+var
+  i: integer;
+begin
+  Result := nil;
+  SetLength(Result, NFSe.Genericos.Count);
+
+  for i := 0 to NFSe.Genericos.Count - 1 do
+  begin
+    Result[i] := CreateElement('linha');
+
+    Result[i].AppendChild(AddNode(tcStr, '#', 'titulo', 1, 50, 0,
+                                NFSe.Genericos[I].Titulo, DSC_GENERICOSTITULO));
+
+    Result[i].AppendChild(AddNode(tcStr, '#', 'descricao', 1, 200, 0,
+                         NFSe.Genericos[I].Descricao, DESC_GENERICOSDESCRICAO));
+
+  end;
+
+  if NFSe.Genericos.Count > 10 then
+    wAlerta('#', 'linha', '', ERR_MSG_MAIOR_MAXIMO + '10');
+end;
+
 function TNFSeW_IPM.GerarLista: TACBrXmlNodeArray;
 var
   i: integer;
@@ -223,23 +272,11 @@ begin
   begin
     Result[i] := CreateElement('lista');
 
-    if EstaVazio(NFSe.Servico.CodigoTributacaoMunicipio) then
-    begin
-      if (NFSe.Prestador.Endereco.CodigoMunicipio <> IntToStr(NFSe.Servico.MunicipioIncidencia)) then
-        // Não Tributa no Municipio do prestador
-        Result[i].AppendChild(AddNode(tcStr, '#', 'tributa_municipio_prestador', 1, 1, 1,
-                                                                       '0', ''))
-      else
-        // Tributa no Municipio do Prestador
-        Result[i].AppendChild(AddNode(tcStr, '#', 'tributa_municipio_prestador', 1, 1, 1,
-                                                                      '1', ''));
-    end
-    else
-      Result[i].AppendChild(AddNode(tcStr, '#', 'tributa_municipio_prestador', 1, 1, 1,
-                                   NFSe.Servico.CodigoTributacaoMunicipio, ''));
+    Result[i].AppendChild(AddNode(tcStr, '#', 'tributa_municipio_prestador', 1, 1, 1,
+        SimNaoToStr(NFSe.Servico.ItemServico[I].TribMunPrestador, proIPM), ''));
 
     Result[i].AppendChild(AddNode(tcStr, '#', 'codigo_local_prestacao_servico', 1, 9, 1,
-            CodIBGEToCodTOM(StrToIntDef(NFSe.Servico.CodigoMunicipio, 0)), ''));
+      CodIBGEToCodTOM(StrToIntDef(NFSe.Servico.ItemServico[I].CodMunPrestacao, 0)), ''));
 
     Result[i].AppendChild(AddNode(tcStr, '#', 'unidade_codigo', 1, 9, 0,
                    UnidadeToStr(NFSe.Servico.ItemServico[I].TipoUnidade), ''));
@@ -258,14 +295,14 @@ begin
        NFSe.Servico.Discriminacao, NFSe.Servico.ItemServico[I].Descricao), ''));
 
     if NFSe.Servico.ItemServico[I].Aliquota = 0 then
-      Result[i].AppendChild(AddNode(tcDe2, '#', 'aliquota_item_lista_servico', 1, 15, 1,
+      Result[i].AppendChild(AddNode(tcDe4, '#', 'aliquota_item_lista_servico', 1, 15, 1,
                                              NFSe.Servico.Valores.Aliquota, ''))
     else
-      Result[i].AppendChild(AddNode(tcDe2, '#', 'aliquota_item_lista_servico', 1, 15, 1,
+      Result[i].AppendChild(AddNode(tcDe4, '#', 'aliquota_item_lista_servico', 1, 15, 1,
                                      NFSe.Servico.ItemServico[I].Aliquota, ''));
 
-    Result[i].AppendChild(AddNode(tcStr, '#', 'situacao_tributaria', 1, 4, 1,
-                            NaturezaOperacaoToStr( NFSe.NaturezaOperacao), ''));
+    Result[i].AppendChild(AddNode(tcInt, '#', 'situacao_tributaria', 1, 4, 1,
+                           NFSe.Servico.ItemServico[I].SituacaoTributaria, ''));
 
     Result[i].AppendChild(AddNode(tcDe2, '#', 'valor_tributavel', 1, 15, 1,
                                    NFSe.Servico.ItemServico[I].ValorTotal, ''));
@@ -274,7 +311,7 @@ begin
                                 NFSe.Servico.ItemServico[I].ValorDeducoes, ''));
 
     Result[i].AppendChild(AddNode(tcDe2, '#', 'valor_issrf', 1, 15, 0,
-                                NFSe.Servico.ItemServico[I].ValorISS, DSC_VISS))
+                         NFSe.Servico.ItemServico[I].ValorISSRetido, DSC_VISS));
   end;
 
   if NFSe.Servico.ItemServico.Count > 10 then
@@ -329,7 +366,7 @@ begin
   Result := CreateElement('prestador');
 
   Result.AppendChild(AddNode(tcStr, '#1', 'cpfcnpj', 11, 14, 1,
-             OnlyNumber(NFSe.Prestador.IdentificacaoPrestador.Cnpj), DSC_CNPJ));
+          OnlyNumber(NFSe.Prestador.IdentificacaoPrestador.CpfCnpj), DSC_CNPJ));
 
   Result.AppendChild(AddNode(tcStr, '#1', 'cidade', 1, 9, 0,
   CodIBGEToCodTOM(StrToIntDef(NFSe.Prestador.Endereco.CodigoMunicipio, 0)), ''));
@@ -338,6 +375,9 @@ end;
 function TNFSeW_IPM.GerarTomador: TACBrXmlNode;
 begin
   Result := CreateElement('tomador');
+
+  Result.AppendChild(AddNode(tcStr, '#1', 'endereco_informado', 1, 1, 0,
+                            Trim(NFSe.Tomador.Endereco.EnderecoInformado), ''));
 
   if Trim(NFSe.Tomador.IdentificacaoTomador.DocTomadorEstrangeiro) <> '' then
   begin
@@ -354,76 +394,65 @@ begin
   end
   else
   begin
-    if NFSe.Tomador.IdentificacaoTomador.Tipo in [tpPFNaoIdentificaca, tpPF] then
+    if NFSe.Tomador.IdentificacaoTomador.Tipo in [tpPFNaoIdentificada, tpPF] then
       Result.AppendChild(AddNode(tcStr, '#1', 'tipo', 1, 1, 1, 'F', ''))
     else
       Result.AppendChild(AddNode(tcStr, '#1', 'tipo', 1, 1, 1, 'J', ''));
 
-    Result.AppendChild(AddNode(tcStr, '#1', 'cpfcnpj', 1, 14, 0,
+    Result.AppendChild(AddNode(tcStr, '#1', 'cpfcnpj', 1, 14, FpNrOcorrTagsTomador,
                 OnlyNumber(NFSe.Tomador.IdentificacaoTomador.CpfCnpj), DSC_CNPJ));
 
-    Result.AppendChild(AddNode(tcStr, '#1', 'ie', 0, 16, 0,
+    Result.AppendChild(AddNode(tcStr, '#1', 'ie', 0, 16, FpNrOcorrTagsTomador,
         OnlyNumber(NFSe.Tomador.IdentificacaoTomador.InscricaoEstadual), DSC_IE));
   end;
 
-  Result.AppendChild(AddNode(tcStr, '#1', 'nome_razao_social', 1, 100, 0,
+  Result.AppendChild(AddNode(tcStr, '#1', 'nome_razao_social', 1, 100, FpNrOcorrTagsTomador,
                                           NFSe.Tomador.RazaoSocial, DSC_XNOME));
 
-  Result.AppendChild(AddNode(tcStr, '#1', 'sobrenome_nome_fantasia', 1, 100, 0,
+  Result.AppendChild(AddNode(tcStr, '#1', 'sobrenome_nome_fantasia', 1, 100, FpNrOcorrTagsTomador,
                                                 NFSe.Tomador.NomeFantasia, ''));
 
-  Result.AppendChild(AddNode(tcStr, '#1', 'logradouro', 1, 70, 0,
+  Result.AppendChild(AddNode(tcStr, '#1', 'logradouro', 1, 70, FpNrOcorrTagsTomador,
                                      NFSe.Tomador.Endereco.Endereco, DSC_XLGR));
 
-  Result.AppendChild(AddNode(tcStr, '#1', 'email', 1, 100, 0,
+  Result.AppendChild(AddNode(tcStr, '#1', 'email', 1, 100, FpNrOcorrTagsTomador,
                                                NFSe.Tomador.Contato.Email, ''));
 
   Result.AppendChild(AddNode(tcStr, '#1', 'numero_residencia', 1, 8, 0,
                                         NFSe.Tomador.Endereco.Numero, DSC_NRO));
 
-  Result.AppendChild(AddNode(tcStr, '#1', 'complemento', 1, 50, 0,
+  Result.AppendChild(AddNode(tcStr, '#1', 'complemento', 1, 50, FpNrOcorrTagsTomador,
                                   NFSe.Tomador.Endereco.Complemento, DSC_XCPL));
 
-  Result.AppendChild(AddNode(tcStr, '#1', 'ponto_referencia', 1, 100, 0,
+  Result.AppendChild(AddNode(tcStr, '#1', 'ponto_referencia', 1, 100, FpNrOcorrTagsTomador,
                                                                        '', ''));
 
-  Result.AppendChild(AddNode(tcStr, '#1', 'bairro', 1, 30, 0,
+  Result.AppendChild(AddNode(tcStr, '#1', 'bairro', 1, 30, FpNrOcorrTagsTomador,
                                     NFSe.Tomador.Endereco.Bairro, DSC_XBAIRRO));
 
-  Result.AppendChild(AddNode(tcStr, '#1', 'cidade', 1, 9, 0,
+  Result.AppendChild(AddNode(tcStr, '#1', 'cidade', 1, 9, FpNrOcorrTagsTomador,
     CodIBGEToCodTOM(StrToIntDef(NFSe.Tomador.Endereco.CodigoMunicipio, 0)), ''));
 
-  Result.AppendChild(AddNode(tcStr, '#1', 'cep', 1, 8, 0,
+  Result.AppendChild(AddNode(tcStr, '#1', 'cep', 1, 8, FpNrOcorrTagsTomador,
                                     OnlyNumber(NFSe.Tomador.Endereco.CEP), ''));
 
-  Result.AppendChild(AddNode(tcStr, '#1', 'ddd_fone_comercial', 1, 3, 0,
+  Result.AppendChild(AddNode(tcStr, '#1', 'ddd_fone_comercial', 1, 3, FpNrOcorrTagsTomador,
                                             NFSe.Tomador.Contato.DDD, DSC_DDD));
 
-  Result.AppendChild(AddNode(tcStr, '#1', 'fone_comercial', 1, 9, 0,
+  Result.AppendChild(AddNode(tcStr, '#1', 'fone_comercial', 1, 9, FpNrOcorrTagsTomador,
                                             NFSe.Tomador.Contato.Telefone, ''));
 
-  Result.AppendChild(AddNode(tcStr, '#1', 'ddd_fone_residencial', 1, 3, 0,
+  Result.AppendChild(AddNode(tcStr, '#1', 'ddd_fone_residencial', 1, 3, FpNrOcorrTagsTomador,
                                                                        '', ''));
 
-  Result.AppendChild(AddNode(tcStr, '#1', 'fone_residencial', 1, 9, 0,
+  Result.AppendChild(AddNode(tcStr, '#1', 'fone_residencial', 1, 9, FpNrOcorrTagsTomador,
                                                                        '', ''));
 
-  Result.AppendChild(AddNode(tcStr, '#1', 'ddd_fax', 1, 3, 0,
+  Result.AppendChild(AddNode(tcStr, '#1', 'ddd_fax', 1, 3, FpNrOcorrTagsTomador,
                                                                        '', ''));
 
-  Result.AppendChild(AddNode(tcStr, '#1', 'fone_fax', 1, 9, 0,
+  Result.AppendChild(AddNode(tcStr, '#1', 'fone_fax', 1, 9, FpNrOcorrTagsTomador,
                                                                        '', ''));
-{
-  if( NFSe.Status <> srCancelado )then
-  begin
-    if (NFSe.Tomador.Endereco.EnderecoInformado) then
-      Result.AppendChild(AddNode(tcStr, '#1', 'endereco_informado', 1, 1, 1,
-                                                                       'S', ''))
-    else
-      Result.AppendChild(AddNode(tcStr, '#1', 'endereco_informado', 1, 1, 1,
-                                                                      'N', ''));
-  end;
-}
 end;
 
 function TNFSeW_IPM.GerarValoresServico: TACBrXmlNode;
@@ -437,6 +466,9 @@ begin
 
     Result.AppendChild(AddNode(tcStr, '#1', 'situacao', 1, 1, 1, 'C', ''));
   end;
+
+  Result.AppendChild(AddNode(tcDatVcto, '#1', 'data_fato_gerador', 1, 10, 0,
+                                                   NFSe.Competencia, DSC_DEMI));
 
   Result.AppendChild(AddNode(tcDe2, '#1', 'valor_total', 1, 15, 1,
                              NFSe.Servico.Valores.ValorServicos, DSC_VSERVICO));
@@ -466,13 +498,14 @@ begin
                                         NFSe.OutrasInformacoes, DSC_OUTRASINF));
 end;
 
-{ TNFSeW_IPMV120 }
+{ TNFSeW_IPM101 }
 
-procedure TNFSeW_IPMV120.Configuracao;
+procedure TNFSeW_IPM101.Configuracao;
 begin
   inherited Configuracao;
 
   FpGerarID := True;
+  FpNrOcorrTagsTomador := 1;
 end;
 
 end.

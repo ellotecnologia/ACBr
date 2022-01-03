@@ -37,9 +37,6 @@ unit EL.GravarXml;
 interface
 
 uses
-{$IFDEF FPC}
-  LResources, Controls, Graphics, Dialogs,
-{$ENDIF}
   SysUtils, Classes, StrUtils,
   ACBrUtil,
   ACBrXmlBase, ACBrXmlDocument,
@@ -73,9 +70,9 @@ type
 
   end;
 
-  { TNFSeW_ELv2 }
+  { TNFSeW_EL204 }
 
-  TNFSeW_ELv2 = class(TNFSeW_ABRASFv2)
+  TNFSeW_EL204 = class(TNFSeW_ABRASFv2)
   protected
     procedure Configuracao; override;
 
@@ -219,7 +216,7 @@ begin
   Result.AppendChild(AddNode(tcStr, '#1', 'NaturezaOperacao', 1, 1, 1,
                              NaturezaOperacaoToStr(NFSe.NaturezaOperacao), ''));
 
-  Result.AppendChild(AddNode(tcStr, '#1', 'RegimeEspecialTributacao', 1, 1, 0,
+  Result.AppendChild(AddNode(tcInt, '#1', 'RegimeEspecialTributacao', 1, 1, 1,
              RegimeEspecialTributacaoToStr(NFSe.RegimeEspecialTributacao), ''));
 
   xmlNode := GerarEnderecoPrestador;
@@ -356,7 +353,7 @@ begin
   Result := CreateElement('IdentificacaoPrestador');
 
   Result.AppendChild(AddNode(tcStr, '#1', 'CpfCnpj', 11, 14, 1,
-                   OnlyNumber(NFSe.Prestador.IdentificacaoPrestador.Cnpj), ''));
+                OnlyNumber(NFSe.Prestador.IdentificacaoPrestador.CpfCnpj), ''));
 
   Result.AppendChild(AddNode(tcStr, '#1', 'IndicacaoCpfCnpj', 1, 1, 1,
                                                                       '2', ''));
@@ -528,9 +525,9 @@ begin
                                      NFSe.Servico.Valores.OutrosDescontos, ''));
 end;
 
-{ TNFSeW_ELv2 }
+{ TNFSeW_EL204 }
 
-procedure TNFSeW_ELv2.Configuracao;
+procedure TNFSeW_EL204.Configuracao;
 begin
   inherited Configuracao;
 

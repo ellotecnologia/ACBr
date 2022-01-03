@@ -37,17 +37,14 @@ unit ISSe.GravarXml;
 interface
 
 uses
-{$IFDEF FPC}
-  LResources, Controls, Graphics, Dialogs,
-{$ENDIF}
   SysUtils, Classes, StrUtils,
   ACBrXmlBase,
   ACBrNFSeXParametros, ACBrNFSeXGravarXml_ABRASFv2, ACBrNFSeXConversao;
 
 type
-  { TNFSeW_ISSe }
+  { TNFSeW_ISSe200 }
 
-  TNFSeW_ISSe = class(TNFSeW_ABRASFv2)
+  TNFSeW_ISSe200 = class(TNFSeW_ABRASFv2)
   protected
     procedure Configuracao; override;
 
@@ -60,9 +57,9 @@ implementation
 //     ISSe
 //==============================================================================
 
-{ TNFSeW_ISSe }
+{ TNFSeW_ISSe200 }
 
-procedure TNFSeW_ISSe.Configuracao;
+procedure TNFSeW_ISSe200.Configuracao;
 begin
   inherited Configuracao;
 

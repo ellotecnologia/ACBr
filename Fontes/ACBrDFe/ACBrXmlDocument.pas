@@ -77,6 +77,7 @@ type
     FNamespaceEnumerator: TACBrXMLNamespaceListEnumerator;
     FChildEnumerator: TACBrXMLNodeListEnumerator;
     FAttributeEnumerator: TACBrXMLAttributeListEnumerator;
+    FFloatIsIntString: Boolean;
 
     constructor Create(xmlDoc: TACBrXmlDocument; xmlNode: xmlNodePtr);
 
@@ -98,6 +99,7 @@ type
     property Attributes: TACBrXMLAttributeList read FAttributeList;
     property Content: string read GetContent write SetContent;
     property OuterXml: string read GetOuterXml;
+    property FloatIsIntString: Boolean read FFloatIsIntString write FFloatIsIntString;
 
     procedure AppendChild(ANode: TACBrXmlNode);
     procedure ImportXml(AXmlString: string);
@@ -342,14 +344,20 @@ begin
   FNamespaceEnumerator := TACBrXMLNamespaceListEnumerator.Create(FNamespaceList);
   FChildEnumerator := TACBrXMLNodeListEnumerator.Create(FNodeList);
   FAttributeEnumerator := TACBrXMLAttributeListEnumerator.Create(FAttributeList);
+  FFloatIsIntString := False;
 end;
 
 destructor TACBrXmlNode.Destroy;
 begin
+  FNamespaceEnumerator.Free;
+  FChildEnumerator.Free;
+  FAttributeEnumerator.Free;
+
   if FXmlNode <> nil then
   begin
     FNodeList.Destroy;
     FAttributeList.Destroy;
+    FNamespaceList.Destroy;
 
     xmlUnlinkNode(FXmlNode);
     xmlFreeNode(FXmlNode);
@@ -554,6 +562,7 @@ begin
 end;
 
 { TACBrXmlNamespace }
+
 constructor TACBrXmlNamespace.Create(ParentNode: TACBrXmlNode; xmlNs: xmlNsPtr);
 begin
   FParentNode := ParentNode;

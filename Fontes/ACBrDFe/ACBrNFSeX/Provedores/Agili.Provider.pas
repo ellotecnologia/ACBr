@@ -118,6 +118,8 @@ begin
 
   SetXmlNameSpace('http://www.agili.com.br/nfse_v_1.00.xsd');
 
+  TACBrNFSeX(FAOwner).SSL.NameSpaceURI := 'http://www.agili.com.br/nfse_v_1.00.xsd';
+
   SetNomeXSD('nfse_v_1.00.xsd');
 end;
 
@@ -145,7 +147,12 @@ begin
   if URL <> '' then
     Result := TACBrNFSeXWebserviceAgili.Create(FAOwner, AMetodo, URL)
   else
-    raise EACBrDFeException.Create(ERR_NAO_IMP);
+  begin
+    if ConfigGeral.Ambiente = taProducao then
+      raise EACBrDFeException.Create(ERR_SEM_URL_PRO)
+    else
+      raise EACBrDFeException.Create(ERR_SEM_URL_HOM);
+  end;
 end;
 
 procedure TACBrNFSeProviderAgili.ProcessarMensagemErros(
@@ -169,9 +176,9 @@ begin
   for I := Low(ANodeArray) to High(ANodeArray) do
   begin
     AErro := Response.Erros.New;
-    AErro.Codigo := ProcessarConteudoXml(ANodeArray[I].Childrens.FindAnyNs('Codigo'), tcStr);
-    AErro.Descricao := ProcessarConteudoXml(ANodeArray[I].Childrens.FindAnyNs('Mensagem'), tcStr);
-    AErro.Correcao := ProcessarConteudoXml(ANodeArray[I].Childrens.FindAnyNs('Correcao'), tcStr);
+    AErro.Codigo := ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('Codigo'), tcStr);
+    AErro.Descricao := ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('Mensagem'), tcStr);
+    AErro.Correcao := ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('Correcao'), tcStr);
   end;
 end;
 
@@ -250,6 +257,8 @@ var
   Document: TACBrXmlDocument;
   AErro: TNFSeEventoCollectionItem;
   ANode: TACBrXmlNode;
+  ANota: NotaFiscal;
+  NumRps: String;
 begin
   Document := TACBrXmlDocument.Create;
 
@@ -275,16 +284,43 @@ begin
       begin
         with Response do
         begin
-          Data := ProcessarConteudoXml(ANode.Childrens.FindAnyNs('DataRecebimento'), tcDatHor);
-          Protocolo := ProcessarConteudoXml(ANode.Childrens.FindAnyNs('Protocolo'), tcStr);
+          Data := ObterConteudoTag(ANode.Childrens.FindAnyNs('DataRecebimento'), tcDatHor);
+          Protocolo := ObterConteudoTag(ANode.Childrens.FindAnyNs('Protocolo'), tcStr);
         end;
+      end;
+
+      if Response.ModoEnvio = meUnitario then
+      begin
+        ANode := ANode.Childrens.FindAnyNs('Nfse');
+
+        if not Assigned(ANode) then
+        begin
+          AErro := Response.Erros.New;
+          AErro.Codigo := Cod203;
+          AErro.Descricao := Desc203;
+          Exit;
+        end;
+
+        NumRps := ObterConteudoTag(ANode.Childrens.FindAnyNs('Numero'), tcStr);
+
+        ANota := TACBrNFSeX(FAOwner).NotasFiscais.FindByNFSe(NumRps);
+
+        if Assigned(ANota) then
+          ANota.XML := ANode.OuterXml
+        else
+        begin
+          TACBrNFSeX(FAOwner).NotasFiscais.LoadFromString(ANode.OuterXml, False);
+          ANota := TACBrNFSeX(FAOwner).NotasFiscais.Items[TACBrNFSeX(FAOwner).NotasFiscais.Count-1];
+        end;
+
+        SalvarXmlNfse(ANota);
       end;
     except
       on E:Exception do
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod999;
-        AErro.Descricao := E.Message;
+        AErro.Descricao := Desc999 + E.Message;
       end;
     end;
   finally
@@ -371,7 +407,7 @@ begin
       begin
         with Response do
         begin
-          Situacao := ProcessarConteudoXml(ANode.Childrens.FindAnyNs('Situacao'), tcStr);
+          Situacao := ObterConteudoTag(ANode.Childrens.FindAnyNs('Situacao'), tcStr);
 
           AuxNode := ANode.Childrens.FindAnyNs('ListaNfse');
 
@@ -419,7 +455,7 @@ begin
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod999;
-        AErro.Descricao := E.Message;
+        AErro.Descricao := Desc999 + E.Message;
       end;
     end;
   finally
@@ -570,7 +606,7 @@ begin
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod999;
-        AErro.Descricao := E.Message;
+        AErro.Descricao := Desc999 + E.Message;
       end;
     end;
   finally
@@ -716,7 +752,7 @@ begin
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod999;
-        AErro.Descricao := E.Message;
+        AErro.Descricao := Desc999 + E.Message;
       end;
     end;
   finally
@@ -825,8 +861,8 @@ begin
       begin
         with Response do
         begin
-          Data := ProcessarConteudoXml(ANode.Childrens.FindAnyNs('DataHora'), tcDatHor);
-          Protocolo := ProcessarConteudoXml(ANode.Childrens.FindAnyNs('ProtocoloRequerimentoCancelamento'), tcStr);
+          Data := ObterConteudoTag(ANode.Childrens.FindAnyNs('DataHora'), tcDatHor);
+          Protocolo := ObterConteudoTag(ANode.Childrens.FindAnyNs('ProtocoloRequerimentoCancelamento'), tcStr);
         end;
       end;
     except
@@ -834,7 +870,7 @@ begin
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod999;
-        AErro.Descricao := E.Message;
+        AErro.Descricao := Desc999 + E.Message;
       end;
     end;
   finally
@@ -896,7 +932,7 @@ begin
           if AuxNode <> nil then
           begin
             with Response.RetCancelamento do
-             DataHora := ProcessarConteudoXml(ANode.Childrens.FindAnyNs('DataHora'), tcDatHor);
+             DataHora := ObterConteudoTag(ANode.Childrens.FindAnyNs('DataHora'), tcDatHor);
           end;
 
           AuxNode := AuxNode.Childrens.FindAnyNs('NfseSubstituidora');
@@ -945,7 +981,7 @@ begin
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod999;
-        AErro.Descricao := E.Message;
+        AErro.Descricao := Desc999 + E.Message;
       end;
     end;
   finally

@@ -15,7 +15,9 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <Version>0.2.1.115</Version>
+    <Version>1.0.0.0</Version>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>ProJetoACBr.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
@@ -104,6 +106,7 @@
     <Compile Include="..\Shared\Manifesto\RspSegMDFe.cs" Link="Manifesto\RspSegMDFe.cs" />
     <Compile Include="..\Shared\Manifesto\SeguroMDFe.cs" Link="Manifesto\SeguroMDFe.cs" />
     <Compile Include="..\Shared\Manifesto\TipoCarroceria.cs" Link="Manifesto\TipoCarroceria.cs" />
+    <Compile Include="..\Shared\Manifesto\TipoEventoMDFe.cs" Link="Manifesto\TipoEventoMDFe.cs" />
     <Compile Include="..\Shared\Manifesto\TipoNavegacao.cs" Link="Manifesto\TipoNavegacao.cs" />
     <Compile Include="..\Shared\Manifesto\TipoRodado.cs" Link="Manifesto\TipoRodado.cs" />
     <Compile Include="..\Shared\Manifesto\TotalMDFe.cs" Link="Manifesto\TotalMDFe.cs" />

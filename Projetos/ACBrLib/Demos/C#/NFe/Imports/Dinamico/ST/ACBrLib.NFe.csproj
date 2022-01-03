@@ -102,7 +102,6 @@
     <Compile Include="..\Shared\NotaFiscal\IndicadorPagamento.cs" Link="NotaFiscal\IndicadorPagamento.cs" />
     <Compile Include="..\Shared\NotaFiscal\IndicadorProcesso.cs" Link="NotaFiscal\IndicadorProcesso.cs" />
     <Compile Include="..\Shared\NotaFiscal\IndicadorTotal.cs" Link="NotaFiscal\IndicadorTotal.cs" />
-    <Compile Include="..\Shared\NotaFiscal\IndIEDest.cs" Link="NotaFiscal\IndIEDest.cs" />
     <Compile Include="..\Shared\NotaFiscal\IndIntermed.cs" Link="NotaFiscal\IndIntermed.cs" />
     <Compile Include="..\Shared\NotaFiscal\IndISS.cs" Link="NotaFiscal\IndISS.cs" />
     <Compile Include="..\Shared\NotaFiscal\InfIntermedNFe.cs" Link="NotaFiscal\InfIntermedNFe.cs" />
@@ -135,6 +134,7 @@
     <Compile Include="..\Shared\NotaFiscal\TipoArma.cs" Link="NotaFiscal\TipoArma.cs" />
     <Compile Include="..\Shared\NotaFiscal\TipoAutor.cs" Link="NotaFiscal\TipoAutor.cs" />
     <Compile Include="..\Shared\NotaFiscal\TipoAutorizacao.cs" Link="NotaFiscal\TipoAutorizacao.cs" />
+    <Compile Include="..\Shared\NotaFiscal\TipoEventoNFe.cs" Link="NotaFiscal\TipoEventoNFe.cs" />
     <Compile Include="..\Shared\NotaFiscal\TipoOperacao.cs" Link="NotaFiscal\TipoOperacao.cs" />
     <Compile Include="..\Shared\NotaFiscal\TipoRef.cs" Link="NotaFiscal\TipoRef.cs" />
     <Compile Include="..\Shared\NotaFiscal\TipoViaTransp.cs" Link="NotaFiscal\TipoViaTransp.cs" />

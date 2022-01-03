@@ -37,9 +37,6 @@ unit WebFisco.GravarXml;
 interface
 
 uses
-{$IFDEF FPC}
-  LResources, Controls, Graphics, Dialogs,
-{$ENDIF}
   SysUtils, Classes, StrUtils,
   ACBrXmlBase, ACBrXmlDocument,
   pcnAuxiliar,
@@ -97,7 +94,7 @@ begin
     NFSeNode.AppendChild(AddNode(tcStr, '#', 'prf', 1, 18, 1,
                                              CNPJPrefeitura, '', True, xAtrib));
     NFSeNode.AppendChild(AddNode(tcStr, '#', 'usr', 1, 18, 1,
-                 NFSe.Prestador.IdentificacaoPrestador.Cnpj, '', True, xAtrib));
+              NFSe.Prestador.IdentificacaoPrestador.CpfCnpj, '', True, xAtrib));
   end
   else
   begin

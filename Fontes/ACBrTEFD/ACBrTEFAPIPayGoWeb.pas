@@ -83,7 +83,7 @@ type
     procedure SetDiretorioTrabalho(const AValue: String);
 
   protected
-    procedure InicializarChamadaAPI(AOperacao: TACBrTEFAPIOperacao); override;
+    procedure InicializarChamadaAPI(AMetodoOperacao: TACBrTEFAPIMetodo); override;
     procedure InterpretarRespostaAPI; override;
 
   public
@@ -102,7 +102,7 @@ type
       DataPreDatado: TDateTime = 0): Boolean; override;
 
     function EfetuarAdministrativa(
-      OperacaoAdm: TACBrTEFOperacaoAdmin = tefadmGeral): Boolean; overload; override;
+      OperacaoAdm: TACBrTEFOperacao = tefopAdministrativo): Boolean; overload; override;
     function EfetuarAdministrativa(
       const CodOperacaoAdm: string = ''): Boolean; overload; override;
 
@@ -119,6 +119,7 @@ type
 
     procedure ResolverTransacaoPendente(
       AStatus: TACBrTEFStatusTransacao = tefstsSucessoManual); override;
+    procedure AbortarTransacaoEmAndamento; override;
 
     procedure ExibirMensagemPinPad(const MsgPinPad: String); override;
     function ObterDadoPinPad(TipoDado: TACBrTEFAPIDadoPinPad; TimeOut: SmallInt = 30000
@@ -227,7 +228,7 @@ begin
 end;
 
 procedure TACBrTEFAPIClassPayGoWeb.InicializarChamadaAPI(
-  AOperacao: TACBrTEFAPIOperacao);
+  AMetodoOperacao: TACBrTEFAPIMetodo);
 begin
   inherited;
   LimparUltimaTransacaoPendente;
@@ -307,12 +308,18 @@ end;
 procedure TACBrTEFAPIClassPayGoWeb.QuandoExibirMensagemAPI(Mensagem: String;
   Terminal: TACBrTEFPGWebAPITerminalMensagem; MilissegundosExibicao: Integer);
 var
-  i: Integer;
+  TelaMsg: TACBrTEFAPITela;
 begin
-  i := Integer(Terminal);
+  case Terminal of
+    tmOperador: TelaMsg := telaOperador;
+    tmCliente: TelaMsg := telaCliente;
+  else
+    TelaMsg := telaTodas;
+  end;
+
   TACBrTEFAPI(fpACBrTEFAPI).QuandoExibirMensagem(
     Mensagem,
-    TACBrTEFAPITela(i),
+    TelaMsg,
     MilissegundosExibicao );
 end;
 
@@ -369,7 +376,8 @@ begin
   Status := 0;
 end;
 
-function TACBrTEFAPIClassPayGoWeb.EfetuarAdministrativa(OperacaoAdm: TACBrTEFOperacaoAdmin): Boolean;
+function TACBrTEFAPIClassPayGoWeb.EfetuarAdministrativa(
+  OperacaoAdm: TACBrTEFOperacao): Boolean;
 begin
   Result := Self.EfetuarAdministrativa( IntToStr(OperacaoAdminToPWOPER_(OperacaoAdm)) );
 end;
@@ -464,7 +472,7 @@ begin
     else
       FinanciamentoInt := 0;
     end;
-    if (ModalidadeInt > 0) then
+    if (FinanciamentoInt > 0) then
       PA.ValueInfo[PWINFO_FINTYPE] := IntToStr(FinanciamentoInt);
 
     if (Parcelas > 0) then
@@ -490,9 +498,6 @@ var
   Resp: TACBrTEFResp;
   PGWebStatus: LongWord;
 begin
- if (Rede = '') or (NSU = '') then
-    Exit;
-
   i := fpACBrTEFAPI.RespostasTEF.AcharTransacao(Rede, NSU, CodigoFinalizacao);
   if (i >= 0) then
     Resp := fpACBrTEFAPI.RespostasTEF[i]
@@ -591,6 +596,11 @@ begin
   fTEFPayGoAPI.FinalizarTransacao(PGWebStatus,
           fpndReqNum, fPndLocRef, fPndExtRef, fPndVirtMerch, fPndAuthSyst);
   LimparUltimaTransacaoPendente;
+end;
+
+procedure TACBrTEFAPIClassPayGoWeb.AbortarTransacaoEmAndamento;
+begin
+  fTEFPayGoAPI.AbortarTransacao;
 end;
 
 procedure TACBrTEFAPIClassPayGoWeb.ExibirMensagemPinPad(const MsgPinPad: String

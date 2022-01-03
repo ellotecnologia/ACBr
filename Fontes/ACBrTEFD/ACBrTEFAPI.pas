@@ -58,39 +58,42 @@ type
                              opapiRemoveCartao,
                              opapiLeituraQRCode );
 
-  TACBrTEFAPITela = (telaOperador, telaCliente);
 
-  TACBrTEFAPITiposEntrada = ( tedApenasLeitura,
-                              tedTodos,
-                              tedNumerico,
-                              tedAlfabetico,
-                              tedAlfaNum );
+    TACBrTEFAPITela = ( telaTodas,
+                        telaOperador,
+                        telaCliente );
 
-  TACBrTEFAPIValidacaoDado = ( valdNenhuma,
-                               valdNaoVazio,
-                               valdDigMod10,
-                               valdCPF,
-                               valdCNPJ,
-                               valdCPFouCNPJ,
-                               valdMesAno,
-                               valdDiaMesAno,
-                               valdDuplaDigitacao,
-                               valdSenhaGerente,
-                               valdSenhaLojista,
-                               valdSenhaTecnica);
+    TACBrTEFAPITiposEntrada = ( tedApenasLeitura,
+                                tedTodos,
+                                tedNumerico,
+                                tedAlfabetico,
+                                tedAlfaNum );
 
-  TACBrTEFAPITipoBarras = ( tbQualquer,
-                            tbDigitado,
-                            tbLeitor );
+    TACBrTEFAPIValidacaoDado = ( valdNenhuma,
+                                 valdNaoVazio,
+                                 valdDigMod10,
+                                 valdCPF,
+                                 valdCNPJ,
+                                 valdCPFouCNPJ,
+                                 valdMesAno,
+                                 valdDiaMesAno,
+                                 valdDuplaDigitacao,
+                                 valdSenhaGerente,
+                                 valdSenhaLojista,
+                                 valdSenhaTecnica);
 
-  TACBrTEFAPIDadoPinPad = ( dpDDD, dpRedDDD,
-                            dpFone, dpRedFone,
-                            dpDDDeFone, dpRedDDDeFone,
-                            dpCPF, dpRedCPF,
-                            dpRG, dpRedRG,
-                            dp4UltDigitos,
-                            dpCodSeguranca,
-                            dpCNPJ, dpRedCNPJ );
+    TACBrTEFAPITipoBarras = ( tbQualquer,
+                              tbDigitado,
+                              tbLeitor );
+
+    TACBrTEFAPIDadoPinPad = ( dpDDD, dpRedDDD,
+                              dpFone, dpRedFone,
+                              dpDDDeFone, dpRedDDDeFone,
+                              dpCPF, dpRedCPF,
+                              dpRG, dpRedRG,
+                              dp4UltDigitos,
+                              dpCodSeguranca,
+                              dpCNPJ, dpRedCNPJ );
 
   TACBrTEFAPIDefinicaoCampo = record
     TituloPergunta: String;
@@ -124,7 +127,7 @@ type
   TACBrTEFAPIQuandoPerguntarMenu = procedure(
     const Titulo: String;
     Opcoes: TStringList;
-    var ItemSelecionado: Integer) of object;  // Retorna o Item Selecionado, iniciando com 1
+    var ItemSelecionado: Integer) of object;  // Retorna o Item Selecionado, iniciando com 0
                                               // -2 - Volta no Fluxo
                                               // -1 - Cancela o Fluxo
 

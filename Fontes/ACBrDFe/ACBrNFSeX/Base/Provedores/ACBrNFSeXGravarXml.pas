@@ -37,9 +37,6 @@ unit ACBrNFSeXGravarXml;
 interface
 
 uses
-{$IFDEF FPC}
-  LResources, Controls, Graphics, Dialogs,
-{$ENDIF}
   SysUtils, Classes, StrUtils,
   ACBrUtil,
   ACBrDFeException,
@@ -94,6 +91,7 @@ type
 
     FNrOcorrItemListaServico: Integer;
 
+    // Gera ou não o atributo ID no grupo <Rps> da versão 2 do layout da ABRASF.
     FGerarIDRps: Boolean;
 
     function GetOpcoes: TACBrXmlWriterOptions;
@@ -112,6 +110,7 @@ type
     function GerarCNPJ(const CNPJ: string): TACBrXmlNode; virtual;
     function GerarCPFCNPJ(const CPFCNPJ: string): TACBrXmlNode; virtual;
     function PadronizarItemServico(const Codigo: string): string;
+    function FormatarItemServico(const Codigo: string; Formato: TFormatoItemListaServico): string;
     function AjustarAliquota(const Aliquota: Double; DivPor100: Boolean = False): Double;
 
  public
@@ -184,6 +183,7 @@ begin
 
   FNrOcorrItemListaServico := 1;
 
+  // Gera ou não o atributo ID no grupo <Rps> da versão 2 do layout da ABRASF.
   FGerarIDRps := False;
 end;
 
@@ -191,6 +191,35 @@ procedure TNFSeWClass.DefinirIDRps;
 begin
   FNFSe.InfID.ID := 'Rps_' + OnlyNumber(FNFSe.IdentificacaoRps.Numero) +
                     FNFSe.IdentificacaoRps.Serie;
+end;
+
+function TNFSeWClass.FormatarItemServico(const Codigo: string;
+  Formato: TFormatoItemListaServico): string;
+var
+  item: string;
+begin
+  item := PadronizarItemServico(Codigo);
+
+  case Formato of
+    filsSemFormatacao:
+      Result := OnlyNumber(item);
+
+    filsComFormatacaoSemZeroEsquerda:
+      if Copy(item, 1, 1) = '0' then
+        Result := Copy(item, 2, 4)
+      else
+        Result := item;
+
+    filsSemFormatacaoSemZeroEsquerda:
+      begin
+        Result := OnlyNumber(item);
+
+        if Copy(Result, 1, 1) = '0' then
+          Result := Copy(Result, 2, 4);
+      end
+  else
+    Result := item;
+  end;
 end;
 
 procedure TNFSeWClass.DefinirIDDeclaracao;

@@ -9,7 +9,7 @@ namespace ACBrLib.NFe
 
         public EventoCancComprovanteEntrega()
         {
-            tpEvento = TipoEvento.teCancComprEntregaNFe;
+            tpEvento = TipoEventoNFe.teCancComprEntregaNFe;
         }
 
         #endregion Constructor

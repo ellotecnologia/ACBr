@@ -240,10 +240,14 @@ begin
     if EstaVazio(Nota.XMLAssinado) then
     begin
       Nota.GerarXML;
+
+      Nota.XMLOriginal := ConverteXMLtoUTF8(Nota.XMLOriginal);
+      Nota.XMLOriginal := ChangeLineBreak(Nota.XMLOriginal, '');
+
       if (ConfigAssinar.Rps and (Response.ModoEnvio in [meLoteAssincrono, meLoteSincrono])) or
          (ConfigAssinar.RpsGerarNFSe and (Response.ModoEnvio = meUnitario)) then
       begin
-        Nota.XMLOriginal := FAOwner.SSL.Assinar(ConverteXMLtoUTF8(Nota.XMLOriginal),
+        Nota.XMLOriginal := FAOwner.SSL.Assinar(Nota.XMLOriginal,
                                                 PrefixoTS + ConfigMsgDados.XmlRps.DocElemento,
                                                 ConfigMsgDados.XmlRps.InfElemento, '', '', '', IdAttr);
       end;
@@ -268,10 +272,7 @@ begin
   else
     Versao := '';
 
-  if ConfigGeral.Identificador <> '' then
-    IdAttr := ' ' + ConfigGeral.Identificador + '="Lote_' + Response.Lote + '"'
-  else
-    IdAttr := '';
+  IdAttr := DefinirIDLote(Response.Lote);
 
   ListaRps := ChangeLineBreak(ListaRps, '');
 
@@ -516,9 +517,13 @@ begin
   if EstaVazio(Nota.XMLAssinado) then
   begin
     Nota.GerarXML;
+
+    Nota.XMLOriginal := ConverteXMLtoUTF8(Nota.XMLOriginal);
+    Nota.XMLOriginal := ChangeLineBreak(Nota.XMLOriginal, '');
+
     if ConfigAssinar.RpsSubstituirNFSe then
     begin
-      Nota.XMLOriginal := FAOwner.SSL.Assinar(ConverteXMLtoUTF8(Nota.XMLOriginal),
+      Nota.XMLOriginal := FAOwner.SSL.Assinar(Nota.XMLOriginal,
                                               PrefixoTS + ConfigMsgDados.XmlRps.DocElemento,
                                               ConfigMsgDados.XmlRps.InfElemento, '', '', '', IdAttr);
     end;

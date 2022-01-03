@@ -139,7 +139,12 @@ begin
   if URL <> '' then
     Result := TACBrNFSeXWebserviceAssessorPublico.Create(FAOwner, AMetodo, URL)
   else
-    raise EACBrDFeException.Create(ERR_NAO_IMP);
+  begin
+    if ConfigGeral.Ambiente = taProducao then
+      raise EACBrDFeException.Create(ERR_SEM_URL_PRO)
+    else
+      raise EACBrDFeException.Create(ERR_SEM_URL_HOM);
+  end;
 end;
 
 procedure TACBrNFSeProviderAssessorPublico.ProcessarMensagemErros(
@@ -164,7 +169,7 @@ begin
   begin
     AErro := Response.Erros.New;
     AErro.Codigo := '';
-    AErro.Descricao := ProcessarConteudoXml(ANodeArray[I].Childrens.FindAnyNs('ERRO'), tcStr);
+    AErro.Descricao := ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('ERRO'), tcStr);
     AErro.Correcao := '';
   end;
 end;
@@ -209,6 +214,7 @@ var
   Document: TACBrXmlDocument;
   AErro: TNFSeEventoCollectionItem;
   ANode: TACBrXmlNode;
+  Inconsistencia: Boolean;
 begin
   Document := TACBrXmlDocument.Create;
 
@@ -222,21 +228,28 @@ begin
         Exit
       end;
 
+      Inconsistencia := (Pos('<INCONSISTENCIA>', Response.XmlRetorno) > 0);
+
       Document.LoadFromXml(Response.XmlRetorno);
 
       ANode := Document.Root;
 
-      ProcessarMensagemErros(ANode, Response, '', 'INCONSISTENCIA');
+      if Inconsistencia then
+      begin
+        ANode := ANode.Childrens.FindAnyNs('Mensagem');
+
+        ProcessarMensagemErros(ANode, Response, 'NFSE', 'INCONSISTENCIA');
+      end
+      else
+        Response.Protocolo := Trim(ObterConteudoTag(ANode.Childrens.FindAnyNs('Mensagem'), tcStr));
 
       Response.Sucesso := (Response.Erros.Count = 0);
-
-      Response.Protocolo := ProcessarConteudoXml(ANode.Childrens.FindAnyNs('Mensagem'), tcStr);
     except
       on E:Exception do
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod999;
-        AErro.Descricao := E.Message;
+        AErro.Descricao := Desc999 + E.Message;
       end;
     end;
   finally
@@ -299,13 +312,14 @@ begin
 
       ANode := Document.Root;
 
-      ProcessarMensagemErros(ANode, Response, '', 'INCONSISTENCIA');
+      ANode := ANode.Childrens.FindAnyNs('Mensagem');
+
+      ProcessarMensagemErros(ANode, Response, 'NFSE', 'INCONSISTENCIA');
 
       Response.Sucesso := (Response.Erros.Count = 0);
 
-      ANode := ANode.Childrens.FindAnyNs('Mensagem');
-
       ANode := ANode.Childrens.FindAnyNs('NFSE');
+
       if not Assigned(ANode) then
       begin
         AErro := Response.Erros.New;
@@ -315,6 +329,7 @@ begin
       end;
 
       ANodeArray := ANode.Childrens.FindAllAnyNs('NOTA');
+
       if not Assigned(ANodeArray) then
       begin
         AErro := Response.Erros.New;
@@ -327,7 +342,7 @@ begin
       begin
         ANode := ANodeArray[i];
 
-        NumNFSe := ProcessarConteudoXml(ANode.Childrens.FindAnyNs('COD'), tcStr);
+        NumNFSe := ObterConteudoTag(ANode.Childrens.FindAnyNs('COD'), tcStr);
 
         ANota := TACBrNFSeX(FAOwner).NotasFiscais.FindByNFSe(NumNFSe);
 
@@ -346,7 +361,7 @@ begin
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod999;
-        AErro.Descricao := E.Message;
+        AErro.Descricao := Desc999 + E.Message;
       end;
     end;
   finally
@@ -401,6 +416,10 @@ var
   Document: TACBrXmlDocument;
   AErro: TNFSeEventoCollectionItem;
   ANode: TACBrXmlNode;
+  ANodeArray: TACBrXmlNodeArray;
+  i: Integer;
+  NumNFSe: String;
+  ANota: NotaFiscal;
 begin
   Document := TACBrXmlDocument.Create;
 
@@ -416,20 +435,58 @@ begin
 
       Document.LoadFromXml(Response.XmlRetorno);
 
-      ANode := Document.Root.Childrens.FindAnyNs('NFSE');
+      ANode := Document.Root;
 
-      if ANode <> nil then
+      ANode := ANode.Childrens.FindAnyNs('Mensagem');
+
+      ProcessarMensagemErros(ANode, Response, 'NFSE', 'INCONSISTENCIA');
+
+      Response.Sucesso := (Response.Erros.Count = 0);
+
+      ANode := ANode.Childrens.FindAnyNs('NFSE');
+
+      if not Assigned(ANode) then
       begin
-        ProcessarMensagemErros(ANode, Response, '', 'INCONSISTENCIA');
+        AErro := Response.Erros.New;
+        AErro.Codigo := Cod203;
+        AErro.Descricao := Desc203;
+        Exit;
+      end;
 
-        Response.Sucesso := (Response.Erros.Count = 0);
+      ANodeArray := ANode.Childrens.FindAllAnyNs('NOTA');
+
+      if not Assigned(ANodeArray) then
+      begin
+        AErro := Response.Erros.New;
+        AErro.Codigo := Cod203;
+        AErro.Descricao := Desc203;
+        Exit;
+      end;
+
+      for i := Low(ANodeArray) to High(ANodeArray) do
+      begin
+        ANode := ANodeArray[i];
+
+        NumNFSe := ObterConteudoTag(ANode.Childrens.FindAnyNs('COD'), tcStr);
+
+        ANota := TACBrNFSeX(FAOwner).NotasFiscais.FindByNFSe(NumNFSe);
+
+        if Assigned(ANota) then
+          ANota.XML := ANode.OuterXml
+        else
+        begin
+          TACBrNFSeX(FAOwner).NotasFiscais.LoadFromString(ANode.OuterXml, False);
+          ANota := TACBrNFSeX(FAOwner).NotasFiscais.Items[TACBrNFSeX(FAOwner).NotasFiscais.Count-1];
+        end;
+
+        SalvarXmlNfse(ANota);
       end;
     except
       on E:Exception do
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod999;
-        AErro.Descricao := E.Message;
+        AErro.Descricao := Desc999 + E.Message;
       end;
     end;
   finally
@@ -521,7 +578,7 @@ begin
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod999;
-        AErro.Descricao := E.Message;
+        AErro.Descricao := Desc999 + E.Message;
       end;
     end;
   finally
@@ -536,7 +593,9 @@ begin
   with TACBrNFSeX(FPDFeOwner).Configuracoes.Geral do
   begin
     Result := '<nfse:Usuario>' + Emitente.WSUser + '</nfse:Usuario>' +
-              '<nfse:Senha>' + LowerCase(AsciiToHex(MD5(Emitente.WSSenha))) + '</nfse:Senha>';
+              '<nfse:Senha>' +
+                LowerCase(AsciiToHex(MD5(AnsiString(Emitente.WSSenha)))) +
+              '</nfse:Senha>';
   end;
 end;
 
