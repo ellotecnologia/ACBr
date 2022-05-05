@@ -46,6 +46,8 @@ type
   TACBrCaixaEconomica = class(TACBrBancoClass)
    protected
     function GetLocalPagamento: String; override;
+    function DefineAceiteImpressao(const ACBrTitulo: TACBrTitulo): String; override;
+    procedure EhObrigatorioAgenciaDV; override;
    private
     fValorTotalDocs:Double;
     fQtRegLote: Integer;
@@ -81,7 +83,7 @@ implementation
 
 uses StrUtils, Variants,
   {$IFDEF COMPILER6_UP} DateUtils {$ELSE} ACBrD5, FileCtrl {$ENDIF},
-  ACBrUtil;
+  ACBrUtil.Base, ACBrUtil.FilesIO, ACBrUtil.Strings, ACBrUtil.DateTime;
 
 constructor TACBrCaixaEconomica.create(AOwner: TACBrBanco);
 begin
@@ -284,6 +286,17 @@ begin
 
 end;
 
+function TACBrCaixaEconomica.DefineAceiteImpressao(
+  const ACBrTitulo: TACBrTitulo): String;
+begin
+    case ACBrTitulo.Aceite of
+    atSim :
+      Result := 'A';
+  else
+    Result := 'N';
+  end;
+end;
+
 function TACBrCaixaEconomica.DefineCodigoCedente(const ACBrCedente: TACBrCedente): String;
 begin
   if ((fpLayoutVersaoArquivo = 107) and (fpLayoutVersaoLote = 67))
@@ -291,6 +304,11 @@ begin
     Result := PadLeft(  ACBrCedente.CodigoCedente, 7, '0')
   else
     Result := PadLeft(  ACBrCedente.CodigoCedente, 6, '0');
+end;
+
+procedure TACBrCaixaEconomica.EhObrigatorioAgenciaDV;
+begin
+  //sem validação
 end;
 
 function TACBrCaixaEconomica.TipoOCorrenciaToCod(const TipoOcorrencia: TACBrTipoOcorrencia): String;

@@ -2304,10 +2304,11 @@ begin
                DFill( VL_UNIT_FCP_ICMS_ST_ESTOQUE_CONV_SAIDA,6,True ) +
                DFill( VL_UNIT_ICMS_NA_OPERACAO_CONV_SAIDA,6,True ) +
                DFill( VL_UNIT_ICMS_OP_CONV_SAIDA,6,True ) +
-               DFill( VL_UNIT_ICMS_ST_CONV_REST,6,True ) +
-               DFill( VL_UNIT_FCP_ST_CONV_REST,6,True ) +
-               DFill( VL_UNIT_ICMS_ST_CONV_COMPL,6,True ) +
-               DFill( VL_UNIT_FCP_ST_CONV_COMPL,6,True ));
+               VDFill( VL_UNIT_ICMS_ST_CONV_REST,6) +
+               VDFill( VL_UNIT_FCP_ST_CONV_REST,6) +
+               VDFill( VL_UNIT_ICMS_ST_CONV_COMPL,6) +
+               VDFill( VL_UNIT_FCP_ST_CONV_COMPL,6)
+             );
         end;
         RegistroC990.QTD_LIN_C := RegistroC990.QTD_LIN_C + 1;
      end;
@@ -2334,18 +2335,19 @@ begin
                LFill( CST_ICMS )+
                LFill( CFOP )+
                LFill( COD_MOT_REST_COMPL) +
-               LFill( QUANT_CONV ,0,6 ) +
+               DFill( QUANT_CONV, 6, False ) +
                LFill( UNID ) +
-               LFill( VL_UNIT_CONV,0,6 ) +
-               DFill( VL_UNIT_ICMS_NA_OPERACAO_CONV,6,True ) +
-               DFill( VL_UNIT_ICMS_OP_CONV,6,True ) +
-               LFill( VL_UNIT_ICMS_OP_ESTOQUE_CONV,0,6 ) +
-               LFill( VL_UNIT_ICMS_ST_ESTOQUE_CONV,0,6 ) +
-               LFill( VL_UNIT_FCP_ICMS_ST_ESTOQUE_CONV,0,6 ) +
-               LFill( VL_UNIT_ICMS_ST_CONV_REST,0,6 ) +
-               LFill( VL_UNIT_FCP_ST_CONV_REST,0,6 ) +
-               DFill( VL_UNIT_ICMS_ST_CONV_COMPL,6,True ) +
-               DFill( VL_UNIT_FCP_ST_CONV_COMPL,6,True ));
+               DFill( VL_UNIT_CONV, 6, False ) +
+               DFill( VL_UNIT_ICMS_NA_OPERACAO_CONV, 6, True ) +
+               DFill( VL_UNIT_ICMS_OP_CONV, 6, True ) +
+               DFill( VL_UNIT_ICMS_OP_ESTOQUE_CONV, 6, False ) +
+               DFill( VL_UNIT_ICMS_ST_ESTOQUE_CONV, 6, False ) +
+               DFill( VL_UNIT_FCP_ICMS_ST_ESTOQUE_CONV, 6, False ) +
+               VDFill( VL_UNIT_ICMS_ST_CONV_REST, 6 ) +
+               VDFill( VL_UNIT_FCP_ST_CONV_REST, 6 ) +
+               VDFill( VL_UNIT_ICMS_ST_CONV_COMPL, 6 ) +
+               VDFill( VL_UNIT_FCP_ST_CONV_COMPL, 6 )
+             );
         end;
         RegistroC990.QTD_LIN_C := RegistroC990.QTD_LIN_C + 1;
      end;
@@ -3320,8 +3322,8 @@ begin
             LFill( UmRegC500.SER_DOC_REF ) +
             LFill( UmRegC500.NUM_DOC_REF ) +
             LFill( UmRegC500.MES_DOC_REF ) +
-            VLFill( UmRegC500.OUTRAS_DED, 0) +
-            VLFill( UmRegC500.ENER_INJET, 0)
+            VLFill( UmRegC500.ENER_INJET, 0) +
+            VLFill( UmRegC500.OUTRAS_DED, 0)
            ) ;
       end
       else if FBloco_0.Registro0000.COD_VER >= vlVersao113 then

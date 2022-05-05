@@ -38,7 +38,6 @@ interface
 
 uses
   SysUtils, Classes, StrUtils,
-  ACBrUtil,
   ACBrXmlBase, ACBrXmlDocument,
   ACBrNFSeXConversao, ACBrNFSeXLerXml;
 
@@ -59,6 +58,10 @@ type
   end;
 
 implementation
+
+uses
+  ACBrUtil.Base,
+  ACBrUtil.Strings;
 
 //==============================================================================
 // Essa unit tem por finalidade exclusiva ler o XML do provedor:
@@ -133,7 +136,7 @@ var
   XmlNode: TACBrXmlNode;
   xRetorno: string;
 begin
-  xRetorno := TratarXmlRetorno(Arquivo);
+  xRetorno := Arquivo;
 
   if EstaVazio(xRetorno) then
     raise Exception.Create('Arquivo xml não carregado.');
@@ -185,10 +188,13 @@ begin
     DataEmissao := ObterConteudo(AuxNode.Childrens.FindAnyNs('dDataEmissao'), tcDatHor);
     CodigoVerificacao := ObterConteudo(AuxNode.Childrens.FindAnyNs('sCodigoVerificador'), tcStr);
     SituacaoNfse := StrToStatusNFSe(Ok, ObterConteudo(AuxNode.Childrens.FindAnyNs('sSituacao'), tcStr));
+    Competencia := DataEmissao;
 
     Servico.Valores.ValorServicos := ObterConteudo(AuxNode.Childrens.FindAnyNs('nValorTotal'), tcDe2);
     Servico.Valores.ValorIss := ObterConteudo(AuxNode.Childrens.FindAnyNs('nValorIss'), tcDe2);
     Servico.Valores.BaseCalculo := ObterConteudo(AuxNode.Childrens.FindAnyNs('nValorBaseCalculo'), tcDe2);
+
+    Servico.Valores.ValorLiquidoNfse := Servico.Valores.ValorServicos;
   end;
 
   LerTomador(AuxNode);
@@ -341,7 +347,7 @@ begin
   NFSe.Servico.ItemListaServico := Copy(ItemServico, 1, 2) + '.' +
                                      Copy(ItemServico, 3, 2);
 
-  if FAOwner.ConfigGeral.TabServicosExt then
+  if FpAOwner.ConfigGeral.TabServicosExt then
     NFSe.Servico.xItemListaServico := ObterDescricaoServico(ItemServico)
   else
     NFSe.Servico.xItemListaServico := CodItemServToDesc(ItemServico);

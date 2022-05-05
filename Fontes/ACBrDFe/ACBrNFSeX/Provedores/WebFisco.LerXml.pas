@@ -38,7 +38,6 @@ interface
 
 uses
   SysUtils, Classes, StrUtils,
-  ACBrUtil,
   ACBrXmlBase, ACBrXmlDocument,
   ACBrNFSeXConversao, ACBrNFSeXLerXml;
 
@@ -56,6 +55,9 @@ type
 
 implementation
 
+uses
+  ACBrUtil.Base;
+
 //==============================================================================
 // Essa unit tem por finalidade exclusiva ler o XML do provedor:
 //     WebFisco
@@ -68,7 +70,7 @@ var
   XmlNode: TACBrXmlNode;
   xRetorno: string;
 begin
-  xRetorno := TratarXmlRetorno(Arquivo);
+  xRetorno := Arquivo;
 
   if EstaVazio(xRetorno) then
     raise Exception.Create('Arquivo xml não carregado.');
@@ -115,7 +117,7 @@ begin
     DataEmissao := StrToDateTime(aValor);
 
     CodigoVerificacao := ObterConteudo(ANode.Childrens.FindAnyNs('nfeautenticacao'), tcStr);
-    Status := StrToStatusRPS(Ok, ObterConteudo(ANode.Childrens.FindAnyNs('nfestatus'), tcStr));
+    SituacaoNfse := StrToStatusNFSe(Ok, ObterConteudo(ANode.Childrens.FindAnyNs('nfestatus'), tcStr));
 
 //      <xsd:element name="nfecontrole" type="xsd:string"/>
 

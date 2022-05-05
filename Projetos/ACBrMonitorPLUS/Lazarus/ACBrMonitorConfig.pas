@@ -177,6 +177,7 @@ type
 
   TNCM = record
     DirNCMSalvar      : String;
+    DiasValidadeCache : Integer;
   end;
 
   TEmail = record
@@ -613,6 +614,7 @@ type
     DigitoAgenciaConta         : String ;
     CodCedente                 : String ;
     LocalPagamento             : String ;
+    CodigoOperacao             : String;
   end;
 
   TBoletoLayout = record
@@ -958,6 +960,7 @@ begin
     with NCM do
     begin
       Ini.WriteString( CSecNCM, CKeyDirNCMSalvar, DirNCMSalvar );
+      Ini.WriteInteger( CSecNCM, CKeyDiasValidadeCache, DiasValidadeCache );
     end;
 
      with Email do
@@ -1411,6 +1414,7 @@ begin
       ini.WriteString( CSecBOLETO, CKeyBOLETODigitoAgenciaConta, DigitoAgenciaConta );
       ini.WriteString( CSecBOLETO, CKeyBOLETOCodCedente,    CodCedente    );
       ini.WriteString( CSecBOLETO, CKeyBOLETOLocalPagamento,LocalPagamento );
+      ini.WriteString( CSecBOLETO, CKeyBOLETOCodigoOperacao,CodigoOperacao );
     end;
 
     with BOLETO.Layout do
@@ -1686,6 +1690,7 @@ begin
     with NCM do
     begin
       DirNCMSalvar              := Ini.ReadString( CSecNCM, CKeyDirNCMSalvar, DirNCMSalvar );
+      DiasValidadeCache         := Ini.ReadInteger( CSecNCM, CKeyDiasValidadeCache, DiasValidadeCache );
     end;
 
     with Email do
@@ -2147,6 +2152,7 @@ begin
       DigitoAgenciaConta     :=  ini.ReadString( CSecBOLETO, CKeyBOLETODigitoAgenciaConta, DigitoAgenciaConta   );
       CodCedente             :=  ini.ReadString( CSecBOLETO, CKeyBOLETOCodCedente,       CodCedente             );
       LocalPagamento         :=  ini.ReadString( CSecBOLETO, CKeyBOLETOLocalPagamento,   LocalPagamento         );
+      CodigoOperacao         :=  ini.ReadString( CSecBOLETO, CKeyBOLETOCodigoOperacao,   CodigoOperacao         );
     end;
 
     with BOLETO.Layout do
@@ -2850,6 +2856,7 @@ begin
     DigitoAgenciaConta     :=  '';
     CodCedente             :=  '';
     LocalPagamento         :=  '';
+    CodigoOperacao         :=  '';
   end;
 
   with BOLETO.Layout do

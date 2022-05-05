@@ -215,7 +215,7 @@ type
 
   TBPeEnvEvento = class(TBPeWebService)
   private
-    FidLote: Integer;
+    FidLote: Int64;
     FEvento: TEventoBPe;
     FcStat: Integer;
     FxMotivo: String;
@@ -238,7 +238,7 @@ type
     destructor Destroy; override;
     procedure Clear; override;
 
-    property idLote: Integer read FidLote write FidLote;
+    property idLote: Int64 read FidLote write FidLote;
     property cStat: Integer read FcStat;
     property xMotivo: String read FxMotivo;
     property TpAmb: TpcnTipoAmbiente read FTpAmb;
@@ -329,7 +329,7 @@ type
     constructor Create(AOwner: TACBrDFe); overload;
     destructor Destroy; override;
 
-    function Envia(ALote: Integer): Boolean; overload;
+    function Envia(ALote: Int64): Boolean; overload;
     function Envia(const ALote: String): Boolean; overload;
 
     property ACBrBPe: TACBrDFe read FACBrBPe write FACBrBPe;
@@ -347,7 +347,12 @@ implementation
 
 uses
   StrUtils, Math,
-  ACBrUtil, ACBrCompress, ACBrBPe, pcnBPeConsts, pcnConsts,
+  ACBrUtil.Base,
+  ACBrUtil.Strings,
+  ACBrUtil.DateTime,
+  ACBrUtil.XMLHTML,
+  ACBrUtil.FilesIO,
+  ACBrCompress, ACBrBPe, pcnBPeConsts, pcnConsts,
   pcnGerador, pcnLeitor, pcnConsStatServ, pcnRetConsStatServ,
   pcnConsSitBPe;
 
@@ -2032,7 +2037,7 @@ begin
   inherited Destroy;
 end;
 
-function TWebServices.Envia(ALote: Integer): Boolean;
+function TWebServices.Envia(ALote: Int64): Boolean;
 begin
   Result := Envia(IntToStr(ALote));
 end;

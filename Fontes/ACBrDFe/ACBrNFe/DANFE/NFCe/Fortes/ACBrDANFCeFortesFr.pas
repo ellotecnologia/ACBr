@@ -34,19 +34,20 @@ unit ACBrDANFCeFortesFr;
 
 interface
 
-uses Classes, SysUtils,
-     {$IFDEF FPC}
-       LResources,
-     {$ENDIF}
-     {$IfDef FMX}
-       FMX.Forms, FMX.Graphics,
-     {$Else}
-       Forms, Graphics,
-     {$EndIf}
-     ACBrNFeDANFEClass, ACBrBase,
-     pcnNFe, pcnConversao, ACBrDFeUtil,
-     RLConsts, RLUtils, RLReport, RLBarcode, RLPDFFilter, RLHTMLFilter,
-     RLFilters, RLPrinters, RLTypes, Controls;
+uses
+  Classes, SysUtils,
+  {$IFDEF FPC}
+   LResources,
+  {$ENDIF}
+  {$IfDef FMX}
+   FMX.Forms, FMX.Graphics,
+  {$Else}
+   Forms, Graphics,
+  {$EndIf}
+  ACBrNFeDANFEClass, ACBrBase,
+  pcnNFe, pcnConversao, ACBrDFeUtil,
+  RLConsts, RLUtils, RLReport, RLBarcode, RLPDFFilter, RLHTMLFilter,
+  RLFilters, RLPrinters, RLTypes, Controls;
 
 const
   CACBrNFeDANFCeFortes_Versao = '0.1.0' ;
@@ -153,6 +154,7 @@ type
     lTotalFrete: TRLLabel;
     lTotalAPagar: TRLLabel;
     lTotalDesconto: TRLLabel;
+    lTotalItem: TRLLabel;
     lURLConsulta: TRLMemo;
     mLinhaTotalItem: TRLMemo;
     pGap6: TRLPanel;
@@ -304,13 +306,13 @@ type
 
     function CompoemEnderecoCFe: String ;
     function CompoemCliche: String;
-    procedure FormataTextoItemParaUmaLinha(out LinhaItem: string);
-    procedure FormataTextoItemParaDuasLinhas(out LinhaItem: string; out LinhaTotal:
-        string);
-    procedure FormataTextoItemParaNormal(out LinhaItem: string; out LinhaTotal:
-        string);
-    function AjustarDescricaoAteTamanhoMaximo(UmProd: TProd; const LinhaOriginal:
-        string): string;
+    procedure FormataTextoItemParaUmaLinha(out LinhaItem: String);
+    procedure FormataTextoItemParaDuasLinhas(out LinhaItem: String;
+      out LinhaTotal: String; out ValorTotal: String);
+    procedure FormataTextoItemParaNormal(out LinhaItem: String;
+      out LinhaTotal: String; out ValorTotal: String);
+    function AjustarDescricaoAteTamanhoMaximo(UmProd: TProd;
+      const LinhaOriginal: String): String;
   public
     { Public declarations }
     property ACBrNFeDANFCeFortes : TACBrNFeDANFCeFortes read fACBrNFeDANFCeFortes ;
@@ -322,8 +324,12 @@ implementation
 
 uses
   StrUtils, math,
-  ACBrDelphiZXingQRCode, ACBrNFe,
-  ACBrValidador, ACBrDFeDANFeReport, ACBrDFeReportFortes, ACBrDFeReport, ACBrUtil;
+  ACBrNFe, ACBrDFeDANFeReport, ACBrDFeReportFortes,
+  ACBrValidador,
+  ACBrUtil,
+  ACBrUtil.Strings,
+  ACBrUtil.FilesIO,
+  ACBrImage, ACBrDelphiZXingQRCode;
 
 {$ifdef FPC}
   {$R *.lfm}
@@ -670,7 +676,8 @@ begin
   LinhaItem := AjustarDescricaoAteTamanhoMaximo(UmProd, LinhaItem);
 end;
 
-procedure TACBrNFeDANFCeFortesFr.FormataTextoItemParaDuasLinhas(out LinhaItem: string; out LinhaTotal: string);
+procedure TACBrNFeDANFCeFortesFr.FormataTextoItemParaDuasLinhas(out
+  LinhaItem: String; out LinhaTotal: String; out ValorTotal: String);
 var
   UmProd: TProd;
 begin
@@ -680,32 +687,33 @@ begin
 
   LinhaItem := AjustarDescricaoAteTamanhoMaximo(UmProd, LinhaItem);
 
-  LinhaTotal := '|' + ACBrNFeDANFCeFortes.FormatarQuantidade(UmProd.qCom, False) + '|' +
-                Trim(UmProd.uCom) + ' X ' + ACBrNFeDANFCeFortes.FormatarValorUnitario(UmProd.vUnCom) +
-                '|' + FormatFloatBr(UmProd.vProd);
+  LinhaTotal := ACBrNFeDANFCeFortes.FormatarQuantidade(UmProd.qCom, False) + '|' +
+                Trim(UmProd.uCom) + ' X ' + ACBrNFeDANFCeFortes.FormatarValorUnitario(UmProd.vUnCom) + '|';
   LinhaTotal := TDFeReportFortes.EspacejarTextoGrafico(LinhaTotal, mLinhaTotalItem.Width - 10, mLinhaTotalItem.Font);
+  ValorTotal := FormatFloatBr(UmProd.vProd);
 end;
 
-procedure TACBrNFeDANFCeFortesFr.FormataTextoItemParaNormal(out LinhaItem: string; out LinhaTotal: string);
+procedure TACBrNFeDANFCeFortesFr.FormataTextoItemParaNormal(out
+  LinhaItem: String; out LinhaTotal: String; out ValorTotal: String);
 var
-  infoAdProd: string;
+  aProd: TProd;
+  infoAdProd: String;
 begin
-  with ACBrNFeDANFCeFortes.FpNFe.Det.Items[fNumItem] do
-  begin
-    LinhaItem := IntToStrZero(Prod.nItem, 3) + ' ' + // DEBUG {IntToStr(mLinhaItem.Width) + ','+}
-                 ACBrNFeDANFCeFortes.ManterCodigo(Prod.cEAN, Prod.cProd) + ' ' + Trim(Prod.xProd);
+  aProd := ACBrNFeDANFCeFortes.FpNFe.Det.Items[fNumItem].Prod;
+  LinhaItem := IntToStrZero(aProd.nItem, 3) + ' ' + // DEBUG {IntToStr(mLinhaItem.Width) + ','+}
+               ACBrNFeDANFCeFortes.ManterCodigo(aProd.cEAN, aProd.cProd) + ' ' + Trim(aProd.xProd);
 
-    infoAdProd := ACBrNFeDANFCeFortes.ManterinfAdProd(ACBrNFeDANFCeFortes.FpNFe, fNumItem);
-    if Trim(infoAdProd) <> '' then
-      LinhaItem := LinhaItem + infoAdProd;
-    LinhaTotal := '|' + ACBrNFeDANFCeFortes.FormatarQuantidade(Prod.qCom, False) + '|' +
-                  Trim(Prod.uCom) + ' X ' + ACBrNFeDANFCeFortes.FormatarValorUnitario(Prod.vUnCom) +
-                  '|' + FormatFloatBr(Prod.vProd);
-    LinhaTotal := TDFeReportFortes.EspacejarTextoGrafico(LinhaTotal, mLinhaTotalItem.Width - 10, mLinhaTotalItem.Font);
-  end;
+  infoAdProd := ACBrNFeDANFCeFortes.ManterinfAdProd(ACBrNFeDANFCeFortes.FpNFe, fNumItem);
+  if Trim(infoAdProd) <> '' then
+    LinhaItem := LinhaItem + infoAdProd;
+  LinhaTotal := ACBrNFeDANFCeFortes.FormatarQuantidade(aProd.qCom, False) + '|' +
+                Trim(aProd.uCom) + ' X ' + ACBrNFeDANFCeFortes.FormatarValorUnitario(aProd.vUnCom) + '|';
+  LinhaTotal := TDFeReportFortes.EspacejarTextoGrafico(LinhaTotal, mLinhaTotalItem.Width - 10, mLinhaTotalItem.Font);
+  ValorTotal := FormatFloatBr(aProd.vProd);
 end;
 
-function TACBrNFeDANFCeFortesFr.AjustarDescricaoAteTamanhoMaximo(UmProd: TProd; const LinhaOriginal: string): string;
+function TACBrNFeDANFCeFortesFr.AjustarDescricaoAteTamanhoMaximo(UmProd: TProd;
+  const LinhaOriginal: String): String;
 var
   ABMP: TBitmap;
   TamanhoDescricao: Integer;
@@ -751,12 +759,9 @@ begin
   rlbOutroItem.Font.Assign(ACBrNFeDANFCeFortes.FonteLinhaItem);
 
   mLinhaItem.Width := rlbDetItem.Width;
-  mLinhaTotalItem.Width := rlbDetItem.Width;
-  mLinhaTotalItem.Visible := not ACBrNFeDANFCeFortes.ImprimeEmUmaLinha;
-  if ACBrNFeDANFCeFortes.ImprimeEmUmaLinha then
-     mLinhaItem.Alignment := taCenter
-  else
-    mLinhaItem.Alignment := taLeftJustify;
+  mLinhaTotalItem.Width := (rlbDetItem.Width - lTotalItem.Width);
+  mLinhaTotalItem.Visible := (not ACBrNFeDANFCeFortes.ImprimeEmUmaLinha);
+  lTotalItem.Visible := (not ACBrNFeDANFCeFortes.ImprimeEmUmaLinha);
 
   with ACBrNFeDANFCeFortes.FpNFe do
   begin
@@ -1026,12 +1031,14 @@ end;
 procedure TACBrNFeDANFCeFortesFr.rlbDetItemBeforePrint(Sender: TObject;
   var PrintIt: Boolean);
 var
-  LinhaItem, LinhaTotal: string;
+  LinhaItem, LinhaTotal, ValTotal: String;
 begin
   PrintIt := not Resumido;
   if not PrintIt then exit;
 
-  mLinhaItem.Lines.Clear ;
+  mLinhaItem.Lines.Clear;
+  mLinhaTotalItem.Lines.Clear;
+  lTotalItem.Caption := EmptyStr;
 
   if ACBrNFeDANFCeFortes.ImprimeEmUmaLinha then
   begin
@@ -1040,15 +1047,17 @@ begin
   end
   else if ACBrNFeDANFCeFortes.ImprimeEmDuasLinhas then
   begin
-    FormataTextoItemParaDuasLinhas(LinhaItem, LinhaTotal);
+    FormataTextoItemParaDuasLinhas(LinhaItem, LinhaTotal, ValTotal);
     mLinhaItem.Lines.Text      := LinhaItem;
     mLinhaTotalItem.Lines.Text := LinhaTotal;
+    lTotalItem.Caption         := ValTotal;
   end
   else
   begin
-    FormataTextoItemParaNormal(LinhaItem, LinhaTotal);
+    FormataTextoItemParaNormal(LinhaItem, LinhaTotal, ValTotal);
     mLinhaItem.Lines.Text      := LinhaItem;
     mLinhaTotalItem.Lines.Text := LinhaTotal;
+    lTotalItem.Caption         := ValTotal;
   end;
 end;
 

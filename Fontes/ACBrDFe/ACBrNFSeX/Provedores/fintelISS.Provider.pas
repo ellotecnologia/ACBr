@@ -56,6 +56,7 @@ type
     function Cancelar(ACabecalho, AMSG: String): string; override;
     function SubstituirNFSe(ACabecalho, AMSG: String): string; override;
 
+    function TratarXmlRetornado(const aXML: string): string; override;
   end;
 
   TACBrNFSeProviderfintelISS200 = class (TACBrNFSeProviderABRASFv2)
@@ -86,7 +87,8 @@ type
 implementation
 
 uses
-  ACBrUtil, ACBrDFeException, ACBrNFSeX, ACBrNFSeXConfiguracoes,
+  ACBrUtil.XMLHTML,
+  ACBrDFeException, ACBrNFSeX, ACBrNFSeXConfiguracoes,
   ACBrNFSeXNotasFiscais, fintelISS.GravarXml, fintelISS.LerXml;
 
 { TACBrNFSeProviderfintelISS200 }
@@ -327,6 +329,15 @@ begin
                      ['xmlns:web="http://www.fintel.com.br/WebService"']);
 end;
 
+function TACBrNFSeXWebservicefintelISS200.TratarXmlRetornado(
+  const aXML: string): string;
+begin
+  Result := inherited TratarXmlRetornado(aXML);
+
+  Result := ParseText(AnsiString(Result), True, False);
+  Result := RemoverDeclaracaoXML(Result);
+end;
+
 { TACBrNFSeProviderfintelISS202 }
 
 procedure TACBrNFSeProviderfintelISS202.Configuracao;
@@ -335,7 +346,7 @@ begin
 
   with ConfigAssinar do
   begin
-    Rps := True;
+    Rps := False;
     LoteRps := True;
     CancelarNFSe := True;
     RpsGerarNFSe := True;

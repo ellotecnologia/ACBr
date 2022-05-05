@@ -44,6 +44,7 @@ interface
 uses
   Classes, SysUtils
   {$IfNDef NOGUI}
+   ,ACBrDelphiZXingQRCode
    {$IfDef FPC}
     ,LCLType, InterfaceBase
    {$Else}
@@ -52,7 +53,7 @@ uses
     {$EndIf}
    {$EndIf}
    {$IfDef FMX}
-    ,FMX.Graphics, System.UITypes, FMX.Types
+    ,FMX.Graphics, System.UITypes, FMX.Types, System.UIConsts
    {$Else}
     ,Graphics
    {$EndIf}
@@ -60,15 +61,21 @@ uses
   ,ACBrBase;
 
 const
-  cErrImgPCXMono = 'Imagem não é PCX Monocromática';
-  cErrImgBMPMono = 'Imagem não é BMP Monocromática';
   C_LUMINOSITY_THRESHOLD = 127;
+
+resourcestring
+  cErrImgNotBMPMono = 'Imagem não é BMP Monocromática';
+  cErrImgNotPNG = 'Imagem não é PNG';
 
 type
   EACBrImage = class(Exception);
 
 function IsPCX(S: TStream; CheckIsMono: Boolean = True): Boolean;
 function IsBMP(S: TStream; CheckIsMono: Boolean = True): Boolean;
+function IsPNG(S: TStream; CheckIsMono: Boolean = True): Boolean;
+procedure PNGInfoIHDR(S: TStream; out Width: LongWord; out Height: LongWord;
+                       out BitDepth: Byte; out ColorType: Byte; out CompressionMethod: Byte;
+                       out FilterMethod: Byte; out InterlaceMethod: Byte);
 
 procedure RasterStrToAscII(const ARasterStr: AnsiString; AWidth: Integer;
   InvertImg: Boolean; AscIIArtLines: TStrings);
@@ -86,71 +93,164 @@ procedure RasterStrToBMPMono(const ARasterStr: AnsiString; AWidth: Integer;
   InvertImg: Boolean; ABMPStream: TStream);
 
 {$IfNDef NOGUI}
-procedure BitmapToRasterStr(ABmpSrc: TBitmap; InvertImg: Boolean;
-  out AWidth: Integer; out AHeight: Integer; out ARasterStr: AnsiString;
-  LuminosityThreshold: Byte = C_LUMINOSITY_THRESHOLD);
+ {$IfNDef FPC}
+  procedure RedGreenBlue(rgb: TColorRef; out Red, Green, Blue: Byte);
+ {$EndIf}
+ procedure BitmapToRasterStr(ABmpSrc: TBitmap; InvertImg: Boolean;
+   out AWidth: Integer; out AHeight: Integer; out ARasterStr: AnsiString;
+   LuminosityThreshold: Byte = C_LUMINOSITY_THRESHOLD);
+ procedure PintarQRCode(const QRCodeData: String; ABitMap: TBitmap;
+   const AEncoding: TQRCodeEncoding);
 {$EndIf}
 
 implementation
 
 uses
-// DEBUG
-// {$IfDef ANDROID}
-// System.IOUtils,
-// {$EndIf}
-  math, strutils,
-  ACBrUtil, ACBrConsts;
+  Math, strutils, ACBrUtil.Base, ACBrConsts, ACBrUtil.Strings, ACBrUtil.Math;
 
+// https://stackoverflow.com/questions/1689715/image-data-of-pcx-file
 function IsPCX(S: TStream; CheckIsMono: Boolean): Boolean;
 var
   p: Int64;
   b, bColorPlanes, bBitsPerPixel: Byte;
 begin
-  // https://stackoverflow.com/questions/1689715/image-data-of-pcx-file
   p := S.Position;
-  S.Position := 0;
-  b := 0;
-  S.ReadBuffer(b,1);
-  Result := (b = 10);
+  try
+    S.Position := 0;
+    b := 0;
+    S.ReadBuffer(b,1);
+    Result := (b = 10);
 
-  if Result and CheckIsMono then
-  begin
-    // Lendo as cores
-    bBitsPerPixel := 0; bColorPlanes := 0;
-    S.Position := 3;
-    S.ReadBuffer(bBitsPerPixel, 1);
-    S.Position := 65;
-    S.ReadBuffer(bColorPlanes, 1);
-    Result := (bColorPlanes = 1) and (bBitsPerPixel = 1);
+    if Result and CheckIsMono then
+    begin
+      // Lendo as cores
+      bBitsPerPixel := 0; bColorPlanes := 0;
+      S.Position := 3;
+      S.ReadBuffer(bBitsPerPixel, 1);
+      S.Position := 65;
+      S.ReadBuffer(bColorPlanes, 1);
+      Result := (bColorPlanes = 1) and (bBitsPerPixel = 1);
+    end;
+  finally
+    S.Position := p;
   end;
-
-  S.Position := p;
 end;
 
+//https://en.wikipedia.org/wiki/BMP_file_format
 function IsBMP(S: TStream; CheckIsMono: Boolean): Boolean;
 var
   Buffer: array[0..1] of AnsiChar;
   bColorPlanes, bBitsPerPixel: Word;
   p: Int64;
 begin
-  //https://en.wikipedia.org/wiki/BMP_file_format
   p := S.Position;
-  S.Position := 0;
-  Buffer[0] := ' ';
-  S.ReadBuffer(Buffer, 2);
-  Result := (Buffer = 'BM');
+  try
+    S.Position := 0;
+    Buffer[0] := ' ';
+    S.ReadBuffer(Buffer, 2);
+    Result := (Buffer = 'BM');
 
-  if Result and CheckIsMono then
+    if Result and CheckIsMono then
+    begin
+      // Lendo as cores
+      bColorPlanes := 0; bBitsPerPixel := 0;
+      S.Position := 26;
+      S.ReadBuffer(bColorPlanes, 2);
+      S.ReadBuffer(bBitsPerPixel, 2);
+      Result := (bColorPlanes = 1) and (bBitsPerPixel = 1);
+    end;
+  finally
+    S.Position := p;
+  end;
+end;
+
+// https://en.wikipedia.org/wiki/Portable_Network_Graphic
+function IsPNG(S: TStream; CheckIsMono: Boolean): Boolean;
+var
+  w, h: LongWord;
+  BitDepth, ct, cm, fm, im: Byte;
+begin
+  try
+    PNGInfoIHDR(S, w, h, BitDepth, ct, cm, fm, im);
+    Result := (BitDepth = 1) or (not CheckIsMono);
+  except
+    Result := False;
+  end;
+end;
+
+procedure PNGInfoIHDR(S: TStream; out Width: LongWord; out Height: LongWord;
+  out BitDepth: Byte; out ColorType: Byte; out CompressionMethod: Byte; out
+  FilterMethod: Byte; out InterlaceMethod: Byte);
+var
+  Ok: Boolean;
+  p: Int64;
+  Buffer: array[0..7] of Byte;
+  l: Cardinal;
+  t, d: AnsiString;
+
+  procedure ReadNextChunk(S: TStream; out Len: Cardinal; out ChunckType: AnsiString; out Data: AnsiString);
+  var
+    LenStr: AnsiString;
   begin
-    // Lendo as cores
-    bColorPlanes := 0; bBitsPerPixel := 0;
-    S.Position := 26;
-    S.ReadBuffer(bColorPlanes, 2);
-    S.ReadBuffer(bBitsPerPixel, 2);
-    Result := (bColorPlanes = 1) and (bBitsPerPixel = 1);
+    Len := 0; LenStr := ''; ChunckType := ''; Data := '';
+    Setlength(LenStr, 4);
+    S.Read(PAnsiChar(LenStr)^, 4);
+    Len := BEStrToInt(LenStr);
+    if (Len > 0) then
+    begin
+      Setlength(ChunckType, 4);
+      S.Read(PAnsiChar(ChunckType)^, 4);
+      Setlength(Data, Len);
+      S.Read(PAnsiChar(Data)^, Len);
+    end;
   end;
 
-  S.Position := p;
+begin
+  Width := 0; Height := 0; BitDepth := 0; ColorType := 0;
+  CompressionMethod := 0; FilterMethod := 0; InterlaceMethod := 0;
+  p := S.Position;
+  try
+    S.Position := 0;
+    Buffer[0] := 0;
+    S.ReadBuffer(Buffer,8);
+    Ok := (Buffer[0] = 137) and
+          (Buffer[1] = 80) and
+          (Buffer[2] = 78) and
+          (Buffer[3] = 71) and
+          (Buffer[4] = 13) and
+          (Buffer[5] = 10) and
+          (Buffer[6] = 26) and
+          (Buffer[7] = 10);
+
+    if not Ok then
+      raise EACBrImage.Create(ACBrStr(cErrImgNotPNG));
+
+    t := '';
+    l := 1;
+    while (t <> 'IHDR') and (t <> 'IEND') and (l > 0) do
+      ReadNextChunk(S, l, t, d);
+
+    if (t = 'IHDR') and (l = 13) then
+    begin
+      { The IHDR chunk must appear FIRST. It contains:
+         Width:              4 bytes
+         Height:             4 bytes
+         Bit depth:          1 byte
+         Color type:         1 byte
+         Compression method: 1 byte
+         Filter method:      1 byte
+         Interlace method:   1 byte }
+      Width := BEStrToInt(copy(d, 1, 4));
+      Height := BEStrToInt(copy(d, 5, 4));
+      BitDepth := Byte(d[9]);
+      ColorType := Byte(d[10]);
+      CompressionMethod := Byte(d[11]);
+      FilterMethod := Byte(d[12]);
+      InterlaceMethod := Byte(d[13]);
+    end;
+  finally
+    S.Position := p;
+  end;
 end;
 
 procedure BMPMonoToRasterStr(ABMPStream: TStream; InvertImg: Boolean; out
@@ -169,7 +269,7 @@ begin
   // https://github.com/asharif/img2grf/blob/master/src/main/java/org/orphanware/App.java
 
   if not IsBMP(ABMPStream, True) then
-    raise EACBrImage.Create(ACBrStr(cErrImgBMPMono));
+    raise EACBrImage.Create(ACBrStr(cErrImgNotBMPMono));
 
   // Lendo posição do Off-set da imagem
   ABMPStream.Position := 10;
@@ -217,7 +317,7 @@ begin
   RealWidth := trunc(WidthExtended);
   BytesPerWidth := ceil(RealWidth / 8);
   if RealWidth < WidthExtended then
-    bSizePixelArr := (BytesPerWidth * bHeight) ;
+    bSizePixelArr := (LongWord(BytesPerWidth) * bHeight) ;
 
   StreamLastPos := min(Int64(bPixelOffset + bSizePixelArr - 1), ABMPStream.Size-1);
 
@@ -486,88 +586,143 @@ begin
 end;
 
 {$IfNDef NOGUI}
-{$IfNDef FPC}
-procedure RedGreenBlue(rgb: TColorRef; out Red, Green, Blue: Byte);
-begin
-  Red := rgb and $000000ff;
-  Green := (rgb shr 8) and $000000ff;
-  Blue := (rgb shr 16) and $000000ff;
-end;
-{$EndIf}
-
-procedure BitmapToRasterStr(ABmpSrc: TBitmap; InvertImg: Boolean; out
-  AWidth: Integer; out AHeight: Integer; out ARasterStr: AnsiString;
-  LuminosityThreshold: Byte);
-var
-  MS: TMemoryStream;
-  Row, Col: Integer;
-  cRed, cGreen, cBlue: Byte;
-  Luminosity: Int64;
-  ByteStr: String;
-  Bit: Boolean;
-  {$IfDef FMX}
-   BitMapData: TBitmapData;
-   APixel: TAlphaColor;
-  {$Else}
-   APixel: TColor;
-  {$EndIf}
-begin
-  AWidth := 0; AHeight := 0; ARasterStr := '';
-
-  if (ABmpSrc.PixelFormat = {$IfDef FMX}TPixelFormat.RGB{$Else}pf1bit{$EndIf}) then  // Já é Mono ?
+ {$IfNDef FPC}
+  procedure RedGreenBlue(rgb: TColorRef; out Red, Green, Blue: Byte);
   begin
-    MS := TMemoryStream.Create;
-    try
-      ABmpSrc.SaveToStream(MS);
-      BMPMonoToRasterStr(MS, True, AWidth, AHeight, ARasterStr);
-    finally
-      MS.Free;
-    end;
-
-    Exit;
+    Red := rgb and $000000ff;
+    Green := (rgb shr 8) and $000000ff;
+    Blue := (rgb shr 16) and $000000ff;
   end;
+ {$EndIf}
 
-  AWidth := ABmpSrc.Width;
-  AHeight := ABmpSrc.Height;
-  for Row := 0 to AHeight - 1 do
-  begin
-    ByteStr := '';
+ procedure BitmapToRasterStr(ABmpSrc: TBitmap; InvertImg: Boolean; out
+   AWidth: Integer; out AHeight: Integer; out ARasterStr: AnsiString;
+   LuminosityThreshold: Byte);
+ var
+   MS: TMemoryStream;
+   Row, Col: Integer;
+   cRed, cGreen, cBlue: Byte;
+   Luminosity: Int64;
+   ByteStr: String;
+   Bit: Boolean;
+   {$IfDef FMX}
+    BitMapData: TBitmapData;
+    APixel: TAlphaColor;
+   {$Else}
+    APixel: TColor;
+   {$EndIf}
+ begin
+   AWidth := 0; AHeight := 0; ARasterStr := '';
 
-    {$IfDef FMX}
-    if ABmpSrc.Map(TMapAccess.Read, BitMapData) then
-    try
-    {$EndIf}
-      for Col := 0 to AWidth - 1 do
-      begin
-        {$IfDef FMX}
-        APixel := BitMapData.GetPixel(Col, Row);
-        {$Else}
-        APixel := ABmpSrc.Canvas.Pixels[Col, Row];
-        {$EndIf}
-        cRed := 0; cGreen := 0; cBlue := 0;
-        RedGreenBlue(APixel, cRed, cGreen, cBlue);
-        Luminosity := Trunc( ( cRed * 0.3 ) + ( cGreen  * 0.59 ) + ( cBlue * 0.11 ) );
-        Bit := ( Luminosity > LuminosityThreshold );
-        if InvertImg then
-          Bit := not Bit;
+   if (ABmpSrc.PixelFormat = {$IfDef FMX}TPixelFormat.RGB{$Else}pf1bit{$EndIf}) then  // Já é Mono ?
+   begin
+     MS := TMemoryStream.Create;
+     try
+       ABmpSrc.SaveToStream(MS);
+       BMPMonoToRasterStr(MS, True, AWidth, AHeight, ARasterStr);
+     finally
+       MS.Free;
+     end;
 
-        ByteStr := ByteStr + ifthen(Bit,'1','0');
-        if (Length(ByteStr) = 8) then
-        begin
-          ARasterStr := ARasterStr + AnsiChr(BinToInt(ByteStr));
-          ByteStr := '';
-        end;
-      end;
-    {$IfDef FMX}
-    finally
-      ABmpSrc.Unmap(BitMapData);
-    end;
-    {$EndIf}
+     Exit;
+   end;
 
-    if (Length(ByteStr) > 0) then
-      ARasterStr := ARasterStr + AnsiChr(BinToInt(PadRight(ByteStr, 8, '0')));
-  end;
-end;
+   AWidth := ABmpSrc.Width;
+   AHeight := ABmpSrc.Height;
+   for Row := 0 to AHeight - 1 do
+   begin
+     ByteStr := '';
+
+     {$IfDef FMX}
+     if ABmpSrc.Map(TMapAccess.Read, BitMapData) then
+     try
+     {$EndIf}
+       for Col := 0 to AWidth - 1 do
+       begin
+         {$IfDef FMX}
+         APixel := BitMapData.GetPixel(Col, Row);
+         {$Else}
+         APixel := ABmpSrc.Canvas.Pixels[Col, Row];
+         {$EndIf}
+         cRed := 0; cGreen := 0; cBlue := 0;
+         RedGreenBlue(APixel, cRed, cGreen, cBlue);
+         Luminosity := Trunc( ( cRed * 0.3 ) + ( cGreen  * 0.59 ) + ( cBlue * 0.11 ) );
+         Bit := ( Luminosity > LuminosityThreshold );
+         if InvertImg then
+           Bit := not Bit;
+
+         ByteStr := ByteStr + ifthen(Bit,'1','0');
+         if (Length(ByteStr) = 8) then
+         begin
+           ARasterStr := ARasterStr + AnsiChr(BinToInt(ByteStr));
+           ByteStr := '';
+         end;
+       end;
+     {$IfDef FMX}
+     finally
+       ABmpSrc.Unmap(BitMapData);
+     end;
+     {$EndIf}
+
+     if (Length(ByteStr) > 0) then
+       ARasterStr := ARasterStr + AnsiChr(BinToInt(PadRight(ByteStr, 8, '0')));
+   end;
+ end;
+
+ procedure PintarQRCode(const QRCodeData: String; ABitMap: TBitmap;
+   const AEncoding: TQRCodeEncoding);
+ var
+   QRCode: TDelphiZXingQRCode;
+   QRCodeBitmap: TBitmap;
+   Row, Column: Integer;
+   {$IfDef FMX}
+    BitMapData: TBitmapData;
+   {$EndIf}
+ begin
+   QRCode       := TDelphiZXingQRCode.Create;
+   QRCodeBitmap := TBitmap.Create;
+   try
+     QRCode.Encoding  := AEncoding;
+     QRCode.QuietZone := 1;
+     QRCode.Data      := widestring(QRCodeData);
+
+     //QRCodeBitmap.SetSize(QRCode.Rows, QRCode.Columns);
+     QRCodeBitmap.Width  := QRCode.Columns;
+     QRCodeBitmap.Height := QRCode.Rows;
+
+     {$IfDef FMX}
+     if QRCodeBitmap.Map(TMapAccess.Read, BitMapData) then
+     try
+     {$EndIf}
+       for Row := 0 to QRCode.Rows - 1 do
+       begin
+         for Column := 0 to QRCode.Columns - 1 do
+         begin
+           {$IfDef FMX}
+             if (QRCode.IsBlack[Row, Column]) then
+               BitMapData.SetPixel(Column, Row, claBlack)
+             else
+               BitMapData.SetPixel(Column, Row, claWhite);
+           {$Else}
+             if (QRCode.IsBlack[Row, Column]) then
+               QRCodeBitmap.Canvas.Pixels[Column, Row] := clBlack
+             else
+               QRCodeBitmap.Canvas.Pixels[Column, Row] := clWhite;
+           {$EndIf}
+         end;
+       end;
+     {$IfDef FMX}
+     finally
+       QRCodeBitmap.Unmap(BitMapData);
+     end;
+     {$EndIf}
+
+     ABitMap.Assign(QRCodeBitmap);
+   finally
+     QRCode.Free;
+     QRCodeBitmap.Free;
+   end;
+ end;
 {$EndIf}
 
 end.

@@ -38,7 +38,6 @@ interface
 
 uses
   SysUtils, Classes, StrUtils,
-  ACBrUtil,
   ACBrXmlBase, ACBrXmlDocument,
   ACBrNFSeXConversao, ACBrNFSeXLerXml;
 
@@ -56,6 +55,9 @@ type
 
 implementation
 
+uses
+  ACBrUtil.Base, ACBrUtil.XMLHTML, ACBrUtil.DateTime, ACBrUtil.Strings;
+
 //==============================================================================
 // Essa unit tem por finalidade exclusiva ler o XML do provedor:
 //     AssessorPublico
@@ -68,7 +70,7 @@ var
   XmlNode: TACBrXmlNode;
   xRetorno: string;
 begin
-  xRetorno := TratarXmlRetorno(Arquivo);
+  xRetorno := Arquivo;
 
   if EstaVazio(xRetorno) then
     raise Exception.Create('Arquivo xml não carregado.');
@@ -110,7 +112,8 @@ begin
 
   AuxNode := ANode.Childrens.FindAnyNs('NOTA');
 
-  if AuxNode = nil then Exit;
+  if AuxNode = nil then
+    AuxNode := ANode;
 
   NFSe.Link       := ObterConteudo(AuxNode.Childrens.FindAnyNs('LINK'), tcStr);
   NFSe.NumeroLote := ObterConteudo(AuxNode.Childrens.FindAnyNs('LOTE'), tcStr);
@@ -118,9 +121,14 @@ begin
 
   NFSe.InfID.ID := NFSe.Numero;
 
+  NFSe.IdentificacaoRps.Numero := ObterConteudo(AuxNode.Childrens.FindAnyNs('SEQUENCIA'), tcStr);
+  NFSe.CodigoVerificacao := ObterConteudo(AuxNode.Childrens.FindAnyNs('RPS'), tcStr);
+  {
   NFSe.IdentificacaoRps.Numero := ObterConteudo(AuxNode.Childrens.FindAnyNs('RPS'), tcStr);
-  NFSe.IdentificacaoRps.Serie  := ObterConteudo(AuxNode.Childrens.FindAnyNs('SEQUENCIA'), tcStr);
+  NFSe.CodigoVerificacao := NFSe.IdentificacaoRps.Numero;
 
+  NFSe.IdentificacaoRps.Serie  := ObterConteudo(AuxNode.Childrens.FindAnyNs('SEQUENCIA'), tcStr);
+  }
   NFSe.Competencia := ObterConteudo(AuxNode.Childrens.FindAnyNs('MESCOMP'), tcStr) +
                       ObterConteudo(AuxNode.Childrens.FindAnyNs('ANOCOMP'), tcStr);
 
@@ -242,7 +250,7 @@ begin
 
         DescontoIncondicionado := ObterConteudo(ANodes[i].Childrens.FindAnyNs('DESCONTO'), tcDe2);
 
-        ValorTotal := Quantidade + ValorUnitario;
+        ValorTotal := Quantidade * ValorUnitario;
         Tributavel := snSim;
       end;
     end;

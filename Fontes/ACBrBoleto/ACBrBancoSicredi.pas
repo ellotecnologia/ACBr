@@ -85,8 +85,7 @@ implementation
 
 uses
   {$IFDEF COMPILER6_UP} dateutils {$ELSE} ACBrD5 {$ENDIF},
-  StrUtils,
-  ACBrUtil,
+  StrUtils, ACBrUtil.Base, ACBrUtil.FilesIO, ACBrUtil.Strings, ACBrUtil.DateTime,
   ACBrValidador;
 
 { TACBrBancoSicredi }
@@ -101,7 +100,7 @@ begin
    fpTamanhoAgencia        := 4;
    fpTamanhoConta          := 5;
    fpTamanhoCarteira       := 1;
-   fpCodigosMoraAceitos    := 'AB012';
+   fpCodigosMoraAceitos    := 'AB0123';
    fpCodigosGeracaoAceitos := '23456789';
    fpLayoutVersaoArquivo   := 81;
    fpLayoutVersaoLote      := 40;
@@ -444,7 +443,7 @@ begin
          aRemessa.Text:= aRemessa.Text + UpperCase(wLinha);
 
          {8.3 Registro Mensagem}
-         if Mensagem.Count > 0 then
+         if (Mensagem.Count > 0) and (OcorrenciaOriginal.Tipo <> toRemessaBaixar) then
          begin
            TextoRegInfo := PadRight(Mensagem[0], 80);
            if Mensagem.Count > 1 then

@@ -44,7 +44,7 @@ uses
   Variants, Graphics, Controls, Forms, Dialogs,
   ACBrBase, ACBrNFeDANFEClass, pcnNFe, ACBrNFe,
   RLReport, RLHTMLFilter, RLFilters, RLPDFFilter,
-  ACBrUtil, pcnConversao, ACBrDFeUtil, ACBrValidador;
+  pcnConversao, ACBrDFeUtil;
 
 type
   TACBrNFeDANFCeFortesA4Filtro = (fiNenhum, fiPDF, fiHTML ) ;
@@ -305,8 +305,15 @@ implementation
   {$R *.dfm}
 {$ENDIF}
 
-uses RLPrinters, StrUtils,
-     ACBrDFeDANFeReport, ACBrDFeReportFortes, ACBrDFeREport, ACBrDelphiZXingQRCode;
+uses
+  StrUtils,
+  RLPrinters,
+  ACBrUtil,
+  ACBrUtil.Strings,
+  ACBrUtil.FilesIO,
+  ACBrUtil.DateTime,
+  ACBrDFeDANFeReport, ACBrDFeReportFortes,
+  ACBrValidador, ACBrImage, ACBrDelphiZXingQRCode;
 
 function TfrmACBrDANFCeFortesFrA4.CompoemEnderecoCFe: String;
 var
@@ -432,8 +439,14 @@ end;
 
 procedure TfrmACBrDANFCeFortesFrA4.RLBand13BeforePrint(Sender: TObject;
   var PrintIt: Boolean);
+var
+  vAcrescimos: Currency;
 begin
-  PrintIt := (self.FACBrNFeDANFCeFortesA4.FpNFe.Total.ICMSTot.vOutro > 0);
+  with self.FACBrNFeDANFCeFortesA4.FpNFe.Total do
+  begin
+    vAcrescimos := ICMSTot.vFrete + ICMSTot.vSeg + ICMSTot.vOutro;
+  end;
+  PrintIt := (vAcrescimos > 0);
 end;
 
 procedure TfrmACBrDANFCeFortesFrA4.RLBand15BeforePrint(Sender: TObject;
@@ -535,27 +548,33 @@ end;
 procedure TfrmACBrDANFCeFortesFrA4.RLLabel16BeforePrint(Sender: TObject;
   var Text: string; var PrintIt: Boolean);
 begin
-  Text := FormatFloatBr( self.FACBrNFeDANFCeFortesA4.FpNFe.Det[self.FNumItem].Prod.qCom, ',0.00##') + ' ' +
+  Text := self.FACBrNFeDANFCeFortesA4.FormatarQuantidade(self.FACBrNFeDANFCeFortesA4.FpNFe.Det[self.FNumItem].Prod.qCom) + ' ' +
           self.FACBrNFeDANFCeFortesA4.FpNFe.Det[self.FNumItem].Prod.uCom;
 end;
 
 procedure TfrmACBrDANFCeFortesFrA4.RLLabel17BeforePrint(Sender: TObject;
   var Text: string; var PrintIt: Boolean);
 begin
-  Text := FormatFloatBr( self.FACBrNFeDANFCeFortesA4.FpNFe.Det[self.FNumItem].Prod.vUnCom, 'R$ ,0.00##');
+  Text := 'R$ ' + self.FACBrNFeDANFCeFortesA4.FormatarValorUnitario(self.FACBrNFeDANFCeFortesA4.FpNFe.Det[self.FNumItem].Prod.vUnCom);
 end;
 
 procedure TfrmACBrDANFCeFortesFrA4.RLLabel18BeforePrint(Sender: TObject;
   var Text: string; var PrintIt: Boolean);
 begin
-  Text := FormatFloatBr( self.FACBrNFeDANFCeFortesA4.FpNFe.Det[self.FNumItem].Prod.vDesc, ',0.00##');
+  Text := FormatFloatBr( self.FACBrNFeDANFCeFortesA4.FpNFe.Det[self.FNumItem].Prod.vDesc, ',0.00');
   PrintIt := FACBrNFeDANFCeFortesA4.ImprimeDescAcrescItem;
 end;
 
 procedure TfrmACBrDANFCeFortesFrA4.RLLabel19BeforePrint(Sender: TObject;
   var Text: string; var PrintIt: Boolean);
+var
+  vAcrescimos: Currency;
 begin
-  Text := FormatFloatBr( self.FACBrNFeDANFCeFortesA4.FpNFe.Det[self.FNumItem].Prod.vOutro, ',0.00##');
+  with self.FACBrNFeDANFCeFortesA4.FpNFe.Det[self.FNumItem] do
+  begin
+    vAcrescimos := Prod.vFrete + Prod.vSeg + Prod.vOutro;
+  end;
+  Text := FormatFloatBr( vAcrescimos, ',0.00');
   PrintIt := FACBrNFeDANFCeFortesA4.ImprimeDescAcrescItem;
 end;
 
@@ -568,7 +587,7 @@ end;
 procedure TfrmACBrDANFCeFortesFrA4.RLLabel20BeforePrint(Sender: TObject;
   var Text: string; var PrintIt: Boolean);
 begin
-  Text := FormatFloatBr( self.FACBrNFeDANFCeFortesA4.FpNFe.Det[self.FNumItem].Prod.vProd, 'R$ ,0.00##');
+  Text := FormatFloatBr( self.FACBrNFeDANFCeFortesA4.FpNFe.Det[self.FNumItem].Prod.vProd, 'R$ ,0.00');
 end;
 
 procedure TfrmACBrDANFCeFortesFrA4.RLLabel22BeforePrint(Sender: TObject;
@@ -680,8 +699,15 @@ end;
 
 procedure TfrmACBrDANFCeFortesFrA4.RLLabel3BeforePrint(Sender: TObject;
   var Text: string; var PrintIt: Boolean);
+var
+  vAcrescimos: Currency;
 begin
-  Text := FormatFloatBr( self.FACBrNFeDANFCeFortesA4.FpNFe.Total.ICMSTot.vOutro, 'R$ ,0.00;R$ -,0.00');
+  with self.FACBrNFeDANFCeFortesA4.FpNFe.Total do
+  begin
+    vAcrescimos := ICMSTot.vSeg + ICMSTot.vOutro;
+  end;
+  Text := FormatFloatBr( vAcrescimos, 'R$ ,0.00;R$ -,0.00');
+
 end;
 
 procedure TfrmACBrDANFCeFortesFrA4.RLLabel41BeforePrint(Sender: TObject;

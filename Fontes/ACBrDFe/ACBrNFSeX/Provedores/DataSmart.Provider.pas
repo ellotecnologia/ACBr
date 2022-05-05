@@ -53,6 +53,8 @@ type
     function ConsultarNFSePorFaixa(ACabecalho, AMSG: String): string; override;
     function Cancelar(ACabecalho, AMSG: String): string; override;
 
+    function TratarXmlRetornado(const aXML: string): string; override;
+
     property DadosUsuario: string read GetDadosUsuario;
   end;
 
@@ -73,6 +75,7 @@ type
 implementation
 
 uses
+  ACBrUtil.XMLHTML,
   ACBrDFeException,
   ACBrXmlBase, ACBrXmlDocument,
   ACBrNFSeX, ACBrNFSeXNotasFiscais, ACBrNFSeXConsts,
@@ -139,14 +142,14 @@ var
   ANode, AuxNode: TACBrXmlNode;
   ANodeArray: TACBrXmlNodeArray;
   NumRps: String;
-  ANota: NotaFiscal;
+  ANota: TNotaFiscal;
   I: Integer;
 begin
   Document := TACBrXmlDocument.Create;
 
   try
     try
-      if Response.XmlRetorno = '' then
+      if Response.ArquivoRetorno = '' then
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod201;
@@ -154,7 +157,7 @@ begin
         Exit
       end;
 
-      Document.LoadFromXml(Response.XmlRetorno);
+      Document.LoadFromXml(Response.ArquivoRetorno);
 
       ANode := Document.Root;
 
@@ -200,7 +203,7 @@ begin
           ANota := TACBrNFSeX(FAOwner).NotasFiscais.FindByRps(NumRps);
 
           if Assigned(ANota) then
-            ANota.XML := ANode.OuterXml
+            ANota.XmlNfse := ANode.OuterXml
           else
           begin
             TACBrNFSeX(FAOwner).NotasFiscais.LoadFromString(ANode.OuterXml, False);
@@ -231,14 +234,14 @@ var
   Document: TACBrXmlDocument;
   ANode, AuxNode, AuxNode2, ANodeNota: TACBrXmlNode;
   AErro: TNFSeEventoCollectionItem;
-  ANota: NotaFiscal;
+  ANota: TNotaFiscal;
   NumRps: String;
 begin
   Document := TACBrXmlDocument.Create;
 
   try
     try
-      if Response.XmlRetorno = '' then
+      if Response.ArquivoRetorno = '' then
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod201;
@@ -246,7 +249,7 @@ begin
         Exit
       end;
 
-      Document.LoadFromXml(Response.XmlRetorno);
+      Document.LoadFromXml(Response.ArquivoRetorno);
 
       ANode := Document.Root;
 
@@ -301,7 +304,7 @@ begin
         ANota := TACBrNFSeX(FAOwner).NotasFiscais.FindByRps(NumRps);
 
         if Assigned(ANota) then
-          ANota.XML := ANodeNota.OuterXml
+          ANota.XmlNfse := ANodeNota.OuterXml
         else
         begin
           TACBrNFSeX(FAOwner).NotasFiscais.LoadFromString(ANodeNota.OuterXml, False);
@@ -333,14 +336,14 @@ var
   ANode, AuxNode: TACBrXmlNode;
   ANodeArray: TACBrXmlNodeArray;
   NumRps: String;
-  ANota: NotaFiscal;
+  ANota: TNotaFiscal;
   I: Integer;
 begin
   Document := TACBrXmlDocument.Create;
 
   try
     try
-      if Response.XmlRetorno = '' then
+      if Response.ArquivoRetorno = '' then
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod201;
@@ -348,7 +351,7 @@ begin
         Exit
       end;
 
-      Document.LoadFromXml(Response.XmlRetorno);
+      Document.LoadFromXml(Response.ArquivoRetorno);
 
       ANode := Document.Root;
 
@@ -386,7 +389,7 @@ begin
           ANota := TACBrNFSeX(FAOwner).NotasFiscais.FindByRps(NumRps);
 
           if Assigned(ANota) then
-            ANota.XML := ANode.OuterXml
+            ANota.XmlNfse := ANode.OuterXml
           else
           begin
             TACBrNFSeX(FAOwner).NotasFiscais.LoadFromString(ANode.OuterXml, False);
@@ -423,7 +426,7 @@ begin
 
   try
     try
-      if Response.XmlRetorno = '' then
+      if Response.ArquivoRetorno = '' then
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod201;
@@ -431,7 +434,7 @@ begin
         Exit
       end;
 
-      Document.LoadFromXml(Response.XmlRetorno);
+      Document.LoadFromXml(Response.ArquivoRetorno);
 
       ANode := Document.Root;
 
@@ -526,9 +529,9 @@ var
   xPref: string;
 begin
   if TACBrNFSeX(FPDFeOwner).Configuracoes.WebServices.AmbienteCodigo = 1 then
-    xPref := TACBrNFSeX(FPDFeOwner).Provider.ConfigGeral.Params1
+    xPref := TACBrNFSeX(FPDFeOwner).Provider.ConfigGeral.Params.ValorParametro('AliasCidade')
   else
-    xPref := TACBrNFSeX(FPDFeOwner).Provider.ConfigGeral.Params2;
+    xPref := 'BANCO_DEMONSTRACAO';
 
   with TACBrNFSeX(FPDFeOwner).Configuracoes.Geral do
   begin
@@ -615,6 +618,15 @@ begin
                      ['return', 'outputXML'],
                      ['xmlns:dat="http://www.datasmart.com.br/"',
                       'xmlns:nfse="http://www.abrasf.org.br/nfse.xsd"']);
+end;
+
+function TACBrNFSeXWebserviceDataSmart202.TratarXmlRetornado(
+  const aXML: string): string;
+begin
+  Result := inherited TratarXmlRetornado(aXML);
+
+  Result := ParseText(AnsiString(Result), True, False);
+  Result := RemoverDeclaracaoXML(Result);
 end;
 
 end.

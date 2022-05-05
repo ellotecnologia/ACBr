@@ -52,6 +52,8 @@ type
     function ConsultarLote(ACabecalho, AMSG: String): string; override;
     function Cancelar(ACabecalho, AMSG: String): string; override;
 
+    function TratarXmlRetornado(const aXML: string): string; override;
+
     property DadosUsuario: string read GetDadosUsuario;
   end;
 
@@ -75,10 +77,10 @@ type
     procedure PrepararCancelaNFSe(Response: TNFSeCancelaNFSeResponse); override;
     procedure TratarRetornoCancelaNFSe(Response: TNFSeCancelaNFSeResponse); override;
 
-    procedure ProcessarMensagemErros(const RootNode: TACBrXmlNode;
-                                     const Response: TNFSeWebserviceResponse;
-                                     AListTag: string = '';
-                                     AMessageTag: string = 'Erro'); override;
+    procedure ProcessarMensagemErros(RootNode: TACBrXmlNode;
+                                     Response: TNFSeWebserviceResponse;
+                                     const AListTag: string = '';
+                                     const AMessageTag: string = 'Erro'); override;
   end;
 
   TACBrNFSeXWebserviceSmarAPD203 = class(TACBrNFSeXWebserviceSoap11)
@@ -94,6 +96,7 @@ type
     function Cancelar(ACabecalho, AMSG: String): string; override;
     function SubstituirNFSe(ACabecalho, AMSG: String): string; override;
 
+    function TratarXmlRetornado(const aXML: string): string; override;
   end;
 
   TACBrNFSeProviderSmarAPD203 = class (TACBrNFSeProviderABRASFv2)
@@ -119,6 +122,7 @@ type
     function Cancelar(ACabecalho, AMSG: String): string; override;
     function SubstituirNFSe(ACabecalho, AMSG: String): string; override;
 
+    function TratarXmlRetornado(const aXML: string): string; override;
   end;
 
   TACBrNFSeProviderSmarAPD204 = class (TACBrNFSeProviderABRASFv2)
@@ -134,7 +138,11 @@ type
 implementation
 
 uses
-  ACBrUtil, ACBrDFeException, SynaCode,
+  SynaCode,
+  ACBrUtil.Base,
+  ACBrUtil.Strings,
+  ACBrUtil.XMLHTML,
+  ACBrDFeException,
   ACBrNFSeX, ACBrNFSeXConfiguracoes, ACBrNFSeXConsts,
   ACBrNFSeXNotasFiscais, SmarAPD.GravarXml, SmarAPD.LerXml;
 
@@ -221,8 +229,8 @@ begin
 end;
 
 procedure TACBrNFSeProviderSmarAPD.ProcessarMensagemErros(
-  const RootNode: TACBrXmlNode; const Response: TNFSeWebserviceResponse;
-  AListTag, AMessageTag: string);
+  RootNode: TACBrXmlNode; Response: TNFSeWebserviceResponse;
+  const AListTag, AMessageTag: string);
 var
   I: Integer;
   ANode: TACBrXmlNode;
@@ -279,7 +287,7 @@ end;
 procedure TACBrNFSeProviderSmarAPD.GerarMsgDadosEmitir(
   Response: TNFSeEmiteResponse; Params: TNFSeParamsResponse);
 begin
-  Response.XmlEnvio := '<tbnfd>' + Params.Xml + '</tbnfd>';
+  Response.ArquivoEnvio := '<tbnfd>' + Params.Xml + '</tbnfd>';
 end;
 
 procedure TACBrNFSeProviderSmarAPD.TratarRetornoEmitir(
@@ -295,7 +303,7 @@ begin
 
   try
     try
-      if Response.XmlRetorno = '' then
+      if Response.ArquivoRetorno = '' then
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod201;
@@ -303,7 +311,7 @@ begin
         Exit
       end;
 
-      Document.LoadFromXml(Response.XmlRetorno);
+      Document.LoadFromXml(Response.ArquivoRetorno);
 
       ProcessarMensagemErros(Document.Root, Response, '', 'return');
 
@@ -361,7 +369,7 @@ begin
     Exit;
   end;
 
-  Response.XmlEnvio := '<recibo>' +
+  Response.ArquivoEnvio := '<recibo>' +
                          '<codrecibo>' + Response.Protocolo + '</codrecibo>' +
                        '</recibo>';
 end;
@@ -375,13 +383,13 @@ var
   ANodeArray: TACBrXmlNodeArray;
   i: Integer;
   NumNFSe: String;
-  ANota: NotaFiscal;
+  ANota: TNotaFiscal;
 begin
   Document := TACBrXmlDocument.Create;
 
   try
     try
-      if Response.XmlRetorno = '' then
+      if Response.ArquivoRetorno = '' then
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod201;
@@ -389,7 +397,7 @@ begin
         Exit
       end;
 
-      Document.LoadFromXml(Response.XmlRetorno);
+      Document.LoadFromXml(Response.ArquivoRetorno);
 
       ProcessarMensagemErros(Document.Root, Response, '', 'return');
 
@@ -424,7 +432,7 @@ begin
           ANota := TACBrNFSeX(FAOwner).NotasFiscais.FindByNFSe(NumNFSe);
 
           if Assigned(ANota) then
-            ANota.XML := ANode.OuterXml
+            ANota.XmlNfse := ANode.OuterXml
           else
           begin
             TACBrNFSeX(FAOwner).NotasFiscais.LoadFromString(ANode.OuterXml, False);
@@ -471,7 +479,7 @@ begin
 
   Emitente := TACBrNFSeX(FAOwner).Configuracoes.Geral.Emitente;
 
-  Response.XmlEnvio := '<nfd>' +
+  Response.ArquivoEnvio := '<nfd>' +
                          '<inscricaomunicipalemissor>' +
                            OnlyNumber(Emitente.InscMun) +
                          '</inscricaomunicipalemissor>' +
@@ -498,7 +506,7 @@ begin
 
   try
     try
-      if Response.XmlRetorno = '' then
+      if Response.ArquivoRetorno = '' then
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod201;
@@ -506,7 +514,7 @@ begin
         Exit
       end;
 
-      Document.LoadFromXml(Response.XmlRetorno);
+      Document.LoadFromXml(Response.ArquivoRetorno);
 
       ProcessarMensagemErros(Document.Root, Response, '', 'return');
 
@@ -556,13 +564,14 @@ var
   Request: string;
 begin
   FPMsgOrig := AMSG;
+  AMSG := StringReplace(AMSG, '&amp;', '&amp;amp;',[rfReplaceAll]);
 
   Request := '<sil:nfdEntrada xmlns:sil="http://webservices.sil.com/">';
   Request := Request + DadosUsuario;
   Request := Request + '<nfd>' + XmlToStr(AMSG) + '</nfd>';
   Request := Request + '</sil:nfdEntrada>';
 
-  Result := Executar('', Request, [''], []);
+  Result := Executar('', Request, [], []);
 end;
 
 function TACBrNFSeXWebserviceSmarAPD.ConsultarLote(ACabecalho,
@@ -580,7 +589,7 @@ begin
   Request := Request + '<recibo>' + XmlToStr(AMSG) + '</recibo>';
   Request := Request + '</sil:nfdSaida>';
 
-  Result := Executar('', Request, [''], []);
+  Result := Executar('', Request, [], []);
 end;
 
 function TACBrNFSeXWebserviceSmarAPD.Cancelar(ACabecalho, AMSG: String): string;
@@ -594,7 +603,18 @@ begin
   Request := Request + '<nfd>' + XmlToStr(AMSG) + '</nfd>';
   Request := Request + '</sil:nfdEntradaCancelar>';
 
-  Result := Executar('', Request, [''], []);
+  Result := Executar('', Request, [], []);
+end;
+
+function TACBrNFSeXWebserviceSmarAPD.TratarXmlRetornado(
+  const aXML: string): string;
+begin
+  Result := inherited TratarXmlRetornado(aXML);
+
+  Result := ParseText(AnsiString(Result), True, False);
+  Result := RemoverDeclaracaoXML(Result);
+  Result := RemoverIdentacao(Result);
+  Result := RemoverCaracteresDesnecessarios(Result);
 end;
 
 { TACBrNFSeProviderSmarAPD203 }
@@ -812,6 +832,17 @@ begin
   Result := Executar('', Request,
                      ['return', 'SubstituirNfseResposta'],
                      ['xmlns:nfse="http://nfse.abrasf.org.br"']);
+end;
+
+function TACBrNFSeXWebserviceSmarAPD203.TratarXmlRetornado(
+  const aXML: string): string;
+begin
+  Result := inherited TratarXmlRetornado(aXML);
+
+  Result := ParseText(AnsiString(Result), True, False);
+  Result := RemoverDeclaracaoXML(Result);
+  Result := RemoverIdentacao(Result);
+  Result := RemoverCaracteresDesnecessarios(Result);
 end;
 
 { TACBrNFSeProviderSmarAPD204 }
@@ -1044,6 +1075,17 @@ begin
   Result := Executar('http://nfse.abrasf.org.br/SubstituirNfse', Request,
                      ['outputXML', 'SubstituirNfseResposta'],
                      ['xmlns:nfse="http://nfse.abrasf.org.br"']);
+end;
+
+function TACBrNFSeXWebserviceSmarAPD204.TratarXmlRetornado(
+  const aXML: string): string;
+begin
+  Result := inherited TratarXmlRetornado(aXML);
+
+  Result := ParseText(AnsiString(Result));
+  Result := RemoverDeclaracaoXML(Result);
+  Result := RemoverIdentacao(Result);
+  Result := RemoverCaracteresDesnecessarios(Result);
 end;
 
 end.

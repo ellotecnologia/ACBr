@@ -81,7 +81,10 @@ type
 
 implementation
 
-Uses ACBrConsts, ACBrUtil,
+uses
+  ACBrConsts,
+  ACBrUtil,
+  ACBrUtil.Strings,
   pcnAuxiliar, pcnConversaoNFe;
 
 { TNFeRTXT }
@@ -185,7 +188,7 @@ begin
       tcDe10    : result := StringToFloat('0' + ConteudoTag);
       tcEsp     : result := ConteudoTag;
       tcInt     : result := StrToInt('0' + Trim(OnlyNumber(ConteudoTag)));
-      else
+      tcInt64   : result := StrToInt64('0' + Trim(OnlyNumber(ConteudoTag)));      else
        raise Exception.Create('Tag <' + Tag + '> com conteúdo inválido. '+ConteudoTag);
     end;
   except

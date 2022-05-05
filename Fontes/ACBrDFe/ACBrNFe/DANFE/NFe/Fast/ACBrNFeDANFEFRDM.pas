@@ -42,7 +42,6 @@ uses
   SysUtils, Classes, Forms, DB, DBClient, Graphics,
   pcnEnvEventoNFe, pcnRetInutNFe, pcnNFe, pcnConversao,
   ACBrDFeReport, ACBrDFeDANFeReport, ACBrNFeDANFEClass,
-  ACBrUtil, ACBrDelphiZXingQrCode,
   frxClass, frxExportPDF, frxDBSet, frxBarcode;
 
 type
@@ -184,7 +183,8 @@ implementation
 
 uses
   StrUtils, Math, DateUtils,
-  ACBrNFe, ACBrNFeDANFEFR, ACBrDFeUtil, ACBrValidador,
+  ACBrNFe, ACBrNFeDANFEFR, ACBrDFeUtil,
+  ACBrUtil, ACBrValidador, ACBrImage, ACBrDelphiZXingQRCode,
   pcnConversaoNFe;
 
 { TACBrNFeFRClass }
@@ -2074,10 +2074,7 @@ begin
         NFe := TACBrNFe(DANFEClassOwner.ACBrNFe).NotasFiscais.Items[i].NFe;
         CarregaDadosNFe;
 
-        if (i > 0) then
-          Result := frxReport.PrepareReport(False)
-        else
-          Result := frxReport.PrepareReport;
+        Result := frxReport.PrepareReport( not (i > 0) );
       end;
     end
     else

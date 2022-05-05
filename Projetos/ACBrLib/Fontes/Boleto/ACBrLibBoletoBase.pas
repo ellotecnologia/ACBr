@@ -47,10 +47,10 @@ type
   private
     FBoletoDM: TLibBoletoDM;
 
-    function ListaBancos(): AnsiString;
-    function ListaCaractTitulo() : AnsiString;
-    function ListaOcorrencias(): AnsiString;
-    function ListaOcorrenciasEX(): AnsiString;
+    function ListaBancos: AnsiString;
+    function ListaCaractTitulo : AnsiString;
+    function ListaOcorrencias: AnsiString;
+    function ListaOcorrenciasEX: AnsiString;
 
   protected
     procedure CriarConfiguracao(ArqConfig: string = ''; ChaveCrypt: ansistring = ''); override;
@@ -70,7 +70,9 @@ type
     function Imprimir(eNomeImpressora: PChar): longint;
     function ImprimirBoleto(eIndice: longint; eNomeImpressora: PChar): longint;
     function GerarPDF: longint;
+    function SalvarPDF(const sResposta: PChar; var esTamanho: longint): longint;
     function GerarPDFBoleto(eIndice: longint): longint;
+    function SalvarPDFBoleto(eIndice: longint; const sResposta: PChar; var esTamanho: longint): longint;
     function GerarHTML: longint;
     function GerarRemessa(eDir: PChar; eNumArquivo: longInt; eNomeArq: PChar): longint;
     function LerRetorno(eDir, eNomeArq: PChar): longint;
@@ -89,6 +91,7 @@ type
     function RetornaLinhaDigitavel(eIndice: longint; const sResposta: PChar; var esTamanho: longint): longint;
     function RetornaCodigoBarras(eIndice: longint; const sResposta: PChar; var esTamanho: longint): longint;
     function EnviarBoleto(eCodigoOperacao: longint; const sResposta: PChar; var esTamanho: longint): longint;
+    function ConsultarTitulosPorPeriodo(eArquivoIni: PChar; const sResposta: PChar; var esTamanho: longint): longint;
 
   end;
 
@@ -195,12 +198,12 @@ begin
       Exit;
     end;
 {$ENDIF}
-      
-      if not (BoletoDM.ACBrBoleto1.LerArqIni( ArquivoIni )) then
-         raise EACBrLibException.Create(ErrConfigLer, Format(SErroLerArquivoEntrada, [ArquivoIni]));
-      
+      BoletoDM.ConfigurarImpressao;
+
       try
-        BoletoDM.ConfigurarImpressao;
+        if not (BoletoDM.ACBrBoleto1.LerArqIni( ArquivoIni )) then
+         raise EACBrLibException.Create(ErrConfigLer, Format(SErroLerArquivoEntrada, [ArquivoIni]));
+
         AtualizaLayoutImpressao;
 
         if TpSaida = 'I' then
@@ -233,10 +236,8 @@ begin
             end;
           end;
         end;
-
       finally
          BoletoDM.FinalizarImpressao;
-         
       end;
 
       Result := SetRetorno(ErrOk, Format('%d Titulo(s) Carregado(s)', [BoletoDM.ACBrBoleto1.ListadeBoletos.Count]));
@@ -339,8 +340,7 @@ begin
     BoletoDM.Travar;
     try
       BoletoDM.ConfigurarImpressao(NomeImpressora);
-      BoletoDM.ACBrBoleto1.ACBrBoletoFC.IndiceImprimirIndividual := eIndice;
-      BoletoDM.ACBrBoleto1.Imprimir;
+      BoletoDM.ACBrBoleto1.Imprimir(eIndice);
       Result := SetRetorno(ErrOK);
     finally
       BoletoDM.FinalizarImpressao;
@@ -378,6 +378,39 @@ begin
   end;
 end;
 
+function TACBrLibBoleto.SalvarPDF(const sResposta: PChar; var esTamanho: longint): longint;
+Var
+  AStream: TMemoryStream;
+  Resposta: Ansistring;
+begin
+  try
+    GravarLog('Boleto_SalvarPDF', logNormal);
+
+    AStream := TMemoryStream.Create;
+
+    BoletoDM.Travar;
+    try
+      BoletoDM.ConfigurarImpressao;
+      BoletoDM.ACBrBoleto1.GerarPDF(AStream);
+
+      Resposta := StreamToBase64(AStream);
+
+      MoverStringParaPChar(Resposta, sResposta, esTamanho);
+      Result := SetRetorno(ErrOK, Resposta);
+    finally
+      BoletoDM.FinalizarImpressao;
+      AStream.Free;
+      BoletoDM.Destravar;
+    end;
+  except
+    on E: EACBrLibException do
+      Result := SetRetorno(E.Erro, E.Message);
+
+    on E: Exception do
+      Result := SetRetorno(ErrExecutandoMetodo, E.Message);
+  end;
+end;
+
 function TACBrLibBoleto.GerarPDFBoleto(eIndice: longint): longint;
 begin
   try
@@ -389,11 +422,45 @@ begin
       BoletoDM.Travar;
       try
         BoletoDM.ConfigurarImpressao;
-        BoletoDM.ACBrBoleto1.ACBrBoletoFC.IndiceImprimirIndividual := eIndice;
-        BoletoDM.ACBrBoleto1.GerarPDF;
+        BoletoDM.ACBrBoleto1.GerarPDF(eIndice);
         Result := SetRetorno(ErrOK);
       finally
         BoletoDM.FinalizarImpressao;
+        BoletoDM.Destravar;
+      end;
+    except
+      on E: EACBrLibException do
+        Result := SetRetorno(E.Erro, E.Message);
+
+      on E: Exception do
+        Result := SetRetorno(ErrExecutandoMetodo, E.Message);
+    end;
+end;
+
+function TACBrLibBoleto.SalvarPDFBoleto(eIndice: longint; const sResposta: PChar; var esTamanho: longint): longint;
+Var
+  AStream: TMemoryStream;
+  Resposta: Ansistring;
+begin
+  try
+      if Config.Log.Nivel > logNormal then
+        GravarLog('Boleto_SalvarPDFBoleto(' + IntToStr(eIndice) + ' )', logCompleto, True)
+      else
+        GravarLog('Boleto_SalvarPDFBoleto', logNormal);
+
+      AStream := TMemoryStream.Create;
+
+      BoletoDM.Travar;
+      try
+        BoletoDM.ConfigurarImpressao;
+        BoletoDM.ACBrBoleto1.GerarPDF(eIndice, AStream);
+
+        Resposta := StreamToBase64(AStream);
+        MoverStringParaPChar(Resposta, sResposta, esTamanho);
+        Result := SetRetorno(ErrOK, Resposta);
+      finally
+        BoletoDM.FinalizarImpressao;
+        AStream.Free;
         BoletoDM.Destravar;
       end;
     except
@@ -973,7 +1040,7 @@ begin
   end;
 end;
 
-function TACBrLibBoleto.ListaBancos(): AnsiString;
+function TACBrLibBoleto.ListaBancos: AnsiString;
 var
    SBanco : String;
    I: Integer;
@@ -990,7 +1057,7 @@ begin
       Result := copy(Result,1,Length(Result)-1) ;
 end;
 
-function TACBrLibBoleto.ListaCaractTitulo(): AnsiString;
+function TACBrLibBoleto.ListaCaractTitulo: AnsiString;
 var
    ICaractTitulo : TACBrCaracTitulo;
    SCaractTitulo : String;
@@ -1007,7 +1074,7 @@ begin
       Result := copy(Result,1,Length(Result)-1) ;
 end;
 
-function TACBrLibBoleto.ListaOcorrencias(): AnsiString;
+function TACBrLibBoleto.ListaOcorrencias: AnsiString;
 var
    ITipoOcorrencia : TACBrTipoOcorrencia;
    SOcorrencia     : String;
@@ -1022,7 +1089,7 @@ begin
     Result := copy(Result,1,Length(Result)-1) ;
 end;
 
-function TACBrLibBoleto.ListaOcorrenciasEX(): AnsiString;
+function TACBrLibBoleto.ListaOcorrenciasEX: AnsiString;
 var
    ITipoOcorrencia : TACBrTipoOcorrencia;
    SOcorrencia     : String;
@@ -1101,6 +1168,70 @@ begin
     on E: Exception do
       Result := SetRetorno(ErrExecutandoMetodo, E.Message);
   end;
+end;
+
+function TACBrLibBoleto.ConsultarTitulosPorPeriodo(eArquivoIni: PChar; const sResposta: PChar; var esTamanho: longint): longint;
+var
+  ArquivoIni: AnsiString;
+  Resposta: AnsiString;
+  Titulo : TRetornoRegistroWeb;
+  Titulos: TArray<TRetornoRegistroWeb>;
+  I: Integer;
+begin
+  try
+    ArquivoIni := ConverterAnsiParaUTF8(eArquivoIni);
+
+    if Config.Log.Nivel > logNormal then
+      GravarLog('Boleto_ConsultarTitulosPeriodo(' + ArquivoIni + ' )', logCompleto, True)
+    else
+      GravarLog('Boleto_ConsultarTitulosPeriodo', logNormal);
+
+    BoletoDM.Travar;
+    try
+      if not (BoletoDM.ACBrBoleto1.LerArqIni( ArquivoIni )) then
+        raise EACBrLibException.Create(ErrConfigLer, Format(SErroLerArquivoEntrada, [ArquivoIni]));
+
+      BoletoDM.ACBrBoleto1.Configuracoes.WebService.Operacao := tpConsulta;
+      BoletoDM.ACBrBoleto1.EnviarBoleto;
+
+      if BoletoDM.ACBrBoleto1.ListaRetornoWeb.Count > 0 then
+      begin
+        SetLength(Titulos, BoletoDM.ACBrBoleto1.ListaRetornoWeb.Count);
+        try
+          for I:= 0 to BoletoDM.ACBrBoleto1.ListaRetornoWeb.Count -1 do
+          begin
+            Titulo := TRetornoRegistroWeb.Create(I + 1, Config.TipoResposta, Config.CodResposta);
+            Titulo.Processar(BoletoDM.ACBrBoleto1.ListaRetornoWeb[I]);
+            Titulos[I] := Titulo;
+          end;
+
+          Resposta := TACBrObjectSerializer.Gerar<TRetornoRegistroWeb>(Titulos, Config.TipoResposta, Config.CodResposta);
+        finally
+          for I:= 0 to High(Titulos) do
+          begin
+            Titulo := Titulos[I] as TRetornoRegistroWeb;
+            FreeAndNil(Titulo);
+          end;
+
+          SetLength(Titulos, 0);
+          Titulos := nil;
+        end;
+      end;
+
+      MoverStringParaPChar(Resposta, sResposta, esTamanho);
+      Result := SetRetorno(ErrOK, Resposta);
+
+    finally
+      BoletoDM.Destravar;
+    end;
+
+  except
+    on E: EACBrLibException do
+      Result := SetRetorno(E.Erro, E.Message);
+    on E: Exception do
+      Result := SetRetorno(ErrExecutandoMetodo, E.Message);
+  end;
+
 end;
 
 end.

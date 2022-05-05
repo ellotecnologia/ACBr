@@ -38,7 +38,6 @@ interface
 
 uses
   SysUtils, Classes, StrUtils,
-  ACBrUtil,
   ACBrXmlBase, ACBrXmlDocument,
   ACBrNFSeXConversao, ACBrNFSeXLerXml;
 
@@ -47,8 +46,9 @@ type
   { TNFSeR_IPM }
 
   TNFSeR_IPM = class(TNFSeRClass)
-  protected
+  private
 
+  protected
     procedure LerRps(const ANode: TACBrXmlNode);
     procedure LerNota(const ANode: TACBrXmlNode);
     procedure LerPrestador(const ANode: TACBrXmlNode);
@@ -68,7 +68,9 @@ type
 
 implementation
 
-uses ACBrNFSeXClass;
+uses
+  ACBrUtil.Base,
+  ACBrUtil.Strings;
 
 //==============================================================================
 // Essa unit tem por finalidade exclusiva ler o XML do provedor:
@@ -105,7 +107,7 @@ begin
         ItemServico.New;
         with ItemServico[i] do
         begin
-          TribMunPrestador := StrToSimNao(Ok, ObterConteudo(ANodes[i].Childrens.FindAnyNs('tributa_municipio_prestador'), tcStr));
+          TribMunPrestador := FpAOwner.StrToSimNao(Ok, ObterConteudo(ANodes[i].Childrens.FindAnyNs('tributa_municipio_prestador'), tcStr));
           CodMunPrestacao := CodTOMToCodIBGE(ObterConteudo(ANodes[i].Childrens.FindAnyNs('codigo_local_prestacao_servico'), tcStr));
 
           aValor := ObterConteudo(ANodes[i].Childrens.FindAnyNs('codigo_item_lista_servico'), tcStr);
@@ -207,7 +209,7 @@ begin
 
       with Prestador.IdentificacaoPrestador do
       begin
-        CpfCnpj := ObterConteudo(AuxNode.Childrens.FindAnyNs('cpfcnpj'), tcStr);
+        CpfCnpj := OnlyNumber(ObterConteudo(AuxNode.Childrens.FindAnyNs('cpfcnpj'), tcStr));
         CpfCnpj := PadLeft(CpfCnpj, 14, '0');
       end;
 
@@ -259,10 +261,10 @@ begin
 
       with IdentificacaoTomador do
       begin
-        CpfCnpj := ObterConteudo(AuxNode.Childrens.FindAnyNs('cpfcnpj'), tcStr);
+        CpfCnpj := OnlyNumber(ObterConteudo(AuxNode.Childrens.FindAnyNs('cpfcnpj'), tcStr));
         aValor  := ObterConteudo(AuxNode.Childrens.FindAnyNs('tipo'), tcStr);
 
-        if aValor = 'J' then
+        if ((aValor = 'J') or (aValor = '2')) then
           CpfCnpj := PadLeft(CpfCnpj, 14, '0')
         else
           CpfCnpj := PadLeft(CpfCnpj, 11, '0');
@@ -298,11 +300,10 @@ var
   XmlNode: TACBrXmlNode;
   xRetorno: string;
 begin
-  xRetorno := TratarXmlRetorno(Arquivo);
-  xRetorno := TiraAcentos(xRetorno);
-
-  if EstaVazio(xRetorno) then
+  if EstaVazio(Arquivo) then
     raise Exception.Create('Arquivo xml não carregado.');
+
+  xRetorno := TiraAcentos(Arquivo);
 
   if FDocument = nil then
     FDocument := TACBrXmlDocument.Create();

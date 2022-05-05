@@ -304,9 +304,7 @@ namespace ACBrLibBoleto.Demo
 
         private void BtnImprimirBoleto_Click(object sender, EventArgs e)
         {
-            var indice = 0;
-
-            boleto.ImprimirBoleto(indice);
+            boleto.Imprimir(0);
             rtbRespostas.AppendLine("Boletos impressos.");
         }
 
@@ -377,6 +375,30 @@ namespace ACBrLibBoleto.Demo
                     "Teste envio Boleto",
                     "Boleto em anexo", "");
                 rtbRespostas.AppendLine("e-mail enviado!");
+            }
+            catch (Exception ex)
+            {
+                rtbRespostas.AppendLine(ex.Message);
+            }
+        }
+
+        private async void btnSalvarPDF_Click(object sender, EventArgs e)
+        {
+            var nomeArquivo = Helpers.SelectFolder() + $@"\{Guid.NewGuid()}.pdf";
+            try
+            {
+
+                using (FileStream aStream = File.Create(nomeArquivo))
+                {
+                    boleto.GerarPDF(aStream);
+                    byte[] buffer = new Byte[aStream.Length];
+                    await aStream.ReadAsync(buffer, 0, buffer.Length);
+                    await aStream.FlushAsync();
+                    aStream.Seek(0, SeekOrigin.End);
+                    await aStream.WriteAsync(buffer, 0, buffer.Length);
+                }
+
+                rtbRespostas.AppendLine($"PDF Salvo em: {nomeArquivo}");
             }
             catch (Exception ex)
             {

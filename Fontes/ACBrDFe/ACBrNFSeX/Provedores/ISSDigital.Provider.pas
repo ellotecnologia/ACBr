@@ -59,6 +59,7 @@ type
     function Cancelar(ACabecalho, AMSG: String): string; override;
     function SubstituirNFSe(ACabecalho, AMSG: String): string; override;
 
+    function TratarXmlRetornado(const aXML: string): string; override;
   end;
 
   TACBrNFSeProviderISSDigital200 = class (TACBrNFSeProviderABRASFv2)
@@ -75,7 +76,8 @@ type
 implementation
 
 uses
-  ACBrUtil, ACBrDFeException, ACBrNFSeX, ACBrNFSeXConfiguracoes,
+  ACBrUtil.XMLHTML,
+  ACBrDFeException, ACBrNFSeX, ACBrNFSeXConfiguracoes,
   ACBrNFSeXNotasFiscais, ISSDigital.GravarXml, ISSDigital.LerXml;
 
 { TACBrNFSeProviderISSDigital200 }
@@ -125,7 +127,7 @@ var
   xXml, Senha: string;
   i: Integer;
 begin
-  xXml := Response.XmlEnvio;
+  xXml := Response.ArquivoEnvio;
 
   Senha := '<Senha>' +
               TACBrNFSeX(FAOwner).Configuracoes.Geral.Emitente.WSSenha +
@@ -143,10 +145,10 @@ begin
         i := Pos('</Prestador>', xXml);
 
         xXml := Copy(xXml, 1, i -1) + Senha + Copy(xXml, i, length(xXml));
-        Response.XmlEnvio := xXml;
+        Response.ArquivoEnvio := xXml;
       end;
   else
-    Response.XmlEnvio := xXml;
+    Response.ArquivoEnvio := xXml;
   end;
 
   inherited ValidarSchema(Response, aMetodo);
@@ -311,6 +313,17 @@ begin
   Result := Executar('', Request,
                      ['return', 'SubstituirNfseResposta'],
                      ['xmlns:ws="http://ws.supernova.com.br/"']);
+end;
+
+function TACBrNFSeXWebserviceISSDigital200.TratarXmlRetornado(
+  const aXML: string): string;
+begin
+  Result := inherited TratarXmlRetornado(aXML);
+
+  Result := ParseText(AnsiString(Result));
+  Result := RemoverDeclaracaoXML(Result);
+  Result := RemoverIdentacao(Result);
+  Result := RemoverCaracteresDesnecessarios(Result);
 end;
 
 end.

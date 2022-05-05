@@ -44,6 +44,32 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+04/05/2022
+-- ACBrDANFCeFortesFr --
+[-] Ajuste no DANFE NFCe para que o valor total dos produtos não fiquem fora da margem 
+
+27/03/2022
+-- Diversos --
+[*] Remoção de Warnings e Hints.
+   Por: Italo Giurizzato Junior
+
+11/03/2022
+-- Diversos --
+[*] Alterações nos fontes do componente visando atender a NT 2021/004
+   Por: Italo Giurizzato Junior
+
+18/02/2022
+-- ACBrNFeServicos --
+[*] Atualização da URL do QR-Code da SEFAZ-MG
+   Por: Italo Giurizzato Junior
+
+12/01/2021
+-- ACBrNFeWebServices --
+[-] Ajustes para evitar a rejeição
+    "XML da área de dados com codificação diferente de UTF-8",
+    Quando enviando com a compactação ligada
+    (por: DSA)
+
 20/12/2021
 -- ACBrNFeXmlReader --
 [*] Ajustes por conta da alteração do nome da função

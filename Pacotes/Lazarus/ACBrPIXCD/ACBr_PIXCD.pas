@@ -8,8 +8,9 @@ unit ACBr_PIXCD;
 interface
 
 uses
-  ACBrPIXCDReg, ACBrPIXBase, ACBrPIXUtil, ACBrPIXCD, ACBrPIXPSPItau, 
-  ACBrPIXQRCodeEstatico, ACBrPIXSchemasProblema, ACBrPIXSchemasCalendario, 
+  ACBrPIXCDReg, ACBrPIXBase, ACBrPIXUtil, ACBrPIXCD, ACBrPIXBRCode, 
+  ACBrPIXPSPItau, ACBrPIXPSPBancoDoBrasil, ACBrPIXPSPSantander, 
+  ACBrPIXPSPShipay, ACBrPIXSchemasProblema, ACBrPIXSchemasCalendario, 
   ACBrPIXSchemasDevedor, ACBrPIXSchemasLocation, ACBrPIXSchemasPaginacao, 
   ACBrPIXSchemasDevolucao, ACBrPIXSchemasPix, 
   ACBrPIXSchemasParametrosConsultaPix, ACBrPIXSchemasPixConsultados, 
@@ -17,7 +18,7 @@ uses
   ACBrPIXSchemasCobsConsultadas, ACBrPIXSchemasCobV, 
   ACBrPIXSchemasCobsVConsultadas, ACBrPIXSchemasLoteCobV, 
   ACBrPIXSchemasParametrosConsultaLote, ACBrPIXSchemasLotesCobVConsultadas, 
-  LazarusPackageIntf;
+  ACBrShipaySchemas, LazarusPackageIntf;
 
 implementation
 

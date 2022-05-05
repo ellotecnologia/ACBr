@@ -38,7 +38,6 @@ interface
 
 uses
   SysUtils, Classes, StrUtils, DateUtils,
-  ACBrUtil,
   ACBrXmlBase, ACBrXmlDocument,
   ACBrNFSeXConversao, ACBrNFSeXLerXml,
   ACBrNFSeXLerXml_ABRASFv2;
@@ -48,6 +47,8 @@ type
   { TNFSeR_Infisc }
 
   TNFSeR_Infisc = class(TNFSeRClass)
+  private
+
   protected
 
     // versão 1.0
@@ -86,6 +87,10 @@ type
   end;
 
 implementation
+
+uses
+  ACBrUtil.Base,
+  ACBrUtil.Strings;
 
 //==============================================================================
 // Essa unit tem por finalidade exclusiva ler o XML do provedor:
@@ -288,7 +293,8 @@ begin
   begin
     with NFSe do
     begin
-      CodigoVerificacao := ObterConteudo(AuxNode.Childrens.FindAnyNs('cNFS-e'), tcStr);
+      cNFSe := ObterConteudo(AuxNode.Childrens.FindAnyNs('cNFS-e'), tcInt);
+      CodigoVerificacao := IntToStr(cNFSe);
       NaturezaOperacao  := StrToNaturezaOperacao(Ok, ObterConteudo(AuxNode.Childrens.FindAnyNs('natOp'), tcStr));
       SeriePrestacao    := ObterConteudo(AuxNode.Childrens.FindAnyNs('serie'), tcStr);
       Numero            := ObterConteudo(AuxNode.Childrens.FindAnyNs('nNFS-e'), tcStr);
@@ -309,7 +315,7 @@ begin
 
       aValor := ObterConteudo(AuxNode.Childrens.FindAnyNs('anulada'), tcStr);
 
-      Status := StrToEnumerado(Ok, aValor, ['N','S'], [srNormal, srCancelado]);
+      SituacaoNfse := StrToEnumerado(Ok, aValor, ['N','S'], [snNormal, snCancelado]);
 
       Servico.CodigoMunicipio := ObterConteudo(AuxNode.Childrens.FindAnyNs('cMunFG'), tcStr);
 
@@ -318,12 +324,16 @@ begin
       ModeloNFSe := ObterConteudo(AuxNode.Childrens.FindAnyNs('mod'), tcStr);
 
       aValor := ObterConteudo(AuxNode.Childrens.FindAnyNs('cancelada'), tcStr);
-      Cancelada := StrToSimNao(Ok, aValor, proInfisc);
+      SituacaoNfse := StrToStatusNFSe(Ok, aValor);
 
       MotivoCancelamento := ObterConteudo(AuxNode.Childrens.FindAnyNs('motCanc'), tcStr);
 
       aValor := ObterConteudo(AuxNode.Childrens.FindAnyNs('ambienteEmi'), tcStr);
-      Producao := StrToSimNao(Ok, aValor, proInfisc);
+
+      if aValor = '1' then
+        Producao := snSim
+      else
+        Producao := snNao;
     end;
   end;
 end;
@@ -339,8 +349,8 @@ begin
 
   for i := 0 to Length(ANodes) - 1 do
   begin
-    NFSe.OutrasInformacoes := NFSe.OutrasInformacoes +
-                  ObterConteudo(ANodes[i].Childrens.FindAnyNs('infAdic'), tcStr);
+    NFSe.OutrasInformacoes := NFSe.OutrasInformacoes + ANodes[i].Content;
+//                  ObterConteudo(ANodes[i].Childrens.FindAnyNs('infAdic'), tcStr);
   end;
 end;
 
@@ -565,6 +575,7 @@ begin
       xMunTrans       := ObterConteudo(AuxNode.Childrens.FindAnyNs('xMunTrans'), tcStr);
       xUFTrans        := ObterConteudo(AuxNode.Childrens.FindAnyNs('xUfTrans'), tcStr);
       cPaisTrans      := ObterConteudo(AuxNode.Childrens.FindAnyNs('cPaisTrans'), tcStr);
+      xPaisTrans      := ObterConteudo(AuxNode.Childrens.FindAnyNs('xPaisTrans'), tcStr);
       vTipoFreteTrans := StrToTipoFrete(Ok, ObterConteudo(AuxNode.Childrens.FindAnyNs('vTipoFreteTrans'), tcStr));
     end;
   end;
@@ -575,7 +586,7 @@ var
   XmlNode: TACBrXmlNode;
   xRetorno: string;
 begin
-  xRetorno := TratarXmlRetorno(Arquivo);
+  xRetorno := Arquivo;
 
   if EstaVazio(xRetorno) then
     raise Exception.Create('Arquivo xml não carregado.');

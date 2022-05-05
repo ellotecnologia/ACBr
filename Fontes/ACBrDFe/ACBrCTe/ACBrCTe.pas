@@ -45,7 +45,7 @@ uses
   ACBrCTeDACTEClass, ACBrDFeException,
   pcteCTe, pcnConversao, pcteConversaoCTe,
   pcteEnvEventoCTe, pcteInutCTe, 
-  ACBrDFeUtil, ACBrUtil;
+  ACBrDFeUtil;
 
 const
   ACBRCTE_NAMESPACE = 'http://www.portalfiscal.inf.br/cte';
@@ -114,14 +114,14 @@ type
 
     procedure SetStatus(const stNewStatus: TStatusACBrCTe);
 
-    function Enviar(ALote: Integer; Imprimir: Boolean = True;
+    function Enviar(ALote: Int64; Imprimir: Boolean = True;
       ASincrono: Boolean = False): Boolean;  overload;
     function Enviar(const ALote: String; Imprimir: Boolean = True;
       ASincrono: Boolean = False): Boolean;  overload;
 
     function Consultar( const AChave: String = ''; AExtrairEventos: Boolean = False): Boolean;
-    function Cancelamento(const AJustificativa: String; ALote: Integer = 0): Boolean;
-    function EnviarEvento(idLote: Integer): Boolean;
+    function Cancelamento(const AJustificativa: String; ALote: Int64 = 0): Boolean;
+    function EnviarEvento(idLote: Int64): Boolean;
     function Inutilizar(const ACNPJ, AJustificativa: String;
       AAno, ASerie, ANumInicial, ANumFinal: Integer): Boolean;
     function DistribuicaoDFePorUltNSU(AcUFAutor: integer;
@@ -160,7 +160,11 @@ implementation
 
 uses
   dateutils,
-  pcnAuxiliar, ACBrDFeSSL;
+  pcnAuxiliar,
+  ACBrUtil.Base,
+  ACBrUtil.Strings,
+  ACBrUtil.FilesIO,
+  ACBrDFeSSL;
 
 {$IFDEF FPC}
  {$R ACBrCTeServicos.rc}
@@ -712,7 +716,7 @@ begin
   end;
 end;
 
-function TACBrCTe.Enviar(ALote: Integer; Imprimir: Boolean = True;
+function TACBrCTe.Enviar(ALote: Int64; Imprimir: Boolean = True;
       ASincrono: Boolean = False): Boolean;
 begin
   Result := Enviar(IntToStr(ALote), Imprimir, ASincrono);
@@ -787,7 +791,7 @@ begin
   Result := True;
 end;
 
-function TACBrCTe.Cancelamento(const AJustificativa: String; ALote: Integer): Boolean;
+function TACBrCTe.Cancelamento(const AJustificativa: String; ALote: Int64): Boolean;
 var
   i: Integer;
 begin
@@ -823,7 +827,7 @@ begin
   Result := True;
 end;
 
-function TACBrCTe.EnviarEvento(idLote: Integer): Boolean;
+function TACBrCTe.EnviarEvento(idLote: Int64): Boolean;
 var
   i, j: Integer;
   chCTe: String;

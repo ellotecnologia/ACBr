@@ -38,7 +38,6 @@ interface
 
 uses
   SysUtils, Classes, StrUtils,
-  ACBrUtil,
   ACBrXmlBase, ACBrXmlDocument,
   ACBrNFSeXConversao, ACBrNFSeXLerXml;
 
@@ -64,6 +63,9 @@ type
   end;
 
 implementation
+
+uses
+  ACBrUtil.Strings;
 
 //==============================================================================
 // Essa unit tem por finalidade exclusiva ler o XML do provedor:
@@ -200,9 +202,9 @@ var
   XmlNode: TACBrXmlNode;
   xRetorno: string;
 begin
-  xRetorno := TratarXmlRetorno(Arquivo);
+  xRetorno := Trim(Arquivo);
 
-  if EstaVazio(xRetorno) then
+  if xRetorno = '' then
     raise Exception.Create('Arquivo xml não carregado.');
 
   if FDocument = nil then
@@ -287,11 +289,11 @@ begin
     BaseCalculo   := NFSe.ValoresNfse.BaseCalculo;
     Aliquota      := NFSe.ValoresNfse.Aliquota;
     ValorIss      := NFSe.ValoresNfse.ValorIss;
-    ValorPis      := ObterConteudo(AuxNode.Childrens.FindAnyNs('ValorPis'), tcDe2);
-    ValorCofins   := ObterConteudo(AuxNode.Childrens.FindAnyNs('ValorCofins'), tcDe2);
-    ValorInss     := ObterConteudo(AuxNode.Childrens.FindAnyNs('ValorInss'), tcDe2);
-    ValorIr       := ObterConteudo(AuxNode.Childrens.FindAnyNs('ValorIr'), tcDe2);
-    ValorCsll     := ObterConteudo(AuxNode.Childrens.FindAnyNs('ValorCsll'), tcDe2);
+    ValorPis      := ObterConteudo(AuxNode.Childrens.FindAnyNs('ValorPIS'), tcDe2);
+    ValorCofins   := ObterConteudo(AuxNode.Childrens.FindAnyNs('ValorCOFINS'), tcDe2);
+    ValorInss     := ObterConteudo(AuxNode.Childrens.FindAnyNs('ValorINSS'), tcDe2);
+    ValorIr       := ObterConteudo(AuxNode.Childrens.FindAnyNs('ValorIR'), tcDe2);
+    ValorCsll     := ObterConteudo(AuxNode.Childrens.FindAnyNs('ValorCSLL'), tcDe2);
 
     if aValor = 'false' then
       IssRetido := stNormal
@@ -332,9 +334,9 @@ begin
     aValor := ObterConteudo(ANode.Childrens.FindAnyNs('StatusRPS'), tcStr);
 
     if aValor = 'N' then
-      Status := srNormal
+      StatusRps := srNormal
     else
-      Status := srCancelado;
+      StatusRps := srCancelado;
 
     TipoTributacaoRPS := ObterConteudo(ANode.Childrens.FindAnyNs('TributacaoRPS'), tcStr);
 
@@ -444,7 +446,7 @@ begin
   NFSe.Servico.ItemListaServico := Copy(ItemServico, 1, 2) + '.' +
                                      Copy(ItemServico, 3, 2);
 
-  if FAOwner.ConfigGeral.TabServicosExt then
+  if FpAOwner.ConfigGeral.TabServicosExt then
     NFSe.Servico.xItemListaServico := ObterDescricaoServico(ItemServico)
   else
     NFSe.Servico.xItemListaServico := CodItemServToDesc(ItemServico);

@@ -69,17 +69,18 @@ type
     function CriarServiceClient(const AMetodo: TMetodo): TACBrNFSeXWebservice; override;
 
     procedure ValidarSchema(Response: TNFSeWebserviceResponse; aMetodo: TMetodo); override;
-    procedure ProcessarMensagemErros(const RootNode: TACBrXmlNode;
-                                     const Response: TNFSeWebserviceResponse;
-                                     AListTag: string = '';
-                                     AMessageTag: string = 'Resultado'); override;
+    procedure ProcessarMensagemErros(RootNode: TACBrXmlNode;
+                                     Response: TNFSeWebserviceResponse;
+                                     const AListTag: string = '';
+                                     const AMessageTag: string = 'Resultado'); override;
 
   end;
 
 implementation
 
 uses
-  ACBrUtil, ACBrDFeException,
+  ACBrUtil.XMLHTML,
+  ACBrDFeException,
   ACBrNFSeX, ACBrNFSeXConfiguracoes, ACBrNFSeXNotasFiscais,
   AEG.GravarXml, AEG.LerXml;
 
@@ -278,8 +279,8 @@ begin
 end;
 
 procedure TACBrNFSeProviderAEG202.ProcessarMensagemErros(
-  const RootNode: TACBrXmlNode; const Response: TNFSeWebserviceResponse;
-  AListTag, AMessageTag: string);
+  RootNode: TACBrXmlNode; Response: TNFSeWebserviceResponse;
+  const AListTag, AMessageTag: string);
 var
   I: Integer;
   ANodeArray: TACBrXmlNodeArray;
@@ -315,7 +316,7 @@ begin
                  '</Seguranca>';
   end;
 
-  aXml := Response.XmlEnvio;
+  aXml := Response.ArquivoEnvio;
 
   case aMetodo of
     tmRecepcionar:
@@ -438,10 +439,10 @@ begin
                  '</MetodoInfo>' +
               '</SubstituirNfseEnvio>';
   else
-    Response.XmlEnvio := aXml;
+    Response.ArquivoEnvio := aXml;
   end;
 
-  Response.XmlEnvio := aXml;
+  Response.ArquivoEnvio := aXml;
 end;
 
 end.

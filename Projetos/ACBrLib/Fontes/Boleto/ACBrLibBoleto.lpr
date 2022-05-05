@@ -69,7 +69,9 @@ exports
   Boleto_Imprimir,
   Boleto_ImprimirBoleto,
   Boleto_GerarPDF,
+  Boleto_SalvarPDF,
   Boleto_GerarPDFBoleto,
+  Boleto_SalvarPDFBoleto,
   Boleto_GerarHTML,
   Boleto_GerarRemessa,
   Boleto_LerRetorno,
@@ -87,7 +89,8 @@ exports
   Boleto_MontarNossoNumero,
   Boleto_RetornaLinhaDigitavel,
   Boleto_RetornaCodigoBarras,
-  Boleto_EnviarBoleto;
+  Boleto_EnviarBoleto,
+  Boleto_ConsultarTitulosPorPeriodo;
 
 begin
   {$IFDEF DEBUG}
@@ -98,6 +101,5 @@ begin
 
   MainThreadID := GetCurrentThreadId();
   Application.Initialize;
-
 end.
 

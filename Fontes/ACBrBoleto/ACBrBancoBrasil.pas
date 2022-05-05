@@ -48,6 +48,8 @@ type
 
   TACBrBancoBrasil = class(TACBrBancoClass)
    protected
+     procedure EhObrigatorioContaDV; override;
+     procedure EhObrigatorioAgenciaDV; override;
    private
     fQtMsg: Integer;
     function FormataNossoNumero(const ACBrTitulo :TACBrTitulo): String;
@@ -83,9 +85,8 @@ type
 implementation
 
 uses {$IFDEF COMPILER6_UP} DateUtils {$ELSE} ACBrD5, FileCtrl {$ENDIF},
-  StrUtils, Variants,
-  ACBrUtil,
-  Math;
+  StrUtils, Variants, ACBrUtil.Base, ACBrUtil.FilesIO, ACBrUtil.Strings,
+  ACBrUtil.DateTime, Math;
 
 constructor TACBrBancoBrasil.create(AOwner: TACBrBanco);
 begin
@@ -99,6 +100,18 @@ begin
    fpTamanhoCarteira       := 2;
    fpCodigosMoraAceitos    := '123';
    fQtMsg                  := 0;
+end;
+
+procedure TACBrBancoBrasil.EhObrigatorioAgenciaDV;
+begin
+  if ACBrBanco.TipoCobranca <> cobBancoDoBrasilAPI then
+    inherited;
+end;
+
+procedure TACBrBancoBrasil.EhObrigatorioContaDV;
+begin
+  if ACBrBanco.TipoCobranca <> cobBancoDoBrasilAPI then
+    inherited;
 end;
 
 function TACBrBancoBrasil.CalcularDigitoVerificador(const ACBrTitulo: TACBrTitulo ): String;
@@ -1123,12 +1136,12 @@ begin
      sDiasBaixa := '   ';
      if ((ATipoOcorrencia = '01') or (ATipoOcorrencia = '39')) and (Max(DataBaixa, DataLimitePagto) > Vencimento ) then
        sDiasBaixa := IntToStrZero(DaysBetween(Vencimento, Max(DataBaixa, DataLimitePagto)), 3);
-	 if ATipoOcorrencia = '39' then
+     if ATipoOcorrencia = '39' then
      begin
        Instrucao1:= '00';
        Instrucao2:= '00';
        AInstrucao:= '0000';
-       aDataDesconto:= sDiasBaixa;
+       aDataDesconto:= sDiasBaixa + '000';
      end;
 
      with ACBrBoleto do

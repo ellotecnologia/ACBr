@@ -57,6 +57,7 @@ type
     function ConsultarNFSe(ACabecalho, AMSG: String): string; override;
     function Cancelar(ACabecalho, AMSG: String): string; override;
 
+    function TratarXmlRetornado(const aXML: string): string; override;
   end;
 
   TACBrNFSeProviderFISSLex = class (TACBrNFSeProviderABRASFv1)
@@ -73,7 +74,9 @@ type
 implementation
 
 uses
-  ACBrUtil, ACBrDFeException, ACBrNFSeX, ACBrNFSeXConfiguracoes,
+  ACBrUtil.Strings,
+  ACBrUtil.XMLHTML,
+  ACBrDFeException, ACBrNFSeX, ACBrNFSeXConfiguracoes,
   ACBrNFSeXNotasFiscais, FISSLex.GravarXml, FISSLex.LerXml;
 
 { TACBrNFSeXWebserviceFISSLex }
@@ -104,7 +107,7 @@ begin
   Request := Request + '</fiss:WS_ConsultaLoteRps.Execute>';
 
   Result := Executar('FISS-LEXaction/AWS_CONSULTALOTERPS.Execute', Request,
-                     [''],
+                     [],
 //                     ['Consultarloterpsresposta'],
                      ['xmlns:fiss="FISS-LEX"']);
 end;
@@ -135,7 +138,7 @@ begin
   Request := Request + '</fiss:WS_ConsultaNfsePorRps.Execute>';
 
   Result := Executar('FISS-LEXaction/AWS_CONSULTANFSEPORRPS.Execute', Request,
-                     [''],
+                     [],
 //                     ['Consultarnfserpsresposta'],
                      ['xmlns:fiss="FISS-LEX"']);
 end;
@@ -151,7 +154,7 @@ begin
   Request := Request + '</fiss:WS_ConsultaNfse.Execute>';
 
   Result := Executar('FISS-LEXaction/AWS_CONSULTANFSE.Execute', Request,
-                     [''],
+                     [],
 //                     ['Consultarnfseresposta'],
                      ['xmlns:fiss="FISS-LEX"']);
 end;
@@ -169,6 +172,15 @@ begin
   Result := Executar('FISS-LEXaction/AWS_CANCELARNFSE.Execute', Request,
                      ['Cancelarnfseresposta', 'CancelarNfseResposta'],
                      ['xmlns:fiss="FISS-LEX"']);
+end;
+
+function TACBrNFSeXWebserviceFISSLex.TratarXmlRetornado(
+  const aXML: string): string;
+begin
+  Result := inherited TratarXmlRetornado(aXML);
+
+  Result := ParseText(AnsiString(Result));
+  Result := RemoverIdentacao(Result);
 end;
 
 { TACBrNFSeProviderFISSLex }
@@ -218,7 +230,7 @@ var
 begin
   inherited ValidarSchema(Response, aMetodo);
 
-  xXml := Response.XmlEnvio;
+  xXml := Response.ArquivoEnvio;
 
   case aMetodo of
     tmConsultarSituacao:
@@ -250,10 +262,10 @@ begin
       end;
 
   else
-    Response.XmlEnvio := xXml;
+    Response.ArquivoEnvio := xXml;
   end;
 
-  Response.XmlEnvio := xXml;
+  Response.ArquivoEnvio := xXml;
 end;
 
 end.

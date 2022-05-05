@@ -190,7 +190,14 @@ implementation
 uses
   dateutils, IniFiles,
   synautil,
-  ACBrNFe, ACBrUtil, ACBrDFeUtil, pcnConversaoNFe;
+  ACBrNFe,
+  ACBrUtil,
+  ACBrUtil.Strings,
+  ACBrUtil.XMLHTML,
+  ACBrUtil.FilesIO,
+  ACBrUtil.DateTime,
+  ACBrUtil.Math,
+  ACBrDFeUtil, pcnConversaoNFe;
 
 { NotaFiscal }
 
@@ -1575,7 +1582,7 @@ begin
 
     with FNFe do
     begin
-      infNFe.versao := StringToFloatDef( INIRec.ReadString('infNFe','versao', VersaoDFToStr(FConfiguracoes.Geral.VersaoDF)), 0);
+      infNFe.versao := StringToFloatDef(INIRec.ReadString('infNFe','versao', INIRec.ReadString('infNFe','Versao', VersaoDFToStr(FConfiguracoes.Geral.VersaoDF))), 0);
 
       //versao      := FloatToString(infNFe.versao,'.','#0.00'); // Não está sendo utilizado...
       sSecao      := IfThen( INIRec.SectionExists('Identificacao'), 'Identificacao', 'ide');
@@ -2326,6 +2333,15 @@ begin
               end;
             end;
           end;
+
+
+          sSecao := 'obsContItem' + IntToStrZero(I, 3);
+          obsCont.xCampo := INIRec.ReadString(sSecao,'xCampo', '');
+          obsCont.xTexto := INIRec.ReadString(sSecao,'xTexto', '');
+
+          sSecao := 'obsFiscoItem' + IntToStrZero(I, 3);
+          obsFisco.xCampo := INIRec.ReadString(sSecao,'xCampo', '');
+          obsFisco.xTexto := INIRec.ReadString(sSecao,'xTexto', '');
         end;
 
         Inc( I );
@@ -2570,7 +2586,8 @@ begin
         with InfAdic.procRef.New do
         begin
           nProc := sAdittionalField;
-          indProc := StrToindProc(OK,INIRec.ReadString( sSecao,'indProc','0'));
+          indProc := StrToindProc(OK, INIRec.ReadString( sSecao, 'indProc', '0'));
+          tpAto := StrTotpAto(OK, INIRec.ReadString( sSecao, 'tpAto', ''));
         end;
 
         Inc(I);
@@ -3278,6 +3295,20 @@ begin
               end;
             end;
           end;
+
+          if (obsCont.xTexto <> '') then
+          begin
+            sSecao := 'obsContItem' + IntToStrZero(I + 1, 3);
+            INIRec.WriteString(sSecao, 'xCampo', obsCont.xCampo);
+            INIRec.WriteString(sSecao, 'xTexto', obsCont.xTexto);
+          end;
+
+          if (obsFisco.xTexto <> '') then
+          begin
+            sSecao := 'obsFiscoItem' + IntToStrZero(I + 1, 3);
+            INIRec.WriteString(sSecao, 'xCampo', obsFisco.xCampo);
+            INIRec.WriteString(sSecao, 'xTexto', obsFisco.xTexto);
+          end;
         end;
       end;
 
@@ -3444,6 +3475,7 @@ begin
         begin
           INIRec.WriteString(sSecao, 'nProc', nProc);
           INIRec.WriteString(sSecao, 'indProc', indProcToStr(indProc));
+          INIRec.WriteString(sSecao, 'tpAto', tpAtoToStr(tpAto));
         end;
       end;
 

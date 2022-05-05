@@ -53,7 +53,7 @@ uses
    System.Contnrs,
   {$IfEnd}
   ACBrBase,
-  pcnConversao, pcnGerador, ACBrUtil, pcnConsts,
+  pcnConversao, pcnGerador, pcnConsts,
   pcesCommon, pcesConversaoeSocial, pcesGerador;
 
 type
@@ -132,8 +132,10 @@ type
   TInfoSubstPatrOpPortItem = class(TObject)
   private
     FcnpjOpPortuario : string;
+    FcodLotacao      : string;
   public
     property cnpjOpPortuario: string read FcnpjOpPortuario write FcnpjOpPortuario;
+    property codLotacao: string read FcodLotacao write FcodLotacao;
   end;
 
   TInfoSubstPatrOpPortColecao = class(TACBrObjectList)
@@ -159,6 +161,8 @@ implementation
 
 uses
   IniFiles,
+  ACBrUtil.Base,
+  ACBrUtil.FilesIO,
   ACBreSocial;
 
 { TS1280Collection }
@@ -256,7 +260,10 @@ begin
 
     Gerador.wGrupo('infoSubstPatrOpPort');
 
-    Gerador.wCampo(tcStr, '', 'cnpjOpPortuario', 14, 14, 1, objInfoSubstPatrOpPortItem.cnpjOpPortuario);
+    if VersaoDF <= ve02_05_00 then
+      Gerador.wCampo(tcStr, '', 'cnpjOpPortuario', 14, 14, 1, objInfoSubstPatrOpPortItem.cnpjOpPortuario)
+    else
+      Gerador.wCampo(tcStr, '', 'codLotacao ', 30, 30, 1, objInfoSubstPatrOpPortItem.codLotacao);
 
     Gerador.wGrupo('/infoSubstPatrOpPort');
   end;

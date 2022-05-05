@@ -38,7 +38,6 @@ interface
 
 uses
   SysUtils, Classes, StrUtils,
-  ACBrUtil,
   ACBrXmlBase, ACBrXmlDocument,
   pcnAuxiliar, pcnConsts,
   ACBrNFSeXParametros, ACBrNFSeXGravarXml, ACBrNFSeXConversao, ACBrNFSeXConsts;
@@ -50,9 +49,11 @@ type
   private
     FpGerarID: Boolean;
     FpNrOcorrTagsTomador: Integer;
+
   protected
     procedure Configuracao; override;
 
+    function GerarGrupoRPS: Boolean;
     function GerarIdentificacaoRPS: TACBrXmlNode;
     function GerarValoresServico: TACBrXmlNode;
     function GerarPrestador: TACBrXmlNode;
@@ -80,6 +81,8 @@ type
 implementation
 
 uses
+  ACBrUtil.Strings,
+  ACBrUtil.DateTime,
   ACBrNFSeX;
 
 //==============================================================================
@@ -97,7 +100,7 @@ begin
 
   ListaDeAlertas.Clear;
 
-  Opcoes.QuebraLinha := FAOwner.ConfigGeral.QuebradeLinha;
+  Opcoes.QuebraLinha := FpAOwner.ConfigGeral.QuebradeLinha;
   Opcoes.DecimalChar := ',';
 
   FDocument.Clear();
@@ -107,7 +110,7 @@ begin
   NFSeNode := CreateElement('nfse');
 
   if FpGerarID then
-    NFSeNode.SetAttribute(FAOwner.ConfigGeral.Identificador, NFSe.InfID.ID);
+    NFSeNode.SetAttribute(FpAOwner.ConfigGeral.Identificador, NFSe.InfID.ID);
 
   FDocument.Root := NFSeNode;
 
@@ -138,7 +141,7 @@ begin
   // Removido a condição da versão para gerar o grupo Forma de Pagamento para
   // a cidade de Panambi/RS
 //  if (NFSe.Status = srNormal) and (VersaoNFSe = ve101 ) then
-  if (NFSe.Status = srNormal) then
+  if (NFSe.SituacaoNfse = snNormal) then
   begin
     xmlNode := GerarFormaPagamento;
     NFSeNode.AppendChild(xmlNode);
@@ -198,11 +201,25 @@ begin
   end;
 end;
 
+function TNFSeW_IPM.GerarGrupoRPS: Boolean;
+var
+  NaoGerar: Boolean;
+begin
+  {
+    Se no arquivo ACBrNFSeXServicos.ini existe o campo: NaoGerarGrupoRps na
+    definição da cidade o valor de NaoGerar é True
+  }
+  NaoGerar := FpAOwner.ConfigGeral.Params.TemParametro('NaoGerarGrupoRps');
+
+  // Na condição abaixo se faz necessário o "not".
+  Result := (StrToIntDef(NFSe.IdentificacaoRps.Numero, 0) > 0) and (not NaoGerar);
+end;
+
 function TNFSeW_IPM.GerarIdentificacaoRPS: TACBrXmlNode;
 begin
   Result :=  nil;
 
-  if( StrToIntDef( NFSe.IdentificacaoRps.Numero, 0 ) > 0 ) then
+  if GerarGrupoRPS then
   begin
     Result := CreateElement('rps');
 
@@ -273,7 +290,7 @@ begin
     Result[i] := CreateElement('lista');
 
     Result[i].AppendChild(AddNode(tcStr, '#', 'tributa_municipio_prestador', 1, 1, 1,
-        SimNaoToStr(NFSe.Servico.ItemServico[I].TribMunPrestador, proIPM), ''));
+      FpAOwner.SimNaoToStr(NFSe.Servico.ItemServico[I].TribMunPrestador), ''));
 
     Result[i].AppendChild(AddNode(tcStr, '#', 'codigo_local_prestacao_servico', 1, 9, 1,
       CodIBGEToCodTOM(StrToIntDef(NFSe.Servico.ItemServico[I].CodMunPrestacao, 0)), ''));
@@ -459,7 +476,7 @@ function TNFSeW_IPM.GerarValoresServico: TACBrXmlNode;
 begin
   Result := CreateElement('nf');
 
-  if NFSe.Status = srCancelado then
+  if NFSe.SituacaoNfse = snCancelado then
   begin
     Result.AppendChild(AddNode(tcStr, '#1', 'numero', 0, 9, 1,
                                                               NFSe.Numero, ''));

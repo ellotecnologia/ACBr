@@ -37,8 +37,9 @@ unit ACBrNFSeXProviderManager;
 interface
 
 uses
-  SysUtils, Classes, ACBrUtil,
-  ACBrNFSeXInterface, ACBrNFSeXConversao, ACBrDFe;
+  SysUtils, Classes,
+  ACBrDFe,
+  ACBrNFSeXInterface;
 
 type
 
@@ -50,13 +51,12 @@ type
 implementation
 
 uses
-  ACBrNFSeX,
+  ACBrNFSeX, ACBrNFSeXConversao,
 
   // Provedores que seguem a versão 1 do layout da ABRASF
   BHISS.Provider,
   CIGA.Provider,
   DBSeller.Provider,
-  DSFSJC.Provider,
   FISSLex.Provider,
   geNFe.Provider,
   Ginfes.Provider,
@@ -95,6 +95,7 @@ uses
   DSF.Provider,
   EloTech.Provider,
   eReceita.Provider,
+  Etherium.Provider,
   fintelISS.Provider,
   Fiorilli.Provider,
   Fisco.Provider,
@@ -161,6 +162,8 @@ uses
   Giap.Provider,
   Governa.Provider,
   IPM.Provider,
+  ISSBarueri.Provider,
+  ISSCambe.Provider,
   ISSDSF.Provider,
   ISSLencois.Provider,
   ISSSaoPaulo.Provider,
@@ -234,8 +237,17 @@ begin
         Result := TACBrNFSeProviderDesenvolve203.Create(ACBrNFSe);
 
       proDigifred: Result := TACBrNFSeProviderDigifred200.Create(ACBrNFSe);
-      proDSF:      Result := TACBrNFSeProviderDSF200.Create(ACBrNFSe);
-      proDSFSJC:   Result := TACBrNFSeProviderDSFSJC.Create(ACBrNFSe);
+
+      proDSF:
+        begin
+          case Versao of
+            ve100: Result := TACBrNFSeProviderDSF.Create(ACBrNFSe);
+            ve200: Result := TACBrNFSeProviderDSF200.Create(ACBrNFSe);
+            ve203: Result := TACBrNFSeProviderDSF203.Create(ACBrNFSe);
+          else
+            Result := nil;
+          end;
+        end;
 
       proeGoverneISS:
         Result := TACBrNFSeProvidereGoverneISS.Create(ACBrNFSe);
@@ -258,6 +270,7 @@ begin
         Result := TACBrNFSeProviderEquiplano.Create(ACBrNFSe);
 
       proeReceita: Result := TACBrNFSeProvidereReceita202.Create(ACBrNFSe);
+      proEtherium: Result := TACBrNFSeProviderEtherium203.Create(ACBrNFSe);
       proFGMaiss:  Result :=TACBrNFSeProviderFGMaiss.Create(ACBrNFSe);
 
       profintelISS:
@@ -307,6 +320,11 @@ begin
             Result := nil;
           end;
         end;
+
+      proISSBarueri: Result := TACBrNFSeProviderISSBarueri.Create(ACBrNFSe);
+
+      proISSCambe:
+        Result := TACBrNFSeProviderISSCambe.Create(ACBrNFSe);
 
       proISSCuritiba:
         Result := TACBrNFSeProviderISSCuritiba.Create(ACBrNFSe);

@@ -38,9 +38,7 @@ interface
 
 uses
   SysUtils, Classes, StrUtils,
-  ACBrUtil,
   ACBrXmlBase, ACBrXmlDocument,
-  pcnAuxiliar,
   ACBrNFSeXParametros, ACBrNFSeXGravarXml, ACBrNFSeXConversao;
 
 type
@@ -67,6 +65,9 @@ type
 
 implementation
 
+uses
+  ACBrUtil.Strings;
+
 //==============================================================================
 // Essa unit tem por finalidade exclusiva gerar o XML do RPS do provedor:
 //     GeisWeb
@@ -89,13 +90,13 @@ var
 begin
   Configuracao;
 
-  Opcoes.QuebraLinha := FAOwner.ConfigGeral.QuebradeLinha;
+  Opcoes.QuebraLinha := FpAOwner.ConfigGeral.QuebradeLinha;
 
   ListaDeAlertas.Clear;
 
   FDocument.Clear();
 
-  NFSeNode := CreateElement('Rps', FAOwner.ConfigMsgDados.LoteRps.xmlns, '');
+  NFSeNode := CreateElement('Rps', FpAOwner.ConfigMsgDados.LoteRps.xmlns, '');
 
   FDocument.Root := NFSeNode;
 

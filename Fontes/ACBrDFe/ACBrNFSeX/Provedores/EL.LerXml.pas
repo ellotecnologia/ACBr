@@ -38,7 +38,6 @@ interface
 
 uses
   SysUtils, Classes, StrUtils, Math,
-  ACBrUtil,
   ACBrXmlBase, ACBrXmlDocument,
   ACBrNFSeXConversao, ACBrNFSeXLerXml,
   ACBrNFSeXLerXml_ABRASFv2;
@@ -80,6 +79,10 @@ type
   end;
 
 implementation
+
+uses
+  ACBrUtil.Base,
+  ACBrUtil.Strings;
 
 //==============================================================================
 // Essa unit tem por finalidade exclusiva ler o XML do provedor:
@@ -132,9 +135,9 @@ begin
     with NFSe do
     begin
       NaturezaOperacao         := StrToNaturezaOperacao(Ok, ObterConteudo(AuxNode.Childrens.FindAnyNs('NaturezaOperacao'), tcStr));
-      RegimeEspecialTributacao := StrToRegimeEspecialTributacao(Ok, ObterConteudo(AuxNode.Childrens.FindAnyNs('RegimeEspecialTributacao'), tcStr));
-      OptanteSimplesNacional   := StrToSimNao(Ok, ObterConteudo(AuxNode.Childrens.FindAnyNs('OptanteSimplesNacional'), tcStr));
-      IncentivadorCultural     := StrToSimNao(Ok, ObterConteudo(AuxNode.Childrens.FindAnyNs('IncentivadorCultural'), tcStr));
+      RegimeEspecialTributacao := FpAOwner.StrToRegimeEspecialTributacao(Ok, ObterConteudo(AuxNode.Childrens.FindAnyNs('RegimeEspecialTributacao'), tcStr));
+      OptanteSimplesNacional   := FpAOwner.StrToSimNao(Ok, ObterConteudo(AuxNode.Childrens.FindAnyNs('OptanteSimplesNacional'), tcStr));
+      IncentivadorCultural     := FpAOwner.StrToSimNao(Ok, ObterConteudo(AuxNode.Childrens.FindAnyNs('IncentivadorCultural'), tcStr));
 
       with Prestador do
       begin
@@ -378,7 +381,7 @@ var
   XmlNode: TACBrXmlNode;
   xRetorno: string;
 begin
-  xRetorno := TratarXmlRetorno(Arquivo);
+  xRetorno := Arquivo;
 
   if EstaVazio(xRetorno) then
     raise Exception.Create('Arquivo xml não carregado.');
@@ -447,12 +450,12 @@ begin
     with NFSe do
     begin
       CodigoVerificacao := ObterConteudo(ANode.Childrens.FindAnyNs('Id'), tcStr);
-      Link              := CodigoVerificacao;
-      DataEmissao       := ObterConteudo(ANode.Childrens.FindAnyNs('DataEmissao'), tcDatHor);
+      Link := CodigoVerificacao;
+      DataEmissao := ObterConteudo(ANode.Childrens.FindAnyNs('DataEmissao'), tcDatHor);
       OutrasInformacoes := ObterConteudo(ANode.Childrens.FindAnyNs('Observacao'), tcStr);
-      Status            := StrToStatusRPS(Ok, ObterConteudo(ANode.Childrens.FindAnyNs('Status'), tcStr));
+      SituacaoNfse := StrToStatusNFSe(Ok, ObterConteudo(ANode.Childrens.FindAnyNs('Status'), tcStr));
 
-      Servico.Valores.IssRetido := StrToSituacaoTributaria(Ok, ObterConteudo(ANode.Childrens.FindAnyNs('IssRetido'), tcStr));
+      Servico.Valores.IssRetido := FpAOwner.StrToSituacaoTributaria(Ok, ObterConteudo(ANode.Childrens.FindAnyNs('IssRetido'), tcStr));
     end;
 
     LerIdentificacaoNfse(AuxNode);
@@ -473,11 +476,11 @@ begin
   with NFSe do
   begin
     CodigoVerificacao := ObterConteudo(ANode.Childrens.FindAnyNs('Id'), tcStr);
-    DataEmissao       := ObterConteudo(ANode.Childrens.FindAnyNs('DataEmissao'), tcDatHor);
+    DataEmissao := ObterConteudo(ANode.Childrens.FindAnyNs('DataEmissao'), tcDatHor);
     OutrasInformacoes := ObterConteudo(ANode.Childrens.FindAnyNs('Observacao'), tcStr);
-    Status            := StrToStatusRPS(Ok, ObterConteudo(ANode.Childrens.FindAnyNs('Status'), tcStr));
+    SituacaoNfse := StrToStatusNFSe(Ok, ObterConteudo(ANode.Childrens.FindAnyNs('Status'), tcStr));
 
-    Servico.Valores.IssRetido := StrToSituacaoTributaria(Ok, ObterConteudo(ANode.Childrens.FindAnyNs('IssRetido'), tcStr));
+    Servico.Valores.IssRetido := FpAOwner.StrToSituacaoTributaria(Ok, ObterConteudo(ANode.Childrens.FindAnyNs('IssRetido'), tcStr));
   end;
 
   LerIdentificacaoRps(ANode);
