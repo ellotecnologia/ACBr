@@ -69,13 +69,15 @@ type
     function CriarServiceClient(const AMetodo: TMetodo): TACBrNFSeXWebservice; override;
 
     procedure ValidarSchema(Response: TNFSeWebserviceResponse; aMetodo: TMetodo); override;
+
+    procedure TratarRetornoEmitir(Response: TNFSeEmiteResponse); override;
   end;
 
 implementation
 
 uses
   ACBrUtil.XMLHTML,
-  ACBrDFeException, ACBrNFSeX, ACBrNFSeXConfiguracoes,
+  ACBrDFeException, ACBrNFSeX, ACBrNFSeXConfiguracoes, ACBrNFSeXConsts,
   ACBrNFSeXNotasFiscais, iiBrasil.GravarXml, iiBrasil.LerXml;
 
 { TACBrNFSeProvideriiBrasil204 }
@@ -89,6 +91,7 @@ begin
     UseCertificateHTTP := False;
     ModoEnvio := meUnitario;
     CancPreencherSerieNfse := True;
+    ConsultaPorFaixaPreencherNumNfseFinal := True;
   end;
 
   with ConfigWebServices do
@@ -136,22 +139,85 @@ begin
   end;
 end;
 
+procedure TACBrNFSeProvideriiBrasil204.TratarRetornoEmitir(
+  Response: TNFSeEmiteResponse);
+var
+  Document: TACBrXmlDocument;
+  AErro: TNFSeEventoCollectionItem;
+  ANode, AuxNode: TACBrXmlNode;
+  ANodeArray: TACBrXmlNodeArray;
+  ANota: TNotaFiscal;
+  NumRps: String;
+  I: Integer;
+begin
+  if Response.ModoEnvio <> meUnitario then
+  begin
+    inherited TratarRetornoEmitir(Response);
+    Exit;
+  end;
+
+  Document := TACBrXmlDocument.Create;
+  try
+    try
+      Document.LoadFromXml(Response.ArquivoRetorno);
+
+      ANode := Document.Root;
+
+      ProcessarMensagemErros(ANode, Response);
+
+      Response.Sucesso := (Response.Erros.Count > 0);
+
+      ANode := ANode.Childrens.FindAnyNs('InformacoesNfse');
+
+      if not Assigned(ANode) then
+      begin
+        AErro := Response.Erros.New;
+        AErro.Codigo := Cod202;
+        AErro.Descricao := Desc202;
+        Exit;
+      end;
+
+      Response.NumeroNota := ObterConteudoTag(ANode.Childrens.FindAnyNs('NumeroNfse'), tcStr);
+      Response.SerieNota := ObterConteudoTag(ANode.Childrens.FindAnyNs('SerieNfse'), tcStr);
+      Response.CodVerificacao := ObterConteudoTag(ANode.Childrens.FindAnyNs('CodigoVerificacao'), tcStr);
+      Response.Link := ObterConteudoTag(ANode.Childrens.FindAnyNs('LinkNfse'), tcStr);
+    except
+      on E:Exception do
+      begin
+        AErro := Response.Erros.New;
+        AErro.Codigo := Cod999;
+        AErro.Descricao := Desc999 + E.Message;
+      end;
+    end;
+  finally
+    FreeAndNil(Document);
+  end;
+end;
+
 procedure TACBrNFSeProvideriiBrasil204.ValidarSchema(
   Response: TNFSeWebserviceResponse; aMetodo: TMetodo);
 var
   xXml, Integridade: string;
   i: Integer;
+
+  function GetIntegridade(const aTag: string): string;
+  var
+    aXml: string;
+  begin
+    aXml := SeparaDados(Response.ArquivoEnvio, aTag, False);
+
+    Result := '<Integridade>' +
+                 TACBrNFSeX(FAOwner).GerarIntegridade(aXml) +
+              '</Integridade>';
+  end;
+
 begin
   xXml := Response.ArquivoEnvio;
-
-  // Precisa verificar o que deve ser utilizado para gerar o valor da Integridade
-  // para o provedor iiBrasil
-  Integridade := TACBrNFSeX(FAOwner).GerarIntegridade(xXml);
-  Integridade := '<Integridade>' + Integridade + '</Integridade>';
 
   case aMetodo of
     tmGerar:
       begin
+        Integridade := GetIntegridade('GerarNfseEnvio');
         i := Pos('</GerarNfseEnvio>', xXml);
 
         xXml := Copy(xXml, 1, i -1) + Integridade + '</GerarNfseEnvio>';
@@ -160,6 +226,7 @@ begin
 
     tmConsultarNFSePorRps:
       begin
+        Integridade := GetIntegridade('ConsultarNfseRpsEnvio');
         i := Pos('</ConsultarNfseRpsEnvio>', xXml);
 
         xXml := Copy(xXml, 1, i -1) + Integridade + '</ConsultarNfseRpsEnvio>';
@@ -168,6 +235,7 @@ begin
 
     tmCancelarNFSe:
       begin
+        Integridade := GetIntegridade('CancelarNfseEnvio');
         i := Pos('</CancelarNfseEnvio>', xXml);
 
         xXml := Copy(xXml, 1, i -1) + Integridade + '</CancelarNfseEnvio>';
@@ -176,6 +244,7 @@ begin
 
     tmSubstituirNFSe:
       begin
+        Integridade := GetIntegridade('SubstituirNfseEnvio');
         i := Pos('</SubstituirNfseEnvio>', xXml);
 
         xXml := Copy(xXml, 1, i -1) + Integridade + '</SubstituirNfseEnvio>';
@@ -367,6 +436,7 @@ begin
   Result := ParseText(AnsiString(Result), True, False);
   Result := RemoverDeclaracaoXML(Result);
   Result := RemoverCaracteresDesnecessarios(Result);
+  Result := RemoverIdentacao(Result);
 end;
 
 end.

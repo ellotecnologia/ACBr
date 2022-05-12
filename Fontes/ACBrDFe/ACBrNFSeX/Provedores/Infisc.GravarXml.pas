@@ -851,7 +851,7 @@ begin
     Result.AppendChild(AddNode(tcDe3, '#1', 'vUnit', 1, 15, 1,
                        NFSe.Servico.ItemServico[Item].ValorUnitario, ''))
   else
-    Result.AppendChild(AddNode(tcDe2, '#1', 'vUnit', 1, 15, 1,
+    Result.AppendChild(AddNode(tcDe4, '#1', 'vUnit', 1, 15, 1,
                        NFSe.Servico.ItemServico[Item].ValorUnitario, ''));
 
   Result.AppendChild(AddNode(tcDe2, '#1', 'vServ', 1, 15, 0,
@@ -1155,6 +1155,8 @@ end;
 procedure TNFSeW_Infisc201.Configuracao;
 begin
   inherited Configuracao;
+
+  GerarNSRps := False;
 end;
 
 procedure TNFSeW_Infisc201.DefinirIDRps;

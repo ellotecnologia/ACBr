@@ -144,6 +144,7 @@ begin
     Identificador := '';
     ModoEnvio := meLoteAssincrono;
     ConsultaPorFaixa := True;
+    DetalharServico := True;
   end;
 
   with ConfigWebServices do
@@ -734,6 +735,8 @@ procedure TACBrNFSeProviderInfisc201.Configuracao;
 begin
   inherited Configuracao;
 
+  ConfigGeral.DetalharServico := False;
+
   with ConfigAssinar do
   begin
     Rps := True;
@@ -751,6 +754,8 @@ begin
     VersaoDados := '2.01';
     VersaoAtrib := '2.01';
   end;
+
+  SetXmlNameSpace('');
 
   with ConfigMsgDados do
   begin
@@ -797,8 +802,8 @@ procedure TACBrNFSeProviderInfisc201.ValidarSchema(
 begin
   inherited ValidarSchema(Response, aMetodo);
 
-  Response.ArquivoEnvio := StringReplace(Response.ArquivoEnvio,
-         ' xmlns="http://www.abrasf.org.br/nfse.xsd"', '', [rfReplaceAll]);
+//  Response.ArquivoEnvio := StringReplace(Response.ArquivoEnvio,
+//         ' xmlns="http://www.abrasf.org.br/nfse.xsd"', '', [rfReplaceAll]);
 end;
 
 { TACBrNFSeXWebserviceInfisc }

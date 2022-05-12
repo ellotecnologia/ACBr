@@ -42,11 +42,80 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+11/05/2022
+-- Diversos --
+[*] As funções de conversão: ExigibilidadeISSToStr, StrToExigibilidadeISS
+    ExigibilidadeISSDescricao, TipoRPSToStr e StrToTipoRPS foram movidas da
+    unit ACBrNFSeXConversao para ACBrNFSeXProviderBase, ajustes em outras
+    units se fizeram necessário.
+   Por: Italo Giurizzato Junior
+-- Agili.LerXml --
+[*] Ajustes para ler corretamente um XML Rps e uma NFS-e.
+   Por: PlenusTech
+-- iiBrasil.Provider --
+[*] Incluido a procedure TratarRetornoEmitir, por conta do retorno ser
+    totalmente diferente.
+   Por: Italo Giurizzato Junior
+-- ACBrNFSeX --
+[*] Alteração na função GerarIntegridade utilizada pelo provedor iiBrasil.
+   Por: Italo Giurizzato Junior
+
+10/05/2022
+-- iiBrasil.Provider/ACBrNFSeXWebserviceBase --
+[*] Alterações visando resolver o problema ao gerar a tag Integridade para o
+    provedor iiBrasil.
+   Por: Italo Giurizzato Junior
+-- Infisc.Provider/Infisc.GravarXml --
+[*] Alterações visando resolver o problema de assinatura inválida.
+   Por: Italo Giurizzato Junior
+-- ACBrNFSeXClass/WebFisco.GravarXml --
+[*] Criado o campo Anexo que é utilizado tanto pelo provedor WebFisco quanto pelo
+    FGMaiss.
+   Por: Italo Giurizzato Junior
+-- Diversos --
+[*] Varios ajustes para atender o provedor EL (layout Próprio).
+   Por: Jeanny Paiva
+-- AssessorPublico.LerXml --
+[*] A leitura da tag <OBSSERVICO> estava alimentando o campo Discriminacao
+    sendo que o correto é OutrasInformacoes.
+   Por: José Jair de Oliveira
+
+09/05/2022
+-- Diversos --
+[*] Alguns provedores que seguem a versão 1 do layout da ABRASF mas
+    disponibilizam o serviço GerarNFSe, o tratar retorna estava 
+    pegando o XML de forma errada e não estava salvando o mesmo.
+    Foi feita a correção.
+   Por: Italo Giurizzato Junior
+
+06/05/2022
+-- ACBrNFSeXServicos --
+[*] A cidade Taubaté/SP trocou de provedor, agora é Etherium
+   Por: Gildicley
+-- ACBrNFSeXServicos --
+[*] Corrigido a sessão da cidade Marechal Candido Rondon/PR
+   Por: Guilherme Bernardi
+-- ACBrNFSeXLerXml_ABRASFv2/SigCorp.LerXml --
+[*] Possível solução para o problema de leitura da data de cancelamento - Provedor
+    SigCorp.
+   Por: Italo Giurizzato Junior
+
+05/05/2022
+-- ACBrNFSeXLerXml_ABRASFv1 --
+[*] Possível solução para o problema de leitura da data de cancelamento e com
+    isso setar a nota como cancelada.
+   Por: Italo Giurizzato Junior
+-- Diversos --
+[+] Implementado uma propriede de parametrização que determina se ao imprimir
+    o DANFSE vai ser impresso a lista de serviços ou simplemente o conteúdo do
+    campo Discriminacao.
+   Por: Italo Giurizzato Junior
+
 04/05/2022
 -- ACBrNFSeXServicos --
 [*] Alterado a URL de homologação da cidade de Parauapebas
    Por: Glênio Duarte Moura
--- fintelISS.GravarXml
+-- fintelISS.GravarXml --
 [*] Alterado a configuração para gerar as tags referente ao PIS, COFINS, INSS,
     IR e CSLL.
    Por: Italo Giurizzato Junior
