@@ -103,7 +103,9 @@ implementation
 
 uses
   strutils, math,
-  ACBrValidador, ACBrUtil, ACBrConsts, ACBrDFeUtil, ACBrSATClass;
+  ACBrValidador, ACBrUtil.Strings, 
+  ACBrUtil.Math, ACBrUtil.FilesIO, ACBrUtil.Base, ACBrUtil.DateTime, ACBrUtil.XMLHTML,
+  ACBrConsts, ACBrDFeUtil, ACBrSATClass;
 
 {$IFNDEF FPC}
    {$R ACBrSATExtratoESCPOS.dcr}
@@ -642,7 +644,8 @@ procedure TACBrSATExtratoESCPOS.GerarDadosCancelamento;
 Var
   DadosQRCode, Chave, TagCode128 , TituloSAT, ATexto: String;
   ChaveEmUmaLinha, Suporta128c : Boolean;
-  EsquerdaQRCode, AlturaQRCode: Integer;
+  EsquerdaQRCode, AlturaQRCode, AlturaMax: Integer;
+  SL : TStringList;
 begin
   FPosPrinter.Buffer.Add('</fn></linha_simples>');
   FPosPrinter.Buffer.Add(ACBrStr('</ce><n>DADOS DO CUPOM FISCAL ELETRÔNICO DE CANCELAMENTO</n>'));
@@ -689,20 +692,27 @@ begin
                 FormatFloatBr(CFeCanc.ide.nserieSAT,'000,000,000') + sLineBreak +
                 FormatDateTimeBr(CFeCanc.ide.dEmi + CFeCanc.ide.hEmi, 'DD/MM/YYYY - hh:nn:ss');
 
-      ATexto := QuebraLinhas( ATexto, trunc(FPosPrinter.ColunasFonteCondensada/2) );
+      ATexto := QuebraLinhas( ATexto, trunc(FPosPrinter.ColunasFonteCondensada/2) -2 );
       ATexto := AplicarAtributoTexto( ATexto, TituloSAT, '<n>');
+      SL := TStringList.Create;
+      try
+        SL.Text := ATexto;
+        AlturaQRCode   := FPosPrinter.CalcularAlturaQRCodeAlfaNumM(DadosQRCode);
+        AlturaMax      := max( FPosPrinter.CalcularAlturaTexto(SL.Count), AlturaQRCode );
+        EsquerdaQRCode := Trunc(max(CLarguraRegiaoEsquerda - Trunc(AlturaQRCode/2),0) / 2);
 
-      AlturaQRCode := FPosPrinter.CalcularAlturaQRCodeAlfaNumM(DadosQRCode);
-      EsquerdaQRCode := Trunc(max(CLarguraRegiaoEsquerda - Trunc(AlturaQRCode/2),0) / 2);
+        FPosPrinter.Buffer.Add( '<mp>' +
+                                FPosPrinter.ConfigurarRegiaoModoPagina(
+                                  EsquerdaQRCode, 0, AlturaMax,
+                                  (CLarguraRegiaoEsquerda-EsquerdaQRCode) ) +
+                                ComandosQRCode(DadosQRCode));
 
-      FPosPrinter.Buffer.Add( '<mp>' +
-                              FPosPrinter.ConfigurarRegiaoModoPagina(
-                                EsquerdaQRCode, 0, AlturaQRCode,
-                                (CLarguraRegiaoEsquerda-EsquerdaQRCode) ) +
-                              ComandosQRCode(DadosQRCode));
-      FPosPrinter.Buffer.Add( FPosPrinter.ConfigurarRegiaoModoPagina(
-                                CLarguraRegiaoEsquerda, 0, AlturaQRCode, 325) +
-                              '</ce><c>' + ATexto + '</mp>');
+        FPosPrinter.Buffer.Add( FPosPrinter.ConfigurarRegiaoModoPagina(
+                                  CLarguraRegiaoEsquerda, 0, AlturaMax, 325) +
+                                '</ce><c>' + SL.Text + '</mp>');
+      finally
+        SL.Free;
+      end;
     end
     else
     begin

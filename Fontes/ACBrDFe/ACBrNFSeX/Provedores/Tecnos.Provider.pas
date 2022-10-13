@@ -233,7 +233,7 @@ function TACBrNFSeProviderTecnos201.DefinirIDCancelamento(const CNPJ: string;
   const InscMunic: string; const NumNfse: string): string;
 begin
   Result := ' ' + ConfigGeral.Identificador + '="' + CNPJ +
-            ACBrUtil.Strings.Poem_Zeros(OnlyNumber(NumNfse), 9) + '"';
+            Poem_Zeros(OnlyNumber(NumNfse), 9) + '"';
 end;
 
 function TACBrNFSeProviderTecnos201.DefinirIDLote(const ID: string): string;
@@ -245,7 +245,7 @@ begin
   Result := ' ' + ConfigGeral.Identificador + '="1' + // Tipo de operação, no caso envio
             IntToStr(YearOf(Date)) + // ano do lote enviado no formato AAAA
             OnlyNumber(Cnpj) +
-            ACBrUtil.Strings.Poem_Zeros(OnlyNumber(ID), 16) + '"';
+            Poem_Zeros(OnlyNumber(ID), 16) + '"';
 end;
 
 procedure TACBrNFSeProviderTecnos201.GerarMsgDadosCancelaNFSe(
@@ -316,13 +316,20 @@ begin
         Codigo := ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('Codigo'), tcStr);
         Mensagem := ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('Mensagem'), tcStr);
 
-//        if (Codigo <> 'A0000') and (Mensagem <> '') then
-        if Mensagem <> '' then
+        if (Codigo <> 'A0000') and (Mensagem <> '') then
         begin
           AErro := Response.Erros.New;
           AErro.Codigo := Codigo;
           AErro.Descricao := Mensagem;
           AErro.Correcao := ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('Correcao'), tcStr);
+        end;
+
+        if (Codigo = 'A0000') and (Mensagem <> '') then
+        begin
+          AAlerta := Response.Alertas.New;
+          AAlerta.Codigo := Codigo;
+          AAlerta.Descricao := Mensagem;
+          AAlerta.Correcao := ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('Correcao'), tcStr);
         end;
       end;
     end
@@ -331,13 +338,20 @@ begin
       Codigo := ObterConteudoTag(ANode.Childrens.FindAnyNs('Codigo'), tcStr);
       Mensagem := ObterConteudoTag(ANode.Childrens.FindAnyNs('Mensagem'), tcStr);
 
-//      if (Codigo <> 'A0000') and (Mensagem <> '') then
-      if Mensagem <> '' then
+      if (Codigo <> 'A0000') and (Mensagem <> '') then
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Codigo;
         AErro.Descricao := Mensagem;
         AErro.Correcao := ObterConteudoTag(ANode.Childrens.FindAnyNs('Correcao'), tcStr);
+      end;
+
+      if (Codigo = 'A0000') and (Mensagem <> '') then
+      begin
+        AAlerta := Response.Alertas.New;
+        AAlerta.Codigo := Codigo;
+        AAlerta.Descricao := Mensagem;
+        AAlerta.Correcao := ObterConteudoTag(ANode.Childrens.FindAnyNs('Correcao'), tcStr);
       end;
     end;
   end;
@@ -356,7 +370,7 @@ begin
 
         if Mensagem <> '' then
         begin
-          AAlerta := Response.Erros.New;
+          AAlerta := Response.Alertas.New;
           AAlerta.Codigo := ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('Codigo'), tcStr);
           AAlerta.Descricao := Mensagem;
           AAlerta.Correcao := ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('Correcao'), tcStr);
@@ -369,7 +383,7 @@ begin
 
       if Mensagem <> '' then
       begin
-        AAlerta := Response.Erros.New;
+        AAlerta := Response.Alertas.New;
         AAlerta.Codigo := ObterConteudoTag(ANode.Childrens.FindAnyNs('Codigo'), tcStr);
         AAlerta.Descricao := Mensagem;
         AAlerta.Correcao := ObterConteudoTag(ANode.Childrens.FindAnyNs('Correcao'), tcStr);
@@ -454,7 +468,7 @@ begin
   FPMsgOrig := AMSG;
 
   Request := '<mRecepcaoLoteRPS xmlns="http://tempuri.org/">';
-  Request := Request + '<remessa>' + IncluirCDATA(AMSG) + '</remessa>';
+  Request := Request + '<remessa>' + XmlToStr(AMSG) + '</remessa>';
   Request := Request + '</mRecepcaoLoteRPS>';
 
   Result := Executar('http://tempuri.org/mRecepcaoLoteRPS', Request,
@@ -470,7 +484,7 @@ begin
   FPMsgOrig := AMSG;
 
   Request := '<mEnvioLoteRPSSincrono xmlns="http://tempuri.org/">';
-  Request := Request + '<remessa>' + IncluirCDATA(AMSG) + '</remessa>';
+  Request := Request + '<remessa>' + XmlToStr(AMSG) + '</remessa>';
   Request := Request + '</mEnvioLoteRPSSincrono>';
 
   Result := Executar('http://tempuri.org/mEnvioLoteRPSSincrono', Request,
@@ -486,7 +500,7 @@ begin
   FPMsgOrig := AMSG;
 
   Request := '<mGerarNfse xmlns="http://tempuri.org/">';
-  Request := Request + '<remessa>' + IncluirCDATA(AMSG) + '</remessa>';
+  Request := Request + '<remessa>' + XmlToStr(AMSG) + '</remessa>';
   Request := Request + '</mGerarNfse>';
 
   Result := Executar('http://tempuri.org/mGerarNfse', Request,
@@ -502,7 +516,7 @@ begin
   FPMsgOrig := AMSG;
 
   Request := '<mConsultaLoteRPS xmlns="http://tempuri.org/">';
-  Request := Request + '<remessa>' + IncluirCDATA(AMSG) + '</remessa>';
+  Request := Request + '<remessa>' + XmlToStr(AMSG) + '</remessa>';
   Request := Request + '</mConsultaLoteRPS>';
 
   Result := Executar('http://tempuri.org/mConsultaLoteRPS', Request,
@@ -518,7 +532,7 @@ begin
   FPMsgOrig := AMSG;
 
   Request := '<mConsultaNFSePorFaixa xmlns="http://tempuri.org/">';
-  Request := Request + '<remessa>' + IncluirCDATA(AMSG) + '</remessa>';
+  Request := Request + '<remessa>' + XmlToStr(AMSG) + '</remessa>';
   Request := Request + '</mConsultaNFSePorFaixa>';
 
   Result := Executar('http://tempuri.org/mConsultaNFSePorFaixa', Request,
@@ -534,7 +548,7 @@ begin
   FPMsgOrig := AMSG;
 
   Request := '<mConsultaNFSePorRPS xmlns="http://tempuri.org/">';
-  Request := Request + '<remessa>' + IncluirCDATA(AMSG) + '</remessa>';
+  Request := Request + '<remessa>' + XmlToStr(AMSG) + '</remessa>';
   Request := Request + '</mConsultaNFSePorRPS>';
 
   Result := Executar('http://tempuri.org/mConsultaNFSePorRPS', Request,
@@ -550,7 +564,7 @@ begin
   FPMsgOrig := AMSG;
 
   Request := '<mConsultaNFSeServicosPrestados xmlns="http://tempuri.org/">';
-  Request := Request + '<remessa>' + IncluirCDATA(AMSG) + '</remessa>';
+  Request := Request + '<remessa>' + XmlToStr(AMSG) + '</remessa>';
   Request := Request + '</mConsultaNFSeServicosPrestados>';
 
   Result := Executar('http://tempuri.org/mConsultaNFSeServicosPrestados', Request,
@@ -566,7 +580,7 @@ begin
   FPMsgOrig := AMSG;
 
   Request := '<mConsultaNFSeServicosTomadosIntermediados xmlns="http://tempuri.org/">';
-  Request := Request + '<remessa>' + IncluirCDATA(AMSG) + '</remessa>';
+  Request := Request + '<remessa>' + XmlToStr(AMSG) + '</remessa>';
   Request := Request + '</mConsultaNFSeServicosTomadosIntermediados>';
 
   Result := Executar('http://tempuri.org/mConsultaNFSeServicosTomadosIntermediados', Request,
@@ -581,7 +595,7 @@ begin
   FPMsgOrig := AMSG;
 
   Request := '<mCancelamentoNFSe xmlns="http://tempuri.org/">';
-  Request := Request + '<remessa>' + IncluirCDATA(AMSG) + '</remessa>';
+  Request := Request + '<remessa>' + XmlToStr(AMSG) + '</remessa>';
   Request := Request + '</mCancelamentoNFSe>';
 
   Result := Executar('http://tempuri.org/mCancelamentoNFSe', Request,

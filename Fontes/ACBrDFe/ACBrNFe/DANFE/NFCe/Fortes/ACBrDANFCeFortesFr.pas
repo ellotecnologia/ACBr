@@ -326,9 +326,7 @@ uses
   StrUtils, math,
   ACBrNFe, ACBrDFeDANFeReport, ACBrDFeReportFortes,
   ACBrValidador,
-  ACBrUtil,
-  ACBrUtil.Strings,
-  ACBrUtil.FilesIO,
+  ACBrUtil.Base, ACBrUtil.Strings, ACBrUtil.FilesIO,
   ACBrImage, ACBrDelphiZXingQRCode;
 
 {$ifdef FPC}
@@ -687,7 +685,7 @@ begin
 
   LinhaItem := AjustarDescricaoAteTamanhoMaximo(UmProd, LinhaItem);
 
-  LinhaTotal := ACBrNFeDANFCeFortes.FormatarQuantidade(UmProd.qCom, False) + '|' +
+  LinhaTotal := '| ' + ACBrNFeDANFCeFortes.FormatarQuantidade(UmProd.qCom, False) + '|' +
                 Trim(UmProd.uCom) + ' X ' + ACBrNFeDANFCeFortes.FormatarValorUnitario(UmProd.vUnCom) + '|';
   LinhaTotal := TDFeReportFortes.EspacejarTextoGrafico(LinhaTotal, mLinhaTotalItem.Width - 10, mLinhaTotalItem.Font);
   ValorTotal := FormatFloatBr(UmProd.vProd);
@@ -706,7 +704,7 @@ begin
   infoAdProd := ACBrNFeDANFCeFortes.ManterinfAdProd(ACBrNFeDANFCeFortes.FpNFe, fNumItem);
   if Trim(infoAdProd) <> '' then
     LinhaItem := LinhaItem + infoAdProd;
-  LinhaTotal := ACBrNFeDANFCeFortes.FormatarQuantidade(aProd.qCom, False) + '|' +
+  LinhaTotal := '| ' + ACBrNFeDANFCeFortes.FormatarQuantidade(aProd.qCom, False) + '|' +
                 Trim(aProd.uCom) + ' X ' + ACBrNFeDANFCeFortes.FormatarValorUnitario(aProd.vUnCom) + '|';
   LinhaTotal := TDFeReportFortes.EspacejarTextoGrafico(LinhaTotal, mLinhaTotalItem.Width - 10, mLinhaTotalItem.Font);
   ValorTotal := FormatFloatBr(aProd.vProd);

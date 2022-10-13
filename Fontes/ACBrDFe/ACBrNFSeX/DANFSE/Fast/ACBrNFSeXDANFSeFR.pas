@@ -110,7 +110,8 @@ implementation
 
 uses
   StrUtils, Math,
-  ACBrUtil, ACBrDFeUtil,
+  ACBrUtil.Strings, ACBrDFeUtil,
+  ACBrUtil.Math, ACBrUtil.FilesIO, ACBrUtil.Base, ACBrUtil.DateTime, ACBrUtil.XMLHTML,
   ACBrNFSeXConversao, ACBrNFSeXInterface;
 
 constructor TACBrNFSeXDANFSeFR.Create(AOwner: TComponent);
@@ -549,7 +550,7 @@ begin
     with FieldDefs do
     begin
       Clear;
-      Add('DiscriminacaoServico', ftString, 256);
+      Add('DiscriminacaoServico', ftString, 2000);
       Add('Quantidade', ftString, 10);
       Add('ValorUnitario', ftString, 30);
       Add('ValorTotal', ftString, 30);
@@ -879,6 +880,8 @@ end;
 procedure TACBrNFSeXDANFSeFR.CarregaParametros(ANFSe: TNFSe);
 var
   FProvider: IACBrNFSeXProvider;
+  CodigoIBGE: Integer;
+  xMunicipio, xUF: string;
 begin
   FProvider := TACBrNFSeX(FACBrNFSe).Provider;
 
@@ -908,8 +911,20 @@ begin
 
         with Servico do
         begin
-          FieldByName('CodigoMunicipio').AsString := CodIBGEToCidade(StrToIntDef(IfThen(CodigoMunicipio <> '', CodigoMunicipio, ''), 0));
-          FieldByName('ExigibilidadeISS').AsString := ExigibilidadeISSDescricao(ExigibilidadeISS);
+          CodigoIBGE := StrToIntDef(CodigoMunicipio, 0);
+
+          try
+            xMunicipio := ObterNomeMunicipio(CodigoIBGE, xUF);
+          except
+            on E:Exception do
+            begin
+              xMunicipio := '';
+              xUF := '';
+            end;
+          end;
+
+          FieldByName('CodigoMunicipio').AsString := xMunicipio;
+          FieldByName('ExigibilidadeISS').AsString := FProvider.ExigibilidadeISSDescricao(ExigibilidadeISS);
 
           if NaturezaOperacao = no2 then
             FieldByName('MunicipioIncidencia').AsString := 'Fora do Município'
@@ -940,18 +955,40 @@ begin
 
         with Servico do
         begin
-          FieldByName('ExigibilidadeISS').AsString := ExigibilidadeISSDescricao(ExigibilidadeISS);
+          FieldByName('ExigibilidadeISS').AsString := FProvider.ExigibilidadeISSDescricao(ExigibilidadeISS);
           FieldByName('TipoRecolhimento').AsString := TipoRecolhimento;
 
           if Provedor = proAdm then
           begin
             FieldByName('CodigoMunicipio').AsString := CodigoMunicipio;
-            FieldByName('MunicipioIncidencia').AsString := CodIBGEToCidade(MunicipioIncidencia);
+
+            try
+              xMunicipio := ObterNomeMunicipio(MunicipioIncidencia, xUF);
+            except
+              on E:Exception do
+              begin
+                xMunicipio := '';
+                xUF := '';
+              end;
+            end;
+
+            FieldByName('MunicipioIncidencia').AsString := xMunicipio;
           end
           else
           begin
-            FieldByName('CodigoMunicipio').AsString := CodIBGEToCidade(StrToIntDef(IfThen(CodigoMunicipio <> '', CodigoMunicipio, ''), 0));
-            FieldByName('MunicipioIncidencia').AsString := CodIBGEToCidade(StrToIntDef(CodigoMunicipio, 0)); // Antes:
+            FieldByName('CodigoMunicipio').AsString := CodigoMunicipio;
+
+            try
+              xMunicipio := ObterNomeMunicipio(StrToIntDef(CodigoMunicipio, 0), xUF);
+            except
+              on E:Exception do
+              begin
+                xMunicipio := '';
+                xUF := '';
+              end;
+            end;
+
+            FieldByName('MunicipioIncidencia').AsString := xMunicipio;
           end;
         end;
       end;
@@ -1085,7 +1122,7 @@ begin
       FieldByName('NumeroProcesso').AsString := NumeroProcesso;
       FieldByName('Descricao').AsString := Descricao;
       FieldByName('ResponsavelRetencao').AsString := FProvider.ResponsavelRetencaoToStr(ResponsavelRetencao);
-      FieldByName('Tributacao').AsString := TributacaoToStr(Tributacao);
+      FieldByName('Tributacao').AsString := FProvider.TributacaoToStr(Tributacao);
 
       with Valores do
       begin
@@ -1129,7 +1166,7 @@ begin
     begin
       if ValorIss > 0 then
       begin
-        FieldByName('ValorServicos').AsFloat          := BaseCalculo;
+        FieldByName('ValorServicos').AsFloat          := ANFSe.Servico.Valores.ValorServicos;
         FieldByName('ValorIss').AsFloat               := ValorIss;
         FieldByName('BaseCalculo').AsFloat            := BaseCalculo;
         FieldByName('Aliquota').AsFloat               := Aliquota;

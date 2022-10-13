@@ -71,11 +71,13 @@ type
     procedure ValidarSchema(Response: TNFSeWebserviceResponse; aMetodo: TMetodo); override;
 
     procedure TratarRetornoEmitir(Response: TNFSeEmiteResponse); override;
+    procedure TratarRetornoConsultaNFSeporRps(Response: TNFSeConsultaNFSeporRpsResponse); override;
   end;
 
 implementation
 
 uses
+  synacode,
   ACBrUtil.XMLHTML,
   ACBrDFeException, ACBrNFSeX, ACBrNFSeXConfiguracoes, ACBrNFSeXConsts,
   ACBrNFSeXNotasFiscais, iiBrasil.GravarXml, iiBrasil.LerXml;
@@ -144,11 +146,7 @@ procedure TACBrNFSeProvideriiBrasil204.TratarRetornoEmitir(
 var
   Document: TACBrXmlDocument;
   AErro: TNFSeEventoCollectionItem;
-  ANode, AuxNode: TACBrXmlNode;
-  ANodeArray: TACBrXmlNodeArray;
-  ANota: TNotaFiscal;
-  NumRps: String;
-  I: Integer;
+  ANode: TACBrXmlNode;
 begin
   if Response.ModoEnvio <> meUnitario then
   begin
@@ -165,7 +163,7 @@ begin
 
       ProcessarMensagemErros(ANode, Response);
 
-      Response.Sucesso := (Response.Erros.Count > 0);
+      Response.Sucesso := (Response.Erros.Count = 0);
 
       ANode := ANode.Childrens.FindAnyNs('InformacoesNfse');
 
@@ -181,6 +179,60 @@ begin
       Response.SerieNota := ObterConteudoTag(ANode.Childrens.FindAnyNs('SerieNfse'), tcStr);
       Response.CodVerificacao := ObterConteudoTag(ANode.Childrens.FindAnyNs('CodigoVerificacao'), tcStr);
       Response.Link := ObterConteudoTag(ANode.Childrens.FindAnyNs('LinkNfse'), tcStr);
+      Response.Link := DecodeBase64(Response.Link);
+    except
+      on E:Exception do
+      begin
+        AErro := Response.Erros.New;
+        AErro.Codigo := Cod999;
+        AErro.Descricao := Desc999 + E.Message;
+      end;
+    end;
+  finally
+    FreeAndNil(Document);
+  end;
+end;
+
+procedure TACBrNFSeProvideriiBrasil204.TratarRetornoConsultaNFSeporRps(Response: TNFSeConsultaNFSeporRpsResponse);
+var
+  Document: TACBrXmlDocument;
+  AErro: TNFSeEventoCollectionItem;
+  ANode: TACBrXmlNode;
+begin
+  Document := TACBrXmlDocument.Create;
+  try
+    try
+      if Response.ArquivoRetorno = '' then
+      begin
+        AErro := Response.Erros.New;
+        AErro.Codigo := Cod201;
+        AErro.Descricao := Desc201;
+        Exit
+      end;
+
+      Document.LoadFromXml(Response.ArquivoRetorno);
+
+      ANode := Document.Root;
+
+      ProcessarMensagemErros(ANode, Response);
+
+      Response.Sucesso := (Response.Erros.Count = 0);
+
+      ANode := ANode.Childrens.FindAnyNs('InformacoesNfse');
+
+      if not Assigned(ANode) then
+      begin
+        AErro := Response.Erros.New;
+        AErro.Codigo := Cod202;
+        AErro.Descricao := Desc202;
+        Exit;
+      end;
+
+      Response.NumeroNota := ObterConteudoTag(ANode.Childrens.FindAnyNs('NumeroNfse'), tcStr);
+      Response.SerieNota := ObterConteudoTag(ANode.Childrens.FindAnyNs('SerieNfse'), tcStr);
+      Response.CodVerificacao := ObterConteudoTag(ANode.Childrens.FindAnyNs('CodigoVerificacao'), tcStr);
+      Response.Link := ObterConteudoTag(ANode.Childrens.FindAnyNs('LinkNfse'), tcStr);
+      Response.Link := DecodeBase64(Response.Link);
     except
       on E:Exception do
       begin

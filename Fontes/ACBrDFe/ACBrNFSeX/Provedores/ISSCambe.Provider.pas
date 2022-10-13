@@ -82,6 +82,9 @@ type
   public
     function TipoPessoaToStr(const t: TTipoPessoa): string; override;
     function StrToTipoPessoa(out ok: boolean; const s: string): TTipoPessoa; override;
+
+    function SituacaoTribToStr(const t: TSituacaoTrib): string; override;
+    function StrToSituacaoTrib(out ok: boolean; const s: string): TSituacaoTrib; override;
   end;
 
 implementation
@@ -251,14 +254,7 @@ begin
 
       ANota := TACBrNFSeX(FAOwner).NotasFiscais.FindByNFSe(NumNFSe);
 
-      if Assigned(ANota) then
-        ANota.XmlNfse := ANode.OuterXml
-      else
-      begin
-        TACBrNFSeX(FAOwner).NotasFiscais.LoadFromString(ANode.OuterXml, False);
-        ANota := TACBrNFSeX(FAOwner).NotasFiscais.Items[TACBrNFSeX(FAOwner).NotasFiscais.Count-1];
-      end;
-
+      ANota := CarregarXmlNfse(ANota, ANode.OuterXml);
       SalvarXmlNfse(ANota);
     except
       on E:Exception do
@@ -411,14 +407,7 @@ begin
 
       ANota := TACBrNFSeX(FAOwner).NotasFiscais.FindByNFSe(NumNFSe);
 
-      if Assigned(ANota) then
-        ANota.XmlNfse := ANode.OuterXml
-      else
-      begin
-        TACBrNFSeX(FAOwner).NotasFiscais.LoadFromString(ANode.OuterXml, False);
-        ANota := TACBrNFSeX(FAOwner).NotasFiscais.Items[TACBrNFSeX(FAOwner).NotasFiscais.Count-1];
-      end;
-
+      ANota := CarregarXmlNfse(ANota, ANode.OuterXml);
       SalvarXmlNfse(ANota);
     except
       on E:Exception do
@@ -481,6 +470,22 @@ begin
                            ['1', '2', '3', '4', '5'],
                            [tpPJdoMunicipio, tpPJforaMunicipio, tpPF,
                             tpPFNaoIdentificada, tpPJforaPais]);
+end;
+
+function TACBrNFSeProviderISSCambe.SituacaoTribToStr(
+  const t: TSituacaoTrib): string;
+begin
+  Result := EnumeradoToStr(t, ['1', '2', '3', '4', '5', '5', '6'],
+                         [tsTributadaNoPrestador, tsFixo, tsTibutadaNoTomador,
+                          tsOutroMunicipio, tsIsenta, tsImune, tsNaoTributada]);
+end;
+
+function TACBrNFSeProviderISSCambe.StrToSituacaoTrib(out ok: boolean;
+  const s: string): TSituacaoTrib;
+begin
+  Result := StrToEnumerado(ok, s, ['1', '2', '3', '4', '5', '5', '6'],
+                         [tsTributadaNoPrestador, tsFixo, tsTibutadaNoTomador,
+                          tsOutroMunicipio, tsIsenta, tsImune, tsNaoTributada]);
 end;
 
 end.

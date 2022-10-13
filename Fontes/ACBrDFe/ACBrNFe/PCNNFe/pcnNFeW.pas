@@ -196,8 +196,7 @@ implementation
 Uses
   pcnConversaoNFe, pcnAuxiliar, pcnLayoutTXT,
   ACBrDFeUtil, pcnConsts,
-  ACBrUtil,
-  ACBrUtil.Strings,
+  ACBrUtil.Base, ACBrUtil.Strings,
   ACBrValidador;
 
 { TNFeW }
@@ -2928,7 +2927,7 @@ begin
     if ( ( EstaZerado(cMun)) and (xMun <> XMUN_EXTERIOR) ) then
       cMun := ObterCodigoMunicipio(xMun, xUF, FOpcoes.FPathArquivoMunicipios)
     else if ( ( EstaVazio(xMun)) and (cMun <> CMUN_EXTERIOR) ) then
-      xMun := ObterNomeMunicipio(xUF, cMun, FOpcoes.FPathArquivoMunicipios);
+      xMun := ObterNomeMunicipio(cMun, xUF, FOpcoes.FPathArquivoMunicipios);
 
 end;
 

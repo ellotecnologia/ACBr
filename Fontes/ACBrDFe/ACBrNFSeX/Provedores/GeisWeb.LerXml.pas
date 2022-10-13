@@ -46,8 +46,6 @@ type
 
   TNFSeR_GeisWeb = class(TNFSeRClass)
   protected
-    function StrToRegime(out ok: boolean; const s: string): TnfseRegimeEspecialTributacao;
-
     // Leitura da NFS-e
     procedure LerIdentificacaoNfse(const ANode: TACBrXmlNode);
     procedure LerEnderecoPrestador(const ANode: TACBrXmlNode);
@@ -73,8 +71,8 @@ type
 implementation
 
 uses
-  ACBrUtil.Base,
-  ACBrUtil.Strings;
+  ACBrUtil.Base, ACBrUtil.Strings,
+  ACBrDFeUtil;
 
 //==============================================================================
 // Essa unit tem por finalidade exclusiva ler o XML do provedor:
@@ -82,15 +80,6 @@ uses
 //==============================================================================
 
 { TNFSeR_GeisWeb }
-
-function TNFSeR_GeisWeb.StrToRegime(out ok: boolean;
-  const s: string): TnfseRegimeEspecialTributacao;
-begin
-  Result := StrToEnumerado(ok, s,
-                          ['1', '2', '4', '6'],
-                          [retSimplesNacional, retMicroempresarioIndividual,
-                           retImune, retOutros]);
-end;
 
 procedure TNFSeR_GeisWeb.LerContatoPrestador(const ANode: TACBrXmlNode);
 var
@@ -131,7 +120,6 @@ end;
 procedure TNFSeR_GeisWeb.LerEnderecoTomador(const ANode: TACBrXmlNode);
 var
   AuxNode: TACBrXmlNode;
-  cCidade: string;
 begin
   AuxNode := ANode.Childrens.FindAnyNs('Endereco');
 
@@ -142,8 +130,7 @@ begin
       Endereco := ObterConteudo(AuxNode.Childrens.FindAnyNs('Rua'), tcStr);
       Numero := ObterConteudo(AuxNode.Childrens.FindAnyNs('Numero'), tcStr);
       Bairro := ObterConteudo(AuxNode.Childrens.FindAnyNs('Bairro'), tcStr);
-      cCidade := ObterConteudo(AuxNode.Childrens.FindAnyNs('Cidade'), tcStr);
-      xMunicipio := CodIBGEToCidade(StrToIntDef(OnlyNumber(cCidade), 0));
+      CodigoMunicipio := OnlyNumber(ObterConteudo(AuxNode.Childrens.FindAnyNs('Cidade'), tcStr));
       UF := ObterConteudo(AuxNode.Childrens.FindAnyNs('Estado'), tcStr);
       CEP := ObterConteudo(AuxNode.Childrens.FindAnyNs('Cep'), tcStr);
     end;
@@ -271,6 +258,7 @@ end;
 procedure TNFSeR_GeisWeb.LerServico(const ANode: TACBrXmlNode);
 var
   AuxNode: TACBrXmlNode;
+  Ok: Boolean;
 begin
   AuxNode := ANode.Childrens.FindAnyNs('Servico');
 
@@ -286,7 +274,12 @@ begin
       CodigoTributacaoMunicipio := ItemListaServico;
       xCodigoTributacaoMunicipio := CodItemServToDesc(ItemListaServico);
       xItemListaServico := CodItemServToDesc(ItemListaServico);
-//                    <xs:element name="TipoLancamento" type="xs:string"></xs:element>
+      TipoLancamento := StrToTipoLancamento(Ok, ObterConteudo(AuxNode.Childrens.FindAnyNs('TipoLancamento'), tcStr));
+
+      NFSe.SituacaoNfse := snNormal;
+
+      if TipoLancamento = tlCancelado then
+        NFSe.SituacaoNfse := snCancelado;
     end;
   end;
 end;
@@ -333,20 +326,19 @@ end;
 function TNFSeR_GeisWeb.LerXml: Boolean;
 var
   XmlNode: TACBrXmlNode;
-  xRetorno: string;
 begin
   if EstaVazio(Arquivo) then
     raise Exception.Create('Arquivo xml não carregado.');
 
-  xRetorno := TiraAcentos(Arquivo);
+  Arquivo := NormatizarXml(Arquivo);
 
   if FDocument = nil then
     FDocument := TACBrXmlDocument.Create();
 
   Document.Clear();
-  Document.LoadFromXml(xRetorno);
+  Document.LoadFromXml(Arquivo);
 
-  if (Pos('Nfse', xRetorno) > 0) then
+  if (Pos('Nfse', Arquivo) > 0) then
     tpXML := txmlNFSe
   else
     tpXML := txmlRPS;
@@ -377,7 +369,7 @@ begin
     DataEmissao := ObterConteudo(ANode.Childrens.FindAnyNs('DataEmissao'), tcDatVcto);
     dhRecebimento := ObterConteudo(ANode.Childrens.FindAnyNs('DataLancamento'), tcDatVcto);
     Competencia := ObterConteudo(ANode.Childrens.FindAnyNs('Competencia'), tcDatVcto);
-    RegimeEspecialTributacao := StrToRegime(Ok, ObterConteudo(ANode.Childrens.FindAnyNs('Regime'), tcStr));
+    RegimeEspecialTributacao := FpAOwner.StrToRegimeEspecialTributacao(Ok, ObterConteudo(ANode.Childrens.FindAnyNs('Regime'), tcStr));
 
     LerServico(ANode);
     LerPrestadorServico(ANode);

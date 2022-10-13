@@ -40,7 +40,8 @@ uses
   SysUtils, Classes,
   ACBrXmlBase, ACBrXmlDocument, ACBrNFSeXClass, ACBrNFSeXConversao,
   ACBrNFSeXGravarXml, ACBrNFSeXLerXml,
-  ACBrNFSeXProviderABRASFv2, ACBrNFSeXWebserviceBase;
+  ACBrNFSeXProviderABRASFv2,
+  ACBrNFSeXWebserviceBase, ACBrNFSeXWebservicesResponse;
 
 type
   TACBrNFSeXWebserviceSigCorp203 = class(TACBrNFSeXWebserviceSoap11)
@@ -67,13 +68,14 @@ type
     function CriarLeitorXml(const ANFSe: TNFSe): TNFSeRClass; override;
     function CriarServiceClient(const AMetodo: TMetodo): TACBrNFSeXWebservice; override;
 
+    procedure TratarRetornoCancelaNFSe(Response: TNFSeCancelaNFSeResponse); override;
   end;
 
 implementation
 
 uses
-  ACBrUtil.XMLHTML,
-  ACBrDFeException, ACBrNFSeX, ACBrNFSeXConfiguracoes,
+  ACBrUtil.XMLHTML, ACBrUtil.DateTime,
+  ACBrDFeException, ACBrNFSeX, ACBrNFSeXConfiguracoes, ACBrNFSeXConsts,
   ACBrNFSeXNotasFiscais, SigCorp.GravarXml, SigCorp.LerXml;
 
 { TACBrNFSeProviderSigCorp203 }
@@ -82,7 +84,30 @@ procedure TACBrNFSeProviderSigCorp203.Configuracao;
 begin
   inherited Configuracao;
 
-  ConfigGeral.UseCertificateHTTP := False;
+  // Usado na leitura do envio
+  FpFormatoDataRecebimento := tcDatUSA;
+  // Usado na leitura das informações de cancelamento
+  FpFormatoDataHora := tcDatHor;
+  // Usado na leitura da data de emissão da NFS-e
+  FpFormatoDataEmissao := tcDatHor;
+
+  if ConfigGeral.Params.ParamTemValor('FormatoData', 'CancDDMMAAAA') then
+    FpFormatoDataHora := tcDatVcto;
+
+  if ConfigGeral.Params.ParamTemValor('FormatoData', 'CancMMDDAAAA') then
+    FpFormatoDataHora := tcDatUSA;
+
+  if ConfigGeral.Params.ParamTemValor('FormatoData', 'NFSeDDMMAAAA') then
+    FpFormatoDataEmissao := tcDatVcto;
+
+  if ConfigGeral.Params.ParamTemValor('FormatoData', 'NFSeMMDDAAAA') then
+    FpFormatoDataEmissao := tcDatUSA;
+
+  with ConfigGeral do
+  begin
+    UseCertificateHTTP := False;
+    QuebradeLinha := '|';
+  end;
 
   with ConfigAssinar do
   begin
@@ -129,6 +154,109 @@ begin
       raise EACBrDFeException.Create(ERR_SEM_URL_PRO)
     else
       raise EACBrDFeException.Create(ERR_SEM_URL_HOM);
+  end;
+end;
+
+procedure TACBrNFSeProviderSigCorp203.TratarRetornoCancelaNFSe(
+  Response: TNFSeCancelaNFSeResponse);
+var
+  Document: TACBrXmlDocument;
+  ANode: TACBrXmlNode;
+  Ret: TRetCancelamento;
+  IdAttr, xDataHora, xFormato: string;
+  AErro: TNFSeEventoCollectionItem;
+begin
+  Document := TACBrXmlDocument.Create;
+
+  try
+    try
+      if Response.ArquivoRetorno = '' then
+      begin
+        AErro := Response.Erros.New;
+        AErro.Codigo := Cod201;
+        AErro.Descricao := Desc201;
+        Exit
+      end;
+
+      Document.LoadFromXml(Response.ArquivoRetorno);
+
+      ProcessarMensagemErros(Document.Root, Response);
+
+      Response.Sucesso := (Response.Erros.Count = 0);
+
+      ANode := Document.Root.Childrens.FindAnyNs('RetCancelamento');
+
+      if not Assigned(ANode) then
+      begin
+        AErro := Response.Erros.New;
+        AErro.Codigo := Cod209;
+        AErro.Descricao := Desc209;
+        Exit;
+      end;
+
+      ANode := ANode.Childrens.FindAnyNs('NfseCancelamento');
+      if not Assigned(ANode) then
+      begin
+        AErro := Response.Erros.New;
+        AErro.Codigo := Cod210;
+        AErro.Descricao := Desc210;
+        Exit;
+      end;
+
+      ANode := ANode.Childrens.FindAnyNs('Cancelamento');
+
+      ANode := ANode.Childrens.FindAnyNs('Confirmacao');
+      if not Assigned(ANode) then
+      begin
+        AErro := Response.Erros.New;
+        AErro.Codigo := Cod204;
+        AErro.Descricao := Desc204;
+        Exit;
+      end;
+
+      Ret :=  Response.RetCancelamento;
+
+      xDataHora := ObterConteudoTag(ANode.Childrens.FindAnyNs('DataHoraCancelamento'), tcStr);
+      xFormato := 'YYYY/MM/DD';
+
+      if ConfigGeral.Params.ParamTemValor('FormatoData', 'CancDDMMAAAA') then
+        xFormato := 'DD/MM/YYYY';
+
+      if ConfigGeral.Params.ParamTemValor('FormatoData', 'CancMMDDAAAA') then
+        xFormato := 'MM/DD/YYYY';
+
+      Ret.DataHora := EncodeDataHora(xDataHora, xFormato);
+
+      if ConfigAssinar.IncluirURI then
+        IdAttr := ConfigGeral.Identificador
+      else
+        IdAttr := 'ID';
+
+      ANode := ANode.Childrens.FindAnyNs('Pedido');
+      ANode := ANode.Childrens.FindAnyNs('InfPedidoCancelamento');
+
+      Ret.Pedido.InfID.ID := ObterConteudoTag(ANode.Attributes.Items[IdAttr]);
+      Ret.Pedido.CodigoCancelamento := ObterConteudoTag(ANode.Childrens.FindAnyNs('CodigoCancelamento'), tcStr);
+
+      ANode := ANode.Childrens.FindAnyNs('IdentificacaoNfse');
+
+      with Ret.Pedido.IdentificacaoNfse do
+      begin
+        Numero := ObterConteudoTag(ANode.Childrens.FindAnyNs('Numero'), tcStr);
+        Cnpj := ObterConteudoTag(ANode.Childrens.FindAnyNs('Cnpj'), tcStr);
+        InscricaoMunicipal := ObterConteudoTag(ANode.Childrens.FindAnyNs('InscricaoMunicipal'), tcStr);
+        CodigoMunicipio := ObterConteudoTag(ANode.Childrens.FindAnyNs('CodigoMunicipio'), tcStr);
+      end;
+    except
+      on E:Exception do
+      begin
+        AErro := Response.Erros.New;
+        AErro.Codigo := Cod999;
+        AErro.Descricao := Desc999 + E.Message;
+      end;
+    end;
+  finally
+    FreeAndNil(Document);
   end;
 end;
 

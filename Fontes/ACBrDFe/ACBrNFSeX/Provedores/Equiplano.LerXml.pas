@@ -149,20 +149,19 @@ end;
 function TNFSeR_Equiplano.LerXml: Boolean;
 var
   XmlNode: TACBrXmlNode;
-  xRetorno: string;
 begin
-  xRetorno := Arquivo;
-
-  if EstaVazio(xRetorno) then
+  if EstaVazio(Arquivo) then
     raise Exception.Create('Arquivo xml não carregado.');
+
+  Arquivo := NormatizarXml(Arquivo);
 
   if FDocument = nil then
     FDocument := TACBrXmlDocument.Create();
 
   Document.Clear();
-  Document.LoadFromXml(xRetorno);
+  Document.LoadFromXml(Arquivo);
 
-  if (Pos('nfse', xRetorno) > 0) then
+  if (Pos('nfse', Arquivo) > 0) then
     tpXML := txmlNFSe
   else
     tpXML := txmlRPS;
@@ -370,7 +369,7 @@ begin
           with IdentificacaoTomador do
           begin
             CpfCnpj := ObterConteudo(AuxNode.Childrens.FindAnyNs('nrDocumento'), tcStr);
-            DocTomadorEstrangeiro := ObterConteudo(AuxNode.Childrens.FindAnyNs('dsDocumentoEstrangeiro'), tcStr);
+            DocEstrangeiro := ObterConteudo(AuxNode.Childrens.FindAnyNs('dsDocumentoEstrangeiro'), tcStr);
           end;
         end;
       end;

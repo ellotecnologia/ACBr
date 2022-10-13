@@ -633,7 +633,13 @@ implementation
 
 Uses
   typinfo,
-  ACBrECF, ACBrUtil, ACBrConsts;
+  ACBrECF,
+  ACBrUtil.Strings,
+  ACBrUtil.Base,
+  ACBrUtil.Math,
+  ACBrUtil.FilesIO,
+  ACBrUtil.Compatibilidade,
+  ACBrConsts;
 
 { TACBrECFVirtualClassItemCupom }
 

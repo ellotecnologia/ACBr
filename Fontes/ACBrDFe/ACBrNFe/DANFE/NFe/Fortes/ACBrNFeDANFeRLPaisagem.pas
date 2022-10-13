@@ -644,13 +644,10 @@ implementation
 
 uses
   DateUtils, StrUtils, Math,
-  pcnNFe, pcnConversao, pcnConversaoNFe,
+  ACBrNFe, pcnNFe, pcnConversao, pcnConversaoNFe,
   ACBrNFeDANFeRLClass, ACBrDFeUtil, ACBrValidador,
   ACBrDFeDANFeReport, ACBrDFeReportFortes,
-  ACBrUtil,
-  ACBrUtil.Strings,
-  ACBrUtil.DateTime,
-  ACBrNFe;
+  ACBrUtil.Base, ACBrUtil.Strings, ACBrUtil.DateTime;
 
 {$IfNDef FPC}
   {$R *.dfm}
@@ -1127,8 +1124,7 @@ begin
       sTemp := sTemp + ' CEP:' + FormatarCEP(CEP) + ' - ' + XMun + ' - ' + UF;
       rlmEndereco.Lines.add(sTemp);
 
-      sTemp := 'TEL: ' + FormatarFone(Fone) +
-        IfThen(NaoEstaVazio(fpDANFe.Fax), ' - FAX: ' + FormatarFone(fpDANFe.Fax), '');
+      sTemp := 'TEL: ' + FormatarFone(Fone);
       rlmEndereco.Lines.add(sTemp);
     end;
   end;
@@ -1186,7 +1182,7 @@ begin
 
     // Exibe o Valor total dos tributos se vTotTrib for informado
     // e ajusta a posição dos outros campos para "abrir espaço" para ele.
-    if (vTotTrib > 0) then
+    if (vTotTrib > 0) and (fpDANFe.ImprimeTributos = trbNormal) then
     begin
       rllTotalTributos.Caption := FormatFloatBr(vTotTrib);
       rliDivImposto4.Visible := True;

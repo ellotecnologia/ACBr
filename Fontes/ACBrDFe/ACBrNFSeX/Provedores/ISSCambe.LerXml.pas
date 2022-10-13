@@ -69,9 +69,8 @@ type
 implementation
 
 uses
-  ACBrUtil.Base,
-  ACBrUtil.Strings,
-  ACBrUtil.DateTime;
+  ACBrUtil.Base, ACBrUtil.Strings, ACBrUtil.DateTime,
+  ACBrDFeUtil;
 
 //==============================================================================
 // Essa unit tem por finalidade exclusiva ler o XML do provedor:
@@ -117,8 +116,9 @@ end;
 
 procedure TNFSeR_ISSCambe.LerDemaisDados(const ANode: TACBrXmlNode);
 var
-   AuxNode: TACBrXmlNode;
-   aValor: string;
+  AuxNode: TACBrXmlNode;
+  aValor: string;
+  Ok: Boolean;
 begin
   if not Assigned(ANode) or (ANode = nil) then Exit;
 
@@ -184,10 +184,10 @@ begin
   end;
 
   NFSe.Servico.CodigoMunicipio := ObterConteudo(AuxNode.Childrens.FindAnyNs('municipioPrestacao'), tcStr);
-  //IssDevido;
   //paisPrestacao
   NFSe.Servico.MunicipioIncidencia := ObterConteudo(AuxNode.Childrens.FindAnyNs('municipioIncidencia'), tcStr);
   NFSe.OutrasInformacoes := ObterConteudo(AuxNode.Childrens.FindAnyNs('outrasInformacoes'), tcStr);
+  NFSe.SituacaoTrib := FpAOwner.StrToSituacaoTrib(Ok, ObterConteudo(AuxNode.Childrens.FindAnyNs('ISSDevido'), tcStr));
 
   with NFSe.OrgaoGerador do
   begin
@@ -226,7 +226,6 @@ begin
       CEP := ObterConteudo(AuxNode.Childrens.FindAnyNs('tomadorCEP'), tcStr);
       CodigoMunicipio := ObterConteudo(AuxNode.Childrens.FindAnyNs('tomadorMunicipio'), tcStr);
       UF := ObterConteudo(AuxNode.Childrens.FindAnyNs('tomadorUF'), tcStr);
-      xMunicipio := CodIBGEToCidade(StrToIntDef(CodigoMunicipio, 0));
       CodigoPais := ObterConteudo(AuxNode.Childrens.FindAnyNs('tomadorPais'), tcInt);
     end;
 
@@ -262,7 +261,6 @@ begin
       CEP := ObterConteudo(AuxNode.Childrens.FindAnyNs('prestadorCEP'), tcStr);
       CodigoMunicipio := ObterConteudo(AuxNode.Childrens.FindAnyNs('prestadorMunicipio'), tcStr);
       UF := ObterConteudo(AuxNode.Childrens.FindAnyNs('prestadorUF'), tcStr);
-      xMunicipio := CodIBGEToCidade(StrToIntDef(CodigoMunicipio, 0));
     end;
 
     with NFSe.Prestador.Contato do
@@ -375,20 +373,19 @@ end;
 function TNFSeR_ISSCambe.LerXml: Boolean;
 var
   XmlNode: TACBrXmlNode;
-  xRetorno: string;
 begin
-  xRetorno := Arquivo;
-
-  if EstaVazio(xRetorno) then
+  if EstaVazio(Arquivo) then
     raise Exception.Create('Arquivo xml não carregado.');
+
+  Arquivo := NormatizarXml(Arquivo);
 
   if FDocument = nil then
     FDocument := TACBrXmlDocument.Create();
 
   Document.Clear();
-  Document.LoadFromXml(xRetorno);
+  Document.LoadFromXml(Arquivo);
 
-  if (Pos('DadosNFSe', xRetorno) > 0) then
+  if (Pos('DadosNFSe', Arquivo) > 0) then
     tpXML := txmlNFSe
   else
     tpXML := txmlRPS;

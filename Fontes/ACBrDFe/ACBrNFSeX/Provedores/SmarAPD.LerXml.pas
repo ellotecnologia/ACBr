@@ -79,8 +79,7 @@ type
 implementation
 
 uses
-  ACBrUtil.Base,
-  ACBrUtil.Strings;
+  ACBrUtil.Base, ACBrUtil.Strings;
 
 //==============================================================================
 // Essa unit tem por finalidade exclusiva ler o XML do provedor:
@@ -107,6 +106,8 @@ var
 begin
   ANodes := ANode.Childrens.FindAllAnyNs('fatura');
 
+  NFSe.CondicaoPagamento.Parcelas.Clear;
+
   for i := 0 to Length(ANodes) - 1 do
   begin
     NFSe.CondicaoPagamento.Parcelas.New;
@@ -127,6 +128,10 @@ var
   aValor: string;
 begin
   ANodes := ANode.Childrens.FindAllAnyNs('ITENS');
+
+  NFSe.Servico.ItemServico.Clear;
+  NFSe.Servico.Discriminacao := '';
+  NFSe.Servico.Valores.ValorServicos := 0;
 
   for i := 0 to Length(ANodes) - 1 do
   begin
@@ -185,6 +190,8 @@ var
 begin
   ANodes := ANode.Childrens.FindAllAnyNs('servico');
 
+  NFSe.Servico.ItemServico.Clear;
+
   for i := 0 to Length(ANodes) - 1 do
   begin
     NFSe.Servico.ItemServico.New;
@@ -209,20 +216,19 @@ end;
 function TNFSeR_SmarAPD.LerXml: Boolean;
 var
   XmlNode: TACBrXmlNode;
-  xRetorno: string;
 begin
-  xRetorno := Arquivo;
-
-  if EstaVazio(xRetorno) then
+  if EstaVazio(Arquivo) then
     raise Exception.Create('Arquivo xml não carregado.');
+
+  Arquivo := NormatizarXml(Arquivo);
 
   if FDocument = nil then
     FDocument := TACBrXmlDocument.Create();
 
   Document.Clear();
-  Document.LoadFromXml(xRetorno);
+  Document.LoadFromXml(Arquivo);
 
-  if (Pos('nfdok', xRetorno) > 0) then
+  if (Pos('nfdok', Arquivo) > 0) then
     tpXML := txmlNFSe
   else
     tpXML := txmlRPS;
@@ -273,11 +279,10 @@ begin
     aValor := ObterConteudo(AuxNode.Childrens.FindAnyNs('NaturezaOperacao'), tcStr);
     NaturezaOperacao := StrToNaturezaOperacao(Ok, aValor);
 
-//    Protocolo         := CodigoVerificacao;
     OutrasInformacoes := ObterConteudo(AuxNode.Childrens.FindAnyNs('Observacao'), tcStr);
 
-    MotivoCancelamento           := '';
-    IntermediarioServico.CpfCnpj := '';
+    MotivoCancelamento := '';
+    Intermediario.Identificacao.CpfCnpj := '';
 
     aValor := ObterConteudo(AuxNode.Childrens.FindAnyNs('SituacaoNf'), tcStr);
 

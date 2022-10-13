@@ -41,9 +41,9 @@ uses
   ACBrBase, ACBrSocket, ACBrIBGE;
 
 const
-  CURL_CAPTCH = 'https://servicos.receita.fazenda.gov.br/Servicos/cnpjreva/captcha/gerarCaptcha.asp';
-  CURL_REFER = 'http://servicos.receita.fazenda.gov.br/Servicos/cnpjreva/Cnpjreva_Solicitacao_CS.asp';
-  CURL_POST = 'https://servicos.receita.fazenda.gov.br/Servicos/cnpjreva/valida.asp';
+  CURL_CAPTCH = 'https://solucoes.receita.fazenda.gov.br/Servicos/cnpjreva/captcha/gerarCaptcha.asp';
+  CURL_REFER = 'http://solucoes.receita.fazenda.gov.br/Servicos/cnpjreva/Cnpjreva_Solicitacao_CS.asp';
+  CURL_POST = 'https://solucoes.receita.fazenda.gov.br/Servicos/cnpjreva/valida.asp';
 
 
 type
@@ -130,7 +130,10 @@ implementation
 uses
   strutils,
   blcksock, synautil,
-  ACBrUtil, ACBrValidador;
+  ACBrUtil.Strings,
+  ACBrUtil.DateTime,
+  ACBrUtil.XMLHTML,
+  ACBrValidador;
 
 (*function TACBrConsultaCNPJ.GetCaptchaURL : String ;
 var
@@ -304,14 +307,14 @@ begin
       if trim(StrAux) = '' then
         Break;
 
-      FCNAE2.Add(ACBrUtil.RemoverEspacosDuplos(StrAux));
+      FCNAE2.Add(RemoverEspacosDuplos(StrAux));
 
       repeat
         StrAux := LerCampo(Resposta, StrAux);
         if trim(StrAux) = '' then
           Break;
 
-        FCNAE2.Add(ACBrUtil.RemoverEspacosDuplos(StrAux));
+        FCNAE2.Add(RemoverEspacosDuplos(StrAux));
       until False;
     until False;
   finally

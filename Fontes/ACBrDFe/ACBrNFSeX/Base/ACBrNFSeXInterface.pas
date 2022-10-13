@@ -42,7 +42,8 @@ uses
 type
   IACBrNFSeXProvider = interface ['{6A71A59C-9EA1-45BF-BCAB-59BB90B62AAA}']
     function GerarXml(const ANFSe: TNFSe; var AXml, AAlerts: string): Boolean;
-    function LerXml(const AXML: String; var ANFSe: TNFSe; var ATipo: TtpXML): Boolean;
+    function LerXml(const AXML: String; var ANFSe: TNFSe; var ATipo: TtpXML;
+      var aXmlTratado: string): Boolean;
 
     procedure GeraLote;
     procedure Emite;
@@ -52,12 +53,16 @@ type
     procedure ConsultaNFSe;
     procedure CancelaNFSe;
     procedure SubstituiNFSe;
+    procedure GerarToken;
+    procedure EnviarEvento;
+    procedure ConsultarEvento;
 
     function GetConfigGeral: TConfigGeral;
     function GetConfigWebServices: TConfigWebServices;
     function GetConfigMsgDados: TConfigMsgDados;
     function GetConfigAssinar: TConfigAssinar;
     function GetConfigSchemas: TConfigSchemas;
+    function GetSchemaPath: string;
 
     property ConfigGeral: TConfigGeral read GetConfigGeral;
     property ConfigWebServices: TConfigWebServices read GetConfigWebServices;
@@ -92,6 +97,13 @@ type
 
     function TipoRPSToStr(const t:TTipoRPS): string;
     function StrToTipoRPS(out ok: boolean; const s: string): TTipoRPS;
+
+    function SituacaoTribToStr(const t: TSituacaoTrib): string;
+    function StrToSituacaoTrib(out ok: boolean; const s: string): TSituacaoTrib;
+
+    function TributacaoToStr(const t: TTributacao): string;
+    function StrToTributacao(out ok: boolean; const s: string): TTributacao;
+    function TributacaoDescricao(const t: TTributacao): String;
   end;
 
 implementation

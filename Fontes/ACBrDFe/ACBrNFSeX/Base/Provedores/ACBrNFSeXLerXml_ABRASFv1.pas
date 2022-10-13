@@ -57,6 +57,7 @@ type
     procedure LerInfNfse(const ANode: TACBrXmlNode);
     procedure LerIdentificacaoRps(const ANode: TACBrXmlNode);
     procedure LerServico(const ANode: TACBrXmlNode);
+    procedure LerItensServico(const ANode: TACBrXmlNode);
     procedure LerValores(const ANode: TACBrXmlNode);
 
     procedure LerPrestadorServico(const ANode: TACBrXmlNode);
@@ -95,7 +96,7 @@ type
 implementation
 
 uses
-  ACBrUtil.Base, ACBrConsts,
+  ACBrUtil.Base, ACBrConsts, ACBrDFeUtil,
   ACBrNFSeXConversao;
 
 //==============================================================================
@@ -244,7 +245,6 @@ begin
 
       CodigoPais := ObterConteudo(AuxNode.Childrens.FindAnyNs('CodigoPais'), tcInt);
       CEP        := ObterConteudo(AuxNode.Childrens.FindAnyNs('Cep'), tcStr);
-      xMunicipio := CodIBGEToCidade(StrToIntDef(CodigoMunicipio, 0));
     end;
   end;
 end;
@@ -275,8 +275,7 @@ begin
       if UF = '' then
         UF := ObterConteudo(AuxNode.Childrens.FindAnyNs('Estado'), tcStr);
 
-      CEP        := ObterConteudo(AuxNode.Childrens.FindAnyNs('Cep'), tcStr);
-      xMunicipio := CodIBGEToCidade(StrToIntDef(CodigoMunicipio, 0));
+      CEP := ObterConteudo(AuxNode.Childrens.FindAnyNs('Cep'), tcStr);
     end;
   end;
 end;
@@ -398,6 +397,7 @@ begin
       end;
 
       InscricaoMunicipal := ObterConteudo(AuxNode.Childrens.FindAnyNs('InscricaoMunicipal'), tcStr);
+      InscricaoEstadual := ObterConteudo(AuxNode.Childrens.FindAnyNs('InscricaoEstadual'), tcStr);
     end;
   end;
 end;
@@ -518,11 +518,11 @@ begin
 
   if AuxNode <> nil then
   begin
-    NFSe.IntermediarioServico.RazaoSocial := ObterConteudo(AuxNode.Childrens.FindAnyNs('RazaoSocial'), tcStr);
+    NFSe.Intermediario.RazaoSocial := ObterConteudo(AuxNode.Childrens.FindAnyNs('RazaoSocial'), tcStr);
 
     AuxNodeCpfCnpj := AuxNode.Childrens.FindAnyNs('CpfCnpj');
 
-    with NFSe.IntermediarioServico do
+    with NFSe.Intermediario.Identificacao do
     begin
       if AuxNodeCpfCnpj <> nil then
       begin
@@ -655,6 +655,30 @@ begin
       if CodigoMunicipio = '' then
         CodigoMunicipio := ObterConteudo(AuxNode.Childrens.FindAnyNs('MunicipioPrestacaoServico'), tcStr);
     end;
+
+    LerItensServico(AuxNode);
+  end;
+end;
+
+procedure TNFSeR_ABRASFv1.LerItensServico(const ANode: TACBrXmlNode);
+var
+  ANodes: TACBrXmlNodeArray;
+  i: integer;
+begin
+  if not Assigned(ANode) or (ANode = nil) then Exit;
+
+  ANodes := ANode.Childrens.FindAllAnyNs('ItensServico');
+
+  for i := 0 to Length(ANodes) - 1 do
+  begin
+    NFSe.Servico.ItemServico.New;
+
+    with NFSe.Servico.ItemServico[i] do
+    begin
+      Descricao := ObterConteudo(ANodes[i].Childrens.FindAnyNs('Descricao'), tcStr);
+      Quantidade := ObterConteudo(ANodes[i].Childrens.FindAnyNs('Quantidade'), tcDe2);
+      ValorUnitario := ObterConteudo(ANodes[i].Childrens.FindAnyNs('ValorUnitario'), tcDe4);
+    end;
   end;
 end;
 
@@ -721,6 +745,7 @@ begin
       OutrasRetencoes := ObterConteudo(AuxNode.Childrens.FindAnyNs('OutrasRetencoes'), tcDe2);
       BaseCalculo := ObterConteudo(AuxNode.Childrens.FindAnyNs('BaseCalculo'), tcDe2);
       Aliquota := ObterConteudo(AuxNode.Childrens.FindAnyNs('Aliquota'), tcDe4);
+      Aliquota := NormatizarAliquota(Aliquota);
       ValorLiquidoNfse := ObterConteudo(AuxNode.Childrens.FindAnyNs('ValorLiquidoNfse'), tcDe2);
       ValorIssRetido := ObterConteudo(AuxNode.Childrens.FindAnyNs('ValorIssRetido'), tcDe2);
       DescontoCondicionado := ObterConteudo(AuxNode.Childrens.FindAnyNs('DescontoCondicionado'), tcDe2);

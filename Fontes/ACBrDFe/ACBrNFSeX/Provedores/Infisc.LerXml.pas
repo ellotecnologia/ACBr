@@ -86,11 +86,20 @@ type
 
   end;
 
+  { TNFSeR_Infisc203 }
+
+  TNFSeR_Infisc203 = class(TNFSeR_ABRASFv2)
+  protected
+
+  public
+
+  end;
+
 implementation
 
 uses
-  ACBrUtil.Base,
-  ACBrUtil.Strings;
+  ACBrUtil.Base, ACBrUtil.Strings,
+  ACBrDFeUtil;
 
 //==============================================================================
 // Essa unit tem por finalidade exclusiva ler o XML do provedor:
@@ -193,7 +202,6 @@ begin
       Complemento     := ObterConteudo(AuxNode.Childrens.FindAnyNs('xCpl'), tcStr);
       Bairro          := ObterConteudo(AuxNode.Childrens.FindAnyNs('xBairro'), tcStr);
       CodigoMunicipio := ObterConteudo(AuxNode.Childrens.FindAnyNs('cMun'), tcStr);
-      xMunicipio      := CodIBGEToCidade(StrToIntDef(CodigoMunicipio, 0));
       UF              := ObterConteudo(AuxNode.Childrens.FindAnyNs('UF'), tcStr);
       CEP             := ObterConteudo(AuxNode.Childrens.FindAnyNs('CEP'), tcStr);
 
@@ -225,7 +233,6 @@ begin
       Complemento     := ObterConteudo(AuxNode.Childrens.FindAnyNs('xCpl'), tcStr);
       Bairro          := ObterConteudo(AuxNode.Childrens.FindAnyNs('xBairro'), tcStr);
       CodigoMunicipio := ObterConteudo(AuxNode.Childrens.FindAnyNs('cMun'), tcStr);
-      xMunicipio      := CodIBGEToCidade(StrToIntDef(CodigoMunicipio, 0));
       UF              := ObterConteudo(AuxNode.Childrens.FindAnyNs('UF'), tcStr);
       CEP             := ObterConteudo(AuxNode.Childrens.FindAnyNs('CEP'), tcStr);
 
@@ -584,20 +591,19 @@ end;
 function TNFSeR_Infisc.LerXml: Boolean;
 var
   XmlNode: TACBrXmlNode;
-  xRetorno: string;
 begin
-  xRetorno := Arquivo;
-
-  if EstaVazio(xRetorno) then
+  if EstaVazio(Arquivo) then
     raise Exception.Create('Arquivo xml não carregado.');
+
+  Arquivo := NormatizarXml(Arquivo);
 
   if FDocument = nil then
     FDocument := TACBrXmlDocument.Create();
 
   Document.Clear();
-  Document.LoadFromXml(xRetorno);
+  Document.LoadFromXml(Arquivo);
 
-  if (Pos('NFS-e', xRetorno) > 0) then
+  if (Pos('NFS-e', Arquivo) > 0) then
     tpXML := txmlNFSe
   else
     tpXML := txmlRPS;
