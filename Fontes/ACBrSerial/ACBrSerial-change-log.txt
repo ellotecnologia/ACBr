@@ -38,6 +38,81 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+27/01/2023
+[*] TK-3548 Alterar Exceção do ACBrDevice Bluetooth quando não há dispositivo
+  por : Victor H Gonzales - Pandaaa
+
+19/01/2023
+-- ACBrDevice --
+[+] Adicionado o método:
+    procedure AcharPortas(const AStringList: TStrings);
+    que procura por Portas: USB, Serial, RAW e Bluetooth (conforme plataforma)
+
+[+] Adicionado os métodos:
+   function PedirPermissoes: Boolean;
+     (que chama as permissões do Dispositivo ativo)
+   function PedirPermissoesBlueTooth: Boolean;
+     (que chama as permissões do Dispositivo Bluetooth (usado em Android))
+
+-- ACBrDeviceClass --
+[+] Adicionado o método:
+    function PedirPermissoes: Boolean; virtual;
+    (que pode ser sobreescrito nas classes filhas, se necessário)
+
+-- ACBrDeviceBlueTooth --
+[*] Método "PedirPermissoes", modificado para ser sobrecarga da classe mãe.
+[*] Método "PedirPermissoes", modificado para lembrar da última resposta de
+    sucesso, e evitar pedir permissões de forma repetitiva.
+[*] Método "PedirPermissoes", modificado para ficar compatível com Android 12
+    http://www.projetoacbr.com.br/forum/index.php?showtopic=70435
+    (por: DSA e Andrei Ricardo)
+
+03/01/2023
+-- ACBrBAL, ACBrBALUranoUDC --
+[+] Inclusão do novo modelo ACBrBALUranoUDC; 
+    Por: -=MarcoS=-
+
+14/10/2022
+-- ACBrPosPrinterAndroidHelper, ACBrPosPrinterGEDI, ACBrPosPrinterElginE1Lib --
+[*] Refactoring para reaproveitamento de códigos em comum
+
+-- ACBrPosPrinterTecToySunmiLib --
+[+] Adição de nova Classe Externa para ACBrPosPrinter. Compatibilizando o
+    Serviço de impressão da Sunmi com as Tags do ACBrPosPrinter
+(por: DSA)
+
+13/10/2022
+-- ACBrPosPrinter, ACBrEscPosEpson, ACBrEscBematech, ACBrEscDaruma,
+   ACBrEscCustomPos, ACBrEscDatecs, ACBrEscDiebold, ACBrEscElgin,
+   ACBrEscPosStar, ACBrEscSunmi --
+[*] Refactoring e Padronização na rotina "LerInfo"
+
+-- ACBrPosPrinter --
+[*] Ajuste na criação para definição de um tempo padrão para:
+    ACBrPosPrinter.Device.TimeOutMilissegundos em 300
+[*] Ajuste no metodo "TACBrPosPrinter.TxRx", para usar o TimeOut definido em:
+    "ACBrPosPrinter.Device.TimeOutMilissegundos"
+[*] Método "TxRx", modificado, para receber como Default o parâmetro "TimeOut=0",
+    situação onde será utilizado o valor de "Device.TimeOutMilissegundos"
+[*] Método "TACBrPosPrinter.Zerar", modificado para desligar Flag de "FonteB"
+
+-- ACBrEscPosStar --
+[-] Método "ComandoImprimirImagemRasterStr", modificado para gerar imagens sem a
+    quebra de linha
+[+] Adicionada sobrecarga nos métodos:
+    - procedure LerStatus(var AStatus: TACBrPosPrinterStatus);
+    - function LerInfo: String;
+
+-- ACBrEscSunmi --
+[-] Comando "Zera", modificado, para resetar letra em "Fonte A"
+[-] Remoção de Tags não suportadas "cTagLigaCondensado", "cTagDesligaCondensado"
+[-] Remoção de método "Configurar", que forçava CodePage em UTF8.
+    ( Use sunmi-cloud-printer-setup.exe, para ajustar CodePage )
+[*] Método "TACBrEscSunmi.ComandoFonte", ajustado para processar Tag "FonteB"
+[-] Método "TACBrEscSunmi.ComandoPaginaCodigo", modificado para desligar
+    Caracteres chineses e informar a Pagina de Código
+(por: DSA)
+
 12/10/2022
 -- ACBrPosPrinter --
 [*] Ajuste em "TACBrPosPrinter.TxRx", para permitir leitura de Dados sem o envio

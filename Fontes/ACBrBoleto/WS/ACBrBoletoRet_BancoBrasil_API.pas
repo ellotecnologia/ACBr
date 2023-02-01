@@ -37,13 +37,15 @@ unit ACBrBoletoRet_BancoBrasil_API;
 interface
 
 uses
-  Classes, SysUtils, ACBrBoleto,ACBrBoletoWS, ACBrBoletoRetorno,
-//  {$IfDef USE_JSONDATAOBJECTS_UNIT}
-//    JsonDataObjects_ACBr,
-//  {$Else}
-    Jsons,
-//  {$EndIf}
-   DateUtils, pcnConversao;
+  Classes,
+  SysUtils,
+  ACBrBoleto,
+  ACBrBoletoWS,
+  ACBrBoletoRetorno,
+  ACBrBoletoWS.Rest,
+  Jsons,
+  DateUtils,
+  pcnConversao;
 
 type
 
@@ -96,8 +98,10 @@ var
 begin
   Result := True;
   TipoOperacao := ACBrBoleto.Configuracoes.WebService.Operacao;
-
+  
+  ARetornoWs.JSONEnvio      := EnvWs;
   ARetornoWS.HTTPResultCode := HTTPResultCode;
+  
   if RetWS <> '' then
   begin
     try
@@ -105,6 +109,7 @@ begin
       try
         AJSon.Parse(RetWS);
         ARetornoWS.JSON           := AJson.Stringify;
+		
         //retorna quando houver erro
         case TipoOperacao of
           tpInclui,
@@ -347,6 +352,8 @@ begin
 
   ListaRetorno := ACBrBoleto.CriarRetornoWebNaLista;
   ListaRetorno.HTTPResultCode := HTTPResultCode;
+  ListaRetorno.JSONEnvio      := EnvWs;
+
   if RetWS <> '' then
   begin
     try
@@ -355,6 +362,7 @@ begin
         AJSon.Parse(RetWS);
 
         ListaRetorno.JSON           := AJson.Stringify;
+		
 
         //retorna quando houver erro
         case HTTPResultCode of

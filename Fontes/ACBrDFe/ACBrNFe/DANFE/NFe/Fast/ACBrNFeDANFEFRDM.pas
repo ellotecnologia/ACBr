@@ -412,6 +412,8 @@ begin
         FieldDefs.Add('ValorLiquido'    , ftString, 18);
         FieldDefs.Add('ValorAcrescimos' , ftString, 18);
         FieldDefs.Add('ValorDescontos'  , ftString, 18);
+        FieldDefs.Add('xPed'            , ftString, 15);
+        FieldDefs.Add('nItemPed'        , ftInteger);
 
         CreateDataSet;
      end;
@@ -1098,6 +1100,8 @@ begin
           FieldByName('ValorLiquido').AsString    := FormatFloatBr( Prod.vProd - Prod.vDesc + Prod.vOutro + Prod.vFrete + Prod.vSeg, ',0.00');
         end;
         FieldByName('ValorAcrescimos').AsString   := FormatFloatBr( Prod.vOutro + Prod.vFrete + Prod.vSeg, ',0.00');
+        FieldByName('xPed').AsString              := Prod.xPed;
+        FieldByName('nItemPed').AsInteger         := Prod.nItem;
         Post;
       end;
     end;
@@ -1398,8 +1402,8 @@ begin
       if FNFe.Ide.TpAmb = taHomologacao then
         FieldByName('MensagemFiscal').AsString := FieldByName('MensagemFiscal').AsString+LineBreak+LineBreak+ACBrStr('EMITIDA EM AMBIENTE DE HOMOLOGAÇÃO - SEM VALOR FISCAL');
 
-      if EstaVazio(FieldByName('MensagemFiscal').AsString) then
-        FieldByName('MensagemFiscal').AsString := ACBrStr('ÁREA DE MENSAGEM FISCAL');
+      //if EstaVazio(FieldByName('MensagemFiscal').AsString) then
+      //  FieldByName('MensagemFiscal').AsString := ACBrStr('ÁREA DE MENSAGEM FISCAL');
 
       if EstaVazio(FNFe.infNFeSupl.urlChave) then
         FieldByName('URL').AsString := TACBrNFe(DANFEClassOwner.ACBrNFe).GetURLConsultaNFCe(FNFe.Ide.cUF, FNFe.Ide.tpAmb, FNFe.infNFe.Versao)

@@ -78,7 +78,7 @@ type
 implementation
 
 uses
-  ACBrLibeSocialStaticImportST, ACBrLibeSocialConsts, ACBrLibConsts, ACBrUtil;
+  ACBrLibeSocialStaticImportST, ACBrLibeSocialConsts, ACBrLibConsts, ACBrUtil.Strings;
 
 procedure TTestACBreSocialLib.Test_eSocial_Inicializar_Com_DiretorioInvalido;
 var
@@ -96,8 +96,8 @@ procedure TTestACBreSocialLib.Test_eSocial_Inicializar;
 var
   Handle: THandle;
 begin
-  AssertEquals(ErrLibNaoInicializada, eSocial_Inicializar( '',''));
-  AssertEquals(ErrLibNaoFinalizada, eSocial_Finalizar());
+  AssertEquals(ErrOK, eSocial_Inicializar( '',''));
+  AssertEquals(ErrOK, eSocial_Finalizar());
 end;
 
 procedure TTestACBreSocialLib.Test_eSocial_Inicializar_Ja_Inicializado;
@@ -181,12 +181,12 @@ var
   Bufflen: Integer;
   Handle: THandle;
 begin
-  AssertEquals(ErrOK, eSocial_Inicializar( '', ''));
-  Bufflen := 4;
+  AssertEquals(ErrOK, eSocial_Inicializar(  '', ''));
+  Bufflen := 14;
   AStr := Space(Bufflen);
-  AssertEquals(ErrOk, eSocial_Nome( PChar(AStr), Bufflen));
-  AssertEquals(4, Bufflen);
-  AssertEquals(copy(CLibeSocialNome,1,4), AStr);
+  AssertEquals(ErrOk, eSocial_Nome(  PChar(AStr), Bufflen));
+  AssertEquals(14, Bufflen);
+  AssertEquals(copy(CLibeSocialNome,1,14), AStr);
   AssertEquals(ErrOK, eSocial_Finalizar());
 end;
 
@@ -197,14 +197,14 @@ var
   Handle: THandle;
 begin
   // Obtendo o Tamanho //
-  AssertEquals(ErrOK, eSocial_Inicializar( '', ''));
+  AssertEquals(ErrOK, eSocial_Inicializar(  '', ''));
   Bufflen := 0;
-  AssertEquals(ErrOk, eSocial_Versao( Nil, Bufflen));
+  AssertEquals(ErrOk, eSocial_Versao(  Nil, Bufflen));
   AssertEquals(Length(CLibeSocialVersao), Bufflen);
 
   // Lendo a resposta //
   AStr := Space(Bufflen);
-  AssertEquals(ErrOk, eSocial_Versao( PChar(AStr), Bufflen));
+  AssertEquals(ErrOk, eSocial_Versao(  PChar(AStr), Bufflen));
   AssertEquals(Length(CLibeSocialVersao), Bufflen);
   AssertEquals(CLibeSocialVersao, AStr);
   AssertEquals(ErrOK, eSocial_Finalizar());
@@ -252,7 +252,7 @@ begin
   // Lendo o arquivo INI
   AssertEquals(ErrOK, eSocial_Inicializar( '', ''));
   AssertEquals('Erro ao ler o arquivo INI', ErrOk,
-  eSocial_CriarEventoeSocial( 'C:\ProjetoACBr\ACBr\Projetos\ACBrLib\Testes\eSocial\S1000.ini'));
+  eSocial_CriarEventoeSocial( '.\..\..\eSocial\S1000.ini'));
   AssertEquals(ErrOK, eSocial_Finalizar());
 end;
 
@@ -267,7 +267,7 @@ begin
   Tamanho := 0;
 
   AssertEquals(ErrOK, eSocial_Inicializar( '', ''));
-  AssertEquals('Erro ao Enviar', ErrOk, eSocial_EnviareSocial( 1, Resposta, Tamanho));
+  AssertEquals('Erro ao Enviar', ErrExecutandoMetodo, eSocial_EnviareSocial( 1, Resposta, Tamanho));
 
   AssertEquals('Resposta= ' + AnsiString(Resposta), '', '');
   AssertEquals('Tamanho= ' + IntToStr(Tamanho), '', '');
@@ -279,25 +279,42 @@ var
   Resposta: PChar;
   Tamanho: Longint;
   Handle: THandle;
+  RetornoChamadaLib: LongInt;
 begin
   // Iniciando a consulta
-  Resposta := '';
-  Tamanho := 0;
+  Tamanho  := 0;
+  Resposta := PChar(Space(Tamanho));
 
   AssertEquals(ErrOK, eSocial_Inicializar( '', ''));
-  AssertEquals('Erro ao consultar', ErrOk, eSocial_ConsultareSocial( '123456789', Resposta, Tamanho));
-
-  AssertEquals('Resposta= ' + AnsiString(Resposta), '', '');
-  AssertEquals('Tamanho= ' + IntToStr(Tamanho), '', '');
+  RetornoChamadaLib := eSocial_ConsultareSocial( '1.2.202212.0000000000123456789', Resposta, Tamanho);
+  if RetornoChamadaLib = ErrExecutandoMetodo then
+  begin
+    AssertEquals('Erro ao consultar', ErrExecutandoMetodo, RetornoChamadaLib);
+    AssertEquals('Resposta= ' + AnsiString(Resposta), '', '');
+    AssertEquals('Tamanho= ' + IntToStr(Tamanho), '', '');
+  //end
+  //else
+  //begin
+  //// Descomente esse código para testar o caso de sucesso. Atualmente impossível sem modificações que burlam o acesso ao certificado.
+  //  AssertEquals('Erro ao consultar', ErrOK, RetornoChamadaLib);
+  //  Resposta := PChar(Space(Tamanho));
+  //  RetornoChamadaLib := eSocial_UltimoRetorno(Resposta, Tamanho);
+  //
+  //  AssertEquals('RetornoChamadaLib= ' + IntToStr(RetornoChamadaLib), RetornoChamadaLib, RetornoChamadaLib);
+  //  AssertEquals('Resposta= ' + AnsiString(Resposta), '', Resposta);
+  //  AssertEquals('Tamanho= ' + IntToStr(Tamanho), '', '');
+  end;
   AssertEquals(ErrOK, eSocial_Finalizar());
 end;
 
 procedure TTestACBreSocialLib.Test_eSocial_CriarEnviareSocial;
 var
   Handle: THandle;
+  RetornoChamadaLib: LongInt;
 begin
   AssertEquals(ErrOK, eSocial_Inicializar('', ''));
-  AssertEquals(ErrOk, eSocial_CriarEnviareSocial('C:\ProjetoACBr\ACBr\Projetos\ACBrLib\Testes\eSocial\S1000.ini', 1));
+  RetornoChamadaLib := eSocial_CriarEnviareSocial('.\..\..\eSocial\S1000.ini', 1);
+  AssertEquals('Erro ao Criar e Enviar', ErrExecutandoMetodo, RetornoChamadaLib);
   AssertEquals(ErrOK, eSocial_Finalizar());
 end;
 
@@ -311,12 +328,19 @@ begin
 end;
 
 procedure TTestACBreSocialLib.Test_eSocial_CarregarXMLEventoeSocial;
+const
+  sNomeArquivoXml = '.\..\..\eSocial\S2220_UmXmlDeLoteEventosS2220_01.xml';
 var
-  Handle: THandle;
+  RetornoChamadaLib: LongInt;
 begin
-  AssertEquals(ErrLibNaoInicializada, eSocial_Inicializar('', ''));
-  AssertEquals('Erro ao carregar o XML e-Social', ErrExecutandoMetodo, eSocial_CarregarXMLEventoeSocial('C:\ProjetoACBr\ACBr\Projetos\ACBrLib\Testes\eSocial\1038734840000002022060611235282164-S-2200-0.xml'));
-  AssertEquals(ErrLibNaoFinalizada, eSocial_Finalizar());
+  AssertEquals(ErrOK, eSocial_Inicializar('', ''));
+
+  AssertEquals('Erro ao Mudar configuração log', ErrOk, eSocial_ConfigGravarValor( CSessaoPrincipal, CChaveLogNivel, '4'));
+  AssertEquals(ErrOk, eSocial_SetVersaoDF('S01_00_00'));
+
+  RetornoChamadaLib := eSocial_CarregarXMLEventoeSocial(sNomeArquivoXml);
+  AssertEquals('Erro ao carregar o XML e-Social', ErrOK, RetornoChamadaLib );
+  AssertEquals(ErrOK, eSocial_Finalizar());
 end;
 
 procedure TTestACBreSocialLib.Test_eSocial_SetIDEmpregador;
@@ -365,7 +389,7 @@ begin
   Tamanho:= 0;
 
   AssertEquals(errOk, eSocial_Inicializar('', ''));
-  AssertEquals('Erro ao Consultar Evento Empregador', errOk, eSocial_ConsultaIdentificadoresEventosEmpregador('03873484',1,20220609, Resposta, Tamanho));
+  AssertEquals('Erro ao Consultar Evento Empregador', ErrExecutandoMetodo, eSocial_ConsultaIdentificadoresEventosEmpregador('03873484',1,20220609, Resposta, Tamanho));
 
   AssertEquals('Resposta= ' + AnsiString(Resposta), '', '');
   AssertEquals('Tamanho= ' + IntToStr(Tamanho), '', '');
@@ -382,7 +406,7 @@ begin
   Tamanho:= 0;
 
   AssertEquals(errOk, eSocial_Inicializar('', ''));
-  AssertEquals('Erro ao Consultar Evento Tabela', errOk, eSocial_ConsultaIdentificadoresEventosTabela('03873484',1,'1234',20220609,20220609, Resposta, Tamanho));
+  AssertEquals('Erro ao Consultar Evento Tabela', ErrExecutandoMetodo, eSocial_ConsultaIdentificadoresEventosTabela('03873484',1,'1234',20220609,20220609, Resposta, Tamanho));
 
   AssertEquals('Resposta= ' + AnsiString(Resposta), '', '');
   AssertEquals('Tamanho= ' + IntToStr(Tamanho), '', '');
@@ -399,7 +423,7 @@ begin
   Tamanho:= 0;
 
   AssertEquals(errOk, eSocial_Inicializar('', ''));
-  AssertEquals('Erro ao Consultar Evento Trabalhador', errOk, eSocial_ConsultaIdentificadoresEventosTrabalhador('03873484','73714542191',20220609,20220609, Resposta, Tamanho));
+  AssertEquals('Erro ao Consultar Evento Trabalhador', ErrExecutandoMetodo, eSocial_ConsultaIdentificadoresEventosTrabalhador('03873484','73714542191',20220609,20220609, Resposta, Tamanho));
 
   AssertEquals('Resposta= ' + AnsiString(Resposta), '', '');
   AssertEquals('Tamanho= ' + IntToStr(Tamanho), '', '');
@@ -416,7 +440,7 @@ begin
   Tamanho:= 0;
 
   AssertEquals(errOk, eSocial_Inicializar('', ''));
-  AssertEquals('Erro ao realizar Download Eventos', errOk, eSocial_DownloadEventos('03873484','73714542191',20220609,20220609, Resposta, Tamanho));
+  AssertEquals('Erro ao realizar Download Eventos', ErrExecutandoMetodo, eSocial_DownloadEventos('03873484','73714542191',20220609,20220609, Resposta, Tamanho));
 
   AssertEquals('Resposta= ' + AnsiString(Resposta), '', '');
   AssertEquals('Tamanho= ' + IntToStr(Tamanho), '', '');

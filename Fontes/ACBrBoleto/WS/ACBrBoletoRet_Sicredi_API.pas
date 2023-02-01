@@ -39,13 +39,16 @@ unit ACBrBoletoRet_Sicredi_API;
 interface
 
 uses
-  Classes, SysUtils, ACBrBoleto,ACBrBoletoWS, ACBrBoletoRetorno,
-//  {$IfDef USE_JSONDATAOBJECTS_UNIT}
-//    JsonDataObjects_ACBr,
-//  {$Else}
-    Jsons,
-//  {$EndIf}
-  DateUtils, pcnConversao;
+  Classes,
+  SysUtils,
+  ACBrBoleto,
+  ACBrBoletoWS,
+  ACBrBoletoRetorno,
+  Jsons,
+  DateUtils,
+  pcnConversao,
+  ACBrUtil.DateTime,
+  ACBrBoletoWS.Rest;
 
 type
 
@@ -83,7 +86,7 @@ end;
 function TRetornoEnvio_Sicredi_API.DateSicrediToDateTime(
   const AValue: String): TDateTime;
 begin
-  Result := StrToDateDef( StringReplace( AValue,'-','/', [rfReplaceAll] ),0);
+  Result :=EncodeDataHora(StringReplace(AValue,'-','/',[rfReplaceAll]));
 end;
 
 destructor TRetornoEnvio_Sicredi_API.Destroy;
@@ -103,7 +106,7 @@ begin
   Result := True;
   TipoOperacao := ACBrBoleto.Configuracoes.WebService.Operacao;
   ARetornoWS.HTTPResultCode := HTTPResultCode;
-
+  ARetornoWS.JSONEnvio      := EnvWs;
   if RetWS <> '' then
   begin
     //Retorno := ACBrBoleto.CriarRetornoWebNaLista;
@@ -144,7 +147,7 @@ begin
             ARetornoWS.DadosRet.TituloRet.NossoNumero   := ARetornoWS.DadosRet.IDBoleto.NossoNum;
 
           end else
-          if (TipoOperacao = tpConsultaDetalhe) then
+          if (TipoOperacao in [tpConsultaDetalhe,tpConsulta]) then
           begin
             AJsonBoletos := TJsonArray.Create;
             AJsonBoletos.Parse( AJson.Stringify );
@@ -166,7 +169,10 @@ begin
 
               if( AJSonObject.Values['situacao'].asString = C_LIQUIDADO ) or
                  ( AJSonObject.Values['situacao'].asString = C_BAIXADO_POS_SOLICITACAO ) then
-              ARetornoWS.DadosRet.TituloRet.ValorPago                  := AJSonObject.Values['valor'].AsNumber;
+              begin
+                ARetornoWS.DadosRet.TituloRet.ValorPago                  := AJSonObject.Values['valor'].AsNumber;
+                ARetornoWS.DadosRet.TituloRet.DataCredito                := DateSicrediToDateTime(AJSonObject.Values['dataliquidacao'].AsString);
+              end;
 
             end;
           end else
@@ -202,12 +208,12 @@ var
   I: Integer;
 begin
   Result := True;
-
+  ListaRetorno := ACBrBoleto.CriarRetornoWebNaLista;
   ListaRetorno.HTTPResultCode := HTTPResultCode;
-
+  ListaRetorno.JSONEnvio      := EnvWs;
   if RetWS <> '' then
   begin
-    ListaRetorno := ACBrBoleto.CriarRetornoWebNaLista;
+    
     try
       AJSon := TJson.Create;
       try
@@ -251,9 +257,16 @@ begin
             ListaRetorno.DadosRet.TituloRet.ValorDocumento             := AJSonObject.Values['valor'].AsNumber;
             ListaRetorno.DadosRet.TituloRet.ValorAtual                 := AJSonObject.Values['valor'].AsNumber;
 
+            ListaRetorno.DadosRet.TituloRet.DataRegistro               := DateSicrediToDateTime(AJSonObject.Values['dataemissao'].AsString);
+            ListaRetorno.DadosRet.TituloRet.EstadoTituloCobranca       := AJSonObject.Values['situacao'].AsString;
+
+
             if( AJSonObject.Values['situacao'].asString = C_LIQUIDADO ) or
                ( AJSonObject.Values['situacao'].asString = C_BAIXADO_POS_SOLICITACAO ) then
-            ListaRetorno.DadosRet.TituloRet.ValorPago                  := AJSonObject.Values['valor'].AsNumber;
+            begin
+               ListaRetorno.DadosRet.TituloRet.ValorPago                  := AJSonObject.Values['valor'].AsNumber;
+               ListaRetorno.DadosRet.TituloRet.DataCredito                := DateSicrediToDateTime(AJSonObject.Values['dataliquidacao'].AsString);
+            end;
 
           end;
         end;

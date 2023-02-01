@@ -39,12 +39,41 @@ unit ACBrNFeDANFeLazReport;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  DateUtils, PrintersDlgs, Printers, strutils, BufDataset, DB, LResources,
-  pcnNFe, pcnConversao, pcnConversaoNFe, pcnEnvEventoNFe, pcnRetInutNFe,
-  ACBrNFe, ACBrNFeDANFEClass, ACBrUtil.Base, ACBrUtil.Strings, ACBrUtil.FilesIO, ACBrUtil.DateTime,
-  ACBrDFeUtil, ACBrValidador, ACBrDelphiZXingQRCode,
-  LR_Class, LR_View, LR_BarC, LR_Shape, LR_DBSet, LR_Desgn, lr_e_fclpdf;
+  Classes, 
+  SysUtils, 
+  FileUtil, 
+  Forms, 
+  Controls,  
+  ExtCtrls,
+  DateUtils, 
+  PrintersDlgs, 
+  Printers, 
+  strutils, 
+  BufDataset, 
+  DB,
+  Dialogs,
+  LResources,
+  pcnNFe, 
+  pcnConversao, 
+  pcnConversaoNFe, 
+  pcnEnvEventoNFe, 
+  pcnRetInutNFe,
+  ACBrNFe, 
+  ACBrNFeDANFEClass, 
+  ACBrUtil.Base, 
+  ACBrUtil.Strings, 
+  ACBrUtil.FilesIO, 
+  ACBrUtil.DateTime,
+  ACBrDFeUtil, 
+  ACBrValidador, 
+  ACBrDelphiZXingQRCode,
+  LR_Class, 
+  LR_View, 
+  LR_BarC, 
+  LR_Shape, 
+  LR_DBSet, 
+  LR_Desgn, 
+  lr_e_fclpdf;
 
 type
 
@@ -1893,9 +1922,9 @@ begin
       begin
         if FNFe.Ide.tpEmis <> teNormal then
           FieldByName('MensagemFiscal').AsString :=
-            'EMITIDA EM CONTINGÊNCIA' + LineBreak + 'Pendente de autorização'
-        else
-          FieldByName('MensagemFiscal').AsString := 'ÁREA DE MENSAGEM FISCAL';
+            'EMITIDA EM CONTINGÊNCIA' + LineBreak + 'Pendente de autorização';
+        //else
+        //  FieldByName('MensagemFiscal').AsString := 'ÁREA DE MENSAGEM FISCAL';
       end;
 
       FieldByName('URL').AsString :=

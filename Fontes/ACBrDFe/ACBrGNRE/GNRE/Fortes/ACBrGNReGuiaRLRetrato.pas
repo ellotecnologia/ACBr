@@ -37,9 +37,20 @@ unit ACBrGNReGuiaRLRetrato;
 interface
 
 uses
-  SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ExtCtrls, RLReport, RLBarcode, RLPDFFilter,
-  ACBrGNReGuiaRL, RLFilters, pgnreGNRERetorno, maskutils;
+  SysUtils, 
+  Variants, 
+  Classes, 
+  Graphics, 
+  Controls, 
+  Forms,
+  ExtCtrls, 
+  RLReport, 
+  RLBarcode, 
+  RLPDFFilter,
+  ACBrGNReGuiaRL, 
+  RLFilters, 
+  pgnreGNRERetorno, 
+  maskutils;
 
 type
 
@@ -362,7 +373,6 @@ procedure TfrlGuiaRLRetrato.RLBand1BeforePrint(Sender: TObject; var PrintIt: Boo
       3: result := RemoverZeros(sDocEmitente);
     end;
   end;
-
 begin
   // 1ª Via
   RLLabel18.Caption             := FGNRe.DocDestinatario;
@@ -425,7 +435,7 @@ begin
   CEPEmitente2.Caption          := CEPEmitente.Caption;
   CEPEmitente3.Caption          := CEPEmitente.Caption;
 
-  MunicipioEmitente.Caption     := FGNRe.MunicipioEmitente;
+  MunicipioEmitente.Caption     := FGNRe.MunicipioEmitenteNome;
   MunicipioEmitente2.Caption    := MunicipioEmitente.Caption;
   MunicipioEmitente3.Caption    := MunicipioEmitente.Caption;
 
@@ -445,7 +455,7 @@ begin
   NumDocOrigem2.Caption         := NumDocOrigem.Caption;
   NumDocOrigem3.Caption         := NumDocOrigem.Caption;
 
-  MunicipioDestinatario.Caption := FGNRe.MunicipioDestinatario;
+  MunicipioDestinatario.Caption := FGNRe.MunicipioDestinatarioNome;
   MunicipioDestinatario2.Caption:= MunicipioDestinatario.Caption;
   MunicipioDestinatario3.Caption:= MunicipioDestinatario.Caption;
 

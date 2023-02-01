@@ -38,7 +38,7 @@ unit ACBrCTeConhecimentos;
 interface
 
 uses
-  Classes, Sysutils, Dialogs, Forms, StrUtils,
+  Classes, Sysutils, StrUtils,
   ACBrCTeConfiguracoes,
   pcteCTe, pcteCTeR, pcteCTeW, pcnConversao, pcnAuxiliar, pcnLeitor;
 
@@ -146,7 +146,8 @@ type
     function VerificarAssinatura(out Erros: String): Boolean;
     function ValidarRegrasdeNegocios(out Erros: String): Boolean;
     procedure Imprimir;
-    procedure ImprimirPDF;
+    procedure ImprimirPDF; overload;
+    procedure ImprimirPDF(AStream: TStream); overload;
 
     function  Add: Conhecimento;
     function Insert(Index: Integer): Conhecimento;
@@ -3328,7 +3329,13 @@ end;
 procedure TConhecimentos.ImprimirPDF;
 begin
   VerificarDACTE;
-  TACBrCTe(FACBrCTe).DACTe.ImprimirDACTePDF(nil);
+  TACBrCTe(FACBrCTe).DACTe.ImprimirDACTePDF;
+end;
+
+procedure TConhecimentos.ImprimirPDF(AStream: TStream);
+begin
+  VerificarDACTE;
+  TACBrCTe(FACBrCTe).DACTE.ImprimirDACTePDF(AStream);
 end;
 
 function TConhecimentos.Insert(Index: Integer): Conhecimento;

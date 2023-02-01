@@ -118,7 +118,8 @@ type
 implementation
 
 uses
-  ACBrUtil.Base, ACBrUtil.XMLHTML, ACBrUtil.DateTime, ACBrUtil.Strings;
+  ACBrUtil.Base, ACBrUtil.XMLHTML, ACBrUtil.DateTime, ACBrUtil.Strings,
+  ACBrDFeUtil;
 
 //==============================================================================
 // Essa unit tem por finalidade exclusiva ler o XML do provedor:
@@ -568,6 +569,7 @@ procedure TNFSeR_PadraoNacional.LerEnderecoNacionalIntermediario(
   const ANode: TACBrXmlNode);
 var
   AuxNode: TACBrXmlNode;
+  xUF: string;
 begin
   AuxNode := ANode.Childrens.FindAnyNs('endNac');
 
@@ -577,6 +579,10 @@ begin
     begin
       CodigoMunicipio := ObterConteudo(AuxNode.Childrens.FindAnyNs('cMun'), tcStr);
       CEP := ObterConteudo(AuxNode.Childrens.FindAnyNs('CEP'), tcStr);
+      xMunicipio := ObterNomeMunicipio(StrToIntDef(CodigoMunicipio, 0), xUF, '', False);
+
+      if UF = '' then
+        UF := xUF;
     end;
   end;
 end;
@@ -585,6 +591,7 @@ procedure TNFSeR_PadraoNacional.LerEnderecoNacionalPrestador(
   const ANode: TACBrXmlNode);
 var
   AuxNode: TACBrXmlNode;
+  xUF: string;
 begin
   AuxNode := ANode.Childrens.FindAnyNs('endNac');
 
@@ -594,6 +601,10 @@ begin
     begin
       CodigoMunicipio := ObterConteudo(AuxNode.Childrens.FindAnyNs('cMun'), tcStr);
       CEP := ObterConteudo(AuxNode.Childrens.FindAnyNs('CEP'), tcStr);
+      xMunicipio := ObterNomeMunicipio(StrToIntDef(CodigoMunicipio, 0), xUF, '', False);
+
+      if UF = '' then
+        UF := xUF;
     end;
   end;
 end;
@@ -602,6 +613,7 @@ procedure TNFSeR_PadraoNacional.LerEnderecoNacionalTomador(
   const ANode: TACBrXmlNode);
 var
   AuxNode: TACBrXmlNode;
+  xUF: string;
 begin
   AuxNode := ANode.Childrens.FindAnyNs('endNac');
 
@@ -611,6 +623,10 @@ begin
     begin
       CodigoMunicipio := ObterConteudo(AuxNode.Childrens.FindAnyNs('cMun'), tcStr);
       CEP := ObterConteudo(AuxNode.Childrens.FindAnyNs('CEP'), tcStr);
+      xMunicipio := ObterNomeMunicipio(StrToIntDef(CodigoMunicipio, 0), xUF, '', False);
+
+      if UF = '' then
+        UF := xUF;
     end;
   end;
 end;
@@ -809,6 +825,9 @@ begin
       LerValoresNFSe(AuxNode);
       LerDPS(AuxNode);
     end;
+
+    NFSe.Numero := NFSe.infNFSe.nNFSe;
+    NFSe.CodigoVerificacao := NFSe.infNFSe.ID;
   end;
 end;
 
@@ -1137,7 +1156,7 @@ begin
   begin
     with NFSe.Servico.Valores.tribMun do
     begin
-      tribISSQN := ObterConteudo(AuxNode.Childrens.FindAnyNs('tribISSQN'), tcStr);
+      tribISSQN := StrTotribISSQN(Ok, ObterConteudo(AuxNode.Childrens.FindAnyNs('tribISSQN'), tcStr));
       cPaisResult := SiglaISO2ToCodIBGEPais(ObterConteudo(AuxNode.Childrens.FindAnyNs('cPaisResult'), tcStr));
 
       LerBeneficioMunicipal(AuxNode);
@@ -1145,7 +1164,7 @@ begin
 
       tpImunidade := StrTotpImunidade(Ok, ObterConteudo(AuxNode.Childrens.FindAnyNs('tpImunidade'), tcStr));
       pAliq := ObterConteudo(AuxNode.Childrens.FindAnyNs('pAliq'), tcDe2);
-      tpRetISSQN := ObterConteudo(AuxNode.Childrens.FindAnyNs('tpRetISSQN'), tcStr);
+      tpRetISSQN := StrTotpRetISSQN(Ok, ObterConteudo(AuxNode.Childrens.FindAnyNs('tpRetISSQN'), tcStr));
     end;
   end;
 end;
@@ -1159,7 +1178,7 @@ begin
 
   if AuxNode <> nil then
   begin
-    with NFSe.Servico.Valores.tribNac do
+    with NFSe.Servico.Valores.tribFed do
     begin
       LerTributacaoOutrosPisCofins(AuxNode);
 
@@ -1180,7 +1199,7 @@ begin
 
   if AuxNode <> nil then
   begin
-    with NFSe.Servico.Valores.tribNac do
+    with NFSe.Servico.Valores.tribFed do
     begin
       CST := StrToCST(Ok, ObterConteudo(AuxNode.Childrens.FindAnyNs('CST'), tcStr));
       vBCPisCofins := ObterConteudo(AuxNode.Childrens.FindAnyNs('vBCPisCofins'), tcDe2);

@@ -347,9 +347,9 @@ begin
   y := StrToInt(Copy(AISODate, 1, 4));
   m := StrToInt(Copy(AISODate, 6, 2));
   d := StrToInt(Copy(AISODate, 9, 2));
-  h := StrToInt(Copy(AISODate, 12, 2));
-  n := StrToInt(Copy(AISODate, 15, 2));
-  s := StrToInt(Copy(AISODate, 18, 2));
+  h := StrToIntDef(Copy(AISODate, 12, 2), 0);
+  n := StrToIntDef(Copy(AISODate, 15, 2), 0);
+  s := StrToIntDef(Copy(AISODate, 18, 2), 0);
   z := StrToIntDef(OnlyNumber(Copy(AISODate, 21, 3)), 0);
 
   Result := EncodeDateTime(y,m,d, h,n,s,z);
@@ -451,7 +451,6 @@ var
   DT: TDateTime;
   Bias, H, M: Integer;
 begin
-  Result := 0;
   DT := ADateTime;
   TZ := AUTC;
 
@@ -486,7 +485,6 @@ begin
 
   Bias := TimeZoneToBias(DateTimeToStr(DT) + TZ);
   Result := IncMinute(DT, Bias);
-
 end;
 
 {-----------------------------------------------------------------------------
@@ -566,6 +564,14 @@ begin
   end
   else
   begin
+    if Length(xData) = 7 then
+    begin
+      if i = 5 then
+        xData := xData + '/01'
+      else
+        xData := '01/' + xData;
+    end;
+
     if i = 5 then
     begin
       Ano := StrToInt(Copy(xData, 1, 4));
@@ -649,9 +655,6 @@ begin
     if (p = 0) then
        p := Pos(' ', xDataHora);
 
-    if (p = 0) then
-       p := Pos('.', xDataHora);
-
     if (p > 0) then
     begin
       xHora := Copy(xDataHora, 1, p-1);
@@ -660,6 +663,11 @@ begin
     else
       xHora := xDataHora;
   end;
+
+  p := Pos('.', xHora);
+
+  if (p > 0) then
+    xHora := Copy(xHora, 1, p-1);
 
   Result := Trim(xData + ' ' + xHora + xTZD);
 end;
@@ -689,7 +697,10 @@ begin
       8: xData := FormatMaskText('!0000\/00\/00;0;_', xData);
     end;
 
-    Result := StringToDateTime(xData, xFormatoData);
+    if (Pos('0000/', xData) > 0) or (Pos('/0000', xData) > 0) then
+      Result := 0
+    else
+      Result := StringToDateTime(xData, xFormatoData);
   end;
 end;
 

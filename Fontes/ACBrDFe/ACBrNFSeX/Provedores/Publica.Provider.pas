@@ -66,11 +66,12 @@ type
 
     procedure PrepararEmitir(Response: TNFSeEmiteResponse); override;
     procedure TratarRetornoEmitir(Response: TNFSeEmiteResponse); override;
+
     procedure TratarRetornoConsultaNFSeporRps(Response: TNFSeConsultaNFSeporRpsResponse); override;
 
     procedure PrepararConsultaNFSe(Response: TNFSeConsultaNFSeResponse); override;
-    procedure PrepararCancelaNFSe(Response: TNFSeCancelaNFSeResponse); override;
 
+    procedure PrepararCancelaNFSe(Response: TNFSeCancelaNFSeResponse); override;
   public
     function NaturezaOperacaoDescricao(const t: TnfseNaturezaOperacao): string; override;
   end;
@@ -78,9 +79,7 @@ type
 implementation
 
 uses
-  ACBrUtil.Base,
-  ACBrUtil.Strings,
-  ACBrUtil.XMLHTML,
+  ACBrUtil.Base, ACBrUtil.Strings, ACBrUtil.XMLHTML,
   ACBrDFeException,
   ACBrNFSeX, ACBrNFSeXConfiguracoes, ACBrNFSeXConsts,
   ACBrNFSeXNotasFiscais, Publica.GravarXml, Publica.LerXml;
@@ -197,7 +196,8 @@ function TACBrNFSeXWebservicePublica.TratarXmlRetornado(
 begin
   Result := inherited TratarXmlRetornado(aXML);
 
-  Result := ParseText(AnsiString(Result), True, False);
+  Result := RemoverCaracteresDesnecessarios(Result);
+  Result := ParseText(AnsiString(Result), True, {$IfDef FPC}True{$Else}False{$EndIf});
   Result := RemoverDeclaracaoXML(Result);
   Result := RemoverIdentacao(Result);
   Result := RemoverPrefixosDesnecessarios(Result);
@@ -290,6 +290,8 @@ var
   IdAttr, NameSpace, xRps, ListaRps, Prefixo: string;
   I: Integer;
 begin
+  ConfigAssinar.IncluirURI := True;
+
   if Response.ModoEnvio <> meUnitario then
   begin
     inherited PrepararEmitir(Response);
@@ -300,17 +302,17 @@ begin
   begin
     AErro := Response.Erros.New;
     AErro.Codigo := Cod002;
-    AErro.Descricao := Desc002;
+    AErro.Descricao := ACBrStr(Desc002);
   end;
 
   if TACBrNFSeX(FAOwner).NotasFiscais.Count > Response.MaxRps then
   begin
     AErro := Response.Erros.New;
     AErro.Codigo := Cod003;
-    AErro.Descricao := 'Conjunto de RPS transmitidos (máximo de ' +
+    AErro.Descricao := ACBrStr('Conjunto de RPS transmitidos (máximo de ' +
                        IntToStr(Response.MaxRps) + ' RPS)' +
                        ' excedido. Quantidade atual: ' +
-                       IntToStr(TACBrNFSeX(FAOwner).NotasFiscais.Count);
+                       IntToStr(TACBrNFSeX(FAOwner).NotasFiscais.Count));
   end;
 
   if Response.Erros.Count > 0 then Exit;
@@ -354,8 +356,8 @@ begin
     NameSpace := ' xmlns="' + ConfigMsgDados.GerarNFSe.xmlns + '"';
 
   Response.ArquivoEnvio := '<' + Prefixo + 'GerarNfseEnvio' + NameSpace + '>' +
-                          ListaRps +
-                       '</' + Prefixo + 'GerarNfseEnvio' + '>';
+                             ListaRps +
+                           '</' + Prefixo + 'GerarNfseEnvio' + '>';
 end;
 
 procedure TACBrNFSeProviderPublica.TratarRetornoEmitir(
@@ -393,16 +395,17 @@ begin
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod202;
-        AErro.Descricao := Desc202;
+        AErro.Descricao := ACBrStr(Desc202);
         Exit;
       end;
 
       ANodeArray := ANode.Childrens.FindAllAnyNs('CompNfse');
+
       if not Assigned(ANode) then
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod203;
-        AErro.Descricao := Desc203;
+        AErro.Descricao := ACBrStr(Desc203);
         Exit;
       end;
 
@@ -421,13 +424,13 @@ begin
         SalvarXmlNfse(ANota);
       end;
 
-      Response.Sucesso := (Response.Erros.Count > 0);
+      Response.Sucesso := (Response.Erros.Count = 0);
     except
       on E:Exception do
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod999;
-        AErro.Descricao := Desc999 + E.Message;
+        AErro.Descricao := ACBrStr(Desc999 + E.Message);
       end;
     end;
   finally
@@ -454,7 +457,7 @@ begin
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod201;
-        AErro.Descricao := Desc201;
+        AErro.Descricao := ACBrStr(Desc201);
         Exit
       end;
 
@@ -473,7 +476,7 @@ begin
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod203;
-        AErro.Descricao := Desc203;
+        AErro.Descricao := ACBrStr(Desc203);
         Exit;
       end;
 
@@ -517,6 +520,7 @@ begin
         InfNfseID := ObterConteudoTag(AuxNode.Attributes.Items['id']);
         NumNFSe := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('Numero'), tcStr);
         sLink := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('LinkVisualizacaoNfse'), tcStr);
+        sLink := StringReplace(sLink, '&amp;', '&', [rfReplaceAll]);
 
         with Response do
         begin
@@ -537,7 +541,7 @@ begin
       begin
         AErro := Response.Erros.New;
         AErro.Codigo := Cod999;
-        AErro.Descricao := Desc999 + E.Message;
+        AErro.Descricao := ACBrStr(Desc999 + E.Message);
       end;
     end;
   finally
@@ -549,7 +553,7 @@ procedure TACBrNFSeProviderPublica.PrepararConsultaNFSe(
   Response: TNFSeConsultaNFSeResponse);
 var
   Emitente: TEmitenteConfNFSe;
-  XmlConsulta, NameSpace, NumFinal, IdAttr: string;
+  xConsulta, NameSpace, NumFinal, IdAttr: string;
   NumNFSeI, NumNFSeF: Integer;
 begin
   NumNFSeI := StrToIntDef(Response.InfConsultaNFSe.NumeroIniNFSe, 0);
@@ -569,12 +573,12 @@ begin
   else
     NumFinal := '';
 
-  XmlConsulta := '<Faixa>' +
-                   '<NumeroNfseInicial>' +
-                      OnlyNumber(Response.InfConsultaNFSe.NumeroIniNFSe) +
-                   '</NumeroNfseInicial>' +
-                   NumFinal +
-                 '</Faixa>';
+  xConsulta := '<Faixa>' +
+                 '<NumeroNfseInicial>' +
+                    OnlyNumber(Response.InfConsultaNFSe.NumeroIniNFSe) +
+                 '</NumeroNfseInicial>' +
+                 NumFinal +
+               '</Faixa>';
 
   if ConfigGeral.Identificador <> '' then
     IdAttr := ' ' + ConfigGeral.Identificador + '="Cons_' +
@@ -588,12 +592,12 @@ begin
     NameSpace := ' xmlns="' + ConfigMsgDados.ConsultarNFSe.xmlns + '"';
 
   Response.ArquivoEnvio := '<ConsultarNfseFaixaEnvio' + NameSpace + '>' +
-                         '<Prestador' + IdAttr + '>' +
-//                           '<CpfCnpj>' + GetCpfCnpj(Emitente.CNPJ) + '</CpfCnpj>' +
+//                         '<Prestador' + IdAttr + '>' +
+                         '<Prestador>' +
                            '<Cnpj>' + Emitente.CNPJ + '</Cnpj>' +
                            GetInscMunic(Emitente.InscMun) +
                          '</Prestador>' +
-                         XmlConsulta +
+                         xConsulta +
                        '</ConsultarNfseFaixaEnvio>';
 end;
 

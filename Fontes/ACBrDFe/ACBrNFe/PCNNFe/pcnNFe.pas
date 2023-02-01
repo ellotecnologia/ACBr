@@ -318,6 +318,7 @@ type
   TNFrefCollectionItem = class(TObject)
   private
     FrefNFe: String;
+    FrefNFeSig: String;
     FrefCTe: String;
     FRefNF: TRefNF;
     FRefECF: TRefECF;
@@ -328,6 +329,7 @@ type
 
     procedure Assign(Source: TNFrefCollectionItem);
     property refNFe: String read FrefNFe write FrefNFe;
+    property refNFeSig: String read FrefNFeSig write FrefNFeSig;
     property refCTe: String read FrefCTe write FrefCTe;
     property RefNF: TRefNF read FRefNF write FRefNF;
     property RefNFP: TRefNFP read FRefNFP write FRefNFP;
@@ -2290,6 +2292,7 @@ end;
 procedure TNFrefCollectionItem.Assign(Source: TNFrefCollectionItem);
 begin
   refNFe := Source.refNFe;
+  refNFeSig := Source.refNFeSig;
   refCTe := Source.refCTe;
   RefNF.Assign(Source.RefNF);
   RefNFP.Assign(Source.RefNFP);
@@ -2552,6 +2555,10 @@ procedure TComb.Assign(Source: TComb);
 begin
   cProdANP := Source.cProdANP;
   descANP  := Source.descANP;
+  pGLP     := Source.pGLP;
+  pGNn     := Source.pGNn;
+  pGNi     := Source.pGNi;
+  vPart    := Source.vPart;
   pMixGN   := Source.pMixGN;
   CODIF    := Source.CODIF;
   qTemp    := Source.qTemp;

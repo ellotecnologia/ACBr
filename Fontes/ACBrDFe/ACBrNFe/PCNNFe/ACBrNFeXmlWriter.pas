@@ -36,8 +36,8 @@ interface
 
 uses
   Classes, SysUtils,
-  ACBrXmlDocument, ACBrXmlWriter,
-  pcnNFe, pcnGerador, pcnConversao, pcnNFeConsts;
+  pcnNFe, pcnGerador, pcnConversao, pcnNFeConsts,
+  ACBrXmlDocument, ACBrXmlWriter;
 
 type
   TNFeXmlWriterOptions = class(TACBrXmlWriterOptions)
@@ -51,6 +51,7 @@ type
     FValidarListaServicos: boolean;
     FCamposFatObrigatorios: boolean;
     FForcarGerarTagRejeicao938: TForcarGeracaoTag;
+    FForcarGerarTagRejeicao906: TForcarGeracaoTag;
 
   published
     property AjustarTagNro: boolean read FAjustarTagNro write FAjustarTagNro;
@@ -63,6 +64,7 @@ type
     property CamposFatObrigatorios: boolean read FCamposFatObrigatorios write FCamposFatObrigatorios;
     // ForcarGerarTagRejeicao938 (NT 2018.005 v 1.20) -> Campo-Seq: N12-81 e N12a-50 | Campos: N26, N26a, N26b
     property ForcarGerarTagRejeicao938: TForcarGeracaoTag read FForcarGerarTagRejeicao938 write FForcarGerarTagRejeicao938;
+    property ForcarGerarTagRejeicao906: TForcarGeracaoTag read FForcarGerarTagRejeicao906 write FForcarGerarTagRejeicao906;
 
   end;
 
@@ -176,8 +178,8 @@ implementation
 uses
   variants, dateutils,
   pcnConversaoNFe, ACBrValidador, pcnAuxiliar,
-  ACBrDFeUtil, pcnConsts, ACBrUtil.Strings,
-  ACBrNFe;
+  ACBrDFeUtil, pcnConsts, ACBrUtil.Strings, ACBrUtil.Base, ACBrUtil.DateTime,
+  ACBrXmlBase, ACBrNFe;
 
 constructor TNFeXmlWriter.Create(AOwner: TNFe);
 begin
@@ -186,11 +188,12 @@ begin
   Opcoes.GerarTagIPIparaNaoTributado := True;
   Opcoes.NormatizarMunicipios := False;
   Opcoes.PathArquivoMunicipios := '';
-  Opcoes.GerarTagAssinatura := taSomenteSeAssinada;
+  Opcoes.GerarTagAssinatura := pcnConversao.taSomenteSeAssinada;
   Opcoes.ValidarInscricoes := False;
   Opcoes.ValidarListaServicos := False;
   Opcoes.CamposFatObrigatorios := True;
   Opcoes.FForcarGerarTagRejeicao938 := fgtNunca;
+  Opcoes.FForcarGerarTagRejeicao906 := fgtNunca;
   FNFe := AOwner;
 end;
 
@@ -257,7 +260,7 @@ begin
 
   ChaveNFe := GerarChaveAcesso(NFe.ide.cUF, NFe.ide.dEmi, xCNPJCPF,
       NFe.ide.serie, NFe.ide.nNF, StrToInt(TpEmisToStr(NFe.ide.tpEmis)),
-     { NFe.ide.cNF} 0, NFe.ide.modelo);
+      NFe.ide.cNF, NFe.ide.modelo);
 
   NFe.infNFe.ID := 'NFe' + ChaveNFe;
   NFe.ide.cDV := ExtrairDigitoChaveAcesso(NFe.infNFe.ID);
@@ -292,15 +295,15 @@ begin
                                   85, 1, NFe.infNFeSupl.urlChave, DSC_URLCHAVE, False));
   end;
 
-  Gerar := (Opcoes.GerarTagAssinatura = taSempre) or
+  Gerar := (Opcoes.GerarTagAssinatura = pcnConversao.taSempre) or
     (
-      (Opcoes.GerarTagAssinatura = taSomenteSeAssinada) and
+      (Opcoes.GerarTagAssinatura = pcnConversao.taSomenteSeAssinada) and
         (NFe.signature.DigestValue <> '') and
         (NFe.signature.SignatureValue <> '') and
         (NFe.signature.X509Certificate <> '')
     ) or
     (
-      (Opcoes.GerarTagAssinatura = taSomenteParaNaoAssinada) and
+      (Opcoes.GerarTagAssinatura = pcnConversao.taSomenteParaNaoAssinada) and
         (NFe.signature.DigestValue = '') and
         (NFe.signature.SignatureValue = '') and
         (NFe.signature.X509Certificate = '')
@@ -514,7 +517,8 @@ begin
   for i := 0 to NFe.ide.NFref.Count - 1 do
   begin
     Result[i] := FDocument.CreateElement('NFref');
-    if NFe.ide.NFref[i].refNFe <> '' then
+    if (NFe.ide.NFref[i].refNFe <> '') or
+       (NFe.ide.NFref[i].refNFeSig <> '') then
       Result[i].AppendChild(GerarIdeNFrerefNFe(i));
     if NFe.Ide.NFref[i].RefNF.nNF > 0 then
       Result[i].AppendChild(GerarIdeNFrefRefNF(i));
@@ -526,17 +530,23 @@ begin
       Result[i].AppendChild(GerarRefECF(i));
   end;
 
-  if NFe.ide.NFref.Count > 500 then
-    wAlerta('B12a', 'NFref', DSC_QNF, ERR_MSG_MAIOR_MAXIMO + '500');
-
+  if NFe.ide.NFref.Count > 999 then
+    wAlerta('B12a', 'NFref', DSC_QNF, ERR_MSG_MAIOR_MAXIMO + '999');
 end;
 
 function TNFeXmlWriter.GerarIdeNFrerefNFe(const i: integer): TACBrXmlNode;
 begin
-  Result := AddNode(tcEsp, 'B13', 'refNFe', 44, 44, 1,
-    OnlyNumber(NFe.ide.NFref[i].refNFe), DSC_REFNFE);
-  if not ValidarChave(NFe.ide.NFref[i].refNFe) then
-    wAlerta('B13', 'refNFe', DSC_REFNFE, ERR_MSG_INVALIDO);
+  if NFe.ide.NFref[i].refNFe <> '' then
+  begin
+    Result := AddNode(tcEsp, 'B13', 'refNFe', 44, 44, 1,
+      OnlyNumber(NFe.ide.NFref[i].refNFe), DSC_REFNFE);
+
+    if not ValidarChave(NFe.ide.NFref[i].refNFe) then
+      wAlerta('B13', 'refNFe', DSC_REFNFE, ERR_MSG_INVALIDO);
+  end
+  else
+    Result := AddNode(tcEsp, 'B13', 'refNFeSig', 44, 44, 1,
+      OnlyNumber(NFe.ide.NFref[i].refNFeSig), DSC_REFNFE);
 end;
 
 function TNFeXmlWriter.GerarIdeNFrefRefNF(const i: integer): TACBrXmlNode;
@@ -743,7 +753,7 @@ begin
   else
     Result.AppendChild(AddNodeCNPJCPF('E02', 'E03', NFe.Dest.CNPJCPF, IsNFe));
 
-  if NFe.Ide.tpAmb = taProducao then
+  if NFe.Ide.tpAmb = pcnConversao.taProducao then
     Result.AppendChild(AddNode(tcStr, 'E04', 'xNome  ', 02, 60,
       IIf(IsNFe, 1, 0), NFe.Dest.xNome, DSC_XNOME))
   else
@@ -999,8 +1009,8 @@ begin
   Result.AppendChild(AddNode(tcStr, 'I03a ', 'cBarra', 3, 30, 0,
     NFe.Det[i].Prod.cBarra, DSC_CBARRA));
 
-  if (NFe.Det[i].Prod.nItem = 1) and (NFe.Ide.tpAmb = taHomologacao) and
-    (NFe.ide.modelo = 65) then
+  if (NFe.Det[i].Prod.nItem = 1) and (NFe.Ide.tpAmb = pcnConversao.taHomologacao) and
+     (NFe.ide.modelo = 65) then
     Result.AppendChild(AddNode(tcStr, 'I04 ', 'xProd   ', 1, 120, 1,
       HOM_XPROD, DSC_XPROD))
   else
@@ -1049,7 +1059,7 @@ begin
 
   // Implementação futura - regra de validação somente em 01/12/2018
   if (NFe.infNFe.Versao >= 4) and (trim(NFe.Det[i].Prod.cEANTrib) = '') and
-    (CompareDate(NFe.Ide.dEmi, StringToDateTime('01/12/2018')) > 0) then
+     (CompareDate(NFe.Ide.dEmi, StringToDateTime('01/12/2018')) > 0) then
     NFe.Det[i].Prod.cEANTrib := SEMGTIN;
 
   Result.AppendChild(AddNode(tcStr, 'I12 ', 'cEANTrib', 00, 14, 1,
@@ -1675,8 +1685,22 @@ var
   function OcorrenciasVICMSSubstituto : Integer;
   begin
 	if (TNFeXmlWriterOptions(Opcoes).ForcarGerarTagRejeicao938 = fgtSempre) or
-	   ((TNFeXmlWriterOptions(Opcoes).ForcarGerarTagRejeicao938 = fgtSomenteProducao) and (NFe.Ide.tpAmb = taProducao)) or
-	   ((TNFeXmlWriterOptions(Opcoes).ForcarGerarTagRejeicao938 = fgtSomenteHomologacao) and (NFe.Ide.tpAmb = taHomologacao))  then
+	   ((TNFeXmlWriterOptions(Opcoes).ForcarGerarTagRejeicao938 = fgtSomenteProducao) and (NFe.Ide.tpAmb = pcnConversao.taProducao)) or
+	   ((TNFeXmlWriterOptions(Opcoes).ForcarGerarTagRejeicao938 = fgtSomenteHomologacao) and (NFe.Ide.tpAmb = pcnConversao.taHomologacao))  then
+	begin
+	  Result := 1;
+	end
+	else
+	begin
+	  Result := 0;
+	end;
+  end;
+
+  function OcorrenciasICMSEfetivo : Integer;
+  begin
+	if (NFe.Ide.indFinal = cfConsumidorFinal) and ((TNFeXmlWriterOptions(Opcoes).ForcarGerarTagRejeicao906 = fgtSempre) or
+	   ((TNFeXmlWriterOptions(Opcoes).ForcarGerarTagRejeicao906 = fgtSomenteProducao) and (NFe.Ide.tpAmb = pcnConversao.taProducao)) or
+	   ((TNFeXmlWriterOptions(Opcoes).ForcarGerarTagRejeicao906 = fgtSomenteHomologacao) and (NFe.Ide.tpAmb = pcnConversao.taHomologacao)))  then
 	begin
 	  Result := 1;
 	end
@@ -2014,7 +2038,7 @@ begin
               end;
 
               if (NFe.Det[i].Imposto.ICMS.pRedBCEfet > 0) or (NFe.Det[i].Imposto.ICMS.vBCEfet > 0) or
-                 (NFe.Det[i].Imposto.ICMS.pICMSEfet > 0) or (NFe.Det[i].Imposto.ICMS.vICMSEfet > 0) then
+                 (NFe.Det[i].Imposto.ICMS.pICMSEfet > 0) or (NFe.Det[i].Imposto.ICMS.vICMSEfet > 0) or (OcorrenciasICMSEfetivo > 0) then
               begin
                 xmlNode.AppendChild(AddNode(IIf(Usar_tcDe4,tcDe4,tcDe2), 'N34', 'pRedBCEfet', 01, IIf(Usar_tcDe4,07,05), 1, NFe.Det[i].Imposto.ICMS.pRedBCEfet, DSC_PREDBCEFET));
                 xmlNode.AppendChild(AddNode(tcDe2, 'N35', 'vBCEfet ', 01, 15, 1, NFe.Det[i].Imposto.ICMS.vBCEfet, DSC_VBCEFET));
@@ -2236,11 +2260,12 @@ begin
           xmlNode.AppendChild(AddNode(tcDe2, 'N32', 'vICMSSTDest', 01, 15, 1, NFe.Det[i].Imposto.ICMS.vICMSSTDest, DSC_VBCICMSSTDEST));
 
           if (NFe.Det[i].Imposto.ICMS.pRedBCEfet > 0) or (NFe.Det[i].Imposto.ICMS.vBCEfet > 0) or
-             (NFe.Det[i].Imposto.ICMS.pICMSEfet > 0) or (NFe.Det[i].Imposto.ICMS.vICMSEfet > 0) then
+             (NFe.Det[i].Imposto.ICMS.pICMSEfet > 0) or (NFe.Det[i].Imposto.ICMS.vICMSEfet > 0) or (OcorrenciasICMSEfetivo > 0) then
           begin
             xmlNode.AppendChild(AddNode(IIf(Usar_tcDe4,tcDe4,tcDe2), 'N34', 'pRedBCEfet', 01, IIf(Usar_tcDe4,07,05), 1, NFe.Det[i].Imposto.ICMS.pRedBCEfet, DSC_PREDBCEFET));
             xmlNode.AppendChild(AddNode(tcDe2, 'N35', 'vBCEfet ', 01, 15, 1, NFe.Det[i].Imposto.ICMS.vBCEfet, DSC_VBCEFET));
-            xmlNode.AppendChild(AddNode(IIf(Usar_tcDe4,tcDe4,tcDe2), 'N36', 'pICMSEfet', 01, IIf(Usar_tcDe4,07,05), 1, NFe.Det[i].Imposto.ICMS.pICMSEfet, DSC_PICMSEFET));            xmlNode.AppendChild(AddNode(tcDe2, 'N37', 'vICMSEfet ', 01, 15, 1, NFe.Det[i].Imposto.ICMS.vICMSEfet, DSC_VICMSEFET));
+            xmlNode.AppendChild(AddNode(IIf(Usar_tcDe4,tcDe4,tcDe2), 'N36', 'pICMSEfet', 01, IIf(Usar_tcDe4,07,05), 1, NFe.Det[i].Imposto.ICMS.pICMSEfet, DSC_PICMSEFET));
+            xmlNode.AppendChild(AddNode(tcDe2, 'N37', 'vICMSEfet ', 01, 15, 1, NFe.Det[i].Imposto.ICMS.vICMSEfet, DSC_VICMSEFET));
           end;
         end;
       end;
@@ -2368,7 +2393,7 @@ begin
             end;
 
             if (NFe.Det[i].Imposto.ICMS.pRedBCEfet > 0) or (NFe.Det[i].Imposto.ICMS.vBCEfet > 0) or
-               (NFe.Det[i].Imposto.ICMS.pICMSEfet > 0) or (NFe.Det[i].Imposto.ICMS.vICMSEfet > 0) then
+               (NFe.Det[i].Imposto.ICMS.pICMSEfet > 0) or (NFe.Det[i].Imposto.ICMS.vICMSEfet > 0) or (OcorrenciasICMSEfetivo > 0) then
             begin
               xmlNode.AppendChild(AddNode(IIf(Usar_tcDe4,tcDe4,tcDe2), 'N34', 'pRedBCEfet', 01, IIf(Usar_tcDe4,07,05), 1, NFe.Det[i].Imposto.ICMS.pRedBCEfet, DSC_PREDBCEFET));
               xmlNode.AppendChild(AddNode(tcDe2, 'N35', 'vBCEfet ', 01, 15, 1, NFe.Det[i].Imposto.ICMS.vBCEfet, DSC_VBCEFET));
