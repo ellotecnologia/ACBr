@@ -59,6 +59,7 @@ uses
   // Provedores que seguem a versão 1 do layout da ABRASF
   BHISS.Provider,
   CIGA.Provider,
+  Contass.Provider,
   FISSLex.Provider,
   geNFe.Provider,
   Ginfes.Provider,
@@ -157,6 +158,7 @@ uses
   // layout da ABRASF
   EL.Provider,
   Infisc.Provider,
+  IPM.Provider,
   SmarAPD.Provider,
 
   // Provedores que tem layout próprio
@@ -173,12 +175,12 @@ uses
   GeisWeb.Provider,
   Giap.Provider,
   Governa.Provider,
-  IPM.Provider,
   ISSBarueri.Provider,
   ISSCambe.Provider,
   ISSDSF.Provider,
   ISSLencois.Provider,
   ISSSaoPaulo.Provider,
+  PriMax.Provider,
   Siappa.Provider,
   Siat.Provider,
   SigISS.Provider,
@@ -244,6 +246,7 @@ begin
       proCIGA:      Result := TACBrNFSeProviderCIGA.Create(ACBrNFSe);
       proCitta:     Result := TACBrNFSeProviderCitta203.Create(ACBrNFSe);
       proConam:     Result := TACBrNFSeProviderConam.Create(ACBrNFSe);
+      proContass:   Result := TACBrNFSeProviderContass.Create(ACBrNFSe);
       proCoplan:    Result := TACBrNFSeProviderCoplan201.Create(ACBrNFSe);
       proCTA:       Result := TACBrNFSeProviderCTA200.Create(ACBrNFSe);
 
@@ -351,6 +354,8 @@ begin
             // Layout Próprio
             ve100: Result := TACBrNFSeProviderIPM.Create(ACBrNFSe);
             ve101: Result := TACBrNFSeProviderIPM101.Create(ACBrNFSe);
+            // Layout ABRASF
+            ve204: Result := TACBrNFSeProviderIPM204.Create(ACBrNFSe);
           else
             Result := nil;
           end;
@@ -425,6 +430,7 @@ begin
       proPadraoNacional:
         Result := TACBrNFSeProviderPadraoNacional.Create(ACBrNFSe);
 
+      proPriMax:  Result := TACBrNFSeProviderPriMax.Create(ACBrNFSe);
       proProdata: Result := TACBrNFSeProviderProdata201.Create(ACBrNFSe);
 
       proPronim:

@@ -1547,7 +1547,7 @@ begin
     Exit;
   end;
 
-  GerarResponse.NomeArq := GerarResponse.Lote + '-env-lot.xml';
+  GerarResponse.NomeArq := GerarResponse.NumeroLote + '-env-lot.xml';
 
   FAOwner.Gravar(GerarResponse.NomeArq, GerarResponse.ArquivoEnvio);
 
@@ -1611,29 +1611,30 @@ begin
         meLoteAssincrono:
           begin
             AService := CriarServiceClient(tmRecepcionar);
-            AService.Prefixo := EmiteResponse.Lote;
+            AService.Prefixo := EmiteResponse.NumeroLote;
             EmiteResponse.ArquivoRetorno := AService.Recepcionar(ConfigMsgDados.DadosCabecalho, EmiteResponse.ArquivoEnvio);
           end;
 
         meTeste:
           begin
             AService := CriarServiceClient(tmRecepcionar);
-            AService.Prefixo := EmiteResponse.Lote;
+            AService.Prefixo := EmiteResponse.NumeroLote;
             EmiteResponse.ArquivoRetorno := AService.TesteEnvio(ConfigMsgDados.DadosCabecalho, EmiteResponse.ArquivoEnvio);
           end;
 
         meLoteSincrono:
           begin
             AService := CriarServiceClient(tmRecepcionarSincrono);
-            AService.Prefixo := EmiteResponse.Lote;
+            AService.Prefixo := EmiteResponse.NumeroLote;
             EmiteResponse.ArquivoRetorno := AService.RecepcionarSincrono(ConfigMsgDados.DadosCabecalho, EmiteResponse.ArquivoEnvio);
           end;
       else
         // meUnitario
         begin
           AService := CriarServiceClient(tmGerar);
-          AService.Prefixo := EmiteResponse.Lote;
+          AService.Prefixo := EmiteResponse.NumeroLote;
           EmiteResponse.ArquivoRetorno := AService.GerarNFSe(ConfigMsgDados.DadosCabecalho, EmiteResponse.ArquivoEnvio);
+          EmiteResponse.HtmlRetorno    := AService.HtmlRetorno;
         end;
       end;
 
@@ -1845,7 +1846,7 @@ begin
       TACBrNFSeX(FAOwner).SetStatus(stNFSeEnvioWebService);
 
       AService := CriarServiceClient(tmConsultarNFSePorRps);
-      AService.Prefixo := ConsultaNFSeporRpsResponse.NumRPS + ConsultaNFSeporRpsResponse.Serie;
+      AService.Prefixo := ConsultaNFSeporRpsResponse.NumeroRps + ConsultaNFSeporRpsResponse.SerieRps;
       ConsultaNFSeporRpsResponse.ArquivoRetorno := AService.ConsultarNFSePorRps(ConfigMsgDados.DadosCabecalho,
                                                                             ConsultaNFSeporRpsResponse.ArquivoEnvio);
 
@@ -1986,7 +1987,7 @@ begin
     try
       TACBrNFSeX(FAOwner).SetStatus(stNFSeEnvioWebService);
       AService := CriarServiceClient(tmConsultarParam);
-      AService.Prefixo := IntToStr(ConsultarParamResponse.CodigoMunic) +
+      AService.Prefixo := IntToStr(ConsultarParamResponse.CodigoMunicipio) +
         '-' + ParamMunicToStr(ConsultarParamResponse.tpParamMunic);
 
       ConsultarParamResponse.ArquivoRetorno := AService.ConsultarParam(ConfigMsgDados.DadosCabecalho,

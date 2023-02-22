@@ -301,7 +301,7 @@ begin
                              Requerente +
                              '<' + Prefixo + 'LoteRps' + NameSpace2 + IdAttr  + Versao + '>' +
                                '<' + Prefixo2 + 'NumeroLote>' +
-                                  Response.Lote +
+                                  Response.NumeroLote +
                                '</' + Prefixo2 + 'NumeroLote>' +
                                  Prestador +
                                '<' + Prefixo2 + 'QuantidadeRps>' +
@@ -335,7 +335,7 @@ begin
     Response.ArquivoEnvio := '<' + Prefixo + TagEnvio + NameSpace + '>' +
                            Requerente +
                            '<' + Prefixo + 'NumeroLote>' +
-                             Response.Lote +
+                             Response.NumeroLote +
                            '</' + Prefixo + 'NumeroLote>' +
                          '</' + Prefixo + TagEnvio + '>';
   end;
@@ -356,13 +356,13 @@ begin
     Response.ArquivoEnvio := '<' + Prefixo + TagEnvio + NameSpace + '>' +
                            '<' + Prefixo + 'IdentificacaoRps>' +
                              '<' + Prefixo2 + 'Numero>' +
-                               Response.NumRPS +
+                               Response.NumeroRps +
                              '</' + Prefixo2 + 'Numero>' +
                              '<' + Prefixo2 + 'Serie>' +
-                               Response.Serie +
+                               Response.SerieRps +
                              '</' + Prefixo2 + 'Serie>' +
                              '<' + Prefixo2 + 'Tipo>' +
-                               Response.Tipo +
+                               Response.TipoRps +
                              '</' + Prefixo2 + 'Tipo>' +
                            '</' + Prefixo + 'IdentificacaoRps>' +
                            Requerente +

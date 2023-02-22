@@ -73,6 +73,9 @@ type
                     eseRetornoDownloadEvt);
 
   TModoLancamento         = (mlInclusao, mlAlteracao, mlExclusao);
+  const
+  TModoLancamentoString : array[0..2] of String = ('inclusao', 'alteracao', 'exclusao');
+  type
 
   TeSocialSchema          = (schErro, schConsultaLoteEventos, schEnvioLoteEventos,
                              schevtAdesao, schevtAdmissao, schevtAdmPrelim,
@@ -115,8 +118,33 @@ type
                              teErro, teRetornoEnvioLoteEventos, teRetornoEvento, teRetornoProcessamentoLote,
                              teInsApo, teAdesao, teCadInicial, teASO, teNaoIdentificado
                              );
+  const
+    TTipoEventoString   : array[0..76] of String =('S-1000', 'S-1005', 'S-1010', 'S-1020', 'S-1030',
+                                                   'S-1035', 'S-1040', 'S-1050', 'S-1060', 'S-1070',
+                                                   'S-1080', 'S-2100', 'S-1200', 'S-1202', 'S-1207',
+                                                   'S-1210', 'S-1220', 'S-1250', 'S-1260', 'S-1270',
+                                                   'S-1280', 'S-1295', 'S-1298', 'S-1299', 'S-1300',
+                                                   'S-2190', 'S-2200', 'S-2205', 'S-2206', 'S-2210',
+                                                   'S-2220', 'S-2230', 'S-2240', 'S-2245', 'S-2250',
+                                                   'S-2260', 'S-2298', 'S-2299', 'S-2300', 'S-2305',
+                                                   'S-2306', 'S-2399', 'S-2400', 'S-3000', 'S-4000',
+                                                   'S-4999', 'S-5001', 'S-5002', 'S-5003', 'S-5011',
+                                                   'S-5012', 'S-5013', 'S-2221', 'S-2405', 'S-2410',
+                                                   'S-2231', 'S-2416', 'S-2418', 'S-2420', 'S-2500',
+                                                   'S-2501', 'S-3500', 'S-5501', 'S-8299',
+                                                   'S-CONSULTAIDENTEVENTOS', 'S-CONSULTALOTEEVENTOS',
+                                                   'S-DOWNLOADEVENTOS', 'S-ENVIOLOTEEVENTOS',
+                                                   'S-ERRO','S-RETORNOENVIOLOTEEVENTOS',
+                                                   'S-RETORNOEVENTO', 'S-RETORNOPROCESSAMENTOLOTE',
+                                                   'S-EVTINSAPO', 'S-EVTADESAO', 'S-EVTCADINICIAL',
+                                                   'S-EVTASO', '');
+  type
 
   tpSimNao                = (tpSim, tpNao);
+  const
+  TSimNaoString       : array[0..1] of string = ('S','N' );
+
+  type
 
   TpProcEmi               = (peAplicEmpregador, peAplicGovernamental);
 
@@ -174,6 +202,10 @@ type
                              cicIncidExclusivaEmpregador13osalario,
                              cicIncidExclusivaEmpregadorSalMaternidade,
                              cicIncidExclusivaEmpregadorSalMaternidade13oSalario);
+  const
+  tpCodIncCPArrayStrings: array[tpCodIncCP] of string = ( '00', '01', '11', '12', '13', '14', '15', '16', '21', '22', '23', '24', '25', '26', '31',
+                                                          '32', '34', '35', '51', '61', '91', '92', '93', '94', '95', '96', '97', '98');
+  type
 
   tpCodIncIRRF            = (ciiNaoeBasedeCalculo,                                               {0}    { Item válido até a versão 2.5 }
                              ciiNaoeBasedeCalculoAcordoInternacional,                            {1}    { Item válido até a versão 2.5 }
@@ -258,6 +290,16 @@ type
                              ciiExigSuspDeducaoBaseIRRFPlanoPrivadoColetivoDeAssistenciaASaude,  {9067}  { Item válido a partir da versão simplificada }
                              ciiCompensacaoJudicialAnoCalendario,                                {9082}  { Item válido a partir da versão simplificada }
                              ciiCompensacaoJudicialAnosAnteriores);                              {9083}  { Item válido a partir da versão simplificada }
+  const
+  tpCodIncIRRFArrayStrings: array[tpCodIncIRRF] of string = ( '00',   '01',   '09',   '11',   '12',   '13',   '14',   '15',   '31',   '32',   '33',
+                                                              '34',   '35',   '41',   '42',   '43',   '44',   '46',   '47',   '48',   '51',   '52',
+                                                              '53',   '54',   '55',   '61',   '62',   '63',   '64',   '65',   '66',   '67',   '70',
+                                                              '71',   '72',   '73',   '74',   '75',   '76',   '77',   '78',   '79',   '81',   '82',
+                                                              '83',   '91',   '92',   '93',   '94',   '95',  '700',  '701', '9011', '9012', '9013',
+                                                              '9014', '9031', '9032', '9033', '9034', '9831', '9832', '9833', '9834', '9041', '9042',
+                                                              '9043', '9046', '9047', '9048', '9051', '9052', '9053', '9054', '9061', '9062', '9063',
+                                                               '9064', '9065', '9066', '9067', '9082', '9083'  );
+  type
 
   tpCodIncCPRP            = (cicpNaoeBasedeCalculodeContribuicoesDevidasaoRPPSRegimeMilitar,
                              cicpBasedeCalculodeContribuicoesDevidasaoRPPSRegimeMilitar,
@@ -267,14 +309,19 @@ type
                              cicpSuspensaodeIncidenciaemDecorrenciadeDecisaoJudicial,
                              cicpSuspensaodeIncidenciaemDecorrenciadeDecisaoJudicialDecimo,
                              cicpNenhum);
+  const
+  tpCodIncCPRPArrayStrings: array[tpCodIncCPRP] of string = ('00', '11', '12', '31', '32', '91', '92', '99');
+
+  type
 
   tpCodIncFGTS            = (cdfNaoeBasedeCalculo, cdfBasedeCalculoFGTS, cdfBasedeCalculoFGTS13Sal, cdfBasedeCalculoFGTSRescisorio, cdfIncidenciadecisaoJudicialFGTSMensal, cdfIncidenciadecisaoJudicialFGTS13Sal, cdfIncidenciadecisaoJudicial);
+  const
+  tpCodIncFGTSArrayStrings: array[tpCodIncFGTS] of string = ( '00', '11', '12', '21', '91', '92', '93' );
 
-  tpCodIncSIND            = (cisNaoebasedecalculo, cisBasedecalculo, cisValorlaboraldescontada, cisIncidenciasuspensajudicial);
+  type
+
 
   tpExtDecisao            = (edContribPatronais, edContribPatronaisSegurados );
-
-  tpTpIntervalo           = (tinHorarioFixo, tinHorarioVariavel);
 
   tpIndSubstPatronalObra  = (ispVazio, ispPatronalSubstituida, ispPatronalNaoSubstituida);
 
@@ -302,8 +349,6 @@ type
 
   tpIndNIF                = (infBeneficiaNIF, infDispensadoNIF, infPaisnaoNIF);
 
-  tpIndTpDeducao          = (itpOficial, itpPrivada, itpPensao, itpDependentes );
-
   tpTpProcRRA             = (tppAdministrativo, tppJudicial);
 
   tpTpProcRet             = (tpprAdministrativo, tpprJudicial);
@@ -317,17 +362,7 @@ type
   tpIndComercializacao    = (idcProdRuralAgroindustria, idcProdRuralSegEspecial, idcProdRuralSegEspecialVendas,
                              idcEntidadeinscrita, idcMercadoExterno );
 
-  tpIdeSubteto            = (isExecutivo, isLegislativo, isJudiciario, isTodosPoderes);
-
-  tpIndSitPF              = (isPFSitNormal, isPFEncerrEspolio, isPFSaidaPaisCaraterPermanente);
-
-  tpIndSitPJ              = (isPJSitNormal, isPJExtincao, isPJFusao, isPJCisao, isPJIncorporacao);
-
   tpTpRubr                = (tpVencimento, tpDesconto, tpInformativa, tpInformativaDedutora);
-
-  tpSitCargo              = (scCriacao, scExtincao, scReestruturacao);
-
-  tpSitCarr               = tpSitCargo;
 
   tpAcumCargo             = (acNaoAcumulavel, acProfSaude, acProfessor, acTecCientifico);
 
@@ -350,6 +385,9 @@ type
                              siSemSuspensaoDaExigibilidade);
 
   tpTpInscAmbTab          = (atCNPJ, atCAEPF);
+  const
+  tpTpInscAmbTabArrayStrings:array[tpTpInscAmbTab] of String = ( '1', '3' );
+  type
 
   tpCnh                   = (cnA, cnB, cnC, cnD, cnE, cnAB, cnAC, cnAD, cnAE );
 
@@ -462,16 +500,9 @@ const
   TtpIdeOCArrayStrings: array[tpIdeOC] of string = ('0', '1', '2', '3', '4', '9');
 
 type
-  tpTpAvPrevio            = (tpAvPrevTrabDadoPeloEmpregadorAoEmpregadoRed2horasDiarias, tpAvPrevTrabDadoPeloEmpregadorAoEmpregadoRedDiasCorridos,
-                             tpAvPrevPeloEmpregadoNaoDispensadoDeSeuCumprimento, tpAvPrevTrabDadoPeloEmpregadorRuralComRed1DiaporSemana,
-                             tpAvPrevTrabDecorrenteDeAcordoEmpregadoEmpregador);
-
-  tpMtvCancAvPrevio       = (mcReconsideracaoPrevistaArt489CLT, mcDeterminacaoJudicial, mcCumprimentoNormaLegal, mcOutros);
 
   tpTpReint               = (trReintegracaoDecisaoJudicial, trReintegracaoAnistiaLegal, trReversaoServidorPublico, trReconducaoServidorPublico,
                              trReinclusoMilitar, trOutros);
-
-  tpTpContribSind         = (csContribSindical, csContribAssociativa, csContribAssistencial, csContribConfederativa);
 
   tpIndSubstPatr          = (spVazio, spIntegralmenteSubstituida, spParcialmenteSubstituida);
 
@@ -507,21 +538,11 @@ type
 
   tpCaepf                 = (tcVazio, tcContrIndividual, tcProdRural, tcSegEspecial);//layout 2.1
 
-  tpRegPt                 = (rpNaoInformado = -1, rpNaoUtiliza, rpManual, rpMecanico, rpEletronico, rpNaoEletronicoAlternativo, rpEletronicoAlternativo, rpEletronicoOutros);
-
-  tpContApr               = (caDispensado, caDispensadoParcialmente, caObrigado);
-
-  tpContPCD               = (cpcdDispensado, cpcdDispensadoParcialmente, cpcdExigibilidadeSuspensa, cpcdObrigado);
-
-  tpInclContr             = (icNenhum, icLocaisSemFiliais, icEstudoDeMercado, icContratacaoSuperior3Meses);
-
   tpPlanRP                = (prpNenhum = -1,
                              prpSemSegregacaoDaMassa,
                              prpFundoEmCapitalizacao,
                              prpFundoEmReparticao,
-                             prpMantidoPeloTesouro,
-                             prpPlanoPrevidenciarioOuUnico,
-                             prpPlanoFinanceiro);
+                             prpMantidoPeloTesouro);
 
   tpMtvAlt                = (maPromocao, maReadaptacao, maAproveitamento, maOutros);
 
@@ -568,6 +589,10 @@ type
   tpConsulta              = (tcEmpregador, tcTabela, tcTrabalhador);
 
   tpSimNaoFacultativo     = (snfNada, snfSim, snfNao);
+  const
+  TSimNaoFacultativoString  : array[0..2] of string = ('', 'S','N');
+
+  type
 
   tpTmpResid              = (ttrNenhum, ttrPrazoIndeterminado, ttrPrazoDeterminado);
 
@@ -583,6 +608,9 @@ type
                              tpisbMudandaDeCPFDoBeneficiario);
 
   tpTpPenMorte            = (pmNada, pmVitalicia, pmTemporaria);
+  const
+  tpTpPenMorteArrayStrings:array[tpTpPenMorte] of string = ('', '1', '2');
+  type
 
   tpMotCessBenef          = (tmcbNenhum,
                              tmcbObito,
@@ -596,6 +624,10 @@ type
                              tmcbTransferenciaDeOrgaoAdministrador,
                              tmcbMudancaDeCPFDoBeneficiario,
                              tmcbNaoRecadastramento);
+  const
+  tpMotCessBenefArrayStrings:array[tpMotCessBenef] of string = (''  ,'01','02','03','04','05',
+                                                                '06','07','08','09','10','11');
+  type
 
   tpMtvTermino            = tpMotCessBenef;
 
@@ -862,9 +894,6 @@ function eSStrToCodIncIRRF(var ok: boolean; const s: string): tpCodIncIRRF;
 function eSCodIncFGTSToStr(const t: TpCodIncFGTS ): string;
 function eSStrToCodIncFGTS(var ok: boolean; const s: string): TpCodIncFGTS;
 
-function eSCodIncSINDToStr(const t: TpCodIncSIND ): string;
-function eSStrToCodIncSIND(var ok: boolean; const s: string): TpCodIncSIND;
-
 function eSCodIncCPRPToStr(const t: TpCodIncCPRP ): string;
 function eSStrToCodIncCPRP(var ok: boolean; const s: string): TpCodIncCPRP;
 
@@ -879,9 +908,6 @@ function eSStrTotpInscContratante(var ok: boolean; const s: string): TptpInscCon
 
 function eSTpInscPropToStr(const t: TpTpInscProp ): string;
 function eSStrToTpInscProp(var ok: boolean; const s: string): TpTpInscProp;
-
-function eSTpIntervaloToStr(const t: TpTpIntervalo ): string;
-function eSStrToTpIntervalo(var ok: boolean; const s: string): TpTpIntervalo;
 
 function eSIndSubstPatronalObraToStr(const t: TpIndSubstPatronalObra ): string;
 function eSStrToIndSubstPatronalObra(var ok: boolean; const s: string): TpIndSubstPatronalObra;
@@ -919,9 +945,6 @@ function eSStrToGrauExp(var ok: boolean; const s: string): TpGrauExp;
 function eSIndNIFToStr(const t: TpIndNIF ): string;
 function eSStrToIndNIF(var ok: boolean; const s: string): TpIndNIF;
 
-function eSIndTpDeducaoToStr(const t: TpIndTpDeducao ): string;
-function eSStrToIndTpDeducao(var ok: boolean; const s: string): TpIndTpDeducao;
-
 function eSTpProcRRAToStr(const t: TpTpProcRRA ): string;
 function eSStrToTpProcRRA(var ok: boolean; const s: string): TpTpProcRRA;
 
@@ -940,23 +963,8 @@ function eSStrToIndAbrangencia(var ok: boolean; const s: string): TpIndAbrangenc
 function eSIndComercializacaoToStr(const t: TpIndComercializacao ): string;
 function eSStrToIndComercializacao(var ok: boolean; const s: string): TpIndComercializacao;
 
-function eSIdeSubtetoToStr(const t: tpIdeSubteto): string;
-function eSStrToIdeSubteto(var ok: Boolean; const s: string): tpIdeSubteto;
-
-function eSIndSitPFToStr(const t: tpIndSitPF): string;
-function eSStrToTpIndSitPF(var ok: Boolean; const s: string): tpIndSitPF;
-
-function eSIndSitPJToStr(const t: tpIndSitPJ): string;
-function eSStrToIndSitPJ(var ok: Boolean; const s: string): tpIndSitPJ;
-
 function eSTpRubrToStr(const t: tpTpRubr): string;
 function eSStrToTpRubr(var ok: Boolean; const s: string): tpTpRubr;
-
-function eStpSitCargoToStr(const t: tpSitCargo): string;
-function eSStrToSitCargo(var ok: Boolean; const s: string): tpSitCargo;
-
-function eStpSitCarrToStr(const t: tpSitCarr): string;
-function eSStrToSitCarr(var ok: Boolean; const s: string): tpSitCarr;
 
 function eSAcumCargoToStr(const t: tpAcumCargo): string;
 function eSStrToAcumCargo(var ok: Boolean; const s: string): tpAcumCargo;
@@ -1065,17 +1073,8 @@ function eSStrToIdeOC(var ok: boolean; const s: string): tpIdeOC;deprecated {$If
 function eSIdeOCToStrEX(const t: tpIdeOC): string;
 function esStrToIdeOCEX(const s: string): tpIdeOC;
 
-function eSTpAvPrevioToStr(const t: tpTpAvPrevio ): string;
-function eSStrToTpAvPrevio(var ok: boolean; const s: string): tpTpAvPrevio;
-
-function eSMtvCancAvPrevioToStr(const t: tpMtvCancAvPrevio ): string;
-function eSStrToMtvCancAvPrevio(var ok: boolean; const s: string): tpMtvCancAvPrevio;
-
 function eSTpReintToStr(const t: tpTpReint ): string;
 function eSStrToTpReint(var ok: boolean; const s: string): tpTpReint;
-
-function eSTpContribSindToStr(const t: tpTpContribSind ): string;
-function eSStrToTpContribSind(var ok: boolean; const s: string): tpTpContribSind;
 
 function eSIndSubstPatrStr(const t: tpIndSubstPatr ): string;
 function eSStrToIndSubstPatr(var ok: boolean; const s: string): tpIndSubstPatr;
@@ -1097,18 +1096,6 @@ function eSStrTotpTpPgto(var ok: Boolean; const s: string): tpTpPgto;
 
 function eSTpNivelEstagioToStr(const t: tpNivelEstagio): string;
 function eSStrTotpNivelEstagio(var ok: Boolean; const s: string): tpNivelEstagio;
-
-function eSTpRegPtToStr(const t: tpRegPt): string;
-function eSStrTotpRegPt(var ok: boolean; const s: string): tpRegPt;
-
-function eSTpContAprToStr(const t: tpContApr): string;
-function eSStrTotpContApr(var ok: boolean; const s: string): tpContApr;
-
-function eSTpContPCDToStr(const t: tpContPCD): string;
-function eSStrToTpContPCD(var ok: boolean; const s: string): tpContPCD;
-
-function eSTpInclContrToStr(const t: tpInclContr): string;
-function eSStrToTpInclContr(var ok: boolean; const s: string): tpInclContr;
 
 function eSTpPlanRPToStr(const t: tpPlanRP): string;
 function eSStrToTpPlanRP(var ok: boolean; const s: string): tpPlanRP;
@@ -1197,11 +1184,15 @@ function StrTotpCondIng(var ok: boolean; const s: string): tpCondIng;
 function eSTpIndSitBenefToStr(const t: tpIndSitBenef): string;
 function eSStrToTpIndSitBenef(var ok: boolean; const s: string): tpIndSitBenef;
 
-function eStpTpPenMorteToStr(const t: tpTpPenMorte): string;
-function eSStrTotpTpPenMorte(var ok: boolean; const s: string): tpTpPenMorte;
+function eStpTpPenMorteToStr(const t: tpTpPenMorte): string;deprecated {$IfDef SUPPORTS_DEPRECATED_DETAILS}'Use a função eStpTpPenMorteToStrEX conforme a sua necessidade' {$ENDIF};
+function eSStrTotpTpPenMorte(var ok: boolean; const s: string): tpTpPenMorte;deprecated{$IfDef SUPPORTS_DEPRECATED_DETAILS}'Use a função eSStrTotpTpPenMorteEX conforme a sua necessidade' {$ENDIF};
+function eStpTpPenMorteToStrEX(const t: tpTpPenMorte):string;
+function eSStrTotpTpPenMorteEX(const s: string): tpTpPenMorte;
 
-function eStpTpMotCessBenefToStr(const t: tpMotCessBenef): string;
-function eSStrToTpMotCessBenef(var ok: boolean; const s: string): tpMotCessBenef;
+function eStpTpMotCessBenefToStr(const t: tpMotCessBenef): string;deprecated {$IfDef SUPPORTS_DEPRECATED_DETAILS}'Use a função eStpTpMotCessBenefToStrEX conforme a sua necessidade' {$ENDIF};
+function eSStrToTpMotCessBenef(var ok: boolean; const s: string): tpMotCessBenef;deprecated {$IfDef SUPPORTS_DEPRECATED_DETAILS}'Use a função eSStrToTpMotCessBenefEX conforme a sua necessidade' {$ENDIF};
+function eStpTpMotCessBenefToStrEX(const t: tpMotCessBenef): string;
+function eSStrToTpMotCessBenefEX(const s: string): tpMotCessBenef;
 
 function eStpTpMtvSuspensaoToStr(const t: tpMtvSuspensao): string;
 function eSStrToTpMtvSuspensao(var ok: boolean; const s: string): tpMtvSuspensao;
@@ -1242,37 +1233,12 @@ uses
   ACBrUtil.Strings;
 
 const
-  TTipoEventoString   : array[0..76] of String =('S-1000', 'S-1005', 'S-1010', 'S-1020', 'S-1030',
-                                                 'S-1035', 'S-1040', 'S-1050', 'S-1060', 'S-1070',
-                                                 'S-1080', 'S-2100', 'S-1200', 'S-1202', 'S-1207',
-                                                 'S-1210', 'S-1220', 'S-1250', 'S-1260', 'S-1270',
-                                                 'S-1280', 'S-1295', 'S-1298', 'S-1299', 'S-1300',
-                                                 'S-2190', 'S-2200', 'S-2205', 'S-2206', 'S-2210',
-                                                 'S-2220', 'S-2230', 'S-2240', 'S-2245', 'S-2250',
-                                                 'S-2260', 'S-2298', 'S-2299', 'S-2300', 'S-2305',
-                                                 'S-2306', 'S-2399', 'S-2400', 'S-3000', 'S-4000',
-                                                 'S-4999', 'S-5001', 'S-5002', 'S-5003', 'S-5011',
-                                                 'S-5012', 'S-5013', 'S-2221', 'S-2405', 'S-2410',
-                                                 'S-2231', 'S-2416', 'S-2418', 'S-2420', 'S-2500',
-                                                 'S-2501', 'S-3500', 'S-5501', 'S-8299',
-                                                 'S-CONSULTAIDENTEVENTOS', 'S-CONSULTALOTEEVENTOS',
-                                                 'S-DOWNLOADEVENTOS', 'S-ENVIOLOTEEVENTOS',
-                                                 'S-ERRO','S-RETORNOENVIOLOTEEVENTOS',
-                                                 'S-RETORNOEVENTO', 'S-RETORNOPROCESSAMENTOLOTE',
-                                                 'S-EVTINSAPO', 'S-EVTADESAO', 'S-EVTCADINICIAL',
-                                                 'S-EVTASO', '');
 
   TUFString           : array[0..27] of String = ('AC','AL','AP','AM','BA','CE','DF','ES','GO',
                                                   'MA','MT','MS','MG','PA','PB','PR','PE','PI',
                                                   'RJ','RN','RS','RO','RR','SC','SP','SE','TO', '');
 
-  TModoLancamentoString : array[0..2] of String = ('inclusao', 'alteracao', 'exclusao');
-
   TSiglasMinString    : array[0..4] of string = ('CNAS','MEC','MS','MDS','LEI');
-
-  TSimNaoString       : array[0..1] of string = ('S','N' );
-
-  TSimNaoFacultativoString  : array[0..2] of string = ('', 'S','N');
 
   TIndicativoContratacaoPCD : array[0..3] of string = ('0', '1', '2', '9' );
 
@@ -1490,54 +1456,14 @@ begin
   result := tpTpInsc( StrToEnumerado2(ok , s, TGenericosString1_6 ) );
 end;
 
-function eSTpRegPtToStr(const t: tpRegPt): string;
-begin
-  result := EnumeradoToStr2(t, TGenericosString0_6 );
-end;
-
-function eSStrToTpRegPt(var ok: Boolean; const s: string): tpRegPt;
-begin
-  result := tpRegPt( StrToEnumerado2(ok, s, TGenericosString0_6) );
-end;
-
-function eSTpContAprToStr(const t: tpContApr): string;
-begin
-  result := EnumeradoToStr2(t, TGenericosString0_2 );
-end;
-
-function eSStrToTpContApr(var ok: Boolean; const s: string): tpContApr;
-begin
-  result := tpContApr( StrToEnumerado2(ok, s, TGenericosString0_2) );
-end;
-
-function eSTpContPCDToStr(const t: tpContPCD): string;
-begin
-  result := EnumeradoToStr2(t, TIndicativoContratacaoPCD );
-end;
-
-function eSStrToTpContPCD(var ok: Boolean; const s: string): tpContPCD;
-begin
-  result := tpContPCD( StrToEnumerado2(ok, s, TIndicativoContratacaoPCD) );
-end;
-
-function eSTpInclContrToStr(const t: tpInclContr): string;
-begin
-  result := EnumeradoToStr2(t, TGenericosString0_3 );
-end;
-
-function eSStrToTpInclContr(var ok: Boolean; const s: string): tpInclContr;
-begin
-  result := tpInclContr( StrToEnumerado2(ok, s, TGenericosString0_3) );
-end;
-
 function eStpPlanRPToStr(const t: tpPlanRP): string;
 begin
-  result := EnumeradoToStr2(t, [ '0', '1', '2', '3', '1', '2' ] );
+  result := EnumeradoToStr2(t, [ '0', '1', '2', '3' ] );
 end;
 
 function eSStrTotpPlanRP(var ok: Boolean; const s: string): tpPlanRP;
 begin
-  result := tpPlanRP( StrToEnumerado2(ok, s, [ '0', '1', '2', '3', '1', '2' ]) );
+  result := tpPlanRP( StrToEnumerado2(ok, s, [ '0', '1', '2', '3' ]) );
 end;
 
 function eSTpRegTrabToStr(const t: tpTpRegTrab ): string;
@@ -1790,26 +1716,6 @@ begin
   raise EACBrException.CreateFmt('Valor string inválido para tpIdeOC: %s', [s]);
 end;
 
-function eSTpAvPrevioToStr(const t: tpTpAvPrevio ): string;
-begin
-  result := EnumeradoToStr2(t, [ '1', '2', '4', '5', '6' ] );
-end;
-
-function eSStrToTpAvPrevio(var ok: boolean; const s: string): tpTpAvPrevio;
-begin
-  result := tpTpAvPrevio( StrToEnumerado2(ok , s, [ '1', '2', '4', '5', '6' ] ) );
-end;
-
-function eSTpContribSindToStr(const t: tpTpContribSind ): string;
-begin
-  result := EnumeradoToStr2(t,TGenericosString1_4 );
-end;
-
-function eSStrToTpContribSind(var ok: boolean; const s: string): tpTpContribSind;
-begin
-  result := tpTpContribSind( StrToEnumerado2(ok , s, TGenericosString1_4 ) );
-end;
-
 function eSIndSubstPatrStr(const t: tpIndSubstPatr ): string;
 begin
   result := EnumeradoToStr2(t,TGenericosString0_2 );
@@ -1855,12 +1761,12 @@ end;
 
 function eStpTpInscAmbTabToStr(const t: tpTpInscAmbTab ): string;
 begin
-  result := EnumeradoToStr2(t,[ '1', '3' ] );
+  result := EnumeradoToStr2(t, tpTpInscAmbTabArrayStrings );
 end;
 
 function eSStrTotpTpInscAmbTab(var ok: boolean; const s: string): tpTpInscAmbTab;
 begin
-  result := tpTpInscAmbTab( StrToEnumerado2(ok , s,[ '1', '3' ] ));
+  result := tpTpInscAmbTab( StrToEnumerado2(ok , s,tpTpInscAmbTabArrayStrings ));
 end;
 
 function eSIndComercStr(const t: tpIndComerc ): string;
@@ -1972,14 +1878,12 @@ end;
 
 function eSCodIncCPToStr(const t:tpCodIncCP ): string;
 begin
-  result := EnumeradoToStr2(t,[ '00', '01', '11', '12', '13', '14', '15', '16', '21', '22', '23', '24', '25', '26', '31',
-                                '32', '34', '35', '51', '61', '91', '92', '93', '94', '95', '96', '97', '98'] );
+  result := EnumeradoToStr2(t, tpCodIncCPArrayStrings);
 end;
 
 function eSStrToCodIncCP(var ok: boolean; const s: string): tpCodIncCP;
 begin
-  result := tpCodIncCP( StrToEnumerado2(ok , s,[ '00', '01', '11', '12', '13', '14', '15', '16', '21', '22', '23', '24', '25', '26', '31',
-                                                 '32', '34', '35', '51', '61', '91', '92', '93', '94', '95', '96', '97', '98' ] ));
+  result := tpCodIncCP( StrToEnumerado2(ok , s, tpCodIncCPArrayStrings));
 end;
 
 function eSTpLocalToStr(const t: tpTpLocal ): string;
@@ -1990,16 +1894,6 @@ end;
 function eSStrToTpLocal(var ok: boolean; const s: string): tpTpLocal;
 begin
   result := tpTpLocal( StrToEnumerado2(ok , s,[ '1', '2', '3', '4', '5', '6', '9' ] ));
-end;
-
-function eSMtvCancAvPrevioToStr(const t: tpMtvCancAvPrevio ): string;
-begin
-  result := EnumeradoToStr2(t,[ '1', '2', '3', '9' ] );
-end;
-
-function eSStrToMtvCancAvPrevio(var ok: boolean; const s: string): tpMtvCancAvPrevio;
-begin
-  result := tpMtvCancAvPrevio( StrToEnumerado2(ok , s,[ '1', '2', '3', '9' ] ));
 end;
 
 function eSTpReintToStr(const t: tpTpReint ): string;
@@ -2014,56 +1908,32 @@ end;
 
 function eSCodIncIRRFToStr(const t:tpCodIncIRRF ): string;
 begin
-  result := EnumeradoToStr2(t,[    '00',   '01',   '09',   '11',   '12',   '13',   '14',   '15',   '31',   '32',   '33',
-                                   '34',   '35',   '41',   '42',   '43',   '44',   '46',   '47',   '48',   '51',   '52',
-                                   '53',   '54',   '55',   '61',   '62',   '63',   '64',   '65',   '66',   '67',   '70',
-                                   '71',   '72',   '73',   '74',   '75',   '76',   '77',   '78',   '79',   '81',   '82',
-                                   '83',   '91',   '92',   '93',   '94',   '95',  '700',  '701', '9011', '9012', '9013',
-                                 '9014', '9031', '9032', '9033', '9034', '9831', '9832', '9833', '9834', '9041', '9042',
-                                 '9043', '9046', '9047', '9048', '9051', '9052', '9053', '9054', '9061', '9062', '9063',
-                                 '9064', '9065', '9066', '9067', '9082', '9083'  ] );
+  result := EnumeradoToStr2(t, tpCodIncIRRFArrayStrings);
 end;
 
 function eSStrToCodIncIRRF(var ok: boolean; const s: string): tpCodIncIRRF;
 begin
-  result := tpCodIncIRRF( StrToEnumerado2(ok , s,[    '00',   '01',   '09',   '11',   '12',   '13',   '14',   '15',   '31',   '32',   '33',
-                                                      '34',   '35',   '41',   '42',   '43',   '44',   '46',   '47',   '48',   '51',   '52',
-                                                      '53',   '54',   '55',   '61',   '62',   '63',   '64',   '65',   '66',   '67',   '70',
-                                                      '71',   '72',   '73',   '74',   '75',   '76',   '77',   '78',   '79',   '81',   '82',
-                                                      '83',   '91',   '92',   '93',   '94',   '95',  '700',  '701', '9011', '9012', '9013',
-                                                    '9014', '9031', '9032', '9033', '9034', '9831', '9832', '9833', '9834', '9041', '9042',
-                                                    '9043', '9046', '9047', '9048', '9051', '9052', '9053', '9054', '9061', '9062', '9063',
-                                                    '9064', '9065', '9066', '9067', '9082', '9083'  ] ));
+  result := tpCodIncIRRF( StrToEnumerado2(ok , s, tpCodIncIRRFArrayStrings));
 end;
 
 function eSCodIncFGTSToStr(const t:tpCodIncFGTS ): string;
 begin
-  result := EnumeradoToStr2(t,[ '00', '11', '12', '21', '91', '92', '93' ] );
+  result := EnumeradoToStr2(t, tpCodIncFGTSArrayStrings);
 end;
 
 function eSStrToCodIncFGTS(var ok: boolean; const s: string): tpCodIncFGTS;
 begin
-  result := tpCodIncFGTS( StrToEnumerado2(ok , s,[ '00', '11', '12', '21', '91', '92', '93' ] ));
-end;
-
-function eSCodIncSINDToStr(const t:tpCodIncSIND ): string;
-begin
-  result := EnumeradoToStr2(t,[ '00', '11', '31','91' ] );
-end;
-
-function eSStrToCodIncSIND(var ok: boolean; const s: string): tpCodIncSIND;
-begin
-  result := tpCodIncSIND( StrToEnumerado2(ok , s,[  '00', '11', '31','91'] ));
+  result := tpCodIncFGTS( StrToEnumerado2(ok , s, tpCodIncFGTSArrayStrings));
 end;
 
 function eSCodIncCPRPToStr(const t:tpCodIncCPRP ): string;
 begin
-  result := EnumeradoToStr2(t,[ '00', '11', '12', '31', '32', '91', '92', '99' ] );
+  result := EnumeradoToStr2(t,tpCodIncCPRPArrayStrings );
 end;
 
 function eSStrToCodIncCPRP(var ok: boolean; const s: string): tpCodIncCPRP;
 begin
-  result := tpCodIncCPRP( StrToEnumerado2(ok , s,[ '00', '11', '12', '31', '32', '91', '92', '99' ] ));
+  result := tpCodIncCPRP( StrToEnumerado2(ok , s, tpCodIncCPRPArrayStrings ));
 end;
 
 function eSIndSuspToStr(const t: tpIndSusp): string;
@@ -2106,16 +1976,6 @@ end;
 function eSStrToTpInscProp(var ok: boolean; const s: string): TpTpInscProp;
 begin
   result := TpTpInscProp( StrToEnumerado2(ok , s,TGenericosString1_2  ));
-end;
-
-function eSTpIntervaloToStr(const t:tpTpIntervalo ): string;
-begin
-  result := EnumeradoToStr2(t,TGenericosString1_2  );
-end;
-
-function eSStrToTpIntervalo(var ok: boolean; const s: string): TpTpIntervalo;
-begin
-  result := TpTpIntervalo( StrToEnumerado2(ok , s, TGenericosString1_2));
 end;
 
 function eSIndSubstPatronalObraToStr(const t:tpIndSubstPatronalObra ): string;
@@ -2230,12 +2090,12 @@ end;
 
 function eSTpAdmissaoToStr(const t: tpTpAdmissao ): string;
 begin
-  result := EnumeradoToStr2(t,TGenericosString1_6  );
+  result := EnumeradoToStr2(t,TGenericosString1_7  );
 end;
 
 function eSStrToTpAdmissao(var ok: boolean; const s: string): tpTpAdmissao;
 begin
-  result := tpTpAdmissao( StrToEnumerado2(ok , s,TGenericosString1_6 ));
+  result := tpTpAdmissao( StrToEnumerado2(ok , s,TGenericosString1_7 ));
 end;
 
 function eSIndNIFToStr(const t:tpIndNIF ): string;
@@ -2246,16 +2106,6 @@ end;
 function eSStrToIndNIF(var ok: boolean; const s: string): TpIndNIF;
 begin
   result := TpIndNIF( StrToEnumerado2(ok , s,TGenericosString1_3 ));
-end;
-
-function eSIndTpDeducaoToStr(const t:tpIndTpDeducao ): string;
-begin
-  result := EnumeradoToStr2(t,TGenericosString1_4 );
-end;
-
-function eSStrToIndTpDeducao(var ok: boolean; const s: string): TpIndTpDeducao;
-begin
-  result := TpIndTpDeducao( StrToEnumerado2(ok , s,TGenericosString1_4 ));
 end;
 
 function eSTpProcRRAToStr(const t:tpTpProcRRA ): string;
@@ -2348,36 +2198,6 @@ begin
   result := tpTpDep( StrToEnumerado2(ok , s, ['01', '02', '03', '04', '06', '07', '09', '10', '11', '12', '99'] ));
 end;
 
-function eSIdeSubtetoToStr(const t: tpIdeSubteto): string;
-begin
-  result := EnumeradoToStr2(t, TPoderSubteto);
-end;
-
-function eSStrToIdeSubteto(var ok: Boolean; const s: string): tpIdeSubteto;
-begin
-  result := tpIdeSubteto( StrToEnumerado2(ok, s, TPoderSubteto) );
-end;
-
-function eSIndSitPFToStr(const t: tpIndSitPF): string;
-begin
-  result := EnumeradoToStr2(t, TGenericosString0_2);
-end;
-
-function eSStrToTpIndSitPF(var ok: Boolean; const s: string): tpIndSitPF;
-begin
-  result := tpIndSitPF( StrToEnumerado2(ok , s, TGenericosString0_2 ));
-end;
-
-function eSIndSitPJToStr(const t: tpIndSitPJ): string;
-begin
-  result := EnumeradoToStr2(t, TGenericosString0_4);
-end;
-
-function eSStrToIndSitPJ(var ok: Boolean; const s: string): tpIndSitPJ;
-begin
-  result := tpIndSitPJ( StrToEnumerado2(ok , s, TGenericosString0_4 ));
-end;
-
 function eSTpRubrToStr(const t: tpTpRubr): string;
 begin
   result := EnumeradoToStr2(t, TGenericosString1_4);
@@ -2386,26 +2206,6 @@ end;
 function eSStrToTpRubr(var ok: Boolean; const s: string): tpTpRubr;
 begin
   result := tpTpRubr( StrToEnumerado2(ok , s, TGenericosString1_4 ));
-end;
-
-function eStpSitCargoToStr(const t: tpSitCargo): string;
-begin
-  result := EnumeradoToStr2(t, TGenericosString1_3);
-end;
-
-function eSStrToSitCargo(var ok: Boolean; const s: string): tpSitCargo;
-begin
-  result := tpSitCargo( StrToEnumerado2(ok , s, TGenericosString1_3 ));
-end;
-
-function eStpSitCarrToStr(const t: tpSitCarr): string;
-begin
-  result := EnumeradoToStr2(t, TGenericosString1_3);
-end;
-
-function eSStrToSitCarr(var ok: Boolean; const s: string): tpSitCarr;
-begin
-  result := tpSitCarr( StrToEnumerado2(ok , s, TGenericosString1_3 ));
 end;
 
 function eSAcumCargoToStr(const t: tpAcumCargo): string;
@@ -2901,9 +2701,29 @@ begin
   result := EnumeradoToStr2(t, TGenericosString1_2);
 end;
 
+function eStpTpPenMorteToStrEX(const t: tpTpPenMorte):string;
+begin
+  result := tpTpPenMorteArrayStrings[t];
+end;
+
 function eSStrTotpTpPenMorte(var ok: boolean; const s: string): tpTpPenMorte;
 begin
   result := tpTpPenMorte(StrToEnumerado2(ok, s, TGenericosString1_2) );
+end;
+
+function eSStrTotpTpPenMorteEX(const s: string): tpTpPenMorte;
+var
+  idx: tpTpPenMorte;
+begin
+  for idx := Low(tpTpPenMorteArrayStrings) to High(tpTpPenMorteArrayStrings)do
+  begin
+    if(tpTpPenMorteArrayStrings[idx] = s)then
+    begin
+      result := idx;
+      exit;
+    end;
+  end;
+  raise EACBrException.CreateFmt('Valor string inválido para tpTpPenMorte: %s', [s]);
 end;
 
 function eStptpMotCessBenefToStr(const t: tpMotCessBenef): string;
@@ -2914,6 +2734,26 @@ end;
 function eSStrTotpMotCessBenef(var ok: boolean; const s: string): tpMotCessBenef;
 begin
   result := tpMotCessBenef(StrToEnumerado2(ok, s, TGenericosString01_11) );
+end;
+
+function eStpTpMotCessBenefToStrEX(const t: tpMotCessBenef): string;
+begin
+  Result := tpMotCessBenefArrayStrings[t];
+end;
+
+function eSStrToTpMotCessBenefEX(const s: string): tpMotCessBenef;
+var
+  idx: tpMotCessBenef;
+begin
+  for idx := Low(tpMotCessBenefArrayStrings) to High(tpMotCessBenefArrayStrings)do
+  begin
+    if(tpMotCessBenefArrayStrings[idx] = s)then
+    begin
+      Result := idx;
+      Exit;
+    end;
+  end;
+  raise EACBrException.CreateFmt('Valor string inválido para tpMotCessBenef: %s', [s]);
 end;
 
 function eStpTpMtvSuspensaoToStr(const t: tpMtvSuspensao): string;

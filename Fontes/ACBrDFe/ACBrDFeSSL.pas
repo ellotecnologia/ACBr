@@ -1064,8 +1064,6 @@ begin
     if not (FpHTTPResultCode in [200..202]) then
       raise EACBrDFeException.Create('');
   except
-//    on E:EACBrDFeException do
-//      raise;
     on E:Exception do
     begin
       raise EACBrDFeException.CreateDef( Format(ACBrStr(cACBrDFeSSLEnviarException),

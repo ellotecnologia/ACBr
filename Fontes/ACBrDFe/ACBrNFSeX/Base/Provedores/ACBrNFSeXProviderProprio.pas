@@ -303,7 +303,7 @@ begin
   else
     Versao := '';
 
-  IdAttr := DefinirIDLote(Response.Lote);
+  IdAttr := DefinirIDLote(Response.NumeroLote);
 
   ListaRps := AplicarLineBreak(ListaRps, '');
 
@@ -629,7 +629,7 @@ begin
     aParams.Versao := '';
     aParams.Serie := '';
     aParams.Motivo := '';
-    aParams.CodVerif := '';
+    aParams.CodigoVerificacao := '';
 
     GerarMsgDadosSubstituiNFSe(Response, aParams);
   finally

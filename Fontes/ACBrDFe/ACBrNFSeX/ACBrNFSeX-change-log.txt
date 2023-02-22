@@ -42,6 +42,178 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+20/02/2023
+[*] TK-3535 ACBrNFSeX - Geração do QRCode automática para Fast no DANFSe
+  por : Victor H Gonzales - Pandaaa - Daniel de Morais
+[-] TK-3460-1 Impressão NFSe em Fast parece ainda não estar correto quanto as cidades envolvidas
+  por : Victor H Gonzales
+[+] TK-3541 ACBrNFSeX - DANFSe em Fast Report para o Lazarus.
+  por : Izaque / Victor H Gonzales
+
+17/02/2023
+-- ACBrNFSeXServicos.ini --
+[*] Incluído oa cidade: Guarani das Missões - Provedor Pronim
+   Por: Emanuel - Quality/Italo Giurizzato Junior
+-- Diversos --
+[+] Implementado o provedor PriMax
+   Por: Italo Giurizzato Junior
+-- SH3.Provider--
+[*] Alteração visando o uso do Params - ResponseTag.
+   Por: Jeanny Paiva Lopes
+-- ACBrNFSeXServicos.ini --
+[*] Incluído o Params - ResponseTag para as cidades atendidas pelo provedor SH3.
+   Por: Jeanny Paiva Lopes
+-- Diversos --
+[*] Padronização da propriedade de retorno e uso interno do componente.
+    Lote => NumeroLote
+   Por: Italo Giurizzato Junior
+-- ACBrNFSeXServicos.ini --
+[*] A cidade Tres Cachoeiras/RS - Trocou de Provedor, agora é Fiorilli
+   Por: Mario Inacio
+[*] A cidade Pirassununga/SP - Trocou de Provedor, agora é AssessorPublico
+   Por: Glauber Bernardo
+
+16/02/2023
+-- Diversos --
+[*] Implementado o provedor Contass
+   Por: Italo Giurizzato Junior
+-- ACBrNFSeXLerXml_ABRASFv1 --
+[*] Alteração para ler o Link quando este se encontra na tag LinkPdf.
+   Por: Italo Giurizzato Junior
+-- Saatri.GravarXML --
+[*] Adiciona o paramêtro NrOcorrNIFTomador com valor zero, para que gere a tag quando Tomador do Exterior.
+   Por: Diego F
+
+15/02/2023
+-- SigISSWeb.Provider --
+[*] Ajustes para retornar o código de verificação e salvar o XML da nota.
+   Por: Italo Giurizzato Junior
+-- ACBrNFSeXServicos.ini --
+[*] A cidade Nova Serrana/MG - Trocou de versão, agora é 2.04
+   Por: Rogério Xavier
+-- ISSIntel.Provider --
+[*] Acrescentado no TratarXmlRetornado a função: RemoverCaracteresDesnecessarios
+    e o tratamento para o caracter &.
+   Por: Italo Giurizzato Junior
+-- SH3.Provider --
+[*] Possível solução para a captura correta dos retornos dos serviços.
+   Por: Italo Giurizzato Junior
+-- ACBrNFSeXServicos.ini --
+[*] Incluída a cidade Lucelia/SP - Provedor: Sistemas4R.
+   Por: Italo Giurizzato Junior
+-- Diversos --
+[*] Padronização de algumas propriedades de retorno e uso interno do componente.
+    CodVerif e CodVerificacao => CodigoVerificacao
+    NumRPS => NumeroRps
+    Serie  => SerieRps
+    Tipo   => TipoRps 
+   Por: Italo Giurizzato Junior
+-- IPM.Provider --
+[*] Iguala a propriedade CodVerificacao ao Protocolo para manter o padrão de resposta.
+  Por: Diego F
+
+14/02/2023
+-- Pronim.Provider --
+[*] Trocado o XmlToStr por IncluirCDATA para que seja possível enviar um XML 
+    contendo o caracter "&".
+   Por: Italo Giurizzato Junior
+-- ACBrNFSeXLerXml_ABRASFv2 --
+[*] Correção para ler a tag <OutrasInformacoes> quando esta é gerada dentro do
+    grupo <InfDeclaracaoPrestacaoServico>
+   Por: Italo Giurizzato Junior
+-- ACBrNFSeX --
+[+] Implementado os métodos: ConsultarDPSPorChave e ConsultarNFSePorChave,
+    métodos especificos para o Padrão Nacional.
+   Por: Italo Giurizzato Junior
+-- ACBrNFSeXDANFSeRLISSNet --
+[*] Melhorias no quadro do tomador.
+   Por: Imbua
+
+10/02/2023
+-- ACBrNFSeXDANFSeRLISSNet --
+[-] Estava gerando um erro ao converter uma string em integer.
+   Por: Italo Giurizzato Junior
+-- ISSIntel.Provider --
+[+] Incluída a função TratarXmlRetornado para tratar o XML retornado do
+    WebService.
+   Por: Italo Giurizzato Junior
+
+09/02/2023
+-- ACBrNFSeXClass/eGoverneISS.GravarXml --
+[*] Acrescentados tags opcionais que constam no manual e que o componente não 
+    estava gerando ao ser alimentadas.
+   Por: Italo Giurizzato Junior
+-- GeisWeb.LerXml --
+[*] Alterações para deixar em conformidade com a ultima versão do manual.
+   Por: Rodrigo - Digibyte
+-- ACBrNFSeXWebserviceBase/ACBrNFSeXWebserviceResponse/ACBrNFSeXProviderBase --
+[+] Implementado a propriedade HTMLRetorno que recebera o HTML retornado pelo
+    provedor dentro da tag <conteudo_html>.
+   Por: Fabio Tellini
+-- Diversos --
+[+] Implementado nas units do provedor IPM a versão 2.04 do layout da ABRASF a 
+    ser usado pela cidade: Novo Hamburgo/RS
+   Por: Italo Giurizzato Junior
+
+08/02/2023
+-- ACBrNFSeXConversao/SimplISS.Provider --
+[*] Sobrescrito as funções de conversão de Regime Especial de Tributação.
+   Por: Italo Giurizzato Junior
+-- ACBrNFSeXDANFSeRLISSNet --
+[*] Correção para problema de compilação no Delphi 7.
+   Por: eduardocajueiro
+
+07/02/2023
+-- ACBrNFSeXWebserviceBase --
+[*] Alteração visando salvar os arquivo JSON com a extensão json em vez de xml.
+   Por: Italo Giurizzato Junior
+-- ACBrNFSeXServicos.ini --
+[*] Corrigido a URL de produção do provedor PadraoNacional.
+   Por: Italo Giurizzato Junior
+-- Diversos --
+[+] Implementado o DANFSE em Fortes Report com layout bem próximo ao usado pelo
+    provedor ISSNet.
+   Por: Fabio Pasquali
+
+06/02/2023
+-- ACBrNFSeXServicos.ini --
+[+] Incluído a URL do Link da NFS-e da cidade de Silvania/GO
+   Por: Lucio Bittes
+
+02/02/2023
+-- eGoverneISS.Provider --
+[*] Ficou faltando a leitura de um nó do XML.
+   Por: Italo Giurizzato Junior
+-- ISSRio.Provider --
+[*] Possível Solução para quebra de linha no provedor ISSRio.
+   Por: Italo Giurizzato Junior
+-- Diversos --
+[*] Alteração visando imprimir com mais detalhes os itens de serviço.
+   Por: Italo Giurizzato Junior
+-- ACBrNFSeXServicos.ini --
+[*] Atualizado a URL do link de produção da cidade de Jaú/SP.
+   Por: Ronaldo Danieli
+-- eGoverneISS.Provider --
+[*] Alteração visando ler o retorno da consulta ao lote.
+   Por: Italo Giurizzato Junior
+-- eGoverneISS.Provider --
+[*] Correção, não estava limpado o CodigoLote após a consulta.
+   Por: Italo Giurizzato Junior
+
+01/02/2023
+-- eGoverneISS.Provider --
+[*] Correção, em vez de criar a lista de alertas estava criando a lista de erros.
+   Por: Italo Giurizzato Junior
+-- SisPMSJ.GravarXml --
+[*] Removido a flag NrOcorrValorISS que recebia o valor -1, com a remoção a tag
+    ValorISS passa a ser opcional, conforme consta no schema do provedor.
+   Por: Leonard Miranda
+-- ACBrNFSeXServicos.ini --
+[*] A cidade de Cabo Frio/RJ - trocou de versão agora é 2.04 - provedor SigCorp.
+   Por: Italo Giurizzato Junior
+-- ACBrNFSeXServicos.ini --
+[+] Incluída a cidade de Nova Itaberaba/SC - Provedor Pronim
+   Por: Claudio Algayer
 
 31/01/2023
 -- eGoverneISS.Provider --
@@ -3487,7 +3659,7 @@ Símbolo : Significado
    Por: Italo Giurizzato Junior
 -- IPM.Provider/IPM.GravarXml --
 [*] Removido a condição de versão para gerar o grupo Forma de Pagamento.
-[+] Implementado o seriço de ConsultarNfsePorRps.
+[+] Implementado o serviço de ConsultarNfsePorRps.
    Por: Italo Giurizzato Junior
 -- SilTecnologia.Provider/SilTecnologia.GravarXml --
 [*] Ajustes para a correta emissão e consulta da NFS-e.

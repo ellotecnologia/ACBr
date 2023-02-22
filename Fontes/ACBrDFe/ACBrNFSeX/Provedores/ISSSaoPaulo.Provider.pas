@@ -594,7 +594,7 @@ begin
 
           if AuxNode <> nil then
           begin
-            Lote := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('NumeroLote'), tcStr);
+            NumeroLote := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('NumeroLote'), tcStr);
 
             { Verificar se mais alguma dessas informações são necessárias
             with InformacoesLote do
@@ -644,7 +644,7 @@ begin
           with Response do
           begin
             NumeroNota := ObterConteudoTag(AuxNodeChave.Childrens.FindAnyNs('NumeroNFe'), tcStr);
-            CodVerificacao := ObterConteudoTag(AuxNodeChave.Childrens.FindAnyNs('CodigoVerificacao'), tcStr);
+            CodigoVerificacao := ObterConteudoTag(AuxNodeChave.Childrens.FindAnyNs('CodigoVerificacao'), tcStr);
           end;
         end;
       end;
@@ -668,7 +668,7 @@ var
   Emitente: TEmitenteConfNFSe;
   NameSpace: string;
 begin
-  if EstaVazio(Response.Lote) then
+  if EstaVazio(Response.NumeroLote) then
   begin
     AErro := Response.Erros.New;
     AErro.Codigo := Cod111;
@@ -688,7 +688,7 @@ begin
                                '<CPFCNPJRemetente>' +
                                  '<CNPJ>' + OnlyNumber(Emitente.CNPJ) + '</CNPJ>' +
                                '</CPFCNPJRemetente>' +
-                               '<NumeroLote>' + Response.Lote + '</NumeroLote>' +
+                               '<NumeroLote>' + Response.NumeroLote + '</NumeroLote>' +
                                '<InscricaoPrestador>' +
                                  OnlyNumber(Emitente.InscMun) +
                                '</InscricaoPrestador>' +
@@ -735,7 +735,7 @@ begin
 
           if AuxNode <> nil then
           begin
-            Lote := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('NumeroLote'), tcStr);
+            NumeroLote := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('NumeroLote'), tcStr);
 
             { Verificar se mais alguma dessas informações são necessárias
             with InformacoesLote do
@@ -782,7 +782,7 @@ var
   Emitente: TEmitenteConfNFSe;
   NameSpace: string;
 begin
-  if EstaVazio(Response.Lote) then
+  if EstaVazio(Response.NumeroLote) then
   begin
     AErro := Response.Erros.New;
     AErro.Codigo := Cod111;
@@ -802,7 +802,7 @@ begin
                                '<CPFCNPJRemetente>' +
                                  '<CNPJ>' + OnlyNumber(Emitente.CNPJ) + '</CNPJ>' +
                                '</CPFCNPJRemetente>' +
-                               '<NumeroLote>' + Response.Lote + '</NumeroLote>' +
+                               '<NumeroLote>' + Response.NumeroLote + '</NumeroLote>' +
                              '</Cabecalho>' +
                            '</PedidoConsultaLote>';
 end;
@@ -894,7 +894,7 @@ var
   Emitente: TEmitenteConfNFSe;
   NameSpace: string;
 begin
-  if EstaVazio(Response.NumRPS) then
+  if EstaVazio(Response.NumeroRps) then
   begin
     AErro := Response.Erros.New;
     AErro.Codigo := Cod102;
@@ -902,7 +902,7 @@ begin
     Exit;
   end;
 
-  if EstaVazio(Response.Serie) then
+  if EstaVazio(Response.SerieRps) then
   begin
     AErro := Response.Erros.New;
     AErro.Codigo := Cod103;
@@ -928,8 +928,8 @@ begin
                                  '<InscricaoPrestador>' +
                                    OnlyNumber(Emitente.InscMun) +
                                  '</InscricaoPrestador>' +
-                                 '<SerieRPS>' + Response.Serie + '</SerieRPS>' +
-                                 '<NumeroRPS>' + Response.NumRPS + '</NumeroRPS>' +
+                                 '<SerieRPS>' + Response.SerieRps + '</SerieRPS>' +
+                                 '<NumeroRPS>' + Response.NumeroRps + '</NumeroRPS>' +
                                '</ChaveRPS>' +
                              '</Detalhe>' +
                            '</PedidoConsultaNFe>';

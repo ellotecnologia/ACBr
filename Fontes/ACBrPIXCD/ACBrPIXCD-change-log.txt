@@ -47,6 +47,27 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+16/02/2023
+-- ACBrPIXPSPPixPDV --
+[*] Alteração para incluir endpoints específicos da API PixPDV
+
+-- ACBrSchemasPixPDV --
+[+] Inclusão dos Schemas utilizados nos endpoints específicos da API PixPDV
+
+14/02/2023
+-- ACBrPIXSchemasCobV, ACBrPIXSchemasDevolucao, ACBrPIXSchemasLocation, ACBrPIXSchemasLoteCobV --
+[*] Criadas propriedades "Bias" para armazenar informação do TimeZone em propriedades TDateTime.
+    Por: Elias César
+
+13/02/2023
+-- ACBrPIXPSPSicredi --
+[*] Correção da resposta do PSP Sicredi a uma devolução PIX.
+    Por: José Luis
+
+10/02/2023
+-- ACBrPIXPSPShipay --
+[*] Alteração para sempre utilizar o endpoint /order quando a wallet for 'shipay-pagador'
+
 27/01/2023
 -- ACBrPIXPSPPixPDV, ACBrPIXCD --
 [+] Inclusão do novo PSP PIX PDV

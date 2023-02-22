@@ -257,7 +257,7 @@ begin
                              OnlyNumber(Emitente.CNPJ) +
                            '</CnpjCpf>' +
                            '<NumeroLote>' +
-                             Response.Lote +
+                             Response.NumeroLote +
                            '</NumeroLote>' +
                            Xml +
                          '</EnviaLoteRps>';
@@ -336,7 +336,7 @@ begin
           with Response do
           begin
             NumeroNota := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('NumeroNfse'), tcStr);
-            CodVerificacao := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('CodigoVerificacao'), tcStr);
+            CodigoVerificacao := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('CodigoVerificacao'), tcStr);
           end;
 
           ANota := TACBrNFSeX(FAOwner).NotasFiscais.FindByRps(NumRps);
@@ -344,7 +344,7 @@ begin
           ANota := CarregarXmlNfse(ANota, ANode.OuterXml);
 
           ANota.NFSe.Numero := Response.NumeroNota;
-          ANota.NFSe.CodigoVerificacao := Response.CodVerificacao;
+          ANota.NFSe.CodigoVerificacao := Response.CodigoVerificacao;
 
           SalvarXmlNfse(ANota);
         end;
@@ -368,7 +368,7 @@ var
   AErro: TNFSeEventoCollectionItem;
   Emitente: TEmitenteConfNFSe;
 begin
-  if EstaVazio(Response.Lote) then
+  if EstaVazio(Response.NumeroLote) then
   begin
     AErro := Response.Erros.New;
     AErro.Codigo := Cod111;
@@ -387,7 +387,7 @@ begin
                              OnlyNumber(Emitente.CNPJ) +
                            '</CnpjCpfPrestador>' +
                            '<NumeroLote>' +
-                             Response.Lote +
+                             Response.NumeroLote +
                            '</NumeroLote>' +
                          '</Consulta>' +
                        '</ConsultaLoteRps>';
@@ -670,7 +670,7 @@ begin
 
       Response.Sucesso := (Response.Erros.Count = 0);
 
-      Response.Lote := ObterConteudoTag(ANode.Childrens.FindAnyNs('NumeroLote'), tcStr);
+      Response.NumeroLote := ObterConteudoTag(ANode.Childrens.FindAnyNs('NumeroLote'), tcStr);
 
       ANodeArray := ANode.Childrens.FindAllAnyNs('Nfse');
 

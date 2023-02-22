@@ -91,7 +91,11 @@ type
                                    retLucroReal, retLucroPresumido, retSimplesNacional,
                                    retImune, retEmpresaIndividualRELI, retEmpresaPP,
                                    retMicroEmpresario, retOutros, retMovimentoMensal,
-                                   retISSQNAutonomos, retISSQNSociedade, retNotarioRegistrador);
+                                   retISSQNAutonomos, retISSQNSociedade,
+                                   retNotarioRegistrador,
+                                   retTribFaturamentoVariavel, retFixo,
+                                   retIsencao,retExigibSuspensaJudicial,
+                                   retExigibSuspensaAdm);
 
   TnfseSimNao = (snSim, snNao);
 
@@ -114,10 +118,10 @@ type
                    proPadraoNacional,
                    proAbaco, proABase, proActcon, proAdm, proADPM, proAEG,
                    proAgili, proAssessorPublico, proAsten, proBauhaus, proBetha,
-                   proBHISS, proCenti, proCIGA, proCitta, proConam, proCoplan,
-                   proCTA, proCTAConsult, proDataSmart, proDBSeller, proDeISS,
-                   proDesenvolve, proDigifred, proDSF, proeGoverneISS, proEL,
-                   proEloTech, proEquiplano, proeReceita, proEtherium,
+                   proBHISS, proCenti, proCIGA, proCitta, proConam, proContass,
+                   proCoplan, proCTA, proCTAConsult, proDataSmart, proDBSeller,
+                   proDeISS, proDesenvolve, proDigifred, proDSF, proeGoverneISS,
+                   proEL, proEloTech, proEquiplano, proeReceita, proEtherium,
                    proFacundo, proFGMaiss, profintelISS, proFiorilli, proFisco,
                    proFISSLex, proFuturize, proGeisWeb, progeNFe, proGiap,
                    proGinfes, proGiss, proGovBR, proGovDigital, proGoverna,
@@ -128,7 +132,7 @@ type
                    proISSPortoVelho, proISSRecife, proISSRio, proISSSalvador,
                    proISSSaoPaulo, proISSSJP, proISSVitoria, proLexsom, proLink3,
                    proMegaSoft, proMetropolisWeb, proMitra, proModernizacaoPublica,
-                   proNEAInformatica, proNFSeBrasil, proNotaInteligente,
+                   proNEAInformatica, proNFSeBrasil, proNotaInteligente, proPriMax,
                    proProdata, proPronim, proPublica, proPublicSoft, proRLZ,
                    proSaatri, proSafeWeb, proSH3, proSiam, proSiapNet, proSiappa,
                    proSiapSistemas, proSiat, proSigCorp, proSigep, proSigISS,

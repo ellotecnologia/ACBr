@@ -980,10 +980,6 @@ begin
     Gerador.wCampo(tcStr, '', 'justContr',   1, 999, 1, pTrabTemporario.justContr);
 
     if VersaoDF <= ve02_05_00 then
-      if (pTrabTemporario.tpinclContr <> icNenhum) then
-        Gerador.wCampo(tcInt, '', 'tpInclContr', 1,   1, 1, eSTpInclContrToStr(pTrabTemporario.tpinclContr));
-
-    if VersaoDF <= ve02_05_00 then
       GerarIdeTomadorServ(pTrabTemporario.ideTomadorServ)
     else
       GerarIdeEstabVinc(pTrabTemporario.ideEstabVinc);
@@ -1127,7 +1123,7 @@ begin
 
   if (pEmp.TpInsc = tiCNPJ) then
   begin
-    if (VersaoDF <= veS01_00_00) or bProcJudFap or (pTpInscEstab = tiCNO) then
+    if (pAliqRat.Fap > 0) or bProcJudFap or (pTpInscEstab = tiCNO) then
       Gerador.wCampo(tcDe4, '', 'fap',          1, 5, 0, pAliqRat.Fap);
 
     if (VersaoDF <= ve02_05_00) then
@@ -1846,7 +1842,7 @@ begin
   Gerador.wGrupo('emitente');
 
   Gerador.wCampo(tcStr, '', 'nmEmit', 1, 70, 1, pEmitente.nmEmit);
-  Gerador.wCampo(tcStr, '', 'ideOC',  1,  1, 1, eSIdeOCToStr(pEmitente.ideOC));
+  Gerador.wCampo(tcStr, '', 'ideOC',  1,  1, 1, eSIdeOCToStrEX(pEmitente.ideOC));
 
   case ATipoEvento of
     teS2210: Gerador.wCampo(tcStr, '', 'nrOC', 1, 14, 1, pEmitente.nrOc);
