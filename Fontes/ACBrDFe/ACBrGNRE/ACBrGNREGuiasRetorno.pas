@@ -266,7 +266,6 @@ var
   i, j, k, Nivel, cProd, codIBGE: Integer;
   xInfo, xUF, xCodUF: string;
   Leitor: TLeitor;
-  ValorTotal: Double;
 begin
   Result := False;
   Leitor := TLeitor.Create;
@@ -283,7 +282,11 @@ begin
       GNRERetorno.SituacaoGuia          := Leitor.rCampo(tcStr, 'situacaoGuia');
       GNRERetorno.UFFavorecida          := Leitor.rCampo(tcStr, 'ufFavorecida');
       GNRERetorno.tipoGnre              := Leitor.rCampo(tcStr, 'tipoGnre');
-      ValorTotal                        := Leitor.rCampo(tcDe2, 'valorGNRE');
+      {
+        a tag valorGNRE sempre vai estar presente no XML da Guia retornado
+        pelo webservice.
+      }
+      GNRERetorno.ValorPrincipal        := Leitor.rCampo(tcDe2, 'valorGNRE');
       GNRERetorno.DataLimitePagamento   := DateToStr(Leitor.rCampo(tcDat, 'dataLimitePagamento'));
       GNRERetorno.IdentificadorGuia     := Leitor.rCampo(tcInt, 'identificadorGuia');
       GNRERetorno.NumeroControle        := Leitor.rCampo(tcStr, 'nossoNumero');
@@ -392,17 +395,20 @@ begin
             }
             if Leitor.rAtributo('tipo=', 'valor') = '11' then
               GNRERetorno.ValorPrincICMS := Leitor.rCampo(tcDe2, 'valor');
-
+{
             if GNRERetorno.ValorPrincICMS <> 0 then
               GNRERetorno.ValorPrincipal := GNRERetorno.ValorPrincICMS
             else
               GNRERetorno.ValorPrincipal := ValorTotal;
-
+}
             if Leitor.rAtributo('tipo=', 'valor') = '12' then
-            begin
               GNRERetorno.ValorFECP := Leitor.rCampo(tcDe2, 'valor');
-              GNRERetorno.ValorPrincipal := GNRERetorno.ValorPrincipal - GNRERetorno.ValorFECP;
-            end;
+
+            {
+              a linha abaixo foi comentada para gerar a Gria corretamente.
+              03/05/2023 - Italo Giurizzato Junior
+            }
+//            GNRERetorno.ValorPrincipal := GNRERetorno.ValorPrincipal - GNRERetorno.ValorFECP;
 
             if Leitor.rAtributo('tipo=', 'valor') = '21' then
               GNRERetorno.ValorICMS := Leitor.rCampo(tcDe2, 'valor');

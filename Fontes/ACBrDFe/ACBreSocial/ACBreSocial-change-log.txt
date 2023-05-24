@@ -52,6 +52,43 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+27/04/2023
+-- pcesS5012 --
+[*] Alteração visando pegar corretamente a versão do evento.
+  Por: CarlosSolla/Diego F
+
+24/04/2023
+-- Diversos --
+[*] Altera o tipo da propriedade infoCota de tpSimNao para tpSimNaoFacultativo para que a responsabilidade de geração da tag passe a ser da aplicação.
+   Por: Diego F
+
+17/04/2023
+-- Diversos --
+[*] Ajusta nas funções de leitura de INI dos eventos periódicos.
+   Por: Alexandre de Paula
+
+31/03/2023
+-- pcesS3500 --
+[*] Ajuste do número de ocorrências das tags cpftrab e PerApurPgto. 
+   Por: Sandro Felipe Adad - Conferido: Daniel Morais
+
+29/03/2023
+-- pcesS1200 --
+[*] Ajustada quantidade de digitos do contador da seção remunOutrEmpr
+[*] Removidos campos não existentes na seção ideTrabalhador.infoComplem
+[*] Adicionada carga de dados do INI para o bloco infoRRA
+   Por: Alexandre de Paula
+
+06/03/2023
+-- pcsS1200 --
+[*] Adiciona leitura do IndApurIR dentro do bloco ItensRemun do idePeriodo.
+   Por: emarcolongo 
+
+03/03/2023
+-- pcesS2501 --
+[*] Corrige a geração do evento que estava gerando parâmetros como se fossem campos.
+   Por: Marcelo Pontes Melim / Diego F
+
 09/02/2023
 -- pcesConversaoeSocial --
 [*] Declara alguns arrays específicos para alguns tipos e altera as funções de conversão respectivas para que use os novos arrays ao invés de manter o conteúdo chumbado na função.

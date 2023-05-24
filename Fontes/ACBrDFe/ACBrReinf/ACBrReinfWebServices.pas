@@ -122,6 +122,7 @@ type
 
     function TratarResposta: Boolean; override;
     function GerarMsgLog: String; override;
+    function GerarPrefixoArquivo: String; override;
   public
     constructor Create(AOwner: TACBrDFe); override;
 
@@ -395,6 +396,7 @@ begin
   else
   begin
     FPMimeType := 'application/xml';
+    FPValidateReturnCode := False;
     FPEnvelopeSoap := InserirDeclaracaoXMLSeNecessario(DadosMsg);
   end;
 end;
@@ -580,6 +582,7 @@ begin
   else
   begin
     FPMimeType := 'application/xml';
+    FPValidateReturnCode := False;
     FPURL := FPURL + '/' + FProtocolo;
     FPEnvelopeSoap := '';
   end;
@@ -742,6 +745,11 @@ begin
   Result := FRetConsulta_R9015;
 end;
 
+function TConsultar.GerarPrefixoArquivo: String;
+begin
+  Result := FProtocolo;
+end;
+
 { TConsultarReciboEvento }
 
 procedure TConsultarReciboEvento.BeforeDestruction;
@@ -846,6 +854,7 @@ begin
   else
   begin
     FPMimeType := 'application/xml';
+    FPValidateReturnCode := False;
     Consulta.DefinirParametros(FPURL);
     FPEnvelopeSoap := '';
   end;
@@ -895,7 +904,7 @@ end;
 
 function TConsultarReciboEvento.GerarPrefixoArquivo: String;
 begin
-  Result := FormatDateTime('yyyymmddhhnnss', Now) + '-' + tpEventoStr;
+  Result := FperApur + '-R' + tpEventoStr;
 end;
 
 // Remover após entrar em vigor a versão 2_01_01 ou colocar exceção alertanto para usar a RetConsulta_R5011

@@ -212,7 +212,7 @@ end;
 procedure TACBrBancoUnicredES.LerRetorno400(ARetorno: TStringList);
 var
   Titulo : TACBrTitulo;
-  ContLinha : Integer;
+  ContLinha, MotivoLinha, i : Integer;
   rAgencia    :String;
   rConta, rDigitoConta      :String;
   Linha, rCedente, rCNPJCPF :String;
@@ -294,13 +294,15 @@ begin
           NumeroDocumento             := copy(Linha,117,10);
           OcorrenciaOriginal.Tipo     := CodOcorrenciaToTipo(StrToIntDef(
                                          copy(Linha,109,2),0));
-
-          codInstrucao := copy(Linha,319,8);
-          MotivoRejeicaoComando.Add(codInstrucao);
-
-          DescricaoMotivoRejeicaoComando.Add(CodComplementoMovimento(codInstrucao));
-
-
+          MotivoLinha := 319;
+          for i := 0 to 4 do
+          begin
+            codInstrucao := IfThen(copy(Linha,MotivoLinha,2) = '  ','00',copy(Linha,MotivoLinha,2));
+            MotivoRejeicaoComando.Add(codInstrucao);
+            if codInstrucao <> '00' then
+               DescricaoMotivoRejeicaoComando.Add(CodComplementoMovimento(codInstrucao));
+            MotivoLinha := MotivoLinha + 2;
+          end;
 
           if (StrToIntDef(Copy(Linha,111,6),0) > 0) then
             DataOcorrencia := StringToDateTimeDef( Copy(Linha,111,2)+'/'+
@@ -606,8 +608,8 @@ function TACBrBancoUnicredES.DefinerCnpjCPFRetorno240(
   const ALinha: String): String;
 begin
   case StrToIntDef(Copy(ALinha,18,1),0) of
-     1: result := Copy(ALinha,19,14);
-     2: result := Copy(ALinha,22,11);
+     1: result := Copy(ALinha,22,11);
+     2: result := Copy(ALinha,19,14);
   else
     result := Copy(ALinha,19,14);
   end;

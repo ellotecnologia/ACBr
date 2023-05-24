@@ -180,6 +180,7 @@ uses
   ISSDSF.Provider,
   ISSLencois.Provider,
   ISSSaoPaulo.Provider,
+  Prescon.Provider,
   PriMax.Provider,
   Siappa.Provider,
   Siat.Provider,
@@ -304,7 +305,17 @@ begin
         Result := TACBrNFSeProviderEquiplano.Create(ACBrNFSe);
 
       proeReceita: Result := TACBrNFSeProvidereReceita202.Create(ACBrNFSe);
-      proEtherium: Result := TACBrNFSeProviderEtherium203.Create(ACBrNFSe);
+
+      proEtherium:
+        begin
+          case Versao of
+            ve203: Result := TACBrNFSeProviderEtherium203.Create(ACBrNFSe);
+            ve204: Result := TACBrNFSeProviderEtherium204.Create(ACBrNFSe);
+          else
+            Result := nil;
+          end;
+        end;
+
       proFacundo:  Result :=TACBrNFSeProviderFacundo.Create(ACBrNFSe);
       proFGMaiss:  Result :=TACBrNFSeProviderFGMaiss.Create(ACBrNFSe);
 
@@ -430,6 +441,7 @@ begin
       proPadraoNacional:
         Result := TACBrNFSeProviderPadraoNacional.Create(ACBrNFSe);
 
+      proPrescon: Result := TACBrNFSeProviderPrescon.Create(ACBrNFSe);
       proPriMax:  Result := TACBrNFSeProviderPriMax.Create(ACBrNFSe);
       proProdata: Result := TACBrNFSeProviderProdata201.Create(ACBrNFSe);
 
