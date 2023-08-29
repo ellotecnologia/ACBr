@@ -418,6 +418,11 @@ begin
         5105150, // Juina/MT
         1505031: // Novo Progresso/PA
           Gerador.wCampo(tcDe4, '#13', 'Quantidade', 01, 17, 1, NFSe.Servico.ItemServico[i].Quantidade, '');
+        5107925: // Sorriso/MT
+          begin
+            Gerador.wCampo(tcStr, '#30', 'CodigoCnae', 01, 0007, 0, FormatarCnae(NFSe.Servico.CodigoCnae), '');
+            Gerador.wCampo(tcDe4, '#13', 'Quantidade', 01, 17, 1, NFSe.Servico.ItemServico[i].Quantidade, '');
+          end;
       else
         begin
           Gerador.wCampo(tcStr, '#30', 'CodigoCnae', 01, 0007, 0, FormatarCnae(NFSe.Servico.CodigoCnae), '');
@@ -554,6 +559,7 @@ begin
     5104526: LTagAtividadeEconomica := 'CodigoCnaeAtividadeEconomica';
 
     5105150,
+    5107925, // Sorriso/MT
     5107305: LTagAtividadeEconomica := 'ItemLei116AtividadeEconomica';
   else
     LTagAtividadeEconomica := 'CodigoAtividadeEconomica';
