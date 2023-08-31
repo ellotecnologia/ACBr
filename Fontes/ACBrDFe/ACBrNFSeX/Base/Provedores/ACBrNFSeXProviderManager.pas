@@ -107,6 +107,7 @@ uses
   Giss.Provider,
   GovDigital.Provider,
   iiBrasil.Provider,
+  ISSCamacari.Provider,
   ISSDigital.Provider,
   ISSe.Provider,
   ISSGoiania.Provider,
@@ -137,6 +138,7 @@ uses
   SSInformatica.Provider,
   Sudoeste.Provider,
   SystemPro.Provider,
+  SysISS.Provider,
   TcheInfo.Provider,
   Tecnos.Provider,
   Tributus.Provider,
@@ -175,6 +177,7 @@ uses
   GeisWeb.Provider,
   Giap.Provider,
   Governa.Provider,
+  Intertec.Provider,
   ISSBarueri.Provider,
   ISSCambe.Provider,
   ISSDSF.Provider,
@@ -359,6 +362,8 @@ begin
           end;
         end;
 
+      proIntertec: Result := TACBrNFSeProviderIntertec.Create(ACBrNFSe);
+
       proIPM:
         begin
           case Versao of
@@ -374,8 +379,10 @@ begin
 
       proISSBarueri: Result := TACBrNFSeProviderISSBarueri.Create(ACBrNFSe);
 
-      proISSCambe:
-        Result := TACBrNFSeProviderISSCambe.Create(ACBrNFSe);
+      proISSCamacari:
+        Result := TACBrNFSeProviderISSCamacari201.Create(ACBrNFSe);
+
+      proISSCambe: Result := TACBrNFSeProviderISSCambe.Create(ACBrNFSe);
 
       proISSCuritiba:
         Result := TACBrNFSeProviderISSCuritiba.Create(ACBrNFSe);
@@ -551,6 +558,7 @@ begin
 
       proSudoeste:  Result := TACBrNFSeProviderSudoeste202.Create(ACBrNFSe);
       proSystemPro: Result := TACBrNFSeProviderSystemPro201.Create(ACBrNFSe);
+      proSysISS:    Result := TACBrNFSeProviderSysISS202.Create(ACBrNFSe);
       proTcheInfo:  Result := TACBrNFSeProviderTcheInfo204.Create(ACBrNFSe);
       proTecnos:    Result := TACBrNFSeProviderTecnos201.Create(ACBrNFSe);
       proThema:     Result := TACBrNFSeProviderThema.Create(ACBrNFSe);
@@ -560,6 +568,7 @@ begin
           case Versao of
             ve100: Result := TACBrNFSeProviderTinus.Create(ACBrNFSe);
             ve101: Result := TACBrNFSeProviderTinus.Create(ACBrNFSe);
+            ve102: Result := TACBrNFSeProviderTinus102.Create(ACBrNFSe);
           else
             Result := nil;
           end;

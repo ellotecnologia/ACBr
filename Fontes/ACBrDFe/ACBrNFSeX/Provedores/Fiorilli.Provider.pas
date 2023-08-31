@@ -89,15 +89,18 @@ begin
 
   ConfigGeral.QuebradeLinha := '\s\n';
   ConfigGeral.ConsultaPorFaixaPreencherNumNfseFinal := true;
-  
-  with ConfigAssinar do
+
+  if ConfigAssinar.Assinaturas = taConfigProvedor then
   begin
-    Rps := True;
-    LoteRps := True;
-    CancelarNFSe := True;
-    RpsGerarNFSe := True;
-    RpsSubstituirNFSe := True;
-    SubstituirNFSe := True;
+    with ConfigAssinar do
+    begin
+      Rps := True;
+      LoteRps := True;
+      CancelarNFSe := True;
+      RpsGerarNFSe := True;
+      RpsSubstituirNFSe := True;
+      SubstituirNFSe := True;
+    end;
   end;
 end;
 
@@ -328,8 +331,11 @@ function TACBrNFSeXWebserviceFiorilli200.TratarXmlRetornado(
 begin
   Result := inherited TratarXmlRetornado(aXML);
 
-//  if UTF8Decode(Result) = '' then
+  {$IFDEF FPC}
+    Result := ACBrStr(Result);
+  {$ELSE}
     Result := NativeStringToUTF8(Result);
+  {$ENDIF}
 
   Result := StringReplace(Result, '&#xd;', '\s\n', [rfReplaceAll]);
   Result := StringReplace(Result, ''#$A'', '\s\n', [rfReplaceAll]);

@@ -60,6 +60,8 @@ type
   TRRecRepADCollectionItem = class;
   TRComlCollection = class;
   TRComlCollectionItem = class;
+  TRAquisCollection = class;
+  TRAquisCollectionItem = class;
   TRCPRBCollection = class;
   TRCPRBCollectionItem = class;
   TinfoCRTomCollection = class;
@@ -69,14 +71,18 @@ type
 
   TInfoRecEv = class(TObject)
   private
+    FnrRecArqBase: String;
     FnrProtEntr: String;
     FdhProcess: TDateTime;
+    FdhRecepcao: TDateTime;
     FtpEv: String;
     FidEv: String;
     Fhash: String;
   public
+    property nrRecArqBase: String read FnrRecArqBase;
     property nrProtEntr: String read FnrProtEntr;
     property dhProcess: TDateTime read FdhProcess;
+    property dhRecepcao: TDateTime read FdhRecepcao;
     property tpEv: String read FtpEv;
     property idEv: String read FidEv;
     property hash: String read Fhash;
@@ -91,6 +97,7 @@ type
     FRPrest: TRPrestCollection;
     FRRecRepAD: TRRecRepADCollection;
     FRComl: TRComlCollection;
+    FRAquis: TRAquisCollection;
     FRCPRB: TRCPRBCollection;
 
     procedure SetRComl(const Value: TRComlCollection);
@@ -105,6 +112,7 @@ type
     property RPrest: TRPrestCollection read FRPrest;
     property RRecRepAD: TRRecRepADCollection read FRRecRepAD;
     property RComl: TRComlCollection read FRComl write SetRComl;
+    property RAquis: TRAquisCollection read FRAquis;
     property RCPRB: TRCPRBCollection read FRCPRB;
   end;
 
@@ -258,6 +266,28 @@ type
     property vlrCRComl: Double read FvlrCRComl;
     property vlrCRComlSusp: Double read FvlrCRComlSusp;
   end;
+  
+  TRAquisCollection = class(TACBrObjectList)
+  private
+    function GetItem(Index: Integer): TRAquisCollectionItem;
+    procedure SetItem(Index: Integer; Value: TRAquisCollectionItem);
+  public
+    function Add: TRAquisCollectionItem; overload; deprecated {$IfDef SUPPORTS_DEPRECATED_DETAILS} 'Obsoleta: Use a função New'{$EndIf};
+    function New: TRAquisCollectionItem;
+
+    property Items[Index: Integer]: TRAquisCollectionItem read GetItem write SetItem;
+  end;
+
+  TRAquisCollectionItem = class(TObject)
+  private
+    FCRAquis: String;
+    FvlrCRAquis: Double;
+    FvlrCRAquisSusp: Double;
+  public
+    property CRAquis: String read FCRAquis;
+    property vlrCRAquis: Double read FvlrCRAquis;
+    property vlrCRAquisSusp: Double read FvlrCRAquisSusp;
+  end;  
 
   TRCPRBCollection = class(TACBrObjectList)
   private
@@ -511,6 +541,29 @@ begin
   inherited Items[Index] := Value;
 end;
 
+{ TRAquisCollection }
+
+function TRAquisCollection.Add: TRAquisCollectionItem;
+begin
+  Result := Self.New;
+end;
+
+function TRAquisCollection.GetItem(Index: Integer): TRAquisCollectionItem;
+begin
+  Result := TRAquisCollectionItem(inherited Items[Index]);
+end;
+
+function TRAquisCollection.New: TRAquisCollectionItem;
+begin
+  Result := TRAquisCollectionItem.Create;
+  Self.Add(Result);
+end;
+
+procedure TRAquisCollection.SetItem(Index: Integer; Value: TRAquisCollectionItem);
+begin
+  inherited Items[Index] := Value;
+end;
+
 { TinfoCRTomCollection }
 
 function TinfoCRTomCollection.Add: TinfoCRTomCollectionItem;
@@ -544,6 +597,7 @@ begin
   FRPrest    := TRPrestCollection.Create;
   FRRecRepAD := TRRecRepADCollection.Create;
   FRComl     := TRComlCollection.Create;
+  FRAquis    := TRAquisCollection.Create;
   FRCPRB     := TRCPRBCollection.Create;
 end;
 
@@ -553,6 +607,7 @@ begin
   FRPrest.Free;
   FRRecRepAD.Free;
   FRComl.Free;
+  FRAquis.Free;
   FRCPRB.Free;
 
   inherited;
@@ -675,8 +730,10 @@ begin
 
         if leitor.rExtrai(2, 'infoRecEv') <> '' then
         begin
+          infoRecEv.FnrRecArqBase := leitor.rCampo(tcStr, 'nrRecArqBase');
           infoRecEv.FnrProtEntr := leitor.rCampo(tcStr, 'nrProtEntr');
           infoRecEv.FdhProcess  := leitor.rCampo(tcDatHor, 'dhProcess');
+          infoRecEv.FdhRecepcao := leitor.rCampo(tcDatHor, 'dhRecepcao');
           infoRecEv.FtpEv       := leitor.rCampo(tcStr, 'tpEv');
           infoRecEv.FidEv       := leitor.rCampo(tcStr, 'idEv');
           infoRecEv.Fhash       := leitor.rCampo(tcStr, 'hash');
@@ -767,6 +824,18 @@ begin
               RComl.Items[i].FCRComl        := leitor.rCampo(tcStr, 'CRComl');
               RComl.Items[i].FvlrCRComl     := leitor.rCampo(tcDe2, 'vlrCRComl');
               RComl.Items[i].FvlrCRComlSusp := leitor.rCampo(tcDe2, 'vlrCRComlSusp');
+
+              inc(i);
+            end;
+
+            i := 0;
+            while Leitor.rExtrai(3, 'RAquis', '', i + 1) <> '' do
+            begin
+              RAquis.New;
+
+              RAquis.Items[i].FCRAquis         := leitor.rCampo(tcStr, 'CRAquis');
+              RAquis.Items[i].FvlrCRAquis      := leitor.rCampo(tcDe2, 'vlrCRAquis');
+              RAquis.Items[i].FvlrCRAquisSusp  := leitor.rCampo(tcDe2, 'vlrCRAquisSusp');
 
               inc(i);
             end;
@@ -884,8 +953,10 @@ begin
         end;
 
         sSecao := 'infoRecEv';
+        AIni.WriteString(sSecao, 'nrRecArqBase', infoRecEv.nrRecArqBase);
         AIni.WriteString(sSecao, 'nrProtEntr', infoRecEv.nrProtEntr);
         AIni.WriteString(sSecao, 'dhProcess',  DateToStr(infoRecEv.dhProcess));
+        AIni.WriteString(sSecao, 'dhRecepcao', DateToStr(infoRecEv.dhRecepcao));
         AIni.WriteString(sSecao, 'tpEv',       infoRecEv.tpEv);
         AIni.WriteString(sSecao, 'idEv',       infoRecEv.idEv);
         AIni.WriteString(sSecao, 'hash',       infoRecEv.hash);
@@ -957,6 +1028,15 @@ begin
             AIni.WriteString(sSecao, 'CRComl',       RComl.Items[i].CRComl);
             AIni.WriteFloat(sSecao, 'vlrCRComl',     RComl.Items[i].vlrCRComl);
             AIni.WriteFloat(sSecao, 'vlrCRComlSusp', RComl.Items[i].vlrCRComlSusp);
+          end;
+
+          for i := 0 to RAquis.Count -1 do
+          begin
+            sSecao := 'RAquis' + IntToStrZero(I, 1);
+
+            AIni.WriteString(sSecao,  'CRAquis',        RAquis.Items[i].CRAquis);
+            AIni.WriteFloat(sSecao,   'vlrCRAquis',     RAquis.Items[i].vlrCRAquis);
+            AIni.WriteFloat(sSecao,   'vlrCRAquisSusp', RAquis.Items[i].vlrCRAquisSusp);
           end;
 
           for i := 0 to RCPRB.Count -1 do

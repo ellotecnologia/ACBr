@@ -122,6 +122,9 @@ var
 begin
   FPMsgOrig := AMSG;
 
+  // Tratamento de nomes com &
+  AMSG := StringReplace(AMSG, '&amp;', '&amp;amp;', [rfReplaceAll]);
+
   Request := '<urn:tm_lote_rps_service.importarLoteRPS' + encodingStyle +'>';
   Request := Request + '<xml xsi:type="xsd:string">' + XmlToStr(AMSG) + '</xml>';
   Request := Request + DadosUsuario;
@@ -215,6 +218,7 @@ begin
   Result := RemoverCaracteresDesnecessarios(Result);
   Result := StringReplace(Result, 'R$', '', [rfReplaceAll]);
   Result := StringReplace(Result, '&', '&amp;', [rfReplaceAll]);
+  Result := StringReplace(Result, ']]', '', [rfReplaceAll]);
   Result := NativeStringToUTF8(Result);
 end;
 
@@ -618,7 +622,7 @@ var
   ANodeArray: TACBrXmlNodeArray;
   AErro: TNFSeEventoCollectionItem;
   ANota: TNotaFiscal;
-  NumRps: String;
+  NumNFSe, InfNfseID: String;
   I: Integer;
 begin
   Document := TACBrXmlDocument.Create;
@@ -683,9 +687,18 @@ begin
           AuxNodeNota := AuxNodeNota.Childrens.FindAnyNs('Nfse');
           AuxNodeNota := AuxNodeNota.Childrens.FindAnyNs('InfNfse');
 
-          NumRps := ObterConteudoTag(AuxNodeNota.Childrens.FindAnyNs('Numero'), tcStr);
+          InfNfseID := ObterConteudoTag(AuxNodeNota.Attributes.Items['Id']);
+          NumNFSe := ObterConteudoTag(AuxNodeNota.Childrens.FindAnyNs('Numero'), tcStr);
 
-          ANota := TACBrNFSeX(FAOwner).NotasFiscais.FindByNFSe(NumRps);
+          with Response do
+          begin
+            NumeroNota := NumNFSe;
+            idNota := InfNfseID;
+            CodigoVerificacao := ObterConteudoTag(AuxNodeNota.Childrens.FindAnyNs('CodigoVerificacao'), tcStr);
+            Data := ObterConteudoTag(AuxNodeNota.Childrens.FindAnyNs('DataEmissao'), tcDatVcto);
+          end;
+
+          ANota := TACBrNFSeX(FAOwner).NotasFiscais.FindByNFSe(NumNFSe);
 
           ANota := CarregarXmlNfse(ANota, AuxNode.OuterXml);
           SalvarXmlNfse(ANota);

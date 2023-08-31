@@ -28,14 +28,15 @@
  this Software without prior written authorization from <Projeto ACBr>.
 
  Based on:
- - The FPDF Scripts    - http://www.fpdf.org/en/script/index.php
-   TFPDFScriptCodeEAN  - http://www.fpdf.org/en/script/script5.php  - Olivier
-   TFPDFScriptCode39   - http://www.fpdf.org/en/script/script46.php - The-eh
-   TFPDFScriptCodeI25  - http://www.fpdf.org/en/script/script67.php - Matthias Lau
-   TFPDFScriptCode128  - http://www.fpdf.org/en/script/script88.php - Roland Gautier
-   TFPDFExt.Rotate     - http://www.fpdf.org/en/script/script2.php  - Olivier
-   TFPDFExt.RoundedRect- http://www.fpdf.org/en/script/script35.php - Christophe Prugnaud
-   TFPDFExt.AddLayer   - http://www.fpdf.org/en/script/script97.php - Oliver
+ - The FPDF Scripts       http://www.fpdf.org/en/script/index.php
+   TFPDFScriptCodeEAN     http://www.fpdf.org/en/script/script5.php  - Olivier
+   TFPDFScriptCode39      http://www.fpdf.org/en/script/script46.php - The-eh
+   TFPDFScriptCodeI25     http://www.fpdf.org/en/script/script67.php - Matthias Lau
+   TFPDFScriptCode128     http://www.fpdf.org/en/script/script88.php - Roland Gautier
+   TFPDFExt.Rotate        http://www.fpdf.org/en/script/script2.php  - Olivier
+   TFPDFExt.RoundedRect   http://www.fpdf.org/en/script/script35.php - Christophe Prugnaud
+   TFPDFExt.AddLayer      http://www.fpdf.org/en/script/script97.php - Oliver
+   TFPDFExt.SetProtection http://www.fpdf.org/en/script/script37.php - Klemen Vodopivec
 
 - Free JPDF Pascal from Jean Patrick e Gilson Nunes
    https://github.com/jepafi/Free-JPDF-Pascal
@@ -43,8 +44,9 @@
 
 unit ACBr_fpdf_ext;
 
-// Define USE_SYNAPSE if you want to force use of Unit synapse.pas
-// http://www.ararat.cz/synapse
+// Define USE_SYNAPSE if you want to force use of Units from synapse
+//   Used from HTTPS downlaod em PDF Protection Script  (password)
+//   http://www.ararat.cz/synapse
 {$DEFINE USE_SYNAPSE}
 
 // If you don't want the AnsiString vs String warnings to bother you
@@ -53,6 +55,10 @@ unit ACBr_fpdf_ext;
 // If you have DelphiZXingQRCode Unit on you LibPath
 // https://github.com/foxitsoftware/DelphiZXingQRCode
 {$DEFINE DelphiZXingQRCode}
+
+{$IfDef USE_SYNAPSE}
+  {$DEFINE HAS_PROTECTION}
+{$EndIf}
 
 {$IfNDef FPC}
   {$IFDEF REMOVE_CAST_WARN}
@@ -95,7 +101,7 @@ uses
   {$EndIf}
   {$IFDEF HAS_HTTP}
    {$IFDEF USE_SYNAPSE}
-    ,httpsend, ssl_openssl
+    ,httpsend, ssl_openssl, synacode
    {$ELSE}
     ,fphttpclient, opensslsockets
    {$ENDIF}
@@ -113,6 +119,16 @@ type
 const
   cDefBarHeight = 8;
   cDefBarWidth = 0.5; //0.35;
+
+type
+  TByteArray = array of Byte;
+  TFPDF2DMatrix = array of TByteArray;
+
+  TFPDFTypePermissions = (canCopy, canPrint, canModify, canAannotForms);
+  TFPDFPermissions = set of TFPDFTypePermissions;
+
+const
+    canAllPermissions = [canCopy, canPrint, canModify, canAannotForms];
 
 type
 
@@ -192,9 +208,6 @@ type
     n: Integer;
   end;
 
-  TByteArray = array of Byte;
-  TFPDF2DMatrix = array of TByteArray;
-
   TFPDFEvent = procedure (APDF: TFPDF) of object;
 
   { TFPDFExt }
@@ -208,26 +221,64 @@ type
     fProxyPort: string;
     fProxyUser: string;
 
+    fHREF: String;
+    fFontStyle: String;
+
     {$IfDef HAS_HTTP}
      procedure GetImageFromURL(const aURL: string; const aResponse: TStream);
     {$EndIf}
+
+    {$IfDef HAS_PROTECTION}
+    function CreateUniqID: AnsiString;
+    procedure _generateencryptionkey(const UserPass: AnsiString;
+      const OwnerPass: AnsiString; protection: Integer);
+    function _md5_16(AStr: AnsiString): AnsiString;
+    function _objectkey(vn: Integer): AnsiString;
+    function _Ovalue(const UserPass: AnsiString; const OwnerPass: AnsiString
+      ): AnsiString;
+    function _Uvalue: AnsiString;
+    function RC4(const AKey: AnsiString; const AData: AnsiString): AnsiString;
+    {$EndIf}
+
+    function FindNextTagPos(const AHtml: String; out ATag: String; OffSet: Integer): Integer;
+    procedure OpenTag(const ATag: String);
+    procedure CloseTag(const ATag: String);
+    procedure SetStyle(const ATag: String; Enable: Boolean);
+    procedure PutLink(const AURL, AText: String);
   protected
     angle: Double;
     layers: array of TFPDFLayer;
     current_layer: Integer;
     open_layer_pane: Boolean;
 
-    procedure Header; override;
-    procedure Footer; override;
+    encrypted: Boolean;
+    padding: String;
+    encryption_key: AnsiString;
+    Uvalue: AnsiString;             //U entry in pdf document
+    Ovalue: AnsiString;             //O entry in pdf document
+    Pvalue: Integer;                //P entry in pdf document
+    enc_obj_id: Integer;            //encryption object id
+    last_key: AnsiString;
+    last_state: array[0..255] of Byte;
+
+
     procedure _endpage; override;
+    procedure _putstream(const Adata: AnsiString); override;
+    function _textstring(const AString: String): String; override;
+    procedure _putencryption;
+
     procedure _putresourcedict; override;
     procedure _putresources; override;
     procedure _putlayers;
     procedure _putcatalog; override;
+    procedure _puttrailer; override;
     procedure _enddoc; override;
 
     procedure _Arc(vX1, vY1, vX2, vY2, vX3, vY3: Double);
   public
+    procedure Header; override;
+    procedure Footer; override;
+
     procedure InternalCreate; override;
 
     procedure Rotate(NewAngle: Double = 0; vX: Double = -1; vY: Double = -1);
@@ -240,6 +291,13 @@ type
     procedure BeginLayer(const LayerName: String); overload;
     procedure EndLayer;
     procedure OpenLayerPane;
+
+    procedure WriteHTML(const AHtml: String);
+
+    {$IfDef HAS_PROTECTION}
+    procedure SetProtection(Permissions: TFPDFPermissions;
+      const UserPass: AnsiString = ''; const OwnerPass: AnsiString = '');
+    {$EndIf}
 
     {$IfDef HAS_HTTP}
     procedure Image(const vFileOrURL: string; vX: double = -9999;
@@ -259,11 +317,28 @@ type
       BarHeight: double = 0; BarWidth: double = 0);
 
     {$IfDef DelphiZXingQRCode}
-    procedure QRCode(vX: double; vY: double; const QRCodeData: String;
-      DotSize: Double = 0; AEncoding: TQRCodeEncoding = qrAuto);
+    function QRCode(vX: double; vY: double; const QRCodeData: String;
+      DotSize: Double = 0; AEncoding: TQRCodeEncoding = qrAuto): double; overload;
+    procedure QRCode(vX: double; vY: double; vQRCodeSize: double;
+      const QRCodeData: String; AEncoding: TQRCodeEncoding = qrAuto); overload;
     {$EndIf}
     procedure Draw2DMatrix(AMatrix: TFPDF2DMatrix; vX: double; vY: double;
       DotSize: Double = 0);
+
+    procedure SetDash(ABlack, AWhite: double); overload;
+    procedure SetDash(AWidth: double); overload;
+    procedure DashedLine(vX1, vY1, vX2, vY2: Double; ADashWidth: double = 1);
+    procedure DashedRect(vX, vY, vWidht, vHeight: Double; const vStyle: String = ''; ADashWidth: double = 1);
+
+    function WordWrap(var AText: string; AMaxWidth: Double; AIndent: double = 0): integer;
+    function GetNumLines(const AText: string; AWidth: Double; AIndent: double = 0): integer;
+    function GetStringHeight(const AText: string; AWidth: double;
+      ALineSpacing: double = 0; AIndent: double = 0): double;
+
+    function TextBox(vX, vY, vWidht, vHeight: double; const AText: string;
+      const vAlign: char = 'T'; const hAlign: char = 'L';
+      ABorder: boolean = True; AWordWrap: boolean = True;
+      AScale: boolean = False; ALineSpacing: double = 0): double;
 
     property OnHeader: TFPDFEvent read fOnHeader write fOnHeader;
     property OnFooter: TFPDFEvent read fOnFooter write fOnFooter;
@@ -274,10 +349,12 @@ type
     property ProxyPass: string read fProxyPass write fProxyPass;
   end;
 
+
 implementation
 
 uses
   Math, StrUtils;
+
 
 { TFPDFScripts }
 
@@ -918,6 +995,17 @@ begin
   SetLength(layers,0);
   current_layer := -1;
   open_layer_pane := False;
+
+  encrypted := false;
+  padding := #$28#$BF#$4E#$5E#$4E#$75#$8A#$41#$64#$00#$4E#$56#$FF#$FA#$01#$08+
+             #$2E#$2E#$00#$B6#$D0#$68#$3E#$80#$2F#$0C#$A9#$FE#$64#$53#$69#$7A;
+  encryption_key := '';
+  Uvalue := '';
+  Ovalue := '';
+  Pvalue := 0;
+  enc_obj_id := 0;
+  last_key := '';
+  FillChar(last_state, 256, 0);
 end;
 
 { http://www.fpdf.org/en/script/script2.php - Olivier }
@@ -1076,6 +1164,464 @@ begin
   Self.open_layer_pane := true;
 end;
 
+function TFPDFExt.WordWrap(var AText: string; AMaxWidth,
+  AIndent: double): integer;
+{ http://www.fpdf.org/en/script/script49.php - Ron Korving }
+var
+  Space, Width, WordWidth: Double;
+  Lines, Words: TStringArray;
+  ALine, Word: string;
+  i, j, L: integer;
+begin
+  AText := Trim(AText);
+  Result := 0;
+  if AText = '' then
+    Exit;
+  
+  Space := Self.GetStringWidth(' ');
+  Lines := Split(AText, sLineBreak);
+  AText := '';
+  AMaxWidth := AMaxWidth - AIndent;
+  Result := 0;
+  for i := 0 to Length(Lines) - 1 do
+  begin
+    ALine := Lines[i];
+    Words := Split(ALine, ' ');
+    Width := 0;
+    for j := 0 to Length(Words) - 1 do
+    begin
+      Word := Words[j];
+      if Trim(Word) = '' then
+        Continue;
+      WordWidth := Self.GetStringWidth(Word);
+      if WordWidth > AMaxWidth then
+      begin
+        // Word is too long, we cut it
+        for L := 1 to Length(Word) do
+        begin
+          WordWidth := Self.GetStringWidth(Copy(Word, L, 1));
+          if (Width + WordWidth <= AMaxWidth) then
+          begin
+            Width := Width + WordWidth;
+            AText := AText + Copy(Word, L, 1);
+          end
+          else
+          begin
+            Width := WordWidth;
+            AText := TrimRight(AText) + sLineBreak + Copy(Word, L, 1);
+            Inc(Result);
+            AMaxWidth := AMaxWidth + AIndent;
+          end;
+        end;
+      end
+      else
+        if (Width + WordWidth <= AMaxWidth) then
+        begin
+          Width := Width + WordWidth + Space;
+          AText := AText + Word + ' ';
+        end
+        else
+        begin
+          Width := WordWidth + Space;
+          AText := TrimRight(AText) + sLineBreak + Word + ' ';
+          Inc(Result);
+          AMaxWidth := AMaxWidth + AIndent;
+        end;
+    end;
+    AText := TrimRight(AText) + sLineBreak;
+    Inc(Result);
+    AMaxWidth := AMaxWidth + AIndent;
+  end;
+  AText := TrimRight(AText);
+end;
+
+procedure TFPDFExt.WriteHTML(const AHtml: String);
+var
+  s, ATag, AText: String;
+  l, lt, p1, p2: Integer;
+begin
+  // HTML parser
+  s := StringReplace(AHtml, #13+#10, ' ', [rfReplaceAll]);
+  s := StringReplace(s, #10, ' ', [rfReplaceAll]);
+  l := Length(s);
+  p1 := 1;
+  while p1 <= l do
+  begin
+    p2 := FindNextTagPos(AHtml, ATag, p1);
+    if (p2 = 0) then
+      p2 := l+1;
+
+    AText := copy(AHtml, p1, p2-p1);
+    if (AText <> '') then
+    begin
+      if (Self.fHREF <> '') then
+        PutLink(Self.fHREF, AText)
+      else
+        Write(Self.FontSize + 0.5, AText);
+    end;
+
+    if (ATag <> '') then
+    begin
+      lt := Length(ATag);
+      if ATag[1] = '/' then
+      begin
+        Delete(ATag, 1, 1);
+        CloseTag(ATag);
+      end
+      else
+        OpenTag(ATag);
+
+      Inc(p2, lt+2);
+    end;
+
+    p1 := p2;
+  end;
+end;
+
+{$IfDef HAS_PROTECTION}
+procedure TFPDFExt.SetProtection(Permissions: TFPDFPermissions;
+  const UserPass: AnsiString; const OwnerPass: AnsiString);
+var
+  protection: Integer;
+  op: AnsiString;
+begin
+  protection := 192;
+  if (canPrint in Permissions) then
+    Inc(protection, 4);
+  if (canModify in Permissions) then
+    Inc(protection, 8);
+  if (canCopy in Permissions) then
+    Inc(protection, 16);
+  if (canAannotForms in Permissions) then
+    Inc(protection, 32);
+
+  if (OwnerPass = '') then
+    op := CreateUniqID
+  else
+    op := OwnerPass;
+
+  Self.encrypted := true;
+  _generateencryptionkey(UserPass, op, protection);
+end;
+
+function TFPDFExt.CreateUniqID: AnsiString;
+var
+  guid: TGUID;
+begin
+  if (CreateGUID(guid) = 0) then
+  begin
+    Result := GUIDToString(guid);
+    Result := StringReplace(Result, '-', '', [rfReplaceAll]);
+    Result := copy(Result, 2, Length(Result)-2);
+  end
+  else
+    Result := '';
+end;
+
+procedure TFPDFExt._generateencryptionkey(const UserPass: AnsiString;
+  const OwnerPass: AnsiString; protection: Integer);
+var
+  up, op, tmp: AnsiString;
+begin
+  // Pad passwords
+  up := Copy(UserPass+Self.padding, 1, 32);
+  op := Copy(OwnerPass+Self.padding, 1, 32);
+  // Compute O value
+  Self.Ovalue := _Ovalue(up, op);
+  // Compute encyption key
+  tmp := _md5_16(up + Self.Ovalue + chr(protection) + chr(255)+chr(255)+chr(255));
+  Self.encryption_key := Copy(tmp,1,5);
+  // Compute U value
+  Self.Uvalue := _Uvalue();
+  // Compute P value
+  Self.Pvalue := -((protection xor 255)+1);
+end;
+
+function TFPDFExt._md5_16(AStr: AnsiString): AnsiString;
+begin
+  result := md5(AStr);
+end;
+
+// Compute key depending on object number where the encrypted data is stored
+function TFPDFExt._objectkey(vn: Integer): AnsiString;
+  function packVXxx(vn: Integer): AnsiString;
+  begin
+    // https://gist.github.com/pifantastic/290042/548987bc88501ad48cf3efdc71ef65e77b9d85eb
+    Result := chr(vn and $000000FF);
+    Result := Result + chr((vn shr 8) and $000000ff);
+    Result := Result + chr((vn shr 16) and $000000ff);
+    Result := Result + chr(0) + chr(0);
+  end;
+begin
+  Result := Copy(_md5_16( Self.encryption_key + packVXxx(vn)), 1, 10);
+end;
+
+function TFPDFExt._Ovalue(const UserPass: AnsiString; const OwnerPass: AnsiString): AnsiString;
+var
+  tmp, owner_RC4_key: AnsiString;
+begin
+  tmp := _md5_16(OwnerPass);
+  owner_RC4_key := copy(tmp, 1, 5);
+  Result := RC4(owner_RC4_key, UserPass);
+end;
+
+function TFPDFExt._Uvalue(): AnsiString;
+begin
+  Result := RC4(Self.encryption_key, Self.padding);
+end;
+
+function TFPDFExt.RC4(const AKey: AnsiString; const AData: AnsiString): AnsiString;
+var
+  kd: AnsiString;
+  st: array [0..255] of Byte;
+  l, j, i: Integer;
+  t, a, b, kp: Byte;
+  ch: Char;
+
+  Function DupeString(const AText: AnsiString; ACount: Integer): AnsiString;
+  var
+    i, l: Integer;
+  begin
+    Result:='';
+    if (ACount < 1) then
+      Exit;
+
+    l := length(AText);
+    SetLength(Result ,ACount*l);
+    for i := 0 to ACount-1 do
+      move(AText[1], Result[l*i+1], l);
+  end;
+
+begin
+  if (AKey <> Self.last_key) then
+  begin
+    l := Ceil(256/Length(AKey));
+    kd := DupeString(AKey, l);
+    for i := 0 to 255 do
+      st[i] := i;
+
+    j := 0;
+    for i := 0 to 255 do
+    begin
+      t := st[i];
+      j := (j + t + ord(kd[i+1])) mod 256;
+      st[i] := st[j];
+      st[j] := t;
+    end;
+    Self.last_key := AKey;
+    move(st[0], Self.last_state[0], 256);
+  end
+  else
+    move(Self.last_state[0], st[0], 256);
+
+  l := Length(AData);
+  a := 0;
+  b := 0;
+  Result :='';
+  SetLength(Result, l);
+  for i := 1 to l do
+  begin
+    a := (a+1) mod 256;
+    t := st[a];
+    b := (b+t) mod 256;
+    st[a] := st[b];
+    st[b] := t;
+    kp := st[(st[a]+st[b]) mod 256];
+    ch := chr(ord(AData[i]) xor kp);
+    move(ch, Result[i], 1)
+  end;
+end;
+{$EndIf}
+
+function TFPDFExt.FindNextTagPos(const AHtml: String; out ATag: String;
+  OffSet: Integer): Integer;
+var
+  p1, p2: Integer;
+begin
+  ATag := '';
+  p1 := PosEx('<', AHtml, OffSet);
+  if (p1 > 0) then
+  begin
+     p2 := PosEx('>', AHtml, p1);
+     if (p2 > 0) then
+       ATag := copy(AHtml, p1+1, p2-p1-1) ;
+  end;
+
+  Result := p1;
+end;
+
+procedure TFPDFExt.OpenTag(const ATag: String);
+var
+  s: String;
+  p1, p2: Integer;
+begin
+  // Opening tag
+  s := UpperCase(ATag);
+  if ((s = 'B') or (s = 'I') or (s = 'U')) then
+    SetStyle(s, true)
+  else if (s = 'BR') then
+    Ln(5)
+  else if (s[1] = 'A') then
+  begin
+    p1 := Pos('href="', ATag);
+    if (p1 > 0) then
+    begin
+      Inc(p1, 6);
+      p2 := PosEx('"', ATag+'"', p1+1);
+      Self.fHREF := copy(ATag, p1, p2-p1);
+    end;
+  end;
+end;
+
+procedure TFPDFExt.CloseTag(const ATag: String);
+var
+  s: String;
+begin
+  // Closing tag
+  s := UpperCase(ATag);
+  if ((s = 'B') or (s = 'I') or (s = 'U')) then
+    SetStyle(s, False)
+  else if (s = 'A') then
+    Self.fHREF := '';
+end;
+
+procedure TFPDFExt.SetDash(ABlack, AWhite: double);
+{ http://www.fpdf.org/en/script/script33.php - yukihiro_o }
+begin
+  if (ABlack > 0) and (AWhite > 0) then
+    _out(Format('[%.3f %.3f] 0 d', [ABlack * Self.k, AWhite * Self.k], FPDFFormatSetings))
+  else
+    _out('[] 0 d');
+end;
+
+procedure TFPDFExt.SetDash(AWidth: double);
+begin
+  SetDash(AWidth, AWidth);
+end;
+
+procedure TFPDFExt.SetStyle(const ATag: String; Enable: Boolean);
+var
+  p: Integer;
+begin
+  p := pos(ATag, Self.fFontStyle);
+  if Enable and (p = 0) then
+    Self.fFontStyle := Self.fFontStyle + ATag
+  else if (not Enable) and (p > 0) then
+    Delete(Self.fFontStyle, P, Length(ATag));
+
+  SetFont('',Self.fFontStyle);
+end;
+
+function TFPDFExt.TextBox(vX, vY, vWidht, vHeight: double;
+  const AText: string; const vAlign,  hAlign: char;
+  ABorder, AWordWrap, AScale: boolean; ALineSpacing: double): double;
+var
+  wText, wLine: string;
+  IncY, OldFontSize, AltText, x1, y1, Comp, MaxHeight, wIndent: double;
+  wN, i: integer;
+  wLines: TStringArray;
+begin
+  MaxHeight := vHeight;
+  wText := AText;
+  OldFontSize := Self.FontSizePt;
+  Result := vY;
+  wIndent := 0;
+  if vWidht < 0 then
+    Exit;
+  wText := Trim(AText);
+  if ABorder then
+    Self.RoundedRect(vX, vY, vWidht, vHeight, 0.8, '', 'D');
+  IncY := Self.FontSize;
+  if AWordWrap and (wText <> '') then
+  begin
+    while AScale and (GetStringHeight(wText, vWidht, ALineSpacing, wIndent) > MaxHeight) do
+    begin
+      if Self.FontSizePt > 8 then
+        Self.SetFont(Self.FontFamily, Self.FontStyle, Self.FontSizePt - 0.5)
+      else
+        Self.SetFont(Self.FontFamily, Self.FontStyle, Self.FontSizePt - 0.1);
+      IncY := Self.FontSize;
+    end;
+    wN := Self.WordWrap(wText, vWidht, wIndent);
+  end
+  else
+    wN := Length(Split(wText, sLineBreak));
+
+  AltText := (IncY * wN) + ((wN - 1) * ALineSpacing);
+
+  wLines := Split(wText, sLineBreak);
+
+  case vAlign of
+    'C': y1 := vY + IncY + ((vHeight - AltText) / 2) - 1;
+    'B': y1 := (vY + vHeight + IncY) - AltText - 1;
+  else
+    // Default: 'T' (top)
+    y1 := vY + IncY;
+  end;
+
+  for i := 0 to Length(wLines) - 1 do
+  begin
+    wLine := wLines[i];
+    wText := Trim(wLine);
+    Comp  := Self.GetStringWidth(wText);
+    if Comp > vWidht then
+    begin
+      if AScale then
+      begin
+        while Comp > vWidht do
+        begin
+          if Self.FontSizePt > 8 then
+            Self.SetFont(Self.FontFamily, Self.FontStyle, Self.FontSizePt - 0.5)
+          else
+            Self.SetFont(Self.FontFamily, Self.FontStyle, Self.FontSizePt - 0.1);
+          Comp := Self.GetStringWidth(wText);
+        end;
+      end
+      else
+        repeat
+          wText := Copy(wText, 1, Length(wText) - 1);
+          Comp := Self.GetStringWidth(wText);
+        until Comp <= vWidht;
+    end;
+
+    case hAlign of
+      'C': x1 := vX + ((vWidht - Comp) / 2);
+      'R': x1 := vX + vWidht - (Comp + 0.5);
+    else
+      // Default: 'L' (left)
+      x1 := vX + 0.5;
+    end;
+
+    x1 := x1 + wIndent;
+    Self.Text(x1, y1, wText);
+
+    if not AWordWrap and (Self.FontSizePt <> OldFontSize) then
+      Self.SetFont(Self.FontFamily, Self.FontStyle, OldFontSize);
+
+//    if Indent > 0 then
+//    begin
+//      x1 := x1 - Indent;
+//      Indent := 0;
+//    end;
+
+    y1 := y1 + IncY + ALineSpacing;
+    if ((MaxHeight > 0) and (y1 > (vY + (MaxHeight)))) then
+      break;
+  end;
+  Self.SetFont(Self.FontFamily, Self.FontStyle, OldFontSize);
+  Result := (y1 - vY) - IncY - ALineSpacing;
+end;
+
+procedure TFPDFExt.PutLink(const AURL, AText: String);
+begin
+  // Put a hyperlink
+  SetTextColor(0, 0, 255);
+  SetStyle('U', true);
+  Write(5, AText, AURL);
+  SetStyle('U', false);
+  SetTextColor(0);
+end;
+
 {$IfDef HAS_HTTP}
 procedure TFPDFExt.Image(const vFileOrURL: string; vX: double; vY: double;
   vWidth: double; vHeight: double; const vLink: string);
@@ -1184,8 +1730,27 @@ begin
 end;
 
 {$IfDef DelphiZXingQRCode}
-procedure TFPDFExt.QRCode(vX: double; vY: double; const QRCodeData: String;
-  DotSize: Double; AEncoding: TQRCodeEncoding);
+procedure TFPDFExt.QRCode(vX, vY, vQRCodeSize: double; const QRCodeData: String;
+  AEncoding: TQRCodeEncoding);
+var
+  qr: TDelphiZXingQRCode;
+  DotSize: double;
+begin
+  qr := TDelphiZXingQRCode.Create;
+  try
+    qr.Encoding  := AEncoding;
+    qr.QuietZone := 1;
+    qr.Data := widestring(QRCodeData);
+    DotSize := vQRCodeSize / qr.Rows;
+  finally
+    qr.Free;
+  end;
+
+  QRCode(vX, vY, QRCodeData, DotSize, AEncoding);
+end;
+
+function TFPDFExt.QRCode(vX: double; vY: double; const QRCodeData: String;
+  DotSize: Double; AEncoding: TQRCodeEncoding): double;
 var
   qr: TDelphiZXingQRCode;
   PDF2DMatrix: TFPDF2DMatrix;
@@ -1209,6 +1774,8 @@ begin
           PDF2DMatrix[r][c] := 0;
       end;
     end;
+
+    Result := qr.Rows * DotSize;
   finally
     qr.Free;
   end;
@@ -1216,6 +1783,27 @@ begin
   Draw2DMatrix(PDF2DMatrix, vX, vY, DotSize);
 end;
 {$EndIf}
+
+procedure TFPDFExt.DashedLine(vX1, vY1, vX2, vY2, ADashWidth: double);
+begin
+  SetDash(ADashWidth);
+  try
+    Line(vX1, vY1, vX2, vY2);
+  finally
+    SetDash(0);
+  end;
+end;
+
+procedure TFPDFExt.DashedRect(vX, vY, vWidht, vHeight: Double;
+  const vStyle: String; ADashWidth: double);
+begin
+  SetDash(ADashWidth);
+  try
+    Rect(vX, vY, vWidht, vHeight, vStyle);
+  finally
+    SetDash(0);
+  end;
+end;
 
 procedure TFPDFExt.Draw2DMatrix(AMatrix: TFPDF2DMatrix; vX: double; vY: double;
   DotSize: Double);
@@ -1258,6 +1846,25 @@ procedure TFPDFExt.Footer;
 begin
   if Assigned(fOnFooter) then
     fOnFooter(Self);
+end;
+
+function TFPDFExt.GetNumLines(const AText: string; AWidth,
+  AIndent: double): integer;
+var
+  LocalText: string;
+begin
+  LocalText := Trim(AText);
+  Result := WordWrap(LocalText, AWidth - 0.2, AIndent);
+end;
+
+function TFPDFExt.GetStringHeight(const AText: string; AWidth, ALineSpacing,
+  AIndent: double): double;
+var
+  NumLines: integer;
+begin
+  NumLines := GetNumLines(AText, AWidth, AIndent);
+  Result := RoundTo((NumLines * FontSize) + IfThen(NumLines > 1, (NumLines - 1) * ALineSpacing), -2);
+  Result := Result + 0.5;
 end;
 
 {$IfDef HAS_HTTP}
@@ -1325,6 +1932,46 @@ begin
   inherited _endpage;
 end;
 
+procedure TFPDFExt._putstream(const Adata: AnsiString);
+{$IfDef HAS_PROTECTION}
+var
+  s: AnsiString;
+{$EndIf}
+begin
+  {$IfDef HAS_PROTECTION}
+   if Self.encrypted then
+     s := RC4(_objectkey(Self.n), Adata)
+   else
+     s := Adata;
+
+   inherited _putstream(s);
+  {$Else}
+   inherited _putstream(Adata);
+  {$EndIf}
+end;
+
+function TFPDFExt._textstring(const AString: String): String;
+{$IfDef HAS_PROTECTION}
+var
+  s: AnsiString;
+{$EndIf}
+begin
+  {$IfDef HAS_PROTECTION}
+   // Format a text string
+   if (not _isascii(AString)) then
+     s := AnsiString(_UTF8toUTF16(AString))
+   else
+     s := AString;
+
+   if Self.encrypted then
+     s := RC4( _objectkey(Self.n), s);
+
+   Result := '('+_escape(s)+')';
+  {$Else}
+   Result := inherited _textstring(AString);
+  {$EndIf}
+end;
+
 procedure TFPDFExt._putresourcedict;
 var
   i, l: Integer;
@@ -1345,6 +1992,26 @@ procedure TFPDFExt._putresources;
 begin
   _putlayers;
   inherited _putresources;
+
+  if (Self.encrypted) then
+  begin
+    _newobj();
+    Self.enc_obj_id := self.n;
+    _put('<<');
+    _putencryption();
+    _put('>>');
+    _put('endobj');
+  end;
+end;
+
+procedure TFPDFExt._putencryption;
+begin
+  _put('/Filter /Standard');
+  _put('/V 1');
+  _put('/R 2');
+  _put('/O ('+_escape(Self.Ovalue)+')');
+  _put('/U ('+_escape(Self.Uvalue)+')');
+  _put('/P '+FloatToStr(Self.Pvalue));
 end;
 
 procedure TFPDFExt._putlayers;
@@ -1367,6 +2034,7 @@ var
   l, i: Integer;
 begin
   inherited _putcatalog;
+
   s := '';
   l_off := '';
   l := Length(Self.layers)-1;
@@ -1377,14 +2045,28 @@ begin
       l_off := l_off + IntToStr(Self.layers[i].n)+' 0 R ';
   end;
 
-  _put('/OCProperties <</OCGs ['+s+'] /D <</OFF ['+l_off+'] /Order ['+s+']>>>>');
-  if (Self.open_layer_pane) then
-    _put('/PageMode /UseOC');
+  if (s <> '') then
+  begin
+    _put('/OCProperties <</OCGs ['+s+'] /D <</OFF ['+l_off+'] /Order ['+s+']>>>>');
+    if (Self.open_layer_pane) then
+      _put('/PageMode /UseOC');
+  end;
+end;
+
+procedure TFPDFExt._puttrailer;
+begin
+  inherited _puttrailer;
+
+  if Self.encrypted then
+  begin
+    _put('/Encrypt '+IntToStr(Self.enc_obj_id)+' 0 R');
+    _put('/ID [()()]');
+  end;
 end;
 
 procedure TFPDFExt._enddoc;
 begin
-  if (Self.PDFVersion < 1.5) then
+  if (Self.PDFVersion < 1.5) and (Length(Self.layers) > 0) then
     Self.PDFVersion := 1.5;
 
   inherited _enddoc;

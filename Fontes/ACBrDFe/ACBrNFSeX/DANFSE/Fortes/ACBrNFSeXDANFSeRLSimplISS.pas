@@ -197,10 +197,8 @@ type
     RLLabel36: TRLLabel;
     RLLabel56: TRLLabel;
     RLLabel40: TRLLabel;
-    RLLabel38: TRLLabel;
     RLLabel106: TRLLabel;
     rllDataHoraImpressao: TRLLabel;
-    rlmDadosAdicionais: TRLMemo;
     rllCNAE: TRLLabel;
     rllIncentivador: TRLLabel;
     rllRecolhimento: TRLLabel;
@@ -253,6 +251,8 @@ type
     RLDraw4: TRLDraw;
     rlmDescricao: TRLMemo;
     rliPrestLogo: TRLImage;
+    RLLabel38: TRLLabel;
+    rlmDadosAdicionais: TRLMemo;
 
     procedure rlbCabecalhoBeforePrint(Sender: TObject; var PrintIt: Boolean);
     procedure rlbItensServicoBeforePrint(Sender: TObject; var PrintIt: Boolean);
@@ -283,7 +283,6 @@ implementation
 uses
   StrUtils, DateUtils,
   ACBrUtil.Base, ACBrUtil.Strings,
-  ACBrDFeUtil,
   ACBrNFSeX, ACBrNFSeXClass, ACBrNFSeXInterface,
   ACBrValidador, ACBrDFeReportFortes;
 
@@ -318,15 +317,15 @@ begin
   rlmDadosAdicionais.Lines.Clear;
 
   if fpNFSe.OutrasInformacoes <> '' then
-    rlmDadosAdicionais.Lines.Add(StringReplace(fpNFSe.OutrasInformacoes, FQuebradeLinha, #13#10, [rfReplaceAll,rfIgnoreCase]))
+    rlmDadosAdicionais.Lines.Add(fpNFSe.OutrasInformacoes)
   else
     if fpDANFSe.OutrasInformacaoesImp <> '' then
       rlmDadosAdicionais.Lines.Add(StringReplace(fpDANFSe.OutrasInformacaoesImp, FQuebradeLinha, #13#10, [rfReplaceAll,rfIgnoreCase]));
 
   if fpNFSe.InformacoesComplementares <> '' then
-    rlmDadosAdicionais.Lines.Add(StringReplace(fpNFSe.InformacoesComplementares, FQuebradeLinha, #13#10, [rfReplaceAll,rfIgnoreCase]));
+    rlmDadosAdicionais.Lines.Add(fpNFSe.InformacoesComplementares);
 
-  if ((pos('http://', LowerCase(fpNFSe.OutrasInformacoes)) > 0) or (pos('http://', LowerCase(fpNFSe.Link)) > 0) or (pos('https://', LowerCase(fpNFSe.Link)) > 0)) then
+  if fpNFSe.Link <> '' then
   begin
     rlmDadosAdicionais.Width := 643;
 
@@ -338,13 +337,7 @@ begin
     rlImgQrCode.SetBounds(648, 3, 90, 90);
     rlImgQrCode.BringToFront;
 
-    if pos('http://', LowerCase(fpNFSe.Link)) > 0 then
-      QRCodeData := Trim(MidStr(fpNFSe.Link, pos('http://', LowerCase(fpNFSe.Link)), Length(fpNFSe.Link)))
-    else if pos('https://', LowerCase(fpNFSe.Link)) > 0 then
-      QRCodeData := Trim(MidStr(fpNFSe.Link, pos('https://', LowerCase(fpNFSe.Link)), Length(fpNFSe.Link)))
-    else
-      QRCodeData := Trim(MidStr(fpNFSe.OutrasInformacoes, pos('http://', LowerCase(fpNFSe.OutrasInformacoes)), Length(fpNFSe.OutrasInformacoes)));
-
+    QRCodeData   := fpNFSe.Link;
     QRCode       := TDelphiZXingQRCode.Create;
     QRCodeBitmap := TBitmap.Create;
     try
@@ -373,7 +366,7 @@ begin
     end;
   end;
 
-//  rlmDadosAdicionais.Lines.EndUpdate;
+  rlmDadosAdicionais.Lines.EndUpdate;
 //  //rllDataHoraImpressao.Caption := Format(ACBrStr('DATA E HORA DA IMPRESSÃO: %s') , [FormatDateTime('dd/mm/yyyy hh:nn',Now)]);
 //  rllDataHoraImpressao.Caption := FormatDateTime('dd/mm/yyyy hh:nn',Now);
 //
@@ -391,9 +384,6 @@ begin
 end;
 
 procedure TfrlXDANFSeRLSimplISS.rlbCabecalhoBeforePrint(Sender: TObject; var PrintIt: Boolean);
-var
-  CodigoIBGE: Integer;
-  xUF: string;
 begin
   inherited;
 
@@ -413,12 +403,7 @@ begin
     rllNumeroRPS.Caption := IdentificacaoRps.Numero;
     rllNumNFSeSubstituida.Caption := NfseSubstituida;
 
-	// Será necessário uma analise melhor para saber em que condições devemos usar o código do municipio
-	// do tomador em vez do que foi informado em Serviço.
-    CodigoIBGE := StrToIntDef(Servico.CodigoMunicipio, 0);
-    xUF := '';
-
-    rllMunicipioPrestacaoServico.Caption := ObterNomeMunicipio(CodigoIBGE, xUF, '', False);
+    rllMunicipioPrestacaoServico.Caption := Servico.MunicipioPrestacaoServico;
 
     rllNFSeSerie.Caption := 'E';//SeriePrestacao; //estava pegando serie rps
   end;
@@ -429,8 +414,7 @@ procedure TfrlXDANFSeRLSimplISS.rlbHeaderItensBeforePrint(Sender: TObject;
 begin
   inherited;
   rlmDescricao.Lines.Clear;
-  rlmDescricao.Lines.Add(StringReplace(fpNFSe.Servico.Discriminacao,
-                          FQuebradeLinha, #13#10, [rfReplaceAll, rfIgnoreCase]));
+  rlmDescricao.Lines.Add(fpNFSe.Servico.Discriminacao);
 
   rllMsgTeste.Visible := (fpDANFSe.Producao = snNao);
   rllMsgTeste.Enabled := (fpDANFSe.Producao = snNao);
@@ -452,7 +436,7 @@ begin
   begin
     txtServicoQtde.Caption := FormatFloatBr(Quantidade);
     rlmServicoDescricao.Lines.Clear;
-    rlmServicoDescricao.Lines.Add(StringReplace(Descricao, FQuebradeLinha, #13#10, [rfReplaceAll, rfIgnoreCase]));
+    rlmServicoDescricao.Lines.Add(Descricao);
     txtServicoUnitario.Caption := FormatFloatBr(ValorUnitario);
 
     if ValorTotal = 0.0 then
@@ -549,11 +533,7 @@ begin
       rllValorServicos1.Caption       := FormatFloat(',0.00', ValorServicos);
       rllDescIncondicionado.Caption  := FormatFloat(',0.00', DescontoIncondicionado);
       rllDescCondicionado.Caption     := FormatFloat(',0.00', DescontoCondicionado);
-//      rllRetencoesFederais.Caption    := FormatFloat(',0.00', ValorPis +
-//                                                              ValorCofins +
-//                                                              ValorInss +
-//                                                              ValorIr +
-//                                                              ValorCsll);
+//      rllRetencoesFederais.Caption    := FormatFloat(',0.00', RetencoesFederais);
       rllOutrasRetencoes.Caption      := FormatFloat(',0.00', OutrasRetencoes);
 //      rllValorIssRetido.Caption       := FormatFloat(',0.00', ValorIssRetido);
       rllValorLiquido.Caption         := FormatFloat(',0.00', ValorLiquidoNfse);

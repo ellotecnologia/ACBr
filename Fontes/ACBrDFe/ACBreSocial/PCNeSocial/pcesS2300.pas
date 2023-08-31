@@ -806,6 +806,10 @@ begin
         trabalhador.Endereco.Exterior.CodPostal   := INIRec.ReadString(sSecao, 'codPostal', '');
       end;
 
+      sSecao := 'trabImig';
+      trabalhador.trabImig.tmpResid := StrTotpTmpResid(Ok, INIRec.ReadString(sSecao, 'tmpResid', EmptyStr));
+      trabalhador.trabImig.condIng  := StrTotpCondIng(Ok, INIRec.ReadString(sSecao, 'condIng', EmptyStr));
+
       sSecao := 'trabEstrangeiro';
       if INIRec.ReadString(sSecao, 'dtChegada', '') <> '' then
       begin
@@ -843,7 +847,7 @@ begin
           nmDep    := INIRec.ReadString(sSecao, 'nmDep', '');
           dtNascto := StringToDateTime(INIRec.ReadString(sSecao, 'dtNascto', '0'));
           cpfDep   := INIRec.ReadString(sSecao, 'cpfDep', '');
-          sexoDep  := INIRec.ReadString(sSecao, 'sexoDep', 'F');
+          sexoDep  := INIRec.ReadString(sSecao, 'sexoDep', '');
           depIRRF  := eSStrToSimNao(Ok, INIRec.ReadString(sSecao, 'depIRRF', 'S'));
           depSF    := eSStrToSimNao(Ok, INIRec.ReadString(sSecao, 'depSF', 'S'));
           incTrab  := eSStrToSimNao(Ok, INIRec.ReadString(sSecao, 'incTrab', 'S'));
@@ -865,8 +869,9 @@ begin
       infoTSVInicio.cadIni         := eSStrToSimNao(Ok, INIRec.ReadString(sSecao, 'cadIni', 'S'));
       infoTSVInicio.codCateg       := INIRec.ReadInteger(sSecao, 'codCateg', 0);
       infoTSVInicio.dtInicio       := StringToDateTime(INIRec.ReadString(sSecao, 'dtInicio', '0'));
+      infoTSVInicio.nrProcTrab     := INIRec.ReadString(sSecao, 'nrProcTrab', EmptyStr);
       infoTSVInicio.natAtividade   := eSStrToNatAtividade(Ok, INIRec.ReadString(sSecao, 'natAtividade', '1'));
-      infoTSVInicio.matricula      := INIRec.ReadString(sSecao, 'matricula', '');
+      infoTSVInicio.matricula      := INIRec.ReadString(sSecao, 'matricula', EmptyStr);
 
       sSecao := 'cargoFuncao';
       infoTSVInicio.infoComplementares.cargoFuncao.CodCargo    := INIRec.ReadString(sSecao, 'codCargo', '');
@@ -969,6 +974,15 @@ begin
           infoTSVInicio.infoComplementares.infoEstagiario.supervisorEstagio.cpfSupervisor := INIRec.ReadString(sSecao, 'cpfSupervisor', '');
           infoTSVInicio.infoComplementares.infoEstagiario.supervisorEstagio.nmSuperv      := INIRec.ReadString(sSecao, 'nmSuperv', '');
         end;
+      end;
+
+      sSecao := 'mudancaCPF';
+      if INIRec.ReadString(sSecao, 'cpfAnt', '') <> '' then
+      begin
+        infoTSVInicio.mudancaCPF.cpfAnt := INIRec.ReadString(sSecao, 'cpfAnt', EmptyStr);
+        infoTSVInicio.mudancaCPF.matricAnt := INIRec.ReadString(sSecao, 'matricAnt', EmptyStr);
+        infoTSVInicio.mudancaCPF.dtAltCPF := StringToDateTime(INIRec.ReadString(sSecao, 'dtAltCPF', '0'));
+        infoTSVInicio.mudancaCPF.observacao := INIRec.ReadString(sSecao, 'observacao', EmptyStr);
       end;
 
       sSecao := 'afastamento';

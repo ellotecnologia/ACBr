@@ -42,6 +42,8 @@ namespace ACBrLibNFSe.Demo
             SplashScreenManager.Show<FrmWait>();
             SplashScreenManager.ShowInfo(SplashInfo.Message, "Carregando...");
 
+            
+
             try
             {
                 cmbCidadeEmitente.EnumDataSource(CodigoMunicipio.NenhumaCidadeSelecionada);
@@ -52,6 +54,7 @@ namespace ACBrLibNFSe.Demo
                 cmbCrypt.EnumDataSource(SSLCryptLib.cryWinCrypt);
                 cmbHttp.EnumDataSource(SSLHttpLib.httpWinHttp);
                 cmbXmlSign.EnumDataSource(SSLXmlSignLib.xsLibXml2);
+                ACBrNFSe.Config.IniServicos = "";
 
                 // Altera as config de log
                 ACBrNFSe.Config.Principal.LogNivel = NivelLog.logParanoico;
@@ -106,9 +109,10 @@ namespace ACBrLibNFSe.Demo
                 ACBrNFSe.Config.FormaEmissao = cmbFormaEmissao.GetSelectedValue<TipoEmissao>();
                 ACBrNFSe.Config.RetirarAcentos = ckbRetirarAcentos.Checked;
                 ACBrNFSe.Config.SalvarGer = ckbSalvarArqeResp.Checked;
-                ACBrNFSe.Config.PathSalvar = txtLogs.Text;
+                ACBrNFSe.Config.PathSalvar = txtArqNFSe.Text;
                 ACBrNFSe.Config.MontarPathSchema = ckbMontarPathSchemas.Checked;
                 ACBrNFSe.Config.PathSchemas = txtSchemaPath.Text;
+                ACBrNFSe.Config.IniServicos = txtServicosIni.Text;
                 ACBrNFSe.Config.ConsultaLoteAposEnvio = ckbConsultarLoteAposEnvio.Checked;
                 ACBrNFSe.Config.ConsultaAposCancelar = ckbConsultarAposCancelar.Checked;
                 ACBrNFSe.Config.LayoutNFSe = cmbLayoutNFSe.GetSelectedValue<LayoutNFSe>();
@@ -138,7 +142,6 @@ namespace ACBrLibNFSe.Demo
 
                 //Arquivos
                 ACBrNFSe.Config.SalvarArq = ckbSalvarArqs.Checked;
-                ACBrNFSe.Config.PathNFSe = txtArqNFSe.Text;
                 ACBrNFSe.Config.SepararPorMes = ckbPastaMensal.Checked;
                 ACBrNFSe.Config.AdicionarLiteral = ckbAdicionarLiteralNomePastas.Checked;
                 ACBrNFSe.Config.EmissaoPathNFSe = ckbEmissaoPathNFSe.Checked;
@@ -164,6 +167,11 @@ namespace ACBrLibNFSe.Demo
                 ACBrNFSe.Config.Emitente.CNPJ = txtCNPJEmitente.Text;
                 ACBrNFSe.Config.Emitente.InscMun = txtInscMunicipalEmitente.Text;
                 ACBrNFSe.Config.Emitente.RazSocial = txtRazaoSocialEmitente.Text;
+                ACBrNFSe.Config.Emitente.WSUser = txtEmitenteUsuário.Text;
+                ACBrNFSe.Config.Emitente.WSSenha = txtEmitenteSenha.Text;
+                ACBrNFSe.Config.Emitente.WSFraseSecr = txtEmitenteFraseSecreta.Text;
+                ACBrNFSe.Config.Emitente.WSChaveAcesso = txtEmitenteChaveAcesso.Text;
+                ACBrNFSe.Config.Emitente.WSChaveAutoriz = txtEmitenteChaveAutorizacao.Text;
                 ACBrNFSe.Config.Emitente.Dados.NomeFantasia = txtFantasiaEmitente.Text;
                 ACBrNFSe.Config.Emitente.Dados.Telefone = txtFoneEmitente.Text;
                 ACBrNFSe.Config.Emitente.Dados.CEP = txtCEPEmitente.Text;
@@ -202,9 +210,10 @@ namespace ACBrLibNFSe.Demo
             cmbFormaEmissao.SetSelectedValue(ACBrNFSe.Config.FormaEmissao);
             ckbRetirarAcentos.Checked = ACBrNFSe.Config.RetirarAcentos;
             ckbSalvarArqeResp.Checked = ACBrNFSe.Config.SalvarGer;
-            txtLogs.Text = ACBrNFSe.Config.PathSalvar;
+            txtArqNFSe.Text = ACBrNFSe.Config.PathSalvar;
             ckbMontarPathSchemas.Checked = ACBrNFSe.Config.MontarPathSchema;
             txtSchemaPath.Text = ACBrNFSe.Config.PathSchemas;
+            txtServicosIni.Text = ACBrNFSe.Config.IniServicos;
             ckbConsultarLoteAposEnvio.Checked = ACBrNFSe.Config.ConsultaLoteAposEnvio;
             ckbConsultarAposCancelar.Checked = ACBrNFSe.Config.ConsultaAposCancelar;
             cmbLayoutNFSe.SetSelectedValue(ACBrNFSe.Config.LayoutNFSe);
@@ -242,7 +251,6 @@ namespace ACBrLibNFSe.Demo
 
             //Config Arquivos
             ckbSalvarArqs.Checked = ACBrNFSe.Config.SalvarArq;
-            txtArqNFSe.Text = ACBrNFSe.Config.PathNFSe;
             ckbPastaMensal.Checked = ACBrNFSe.Config.SepararPorMes;
             ckbAdicionarLiteralNomePastas.Checked = ACBrNFSe.Config.AdicionarLiteral;
             ckbEmissaoPathNFSe.Checked = ACBrNFSe.Config.EmissaoPathNFSe;
@@ -268,6 +276,11 @@ namespace ACBrLibNFSe.Demo
             txtCNPJEmitente.Text = ACBrNFSe.Config.Emitente.CNPJ;
             txtInscMunicipalEmitente.Text = ACBrNFSe.Config.Emitente.InscMun;
             txtRazaoSocialEmitente.Text = ACBrNFSe.Config.Emitente.RazSocial;
+            txtEmitenteUsuário.Text = ACBrNFSe.Config.Emitente.WSUser;
+            txtEmitenteSenha.Text = ACBrNFSe.Config.Emitente.WSSenha;
+            txtEmitenteFraseSecreta.Text = ACBrNFSe.Config.Emitente.WSFraseSecr;
+            txtEmitenteChaveAcesso.Text = ACBrNFSe.Config.Emitente.WSChaveAcesso;
+            txtEmitenteChaveAutorizacao.Text = ACBrNFSe.Config.Emitente.WSChaveAutoriz;
             txtFantasiaEmitente.Text = ACBrNFSe.Config.Emitente.Dados.NomeFantasia;
             txtFoneEmitente.Text = ACBrNFSe.Config.Emitente.Dados.Telefone;
             txtCEPEmitente.Text = ACBrNFSe.Config.Emitente.Dados.CEP;
@@ -343,7 +356,12 @@ namespace ACBrLibNFSe.Demo
             txtDadosPFX.Text = Convert.ToBase64String(dados);
         }
 
-        private void btnArqGTIN_Click(object sender, EventArgs e)
+        private void btnServicosIni_Click(object sender, EventArgs e)
+        {
+            txtServicosIni.Text = Helpers.OpenFile("Arquivos INI (*.ini)|*.pfx|Todos os Arquivos (*.*)|*.*");
+        }
+
+        private void btnArqNFSe_Click(object sender, EventArgs e)
         {
             txtArqNFSe.Text = Helpers.SelectFolder();
         }
@@ -543,7 +561,7 @@ namespace ACBrLibNFSe.Demo
                 if (InputBox.Show("Link NFSe", "Informe o Valor do Serviço", ref valorServico) != DialogResult.OK) return;
                 if (string.IsNullOrEmpty(valorServico)) return;
 
-                var ret = ACBrNFSe.LinkNFSE(numeroNFSe, codVerificacao, chaveAcesso, valorServico);
+                var ret = ACBrNFSe.LinkNFSe(numeroNFSe, codVerificacao, chaveAcesso, valorServico);
                 rtbRespostas.AppendText(ret);
             }
             catch (Exception exception)
@@ -556,11 +574,13 @@ namespace ACBrLibNFSe.Demo
         {
             try
             {
+                CheckNFSeLista();
+
                 var aLote = "1";
-                if (InputBox.Show("Gerar Lote EPS", "Número do Lote", ref aLote) != DialogResult.OK) return;
+                if (InputBox.Show("Gerar Lote RPS", "Número do Lote", ref aLote) != DialogResult.OK) return;
 
                 var qtdNaximaRPS = 1;
-                if (InputBox.Show("Gerar Lote EPS", "Quantidade Máxima RPS", ref qtdNaximaRPS) != DialogResult.OK) return;
+                if (InputBox.Show("Gerar Lote RPS", "Quantidade Máxima RPS", ref qtdNaximaRPS) != DialogResult.OK) return;
 
                 var ret = ACBrNFSe.GerarLote(aLote, qtdNaximaRPS, 0);
                 rtbRespostas.AppendText(ret);
@@ -630,7 +650,7 @@ namespace ACBrLibNFSe.Demo
                 var aLote = "";
                 if (InputBox.Show("Consultar Situação", "Número do Lote", ref aLote) != DialogResult.OK) return;
 
-                var ret = ACBrNFSe.ConsultarSitucao(protocolo, aLote);
+                var ret = ACBrNFSe.ConsultarSituacao(protocolo, aLote);
                 rtbRespostas.AppendText(ret);
             }
             catch (Exception exception)
@@ -702,10 +722,10 @@ namespace ACBrLibNFSe.Demo
         {
             try
             {
-                DateTime dataInicial = DateTime.Now;
+                var dataInicial = "dd/MM/yyyy";
                 if (InputBox.Show("Consultar NFSe Por Periodo", "Informe a Data Inicial", ref dataInicial) != DialogResult.OK) return;
 
-                DateTime dataFinal = DateTime.Now;
+                var dataFinal = "dd/MM/yyyy";
                 if (InputBox.Show("Consultar NFSe Por Periodo", "Informe a Data Final", ref dataFinal) != DialogResult.OK) return;
 
                 var pagina = 1;
@@ -717,7 +737,7 @@ namespace ACBrLibNFSe.Demo
                 var tipoPeriodo = 0;
                 if (InputBox.Show("Consultar NFSe Por Periodo", "Informe Tipo Periodo", ref tipoPeriodo) != DialogResult.OK) return;
 
-                var ret = ACBrNFSe.ConsultarNFSePorPeriodo(dataInicial, dataFinal, pagina, numeroLote, tipoPeriodo);
+                var ret = ACBrNFSe.ConsultarNFSePorPeriodo(DateTime.Parse(dataInicial), DateTime.Parse(dataFinal), pagina, numeroLote, tipoPeriodo);
                 rtbRespostas.AppendLine(ret);
             }
             catch (Exception exception)
@@ -730,14 +750,19 @@ namespace ACBrLibNFSe.Demo
         {
             try
             {
-                var protocolo = "";
-                if (InputBox.Show("Consultar NFSe Por RPS", "Número do Protocolo", ref protocolo) != DialogResult.OK) return;
+                var numeroRps = "";
+                if (InputBox.Show("Consultar NFSe Por RPS", "Número do Protocolo", ref numeroRps) != DialogResult.OK) return;
 
-                var numLote = "";
-                if (InputBox.Show("Consultar NFSe Por RPS", "Número do Lote", ref numLote) != DialogResult.OK) return;
+                var serie = "";
+                if (InputBox.Show("Consultar NFSe Por RPS", "Número do Lote", ref serie) != DialogResult.OK) return;
 
+                var tipo = "";
+                if (InputBox.Show("Consultar NFSe Por RPS", "Tipo", ref tipo) != DialogResult.OK) return;
 
-                var ret = ACBrNFSe.ConsultarLoteRps(protocolo, numLote);
+                var codVerificacao = "";
+                if (InputBox.Show("Consultar NFSe Por RPS", "Código de Verificação", ref codVerificacao) != DialogResult.OK) return;
+
+                var ret = ACBrNFSe.ConsultarNFSePorRps(numeroRps, serie, tipo, codVerificacao);
                 rtbRespostas.AppendText(ret);
             }
             catch (Exception exception)
@@ -778,16 +803,16 @@ namespace ACBrLibNFSe.Demo
                 var pagina = 1;
                 if (InputBox.Show("Consultar NFSe Serviço Prestado Por Numero", "Informe a Página", ref pagina) != DialogResult.OK) return;
 
-                DateTime dataInicial = DateTime.Now;
+                var dataInicial = "dd/MM/yyyy";
                 if (InputBox.Show("Consultar NFSe Serviço Prestado Por Numero", "Informe a Data Inicial", ref dataInicial) != DialogResult.OK) return;
 
-                DateTime dataFinal = DateTime.Now;
+                var dataFinal = "dd/MM/yyyy";
                 if (InputBox.Show("Consultar NFSe Serviço Prestado Por Numero", "Informe a Data Final", ref dataFinal) != DialogResult.OK) return;
 
                 var tipoPeriodo = 0;
                 if (InputBox.Show("Consultar NFSe Serviço Prestado Por Numero", "Informe Tipo Periodo", ref tipoPeriodo) != DialogResult.OK) return;
 
-                var ret = ACBrNFSe.ConsultarNFSeServicoPrestadoPorNumero(numero, pagina, dataInicial, dataFinal, tipoPeriodo);
+                var ret = ACBrNFSe.ConsultarNFSeServicoPrestadoPorNumero(numero, pagina, DateTime.Parse(dataInicial), DateTime.Parse(dataFinal), tipoPeriodo);
                 rtbRespostas.AppendText(ret);
             }
             catch (Exception exception)
@@ -809,16 +834,16 @@ namespace ACBrLibNFSe.Demo
                 var pagina = 1;
                 if (InputBox.Show("Consultar NFSe Serviço Prestado Por Tomador", "Informe a Página", ref pagina) != DialogResult.OK) return;
 
-                DateTime dataInicial = DateTime.Now;
+                var dataInicial = "dd/MM/yyyy";
                 if (InputBox.Show("Consultar NFSe Serviço Prestado Por Tomador", "Informe a Data Inicial", ref dataInicial) != DialogResult.OK) return;
 
-                DateTime dataFinal = DateTime.Now;
+                var dataFinal = "dd/MM/yyyy";
                 if (InputBox.Show("Consultar NFSe Serviço Prestado Por Tomador", "Informe a Data Final", ref dataFinal) != DialogResult.OK) return;
 
                 var tipoPeriodo = 0;
                 if (InputBox.Show("Consultar NFSe Serviço Prestado Por Tomador", "Informe Tipo Periodo", ref tipoPeriodo) != DialogResult.OK) return;
 
-                var ret = ACBrNFSe.ConsultarNFSeServicoPrestadoPorTomador(cnpj, inscMun, pagina, dataInicial, dataFinal, tipoPeriodo);
+                var ret = ACBrNFSe.ConsultarNFSeServicoPrestadoPorTomador(cnpj, inscMun, pagina, DateTime.Parse(dataInicial), DateTime.Parse(dataFinal), tipoPeriodo);
                 rtbRespostas.AppendText(ret);
             }
             catch (Exception exception)
@@ -831,10 +856,10 @@ namespace ACBrLibNFSe.Demo
         {
             try
             {
-                DateTime dataInicial = DateTime.Now;
+                var dataInicial = "dd/MM/yyyy";
                 if (InputBox.Show("Consultar NFSe Serviço Prestado Por Periodo", "Informe a Data Inicial", ref dataInicial) != DialogResult.OK) return;
 
-                DateTime dataFinal = DateTime.Now;
+                var dataFinal = "dd/MM/yyyy";
                 if (InputBox.Show("Consultar NFSe Serviço Prestado Por Periodo", "Informe a Data Final", ref dataFinal) != DialogResult.OK) return;
 
                 var pagina = 1;
@@ -843,7 +868,7 @@ namespace ACBrLibNFSe.Demo
                 var tipoPeriodo = 0;
                 if (InputBox.Show("Consultar NFSe Serviço Prestado Por Periodo", "Informe Tipo Periodo", ref tipoPeriodo) != DialogResult.OK) return;
 
-                var ret = ACBrNFSe.ConsultarNFSeServicoPrestadoPorPeriodo(dataInicial, dataFinal, pagina, tipoPeriodo);
+                var ret = ACBrNFSe.ConsultarNFSeServicoPrestadoPorPeriodo(DateTime.Parse(dataInicial), DateTime.Parse(dataFinal), pagina, tipoPeriodo);
                 rtbRespostas.AppendText(ret);
             }
             catch (Exception exception)
@@ -865,16 +890,16 @@ namespace ACBrLibNFSe.Demo
                 var pagina = 1;
                 if (InputBox.Show("Consultar NFSe Serviço Prestado Por Intermediário", "Informe a Página", ref pagina) != DialogResult.OK) return;
 
-                DateTime dataInicial = DateTime.Now;
+                var dataInicial = "dd/MM/yyyy";
                 if (InputBox.Show("Consultar NFSe Serviço Prestado Por Intermediário", "Informe a Data Inicial", ref dataInicial) != DialogResult.OK) return;
 
-                DateTime dataFinal = DateTime.Now;
+                var dataFinal = "dd/MM/yyyy";
                 if (InputBox.Show("Consultar NFSe Serviço Prestado Por Intermediário", "Informe a Data Final", ref dataFinal) != DialogResult.OK) return;
 
                 var tipoPeriodo = 0;
                 if (InputBox.Show("Consultar NFSe Serviço Prestado Por Intermediário", "Informe Tipo Periodo", ref tipoPeriodo) != DialogResult.OK) return;
 
-                var ret = ACBrNFSe.ConsultarNFSeServicoPrestadoPorIntermediario(cnpj, inscMun, pagina, dataInicial, dataFinal, tipoPeriodo);
+                var ret = ACBrNFSe.ConsultarNFSeServicoPrestadoPorIntermediario(cnpj, inscMun, pagina, DateTime.Parse(dataInicial), DateTime.Parse(dataFinal), tipoPeriodo);
                 rtbRespostas.AppendText(ret);
             }
             catch (Exception exception)
@@ -893,16 +918,16 @@ namespace ACBrLibNFSe.Demo
                 var pagina = 1;
                 if (InputBox.Show("Consultar NFSe Serviço Tomado Por Numero", "Informe a Página", ref pagina) != DialogResult.OK) return;
 
-                DateTime dataInicial = DateTime.Now;
+                var dataInicial = "dd/MM/yyyy";
                 if (InputBox.Show("Consultar NFSe Serviço Tomado Por Numero", "Informe a Data Inicial", ref dataInicial) != DialogResult.OK) return;
 
-                DateTime dataFinal = DateTime.Now;
+                var dataFinal = "dd/MM/yyyy";
                 if (InputBox.Show("Consultar NFSe Serviço Tomado Por Numero", "Informe a Data Final", ref dataFinal) != DialogResult.OK) return;
 
                 var tipoPeriodo = 0;
                 if (InputBox.Show("Consultar NFSe Serviço Tomado Por Numero", "Informe Tipo Periodo", ref tipoPeriodo) != DialogResult.OK) return;
 
-                var ret = ACBrNFSe.ConsultarNFSeServicoTomadoPorNumero(numero, pagina, dataInicial, dataFinal, tipoPeriodo);
+                var ret = ACBrNFSe.ConsultarNFSeServicoTomadoPorNumero(numero, pagina,DateTime.Parse(dataInicial), DateTime.Parse(dataFinal), tipoPeriodo);
                 rtbRespostas.AppendText(ret);
             } 
             catch (Exception exception)
@@ -924,16 +949,16 @@ namespace ACBrLibNFSe.Demo
                 var pagina = 1;
                 if (InputBox.Show("Consultar NFSe Serviço Tomado Por Prestador", "Informe a Página", ref pagina) != DialogResult.OK) return;
 
-                DateTime dataInicial = DateTime.Now;
+                var dataInicial = "dd/MM/yyyy";
                 if (InputBox.Show("Consultar NFSe Serviço Tomado Por Prestador", "Informe a Data Inicial", ref dataInicial) != DialogResult.OK) return;
 
-                DateTime dataFinal = DateTime.Now;
+                var dataFinal = "dd/MM/yyyy";
                 if (InputBox.Show("Consultar NFSe Serviço Tomado Por Prestador", "Informe a Data Final", ref dataFinal) != DialogResult.OK) return;
 
                 var tipoPeriodo = 0;
                 if (InputBox.Show("Consultar NFSe Serviço Tomado Por Prestador", "Informe Tipo Periodo", ref tipoPeriodo) != DialogResult.OK) return;
 
-                var ret = ACBrNFSe.ConsultarNFSeServicoTomadoPorPrestador(cnpj, inscMun, pagina, dataInicial, dataFinal, tipoPeriodo);
+                var ret = ACBrNFSe.ConsultarNFSeServicoTomadoPorPrestador(cnpj, inscMun, pagina, DateTime.Parse(dataInicial), DateTime.Parse(dataFinal), tipoPeriodo);
                 rtbRespostas.AppendText(ret);
             }
             catch (Exception exception)
@@ -955,16 +980,16 @@ namespace ACBrLibNFSe.Demo
                 var pagina = 1;
                 if (InputBox.Show("Consultar NFSe Serviço Tomado Por Tomador", "Informe a Página", ref pagina) != DialogResult.OK) return;
 
-                DateTime dataInicial = DateTime.Now;
+                var dataInicial = "dd/MM/yyyy";
                 if (InputBox.Show("Consultar NFSe Serviço Tomado Por Tomador", "Informe a Data Inicial", ref dataInicial) != DialogResult.OK) return;
 
-                DateTime dataFinal = DateTime.Now;
+                var dataFinal = "dd/MM/yyyy";
                 if (InputBox.Show("Consultar NFSe Serviço Tomado Por Tomador", "Informe a Data Final", ref dataFinal) != DialogResult.OK) return;
 
                 var tipoPeriodo = 0;
                 if (InputBox.Show("Consultar NFSe Serviço Tomado Por Tomador", "Informe Tipo Periodo", ref tipoPeriodo) != DialogResult.OK) return;
 
-                var ret = ACBrNFSe.ConsultarNFSeServicoTomadoPorTomador(cnpj, inscMun, pagina, dataInicial, dataFinal, tipoPeriodo);
+                var ret = ACBrNFSe.ConsultarNFSeServicoTomadoPorTomador(cnpj, inscMun, pagina, DateTime.Parse(dataInicial), DateTime.Parse(dataFinal), tipoPeriodo);
                 rtbRespostas.AppendText(ret);
             }
             catch (Exception exception)
@@ -977,10 +1002,10 @@ namespace ACBrLibNFSe.Demo
         {
             try
             {
-                DateTime dataInicial = DateTime.Now;
+                var dataInicial = "dd/MM/yyyy";
                 if (InputBox.Show("Consultar NFSe Serviço Tomado Por Periodo", "Informe a Data Inicial", ref dataInicial) != DialogResult.OK) return;
 
-                DateTime dataFinal = DateTime.Now;
+                var dataFinal = "dd/MM/yyyy";
                 if (InputBox.Show("Consultar NFSe Serviço Tomado Por Periodo", "Informe a Data Final", ref dataFinal) != DialogResult.OK) return;
 
                 var pagina = 1;
@@ -989,7 +1014,7 @@ namespace ACBrLibNFSe.Demo
                 var tipoPeriodo = 0;
                 if (InputBox.Show("Consultar NFSe Serviço Tomado Por Periodo", "Informe Tipo Periodo", ref tipoPeriodo) != DialogResult.OK) return;
 
-                var ret = ACBrNFSe.ConsultarNFSeServicoTomadoPorPeriodo(dataInicial, dataFinal, pagina, tipoPeriodo);
+                var ret = ACBrNFSe.ConsultarNFSeServicoTomadoPorPeriodo(DateTime.Parse(dataInicial), DateTime.Parse(dataFinal), pagina, tipoPeriodo);
                 rtbRespostas.AppendText(ret);
             }
             catch (Exception exception)
@@ -1011,16 +1036,16 @@ namespace ACBrLibNFSe.Demo
                 var pagina = 1;
                 if (InputBox.Show("Consultar NFSe Serviço Tomado Por Periodo", "Informe a Página", ref pagina) != DialogResult.OK) return;
 
-                DateTime dataInicial = DateTime.Now;
+                var dataInicial = "dd/MM/yyyy";
                 if (InputBox.Show("Consultar NFSe Serviço Tomado Por Periodo", "Informe a Data Inicial", ref dataInicial) != DialogResult.OK) return;
 
-                DateTime dataFinal = DateTime.Now;
+                var dataFinal = "dd/MM/yyyy";
                 if (InputBox.Show("Consultar NFSe Serviço Tomado Por Periodo", "Informe a Data Final", ref dataFinal) != DialogResult.OK) return;
 
                 var tipoPeriodo = 0;
                 if (InputBox.Show("Consultar NFSe Serviço Tomado Por Periodo", "Informe Tipo Periodo", ref tipoPeriodo) != DialogResult.OK) return;
 
-                var ret = ACBrNFSe.ConsultarNFSeServicoTomadoPorIntermediario(cnpj, inscMun, pagina, dataInicial, dataFinal, tipoPeriodo);
+                var ret = ACBrNFSe.ConsultarNFSeServicoTomadoPorIntermediario(cnpj, inscMun, pagina, DateTime.Parse(dataInicial), DateTime.Parse(dataFinal), tipoPeriodo);
                 rtbRespostas.AppendText(ret);
             }
             catch (Exception exception)
@@ -1041,6 +1066,137 @@ namespace ACBrLibNFSe.Demo
                 ACBrNFSe.CarregarINI(arquivoINI);
 
                 var ret = ACBrNFSe.Cancelar(arquivoINI);
+                rtbRespostas.AppendText(ret);
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show(exception.Message, @"Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnEnviarEvento_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                ACBrNFSe.LimparLista();
+
+                var arquivoINI = Helpers.OpenFile("Arquivo Ini NFSe (*.ini)|*.ini|Todos os Arquivos (*.*)|*.*");
+                if (string.IsNullOrEmpty(arquivoINI)) return;
+
+                ACBrNFSe.CarregarINI(arquivoINI);
+
+                var ret = ACBrNFSe.EnviarEvento(arquivoINI);
+                rtbRespostas.AppendText(ret);
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show(exception.Message, @"Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnConsultarDPSPorChave_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var chaveDPS = "";
+                if (InputBox.Show("Consultar DPS Por Chave", "Informe a Chave DPS", ref chaveDPS) != DialogResult.OK) return;
+
+                var ret = ACBrNFSe.ConsultarDPSPorChave(chaveDPS);
+                rtbRespostas.AppendText(ret);
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show(exception.Message, @"Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnConsultarNFSePorChave_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var chaveNFSe = "";
+                if (InputBox.Show("Consultar NFSe Por Chave", "Informe a Chave NFSe", ref chaveNFSe) != DialogResult.OK) return;
+
+                var ret = ACBrNFSe.ConsultarNFSePorChave(chaveNFSe);
+                rtbRespostas.AppendText(ret);
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show(exception.Message, @"Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnConsultarEvento_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var chave = "";
+                if (InputBox.Show("Consultar Evento", "Informe a Chave", ref chave) != DialogResult.OK) return;
+
+                var tipoEvento = 0;
+                if (InputBox.Show("Consultar Evento", "Informe o Tipo do Evento", ref tipoEvento) != DialogResult.OK) return;
+
+                var numeroSequencia = 0;
+                if (InputBox.Show("Consultar Evento", "Informe o Número Sequencia", ref numeroSequencia) != DialogResult.OK) return;
+
+                var ret = ACBrNFSe.ConsultarEvento(chave, tipoEvento, numeroSequencia);
+                rtbRespostas.AppendText(ret);
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show(exception.Message, @"Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnConsultarDFe_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var nsu = 0;
+                if (InputBox.Show("Consultar DFe", "Informe o NSU", ref nsu) != DialogResult.OK) return;
+
+                var ret = ACBrNFSe.ConsultarDFe(nsu);
+                rtbRespostas.AppendText(ret);
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show(exception.Message, @"Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnObterDANFSe_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var chaveNFSe = "";
+                if (InputBox.Show("Obter DANFSe", "Informe a Chave NFSe", ref chaveNFSe) != DialogResult.OK) return;
+
+                var ret = ACBrNFSe.ObterDANFSE(chaveNFSe);
+                rtbRespostas.AppendText(ret);
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show(exception.Message, @"Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnConsultarParametros_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var tipoParametroMunicipio = 0;
+                if (InputBox.Show("Consultar Parametros", "Informe o Parametro do Municipio", ref tipoParametroMunicipio) != DialogResult.OK) return;
+
+                var codigoServico = "";
+                if (InputBox.Show("Consultar Parametros", "Informe o Código de Serviço", ref codigoServico) != DialogResult.OK) return;
+
+                var competencia = "dd/MM/yyyy";
+                if (InputBox.Show("Consultar Parametros", "Informe a Competencia", ref competencia) != DialogResult.OK) return;
+
+                var numeroBeneficio = "";
+                if (InputBox.Show("Consultar Parametros", "Informe o Numero do Beneficio", ref numeroBeneficio) != DialogResult.OK) return;
+
+                var ret = ACBrNFSe.ConsultarParametros(tipoParametroMunicipio, codigoServico, DateTime.Parse(competencia), numeroBeneficio);
                 rtbRespostas.AppendText(ret);
             }
             catch (Exception exception)

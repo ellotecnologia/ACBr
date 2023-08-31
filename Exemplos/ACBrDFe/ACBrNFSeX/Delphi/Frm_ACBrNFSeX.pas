@@ -269,6 +269,8 @@ type
     lblLayout: TLabel;
     cbLayoutNFSe: TComboBox;
     Label49: TLabel;
+    btnLerINI: TButton;
+    btnConsultarLinkNFSe: TButton;
 
     procedure FormCreate(Sender: TObject);
     procedure btnSalvarConfigClick(Sender: TObject);
@@ -357,6 +359,8 @@ type
     procedure btnImprimirPNClick(Sender: TObject);
     procedure btnEnviaremailPNClick(Sender: TObject);
     procedure btnConsultarNFSePelaChavePNClick(Sender: TObject);
+    procedure btnLerINIClick(Sender: TObject);
+    procedure btnConsultarLinkNFSeClick(Sender: TObject);
   private
     { Private declarations }
     procedure GravarConfiguracao;
@@ -380,10 +384,16 @@ var
 implementation
 
 uses
-  strutils, math, TypInfo, DateUtils, synacode, blcksock, FileCtrl, Grids,
+  strutils, math, TypInfo, DateUtils,
+//  synacode,
+  blcksock,
+  FileCtrl,
+  Grids,
   IniFiles, Printers,
   pcnAuxiliar, pcnConversao,
-  ACBrDFeConfiguracoes, ACBrDFeSSL, ACBrDFeOpenSSL, ACBrDFeUtil,
+  ACBrDFeConfiguracoes, ACBrDFeSSL,
+//  ACBrDFeOpenSSL,
+  ACBrDFeUtil,
   ACBrNFSeXWebserviceBase,
   Frm_Status, Frm_SelecionarCertificado;
 
@@ -528,6 +538,7 @@ begin
       Numero := NumDFe;
       // Provedor Infisc - Layout Proprio
       cNFSe := GerarCodigoDFe(StrToIntDef(Numero, 0));
+      ModeloNFSe := '90';
 
       // no Caso dos provedores abaixo o campo SeriePrestacao devemos informar:
       {
@@ -581,6 +592,8 @@ begin
       DataEmissaoRPS := Now;
       // Provedor RLZ
       Vencimento := Now + 1;
+      // Provedor fintelISS
+      DataPagamento := Now;
 
       (*
         TnfseNaturezaOperacao = ( no1, no2, no3, no4, no5, no6, no7,
@@ -846,6 +859,7 @@ begin
       DeducaoMateriais := snSim;
       with Servico.Deducao.New do
       begin
+        DeducaoPor := dpValor;
         TipoDeducao := tdMateriais;
         ValorDeduzir := 10.00;
       end;
@@ -1377,6 +1391,53 @@ begin
   ChecarResposta(tmConsultarDFe);
 end;
 
+procedure TfrmACBrNFSe.btnConsultarLinkNFSeClick(Sender: TObject);
+var
+  InfConsultaLinkNFSe: TInfConsultaLinkNFSe;
+  xTitulo, xCompetencia, xNumeroNFSe, xSerieNFSe,
+  xNumeroRps, xSerieRps: string;
+begin
+  xTitulo := 'Consultar Link da NFSe';
+
+  if ACBrNFSeX1.Configuracoes.Geral.Provedor = proConam then
+  begin
+    xCompetencia := '07/07/2023';
+    if not(InputQuery(xTitulo, 'Data de Competencia:', xCompetencia)) then
+      exit;
+
+    xNumeroRps := '';
+    if not(InputQuery(xTitulo, 'Numero do RPS:', xNumeroRps)) then
+      exit;
+
+    xSerieRps := '';
+    if not(InputQuery(xTitulo, 'Serie do RPS:', xSerieRps)) then
+      exit;
+  end;
+
+  xNumeroNFSe := '';
+  if not(InputQuery(xTitulo, 'Numero da NFS-e:', xNumeroNFSe)) then
+    exit;
+
+  xSerieNFSe := '';
+  if not(InputQuery(xTitulo, 'Serie da NFS-e:', xSerieNFSe)) then
+    exit;
+
+  InfConsultaLinkNFSe := TInfConsultaLinkNFSe.Create;
+  try
+    InfConsultaLinkNFSe.Competencia := StrToDateDef(xCompetencia, 0);
+    InfConsultaLinkNFSe.NumeroNFSe := xNumeroNFSe;
+    InfConsultaLinkNFSe.SerieNFSe := xSerieNFSe;
+    InfConsultaLinkNFSe.NumeroRps := StrToIntDef(xNumeroRps, 1);
+    InfConsultaLinkNFSe.SerieRps := xSerieRps;
+
+    ACBrNFSeX1.ConsultarLinkNFSe(InfConsultaLinkNFSe);
+
+   ChecarResposta(tmConsultarLinkNFSe);
+  finally
+    InfConsultaLinkNFSe.Free;
+  end;
+end;
+
 procedure TfrmACBrNFSe.btnConsultarLoteClick(Sender: TObject);
 var
   Protocolo, Lote: String;
@@ -1749,7 +1810,7 @@ begin
 
   ACBrNFSeX1.ConsultarNFSePorChave(xChaveNFSe);
 
-  ChecarResposta(tmConsultarNFSePorRps);
+  ChecarResposta(tmConsultarNFSe);
 end;
 
 procedure TfrmACBrNFSe.btnConsultarNFSePeriodoClick(Sender: TObject);
@@ -1831,7 +1892,8 @@ begin
     end;
   end;
 
-  if ACBrNFSeX1.Configuracoes.Geral.Provedor in [proGiap, proGoverna, proPrescon] then
+  if ACBrNFSeX1.Configuracoes.Geral.Provedor in [proGiap, proGoverna,
+     proPrescon, proIntertec] then
   begin
     CodVerificacao := '123';
     if not (InputQuery('Consultar NFSe por RPS', 'Codigo Verificação:', CodVerificacao)) then
@@ -2808,6 +2870,32 @@ begin
     //  ShowMessage('ERRO: '+Erro)
 
     pgRespostas.ActivePageIndex := 0;
+  end;
+end;
+
+procedure TfrmACBrNFSe.btnLerINIClick(Sender: TObject);
+var
+  vNumLote: string;
+begin
+  OpenDialog1.Title := 'Selecione o Arquivo INI';
+  OpenDialog1.DefaultExt := '*.ini';
+  OpenDialog1.Filter :=
+    'Arquivos INI (*.ini)|*.ini|Todos os Arquivos (*.*)|*.*';
+  OpenDialog1.InitialDir := ACBrNFSeX1.Configuracoes.Arquivos.PathSalvar;
+
+  if OpenDialog1.Execute then
+  begin
+    ACBrNFSeX1.NotasFiscais.Clear;
+
+    // LoadFromIni - Usado para carregar o arquivo INI para gerar posteriormente
+    // o XML do Rps
+    ACBrNFSeX1.NotasFiscais.LoadFromIni(OpenDialog1.FileName);
+
+    vNumLote := '1';
+    if not(InputQuery('Gerar Lote de Envio', 'Numero do Lote', vNumLote)) then
+      exit;
+
+    ACBrNFSeX1.GerarLote(vNumLote);
   end;
 end;
 
@@ -3952,6 +4040,61 @@ begin
           end;
         end;
 
+      tmConsultarLinkNFSe:
+        begin
+          with ConsultaLinkNFSe do
+          begin
+            memoLog.Lines.Add('Método Executado: ' + MetodoToStr(tmConsultarLinkNFSe));
+            memoLog.Lines.Add(' ');
+            memoLog.Lines.Add('Parâmetros de Envio');
+            memoLog.Lines.Add('Competencia   : ' + DateToStr(InfConsultaLinkNFSe.Competencia));
+            memoLog.Lines.Add('Numero da NFSe: ' + InfConsultaLinkNFSe.NumeroNFSe);
+            memoLog.Lines.Add('Série da NFSe : ' + InfConsultaLinkNFSe.SerieNFSe);
+            memoLog.Lines.Add('Numero da NFSe: ' + IntToStr(InfConsultaLinkNFSe.NumeroRps));
+            memoLog.Lines.Add('Série da NFSe : ' + InfConsultaLinkNFSe.SerieRps);
+
+            memoLog.Lines.Add(' ');
+            memoLog.Lines.Add('Parâmetros de Retorno');
+            memoLog.Lines.Add('Situação: ' + Situacao);
+            memoLog.Lines.Add('Link    : ' + Link);
+            memoLog.Lines.Add('Sucesso : ' + BoolToStr(Sucesso, True));
+            memoLog.Lines.Add(' ');
+
+            LoadXML(XmlEnvio, WBXmlEnvio, 'temp1.xml');
+            LoadXML(XmlRetorno, WBXmlRetorno, 'temp2.xml');
+
+            if Erros.Count > 0 then
+            begin
+              memoLog.Lines.Add(' ');
+              memoLog.Lines.Add('Erro(s):');
+              for i := 0 to Erros.Count -1 do
+              begin
+                memoLog.Lines.Add('Código  : ' + Erros[i].Codigo);
+                memoLog.Lines.Add('Mensagem: ' + Erros[i].Descricao);
+                memoLog.Lines.Add('Correção: ' + Erros[i].Correcao);
+                memoLog.Lines.Add('---------');
+              end;
+            end;
+
+            if Alertas.Count > 0 then
+            begin
+              memoLog.Lines.Add(' ');
+              memoLog.Lines.Add('Alerta(s):');
+              for i := 0 to Alertas.Count -1 do
+              begin
+                memoLog.Lines.Add('Código  : ' + Alertas[i].Codigo);
+                memoLog.Lines.Add('Mensagem: ' + Alertas[i].Descricao);
+                memoLog.Lines.Add('Correção: ' + Alertas[i].Correcao);
+                memoLog.Lines.Add('---------');
+              end;
+            end;
+          end;
+        end;
+
+//    if ACBrNFSeX1.WebService.ConsultaLinkNFSe.Sucesso then
+//      Memo1.Lines.Add(ACBrNFSeX1.WebService.ConsultaLinkNFSe.LinkNFSe);
+
+
       tmCancelarNFSe:
         begin
           with CancelaNFSe do
@@ -4596,6 +4739,7 @@ begin
     ACBrNFSeX1.DANFSe.MargemEsquerda := 5;
     ACBrNFSeX1.DANFSe.MargemSuperior := 5;
     ACBrNFSeX1.DANFSe.MargemInferior := 5;
+    ACBrNFSeX1.DANFSE.ImprimeCanhoto := True;
   end;
 
   with ACBrNFSeX1.MAIL do

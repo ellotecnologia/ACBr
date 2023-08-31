@@ -59,8 +59,6 @@ type
     procedure InicializarServico; override;
     procedure DefinirURL; override;
     function GerarVersaoDadosSoap: String; override;
-    function GetVersaoV4: string;
-    function GetPrefixoServico: string;
     procedure FinalizarServico; override;
 
   public
@@ -643,22 +641,6 @@ begin
   Result := '<versaoDados>' + FPVersaoServico + '</versaoDados>';
 end;
 
-function TCTeWebService.GetPrefixoServico: string;
-begin
-  Result := 'CTe';
-
-  if FPConfiguracoesCTe.WebServices.UFCodigo in [14, 16, 26, 35] then
-    Result := 'Cte';
-end;
-
-function TCTeWebService.GetVersaoV4: string;
-begin
-  Result := 'V4';
-
-  if FPConfiguracoesCTe.WebServices.UFCodigo in [14, 16, 26, 35] then
-    Result := '';
-end;
-
 procedure TCTeWebService.FinalizarServico;
 begin
   { Sobrescrever apenas se necessário }
@@ -695,10 +677,10 @@ end;
 
 procedure TCTeStatusServico.DefinirServicoEAction;
 begin
-  if FPConfiguracoesCTe.Geral.VersaoDF <= ve300 then
+  if (FPConfiguracoesCTe.Geral.VersaoDF <= ve300) then
     FPServico := GetUrlWsd + 'CteStatusServico'
   else
-    FPServico := GetUrlWsd + GetPrefixoServico + 'StatusServico' + GetVersaoV4;
+    FPServico := GetUrlWsd + 'CTeStatusServicoV4';
 
   FPSoapAction := FPServico + '/cteStatusServicoCT';
 end;
@@ -750,11 +732,9 @@ var
   CTeRetorno: TRetConsStatServ;
 begin
   FPRetWS := SeparaDados(FPRetornoWS, 'cteStatusServicoCTResult');
+  FPRetWS := StringReplace(FPRetWS, 'retConsStatServCte', 'retConsStatServCTe', [rfReplaceAll]);
 
-  if FPConfiguracoesCTe.Geral.VersaoDF >= ve400 then
-    CTeRetorno := TRetConsStatServ.Create('CTe')
-  else
-    CTeRetorno := TRetConsStatServ.Create('Cte');
+  CTeRetorno := TRetConsStatServ.Create('CTe');
 
   try
     CTeRetorno.Leitor.Arquivo := ParseText(FPRetWS);
@@ -978,7 +958,7 @@ begin
           end
           else
           begin
-            FPServico := GetUrlWsd + 'CTeRecepcaoSinc' + GetVersaoV4;
+            FPServico := GetUrlWsd + 'CTeRecepcaoSincV4';
             FPSoapAction := FPServico + '/cteRecepcao';
           end;
         end
@@ -998,17 +978,17 @@ begin
         end
         else
         begin
-          FPServico := GetUrlWsd + GetPrefixoServico + 'RecepcaoOS' + GetVersaoV4;
+          FPServico := GetUrlWsd + 'CTeRecepcaoOSV4';
           FPSoapAction := FPServico + '/cteRecepcaoOS';
         end;
       end;
 
   else
     begin
-      if FPConfiguracoesCTe.Geral.VersaoDF <= ve300 then
+      if (FPConfiguracoesCTe.Geral.VersaoDF <= ve300) then
         FPServico := GetUrlWsd + 'CTeRecepcaoGTVe'
       else
-        FPServico := GetUrlWsd + GetPrefixoServico + 'RecepcaoGTVe' + GetVersaoV4;
+        FPServico := GetUrlWsd + 'CTeRecepcaoGTVeV4';
 
       FPSoapAction := FPServico + '/cteRecepcaoGTVe';
     end;
@@ -2099,10 +2079,10 @@ end;
 
 procedure TCTeConsulta.DefinirServicoEAction;
 begin
-  if FPConfiguracoesCTe.Geral.VersaoDF <= ve300 then
+  if (FPConfiguracoesCTe.Geral.VersaoDF <= ve300) then
     FPServico := GetUrlWsd + 'CteConsulta'
   else
-    FPServico := GetUrlWsd + GetPrefixoServico + 'Consulta' + GetVersaoV4;
+    FPServico := GetUrlWsd + 'CTeConsultaV4';
 
   FPSoapAction := FPServico + '/cteConsultaCT';
 end;
@@ -2161,40 +2141,12 @@ begin
       sCNPJ       := SeparaDados(XML, 'CNPJ');
       sPathEvento := PathWithDelim(FPConfiguracoesCTe.Arquivos.GetPathEvento(TipoEvento, sCNPJ));
 
+      XML := StringReplace(XML, 'ds:', '', [rfReplaceAll]);
+
       if FPConfiguracoesCTe.Arquivos.Salvar then
         FPDFeOwner.Gravar( aIDEvento + '-procEventoCTe.xml', XML, sPathEvento);
     end;
   end;
-(*
-  while Retorno <> '' do
-  begin
-    Inicio := Pos('<procEventoCTe', Retorno);
-    Fim    := Pos('</procEventoCTe>', Retorno) + 15;
-
-    aEvento := Copy(Retorno, Inicio, Fim - Inicio + 1);
-
-    Retorno := Copy(Retorno, Fim + 1, Length(Retorno));
-
-    aProcEvento := '<procEventoCTe versao="' + FVersao + '" xmlns="' + ACBRCTE_NAMESPACE + '">' +
-                      SeparaDados(aEvento, 'procEventoCTe') +
-                   '</procEventoCTe>';
-
-    Inicio := Pos('Id=', aProcEvento) + 6;
-    Fim    := 52;
-
-    if Inicio = 6 then
-      aIDEvento := FormatDateTime('yyyymmddhhnnss', Now)
-    else
-      aIDEvento := Copy(aProcEvento, Inicio, Fim);
-
-    TipoEvento  := StrToTpEventoCTe(Ok, SeparaDados(aEvento, 'tpEvento'));
-    sCNPJ       := SeparaDados(aEvento, 'CNPJ');
-    sPathEvento := PathWithDelim(FPConfiguracoesCTe.Arquivos.GetPathEvento(TipoEvento, sCNPJ));
-
-    if (aProcEvento <> '') then
-      FPDFeOwner.Gravar( aIDEvento + '-procEventoCTe.xml', aProcEvento, sPathEvento);
-  end;
-*)
 end;
 
 var
@@ -2443,7 +2395,6 @@ begin
                                      aEventos +
                                    '</procEventoCTe>' +
                                   '</CTeDFe>';
-
                   end;
                 finally
                   AProcCTe.Free;
@@ -2463,7 +2414,7 @@ begin
 
                   sPathCTe := PathWithDelim(FPConfiguracoesCTe.Arquivos.GetPathCTe(dhEmissao, CTe.Emit.CNPJ, CTe.emit.IE));
 
-                  if (FRetCTeDFe <> '') {and FPConfiguracoesCTe.Geral.Salvar} then
+                  if (FRetCTeDFe <> '') then
                     FPDFeOwner.Gravar( FCTeChave + '-CTeDFe.xml', FRetCTeDFe, sPathCTe);
 
                   // Salva o XML do CT-e assinado e protocolado
@@ -2477,13 +2428,10 @@ begin
                   // Salva na pasta baseado nas configurações do PathCTe
                   if (NomeXMLSalvo <> CalcularNomeArquivoCompleto()) then
                     GravarXML;
-
-                  // Salva o XML de eventos retornados ao consultar um CT-e
-//                  if ExtrairEventos then
-//                    SalvarEventos(aEventos);
                 end;
               end;
 
+              // Salva o XML de eventos retornados ao consultar um CT-e
               if ExtrairEventos then
                 SalvarEventos(CTeRetorno);
 
@@ -2494,17 +2442,10 @@ begin
       end
       else
       begin
+        // Salva o XML de eventos retornados ao consultar um CT-e
         if ExtrairEventos and FPConfiguracoesCTe.Arquivos.Salvar and
            (NaoEstaVazio(SeparaDados(FPRetWS, 'procEventoCTe'))) then
-        begin
-//          Inicio := Pos('<procEventoCTe', FPRetWS);
-//          Fim    := Pos('</retConsSitCTe', FPRetWS) -1;
-
-//          aEventos := Copy(FPRetWS, Inicio, Fim - Inicio + 1);
-
-          // Salva o XML de eventos retornados ao consultar um CT-e
           SalvarEventos(CTeRetorno);
-        end;
       end;
     end;
   finally
@@ -3047,10 +2988,10 @@ end;
 
 procedure TCTeEnvEvento.DefinirServicoEAction;
 begin
-  if FPConfiguracoesCTe.Geral.VersaoDF <= ve300 then
+  if (FPConfiguracoesCTe.Geral.VersaoDF <= ve300) then
     FPServico := GetUrlWsd + 'CteRecepcaoEvento'
   else
-    FPServico := GetUrlWsd + GetPrefixoServico + 'RecepcaoEvento' + GetVersaoV4;
+    FPServico := GetUrlWsd + 'CTeRecepcaoEventoV4';
 
   FPSoapAction := FPServico + '/cteRecepcaoEvento';
 end;
@@ -3309,6 +3250,13 @@ begin
                         '</evPrestDesacordo>';
         end;
 
+      schevCancPrestDesacordo:
+        begin
+          AXMLEvento := '<evCancPrestDesacordo xmlns="' + ACBRCTE_NAMESPACE + '">' +
+                          Trim(RetornarConteudoEntre(AXMLEvento, '<evCancPrestDesacordo>', '</evCancPrestDesacordo>')) +
+                        '</evCancPrestDesacordo>';
+        end;
+
       schevGTV:
         begin
           AXMLEvento := '<evGTV xmlns="' + ACBRCTE_NAMESPACE + '">' +
@@ -3328,6 +3276,20 @@ begin
           AXMLEvento := '<evCancCECTe xmlns="' + ACBRCTE_NAMESPACE + '">' +
                           Trim(RetornarConteudoEntre(AXMLEvento, '<evCancCECTe>', '</evCancCECTe>')) +
                         '</evCancCECTe>';
+        end;
+
+      schevIECTe:
+        begin
+          AXMLEvento := '<evIECTe xmlns="' + ACBRCTE_NAMESPACE + '">' +
+                          Trim(RetornarConteudoEntre(AXMLEvento, '<evIECTe>', '</evIECTe>')) +
+                        '</evIECTe>';
+        end;
+
+      schevCancIECTe:
+        begin
+          AXMLEvento := '<evCancIECTe xmlns="' + ACBRCTE_NAMESPACE + '">' +
+                          Trim(RetornarConteudoEntre(AXMLEvento, '<evCancIECTe>', '</evCancIECTe>')) +
+                        '</evCancIECTe>';
         end;
     end;
 

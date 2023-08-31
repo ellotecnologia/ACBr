@@ -569,7 +569,6 @@ object frmACBrNFSe: TfrmACBrNFSe
                 Height = 21
                 Style = csDropDownList
                 TabOrder = 11
-                OnChange = cbSSLLibChange
               end
             end
           end
@@ -1154,7 +1153,7 @@ object frmACBrNFSe: TfrmACBrNFSe
               Visible = False
             end
             object cbCidades: TComboBox
-              Left = 8
+              Left = 3
               Top = 264
               Width = 257
               Height = 21
@@ -1974,6 +1973,15 @@ object frmACBrNFSe: TfrmACBrNFSe
               TabOrder = 6
               OnClick = btnConsultarNFSeGenericoClick
             end
+            object btnConsultarLinkNFSe: TButton
+              Left = 186
+              Top = 72
+              Width = 177
+              Height = 25
+              Caption = 'Consultar Link NFSe'
+              TabOrder = 7
+              OnClick = btnConsultarLinkNFSeClick
+            end
           end
           object tsConsServPrest: TTabSheet
             Caption = 'Cons. Serv. Prestados'
@@ -2117,6 +2125,15 @@ object frmACBrNFSe: TfrmACBrNFSe
               Caption = 'Gerar Token'
               TabOrder = 0
               OnClick = btnGerarTokenClick
+            end
+            object btnLerINI: TButton
+              Left = 3
+              Top = 41
+              Width = 177
+              Height = 25
+              Caption = 'Ler Arq. INI e Gerar Rps'
+              TabOrder = 1
+              OnClick = btnLerINIClick
             end
           end
         end

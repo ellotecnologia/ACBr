@@ -44,6 +44,45 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+24/07/2023
+-- DoACBrNFSeUnit, ACBrMonitorConsts --
+[+] Adicionar os métodos LimparLoteRPS e TotalRPSLote visando auxiliar no uso de múltiplos RPS por Lote
+  Por: Diego Folieni #TK-4228
+
+10/07/2023
+-- ACBrMonitor1 --
+[*] Ajuste visando sanar erro de interpretação ao enviar o conteúdo do INI ao invés do caminho nos comandos
+    da NFSe que aceitam INI como parâmetro.
+   Por: Diego F
+
+05/07/2023
+-- ACBrMonitor1 --
+[*] Ajuste visando sanar obrigatoriedade de configurar o certificado para que salvasse as configurações.
+   Por: Diego F
+
+03/07/2023
+-- ACBrMonitor1 --
+[*] Ajuste visando corrigir problema de uninitialized function result ao usar 
+    o comando e enviar email para NFSe
+    Por: Diego F
+
+27/06/2023
+--- DoACBrNFSeUnit ---
+[*] Alterações visando uma possível correção para os problemas de retorno
+    do path no comando GerarLoteRps e uso do assunto e mensagem padrão no
+    envio de email.
+    Por: Italo Giurizzato Junior
+
+23/06/2023
+-- ACBrMonitorPLUS.iss --
+[*] Adiciona o arquivo de INI e os Schemas para a NFSe --
+  Por: Diego F
+
+15/06/2023
+--- DoETQUnit, ACBrMonitorConsts, ACBrMonitor (Manual) ---
+[+] Novo método ETQ.ImprimirQRCode
+    Por: Alexandre de Paula
+
 28/04/2023
 --- ACBrMonitorPLUS.iss ---
 [*] Correção diretório logos Boleto

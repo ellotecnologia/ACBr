@@ -60,7 +60,7 @@ type
     FDANFSE: TACBrNFSeXDANFSeClass;
     FNotasFiscais: TNotasFiscais;
     FStatus: TStatusACBrNFSe;
-    fpCidadesJaCarregadas: Boolean;
+//    fpCidadesJaCarregadas: Boolean; //Não precisa desse campo. Já existe o FPIniParamsCarregado.
     FWebService: TWebServices;
 
     function GetConfiguracoes: TConfiguracoesNFSe;
@@ -161,6 +161,8 @@ type
 
     procedure ConsultarNFSe;
 
+    procedure ConsultarLinkNFSe(AInfConsultaLinkNFSe: TInfConsultaLinkNFSe);
+
     procedure CancelarNFSe(aInfCancelamento: TInfCancelamento);
 
     procedure SubstituirNFSe(const ANumNFSe: String; const ASerieNFSe: String;
@@ -172,6 +174,9 @@ type
 
     // Usado pelos provedores que geram token por WebService
     procedure GerarToken;
+
+    //Exclusido do provedor ISSDSF
+    procedure ConsultarSeqRps;
 
     // Usado pelo provedor PadraoNacional
     procedure ConsultarDPSPorChave(const aChave: string);
@@ -219,8 +224,10 @@ uses
 
 {$IFDEF FPC}
  {$R ACBrNFSeXServicos.rc}
+ {$R TabServicos.rc}
 {$ELSE}
  {$R ACBrNFSeXServicos.res}
+ {$R TabServicos.res}
 {$ENDIF}
 
 { TACBrNFSeX }
@@ -232,7 +239,7 @@ begin
   FNotasFiscais := TNotasFiscais.Create(Self);
   FWebService := TWebservices.Create;
 
-  fpCidadesJaCarregadas := False;
+  //fpCidadesJaCarregadas := False;
 end;
 
 destructor TACBrNFSeX.Destroy;
@@ -371,11 +378,11 @@ end;
 
 procedure TACBrNFSeX.LerCidades;
 begin
-  if not fpCidadesJaCarregadas then
-  begin
+  //if not fpCidadesJaCarregadas then
+  //begin
     LerParamsIni(True);
-    fpCidadesJaCarregadas := True;
-  end;
+  //  fpCidadesJaCarregadas := True;
+  //end;
 end;
 
 procedure TACBrNFSeX.SetStatus(const stNewStatus: TStatusACBrNFSe);
@@ -577,6 +584,26 @@ begin
   FWebService.ConsultaNFSeporRps.NumeroRps := aChave;
 
   FProvider.ConsultaNFSeporRps;
+end;
+
+procedure TACBrNFSeX.ConsultarLinkNFSe(
+  AInfConsultaLinkNFSe: TInfConsultaLinkNFSe);
+var
+  InfConsulta: TInfConsultaLinkNFSe;
+begin
+  if not Assigned(FProvider) then
+    raise EACBrNFSeException.Create(ERR_SEM_PROVEDOR);
+
+  FWebService.ConsultaLinkNFSe.Clear;
+
+  InfConsulta := FWebService.ConsultaLinkNFSe.InfConsultaLinkNFSe;
+  InfConsulta.Competencia := AInfConsultaLinkNFSe.Competencia;
+  InfConsulta.NumeroNFSe := AInfConsultaLinkNFSe.NumeroNFSe;
+  InfConsulta.SerieNFSe := AInfConsultaLinkNFSe.SerieNFSe;
+  InfConsulta.NumeroRps := AInfConsultaLinkNFSe.NumeroRps;
+  InfConsulta.SerieRps := AInfConsultaLinkNFSe.SerieRps;
+
+  FProvider.ConsultaLinkNFSe;
 end;
 
 procedure TACBrNFSeX.ConsultarLoteRps(const AProtocolo, ANumLote: String);
@@ -930,6 +957,16 @@ begin
   FProvider.ConsultarParam;
 end;
 
+procedure TACBrNFSeX.ConsultarSeqRps;
+begin
+  if not Assigned(FProvider) then
+    raise EACBrNFSeException.Create(ERR_SEM_PROVEDOR);
+
+  FWebService.ConsultarSeqRps.Clear;
+
+  FProvider.ConsultarSeqRps;
+end;
+
 procedure TACBrNFSeX.ConsultarSituacao(const AProtocolo, ANumLote: String);
 begin
   if not Assigned(FProvider) then
@@ -1080,31 +1117,39 @@ end;
 function TACBrNFSeX.LinkNFSe(ANumNFSe: String; const ACodVerificacao,
   AChaveAcesso, AValorServico: String): String;
 var
-  Texto: String;
+  NFSe: TNFSe;
+  NFSeTemp: Boolean;
+  LinkNFSeParam: TLinkNFSeParam;
 begin
   if not Assigned(FProvider) then
     raise EACBrNFSeException.Create(ERR_SEM_PROVEDOR);
 
-  if Configuracoes.WebServices.AmbienteCodigo = 1 then
-    Texto := Provider.ConfigWebServices.Producao.LinkURL
+  LinkNFSeParam := TLinkNFSeParam.Create;
+  NFSeTemp := (FNotasFiscais.Count = 0);
+  if NFSeTemp then
+    NFSe := TNFSe.Create
   else
-    Texto := Provider.ConfigWebServices.Homologacao.LinkURL;
+    NFSe := FNotasFiscais.Items[0].NFSe;
 
-  // %CodVerif%     : Representa o Código de Verificação da NFS-e
-  // %NumeroNFSe%   : Representa o Numero da NFS-e
-  // %ChaveAcesso%  : Representa a Chave de Acesso
-  // %ValorServico% : Representa o Valor do Serviço
-  // %Cnpj%         : Representa o CNPJ do Emitente - Configuração
-  // %InscMunic%    : Representa a Inscrição Municipal do Emitente - Configuração
+  try
+    LinkNFSeParam.Ambiente := Configuracoes.WebServices.AmbienteCodigo - 1;
+    LinkNFSeParam.ProLinkURL := Provider.ConfigWebServices.Producao.LinkURL;
+    LinkNFSeParam.HomLinkURL := Provider.ConfigWebServices.Homologacao.LinkURL;
+    LinkNFSeParam.NumNFSe := ANumNFSe;
+    LinkNFSeParam.CodVerificacao := ACodVerificacao;
+    LinkNFSeParam.ChaveAcesso := AChaveAcesso;
+    LinkNFSeParam.ValorServico := AValorServico;
+    LinkNFSeParam.CNPJ := Configuracoes.Geral.Emitente.CNPJ;
+    LinkNFSeParam.InscMun := Configuracoes.Geral.Emitente.InscMun;
+    LinkNFSeParam.xMunicipio := Configuracoes.Geral.xMunicipio;
 
-  Texto := StringReplace(Texto, '%CodVerif%', ACodVerificacao, [rfReplaceAll]);
-  Texto := StringReplace(Texto, '%NumeroNFSe%', ANumNFSe, [rfReplaceAll]);
-  Texto := StringReplace(Texto, '%ChaveAcesso%', AChaveAcesso, [rfReplaceAll]);
-  Texto := StringReplace(Texto, '%ValorServico%', AValorServico, [rfReplaceAll]);
-  Texto := StringReplace(Texto, '%Cnpj%', Configuracoes.Geral.Emitente.CNPJ, [rfReplaceAll]);
-  Texto := StringReplace(Texto, '%InscMunic%', Configuracoes.Geral.Emitente.InscMun, [rfReplaceAll]);
+    Result := NFSe.LinkNFSe(LinkNFSeParam);
+  finally
+    if NFSeTemp and Assigned(NFSe) then
+      NFSe.Free;
 
-  Result := Texto;
+    LinkNFSeParam.Free;
+  end;
 end;
 
 end.

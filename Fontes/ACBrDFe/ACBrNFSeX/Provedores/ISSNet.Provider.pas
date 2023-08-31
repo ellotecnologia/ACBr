@@ -139,7 +139,7 @@ begin
   with ConfigGeral do
   begin
     Identificador := '';
-
+    {
     with TACBrNFSeX(FAOwner) do
     begin
       if Configuracoes.WebServices.AmbienteCodigo = 1 then
@@ -147,6 +147,7 @@ begin
       else
         CodIBGE := '999';
     end;
+    }
   end;
 
   with ConfigMsgDados do
@@ -837,7 +838,13 @@ begin
   Emitente := TACBrNFSeX(FAOwner).Configuracoes.Geral.Emitente;
   InfoCanc := Response.InfCancelamento;
 
-  xCodMun := IntToStr(TACBrNFSeX(FAOwner).Configuracoes.Geral.CodigoMunicipio);
+  with TACBrNFSeX(FAOwner) do
+  begin
+    if Configuracoes.WebServices.AmbienteCodigo = 1 then
+      xCodMun := IntToStr(Configuracoes.Geral.CodigoMunicipio)
+    else
+      xCodMun := '5002704';
+  end;
 
   with Params do
   begin

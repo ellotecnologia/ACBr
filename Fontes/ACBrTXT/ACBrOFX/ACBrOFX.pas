@@ -226,12 +226,14 @@ begin
               if (InfLine(sLine) = '0')
                 or (InfLine(sLine) = 'CREDIT')
                 or (InfLine(sLine) = 'DEP')
+                or (InfLine(sLine) = 'IN')
                 then
                   oItem.MovType := 'C'
               else
                 if (InfLine(sLine) = '1')
                   or (InfLine(sLine) = 'DEBIT')
-                  or (InfLine(sLine) = 'XFER') then
+                  or (InfLine(sLine) = 'XFER')
+                  or (InfLine(sLine) = 'OUT') then
                 oItem.MovType := 'D'
               else
                 oItem.MovType := 'OTHER';
@@ -244,11 +246,7 @@ begin
             if FindString('<CHKNUM>', sLine) or FindString('<CHECKNUM>', sLine) then
               oItem.Document := InfLine(sLine);
             if FindString('<MEMO>', sLine) then
-            begin
               oItem.Description := InfLine(sLine);
-              if Pos('REC', UpperCase(oItem.Description)) > 0 then
-                oItem.MovType := 'C';
-            end;
             if FindString('<TRNAMT>', sLine) then
             begin
               Amount := InfLine(sLine);
@@ -260,6 +258,9 @@ begin
             if oItem.Document = '' then
               oItem.Document := FirstWord(oItem.ID);
           end;
+
+          if (Pos('REC', UpperCase(oItem.Description)) > 0) and (oItem.Value >= 0) then
+            oItem.MovType := 'C';
         end;
       end;
       Inc(i);

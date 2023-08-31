@@ -229,6 +229,8 @@ uses
   ACBrBoletoRet_PenseBank_API,
   ACBrBoletoW_Santander,
   ACBrBoletoRet_Santander,
+  ACBrBoletoW_Santander_API,
+  ACBrBoletoRet_Santander_API,
   ACBrBoletoW_Inter_API,
   ACBrBoletoRet_Inter_API,
   ACBrBoletoW_Bancoob,
@@ -369,8 +371,15 @@ begin
       end;
     cobSantander :
       begin
-        FBoletoWSClass := TBoletoW_Santander.Create(Self);
-        FRetornoBanco  := TRetornoEnvio_Santander.Create(FBoleto);
+        if UpperCase(FBoleto.Configuracoes.WebService.VersaoDF) = 'V1' then
+        begin //API V1
+          FBoletoWSClass := TBoletoW_Santander_API.Create(Self);
+          FRetornoBanco  := TRetornoEnvio_Santander_API.Create(FBoleto);
+        end else
+        begin // WS
+          FBoletoWSClass := TBoletoW_Santander.Create(Self);
+          FRetornoBanco  := TRetornoEnvio_Santander.Create(FBoleto);
+        end;
       end;
     cobBancoInter :
       begin
@@ -427,7 +436,7 @@ begin
   if Assigned( FBoleto.Configuracoes.Arquivos.OnGravarLog ) then
     FBoleto.Configuracoes.Arquivos.OnGravarLog( AString, Tratado );
 
-  if not Tratado then
+  if Tratado or FBoleto.Configuracoes.Arquivos.LogRegistro then
     GravaLog( AString );
 
 end;
@@ -494,6 +503,7 @@ begin
         DoLog('Erro Envio: ' + ACBrStr( IntToStr(FBoletoWSClass.RetornoBanco.CodRetorno)
                              + sLineBreak + FBoletoWSClass.RetornoBanco.Msg
                              + sLineBreak + E.Message ));
+      raise;
     end;
   end;
 end;

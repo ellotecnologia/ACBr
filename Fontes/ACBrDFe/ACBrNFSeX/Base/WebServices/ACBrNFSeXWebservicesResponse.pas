@@ -85,6 +85,7 @@ type
     FNSU: Integer;
     FChaveDFe: string;
     FTipoDoc: string;
+    FidNota: string;
   public
     property NumeroNota: string read FNumeroNota write FNumeroNota;
     property CodigoVerificacao: string read FCodigoVerificacao write FCodigoVerificacao;
@@ -99,6 +100,7 @@ type
     property NSU: Integer read FNSU write FNSU;
     property ChaveDFe: string read FChaveDFe write FChaveDFe;
     property TipoDoc: string read FTipoDoc write FTipoDoc;
+    property idNota: string read FidNota write FidNota;
   end;
 
   TNFSeResumoCollection = class(TACBrObjectList)
@@ -352,6 +354,18 @@ type
     property InfConsultaNFSe: TInfConsultaNFSe read FInfConsultaNFSe write FInfConsultaNFSe;
   end;
 
+  TNFSeConsultaLinkNFSeResponse = class(TNFSeWebserviceResponse)
+  private
+    FMetodo: TMetodo;
+    FInfConsultaLinkNFSe: TInfConsultaLinkNFSe;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure Clear; override;
+    property Metodo: TMetodo read FMetodo write FMetodo;
+    property InfConsultaLinkNFSe: TInfConsultaLinkNFSe read FInfConsultaLinkNFSe;
+  end;
+
   TNFSeCancelaNFSeResponse = class(TNFSeWebserviceResponse)
   private
     FCodigoVerificacao: string;
@@ -483,6 +497,24 @@ type
     property NumeroBeneficio: string read FNumeroBeneficio write FNumeroBeneficio;
     property Parametros: TStrings read FParametros write FParametros;
 
+  end;
+
+  TNFSeConsultarSeqRpsResponse = class(TNFSeWebServiceResponse)
+  private
+    FCodCid: string;
+    FIMPrestador: string;
+    FCPFCNPJRemetente: string;
+    FNroUltimoRps: Integer;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure Clear; override;
+
+    property CodCid: string read FCodCid write FCodCid;
+    property IMPrestador: string read FIMPrestador write FIMPrestador;
+    property CPFCNPJRemetente: string read FCPFCNPJRemetente write FCPFCNPJRemetente;
+    property NroUltimoRps: Integer read FNroUltimoRps write FNroUltimoRps;
   end;
 
 implementation
@@ -1014,6 +1046,55 @@ begin
   FParametros.Free;
 
   inherited Destroy;
+end;
+
+{ TNFSeConsultarSeqRpsResponse }
+
+procedure TNFSeConsultarSeqRpsResponse.Clear;
+begin
+  inherited;
+  FCodCid := '';
+  FIMPrestador := '';
+  FCPFCNPJRemetente := '';
+  FNroUltimoRps := 0;
+end;
+
+constructor TNFSeConsultarSeqRpsResponse.Create;
+begin
+  inherited Create;
+end;
+
+destructor TNFSeConsultarSeqRpsResponse.Destroy;
+begin
+  inherited Destroy;
+end;
+
+{ TNFSeConsultaLinkNFSeResponse }
+
+procedure TNFSeConsultaLinkNFSeResponse.Clear;
+begin
+  inherited Clear;
+  FMetodo := tmConsultarLinkNFSe;
+
+  if Assigned(FInfConsultaLinkNFSe) then
+    FreeAndNil(FInfConsultaLinkNFSe);
+
+  FInfConsultaLinkNFSe := TInfConsultaLinkNFSe.Create;
+end;
+
+constructor TNFSeConsultaLinkNFSeResponse.Create;
+begin
+  inherited Create;
+
+  Clear;
+end;
+
+destructor TNFSeConsultaLinkNFSeResponse.Destroy;
+begin
+  if Assigned(FInfConsultaLinkNFSe) then
+    FreeAndNil(FInfConsultaLinkNFSe);
+
+  inherited;
 end;
 
 end.

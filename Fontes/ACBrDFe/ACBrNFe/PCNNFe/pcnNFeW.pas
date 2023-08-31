@@ -155,8 +155,6 @@ type
 
     procedure AjustarMunicipioUF(out xUF: String; out xMun: String; out cMun: Integer;
       cPais: Integer; const vxUF, vxMun: String; vcMun: Integer);
-
-    function ObterTipoCampo_TDec_0304Max100Opc(const Valor: Variant): TpcnTipoCampo;
   public
     constructor Create(AOwner: TNFe);
     destructor Destroy; override;
@@ -236,16 +234,6 @@ end;
 function TNFeW.ObterNomeArquivo: String;
 begin
   Result := OnlyNumber(NFe.infNFe.ID) + '-nfe.xml';
-end;
-
-function TNFeW.ObterTipoCampo_TDec_0304Max100Opc(const Valor: Variant): TpcnTipoCampo;
-begin
-  if (Valor = 0) or ((Valor < 1) and ((Trunc(Double(Valor) * 10000) mod 10) < 1)) then
-    Result := tcDe3
-  else if Valor = 100 then
-    Result := tcInt
-  else
-    Result := tcDe4;
 end;
 
 function TNFeW.GerarXml: Boolean;
@@ -333,8 +321,11 @@ begin
      (*********)'<tpAmb>'+TpAmbToStr(NFe.procNFe.tpAmb)+'</tpAmb>'+
      (*********)'<verAplic>'+NFe.procNFe.verAplic+'</verAplic>'+
      (*********)'<chNFe>'+NFe.procNFe.chNFe+'</chNFe>'+
-     (*********)'<dhRecbto>'+FormatDateTime('yyyy-mm-dd"T"hh:nn:ss',NFe.procNFe.dhRecbto)+
-                             IIf(FNFe.infNFe.Versao >= 3.10, GetUTC(CodigoParaUF(FNFe.Ide.cUF),NFe.procNFe.dhRecbto),'')+'</dhRecbto>'+
+     (*********)'<dhRecbto>'+
+                   IIf(FNFe.infNFe.Versao >= 3.10,
+                     DateTimeWithTimeZone(NFe.procNFe.dhRecbto, FNFe.Ide.cUF),
+                     FormatDateTime('yyyy-mm-dd"T"hh:nn:ss', AjustarDataHoraParaUf(NFe.procNFe.dhRecbto, FNFe.Ide.cUF)))+
+                '</dhRecbto>'+
      (*********)'<nProt>'+NFe.procNFe.nProt+'</nProt>'+
      (*********)'<digVal>'+NFe.procNFe.digVal+'</digVal>'+
      (*********)'<cStat>'+IntToStr(NFe.procNFe.cStat)+'</cStat>'+
@@ -409,10 +400,10 @@ begin
 
   if NFe.infNFe.Versao >= 3 then
    begin
-     Gerador.wCampo(tcStr, 'B09', 'dhEmi   ', 25, 25, 1, DateTimeTodh(NFe.ide.dEmi) + GetUTC(CodigoParaUF(NFe.ide.cUF), NFe.ide.dEmi), DSC_DEMI);
+     Gerador.wCampo(tcStr, 'B09', 'dhEmi   ', 25, 25, 1, DateTimeWithTimeZone(NFe.ide.dEmi, NFe.ide.cUF), DSC_DEMI);
 
      if (NFe.ide.modelo = 55) and (NFe.ide.dSaiEnt <> 0) then
-       Gerador.wCampo(tcStr, 'B10', 'dhSaiEnt', 25, 25, 0, DateTimeTodh(NFe.ide.dSaiEnt) + GetUTC(CodigoParaUF(NFe.ide.cUF), NFe.ide.dSaiEnt), DSC_DSAIENT);
+       Gerador.wCampo(tcStr, 'B10', 'dhSaiEnt', 25, 25, 0, DateTimeWithTimeZone(NFe.ide.dSaiEnt, NFe.ide.cUF), DSC_DSAIENT);
    end
   else
    begin
@@ -457,7 +448,7 @@ begin
   if (NFe.Ide.dhCont > 0) or (NFe.Ide.xJust <> '') then
    begin
     if NFe.infNFe.Versao >= 3 then
-       Gerador.wCampo(tcStr, 'B28', 'dhCont ', 25, 25, 1, DateTimeTodh(NFe.ide.dhCont) + GetUTC(CodigoParaUF(NFe.ide.cUF), NFe.ide.dhCont), DSC_DHCONT)
+       Gerador.wCampo(tcStr, 'B28', 'dhCont ', 25, 25, 1, DateTimeWithTimeZone(NFe.ide.dhCont, NFe.ide.cUF), DSC_DHCONT)
     else
        Gerador.wCampo(tcStr, 'B28', 'dhCont ', 19, 19, 1, DateTimeTodh(NFe.Ide.dhCont), DSC_DHCONT);
 
@@ -1276,7 +1267,7 @@ begin
       if NFe.Det[i].Prod.comb.encerrante.nBico > 0 then
         GerarDetProdCombencerrante(i);
 
-      Gerador.wCampo(ObterTipoCampo_TDec_0304Max100Opc(NFe.Det[i].Prod.comb.pBio), 'LA17', 'pBio', 01,  5, 0, NFe.Det[i].Prod.comb.pBio, DSC_PBIO);
+      Gerador.wCampo(tcDe4, 'LA17', 'pBio', 01, 07, 0, NFe.Det[i].Prod.comb.pBio, DSC_PBIO);
 
       if NFe.Det[i].Prod.comb.origComb.Count > 0 then
         GerarDetProdCombencerranteorigComb(i);
@@ -1326,8 +1317,7 @@ begin
     Gerador.wCampo(tcInt, 'LA20', 'cUFOrig', 2, 2, 1,
       NFe.Det[i].Prod.comb.origComb[j].cUFOrig, DSC_CUF);
 
-    Gerador.wCampo(ObterTipoCampo_TDec_0304Max100Opc(NFe.Det[i].Prod.comb.origComb[j].pOrig),
-      'LA21', 'pOrig ', 1, 5, 1, NFe.Det[i].Prod.comb.origComb[j].pOrig, DSC_PORIG);
+    Gerador.wCampo(tcDe4, 'LA21', 'pOrig ', 1, 7, 1, NFe.Det[i].Prod.comb.origComb[j].pOrig, DSC_PORIG);
 
     Gerador.wGrupo('/origComb');
   end;
@@ -1502,7 +1492,7 @@ begin
                 Gerador.wCampo(tcDe4, 'N15', 'qBCMono     ', 01, 15, 0, NFe.Det[i].Imposto.ICMS.qBCMono, DSC_QBCMONO);
                 Gerador.wCampo(tcDe4, 'N15', 'adRemICMS   ', 01, 5, 0, NFe.Det[i].Imposto.ICMS.adRemICMS, DSC_ADREMICMS);
                 Gerador.wCampo(tcDe2, 'N17', 'vICMSMonoOp ', 01, 15, 0, NFe.Det[i].Imposto.ICMS.vICMSMonoOp, DSC_VICMSMONOOP);
-                Gerador.wCampo(tcDe4, 'N17', 'pDif        ', 01, 5, 0, NFe.Det[i].Imposto.ICMS.pDif, DSC_PDIF);
+                Gerador.wCampo(tcDe4, 'N17', 'pDif        ', 01, 15, 0, NFe.Det[i].Imposto.ICMS.pDif, DSC_PDIF);
                 Gerador.wCampo(tcDe2, 'N17', 'vICMSMonoDif', 01, 15, 0, NFe.Det[i].Imposto.ICMS.vICMSMonoDif, DSC_VICMSMONODIF);
                 Gerador.wCampo(tcDe2, 'N17', 'vICMSMono   ', 01, 15, 0, NFe.Det[i].Imposto.ICMS.vICMSMono, DSC_VICMSMONO);
               end;

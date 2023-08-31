@@ -88,7 +88,6 @@ type
     txtCNPJCedentePix: TRLLabel;
     txtValorPix: TRLLabel;
     RLBandPix: TRLBand;
-    RLDraw1: TRLDraw;
     RLDraw10: TRLDraw;
     RLDraw11: TRLDraw;
     RLDraw119: TRLDraw;
@@ -253,7 +252,6 @@ type
     txtNomeSacadoCarne: TRLMemo;
     txtNumeroDocumentoCarne: TRLLabel;
     txtOrientacoesBanco: TRLMemo;
-    RLMemo2: TRLMemo;
     txtDesconto5: TRLLabel;
     txtMoraMulta4: TRLLabel;
     txtNumeroBanco: TRLLabel;
@@ -1257,6 +1255,11 @@ type
     RLDraw302: TRLDraw;
     RLDraw303: TRLDraw;
     RLDraw298: TRLDraw;
+    imgQrCodePixReciboTopo: TRLImage;
+    imgQrCodePixFaturaDetail: TRLImage;
+    imgQrCodePixLayoutBoleto: TRLImage;
+    imgQrCodePixCarneA5: TRLImage;
+    imgQrCodePixServicos: TRLImage;
     procedure BoletoCarneBeforePrint ( Sender: TObject; var PrintIt: boolean ) ;
     procedure BoletoCarneDataCount ( Sender: TObject; var DataCount: integer ) ;
     procedure BoletoCarneDataRecord ( Sender: TObject; RecNo: integer;
@@ -1316,7 +1319,7 @@ type
      fBoletoFC: TACBrBoletoFCFortes;
      fIndice: Integer;
      function GetACBrTitulo: TACBrTitulo;
-
+     procedure printEMVPix(const AEMV : String; out ASender : TRLImage);
     { Private declarations }
   public
     { Public declarations }
@@ -1844,6 +1847,8 @@ begin
      imgCodigoBarra.Margins.LeftMargin := 5;
      txtLinhaDigitavel.Caption       := LinhaDigitavel;
      txtInstrucoes3.Lines.Text       := txtInstrucoes2.Lines.Text;
+     if not RLBandPix.Visible then
+        printEMVPix(Titulo.QrCode.emv, imgQrCodePixLayoutBoleto);
 
    end;
 end;
@@ -1915,8 +1920,9 @@ begin
       txtEndSacado.Caption            := Titulo.Sacado.Logradouro + ' '+
                                          Titulo.Sacado.Numero + ' ' + Titulo.Sacado.Complemento +
                                          ' ' + Titulo.Sacado.Bairro;
-      txtCidadeSacado.Caption         := Titulo.Sacado.CEP + ' '+Titulo.Sacado.Cidade +
-                                         ' '+Titulo.Sacado.UF;
+      txtCidadeSacado.Caption         := Titulo.Sacado.Cidade +
+                                         ' '+Titulo.Sacado.UF +
+                                         ' '+Titulo.Sacado.CEP;
       txtCPF.Caption                  := 'CPF/CNPJ: '+ FormatarCNPJouCPF(Titulo.Sacado.CNPJCPF);
       txtCPFCarne2.Caption            := FormatarCNPJouCPF(Titulo.Sacado.CNPJCPF);
       mIntrucoes.Lines.Text           := MensagemPadrao.Text;
@@ -1927,16 +1933,7 @@ begin
       imgBarrasCarne.Caption := CodBarras;
       txtOrientacoesBancoCarne.Lines.Text:=Banco.OrientacoesBanco.Text;
 
-    if not EstaVazio(Trim(Titulo.QrCode.emv)) then
-    begin
-      imgQRCodePixCarne.Visible := True;
-      PintarQRCode( Titulo.QrCode.emv, imgQRCodePixCarne.Picture.Bitmap, qrAuto );
-    end
-    else
-    begin
-      imgQRCodePixCarne.Visible := False;
-    end;
-
+      printEMVPix(Titulo.QrCode.emv, imgQRCodePixCarne);
 
       with Titulo.Sacado.SacadoAvalista do
       begin
@@ -2097,7 +2094,10 @@ begin
       imgBarrasRecTop1.AutoSize        := False;
       imgBarrasRecTop1.Width           := 432;
       imgBarrasRecTop1.Caption         := CodBarras;
-	  imgBarrasRecTop1.Margins.LeftMargin := 5; 
+      imgBarrasRecTop1.Margins.LeftMargin := 5;
+
+      printEMVPix(Titulo.QrCode.emv, imgQrCodePixReciboTopo);
+
    end;
 end;
 
@@ -2116,20 +2116,7 @@ begin
     txtEnderecoPIX.Caption        := EnderecoCed;
     txtValorPix.Caption           := FormatFloatBr(Titulo.ValorDocumento,',R$ 0.00');
 
-    if not EstaVazio(Trim(Titulo.QrCode.emv)) then
-    begin
-      imgQRCodePix.Visible := True;
-      lblPaguePix.Visible := True;
-      PintarQRCode( Titulo.QrCode.emv, imgQRCodePix.Picture.Bitmap, qrAuto );
-      lblCopiaeCola.Visible := True;
-      lblCopiaeCola.Caption := Titulo.QrCode.emv;
-    end
-    else
-    begin
-      imgQRCodePix.Visible := False;
-      lblPaguePix.Visible := False;
-      lblCopiaeCola.Visible := False;
-    end;
+    printEMVPix(Titulo.QrCode.emv, imgQRCodePix);
 
   end;
 end;
@@ -2361,6 +2348,7 @@ begin
     imgCodigoBarraDet.Caption               := CodBarras;
     txtLinhaDigitavelDet.Caption            := LinhaDigitavel;
 
+    printEMVPix(Titulo.QrCode.emv, imgQrCodePixFaturaDetail);
   end;
 end;
 
@@ -2509,7 +2497,7 @@ begin
 
       rlBarraOrientbanco.Visible:= txtOrientacoesBanco.Lines.Count > 0;
 
-
+      printEMVPix(Titulo.QrCode.emv, imgQrCodePixCarneA5);
    end;
 
 end;
@@ -2715,6 +2703,9 @@ begin
     imgCodigoBarraServicos.Width                 := 432;
     imgCodigoBarraServicos.Caption               := CodBarras;
     txtLinhaDigitavelServicos.Caption            := LinhaDigitavel;
+
+    printEMVPix(Titulo.QrCode.emv, imgQrCodePixServicos);
+
   end;
 end;
 
@@ -2799,6 +2790,19 @@ begin
 
     // Dados do verso - Boleto ...
   end;
+end;
+
+procedure TACBrBoletoFCFortesFr.printEMVPix(const AEMV : String; out ASender : TRLImage);
+begin
+
+  if not EstaVazio(Trim(AEMV)) then
+  begin
+    ASender.Visible := True;
+    PintarQRCode( AEMV, ASender.Picture.Bitmap, qrAuto );
+    ASender.BringToFront;
+  end
+  else
+    ASender.Visible := False;
 end;
 
 {$ifdef FPC}

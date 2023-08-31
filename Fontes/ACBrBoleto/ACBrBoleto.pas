@@ -43,7 +43,7 @@ uses Classes, Graphics, Contnrs, IniFiles,
      {$IfNDef MSWINDOWS}
        ACBrConsts,
      {$ENDIF}
-     SysUtils, typinfo,
+     SysUtils, typinfo, Variants,
      ACBrBase, ACBrMail, ACBrValidador,
      ACBrDFeSSL, pcnConversao, ACBrBoletoConversao, ACBrBoletoRetorno,
      ACBrPIXBase, ACBrPIXBRCode;
@@ -462,7 +462,9 @@ type
     cobBancoVotorantim,
     cobBancoPefisa,
     cobBancoFibra,
-    cobBancoSofisaItau
+    cobBancoSofisaItau,
+    cobBancoIndustrialBrasil,
+    cobBancoAthenaBradesco
     );
 
   TACBrTitulo = class;
@@ -1000,7 +1002,7 @@ type
     function TipoDescontoToString(const AValue: TACBrTipoDesconto):string; virtual;
     function TipoOcorrenciaToDescricao(const TipoOcorrencia: TACBrTipoOcorrencia): String; virtual;
     function CodOcorrenciaToTipo(const CodOcorrencia:Integer): TACBrTipoOcorrencia; virtual;
-    function TipoOCorrenciaToCod(const TipoOcorrencia: TACBrTipoOcorrencia): String; virtual;
+    function TipoOcorrenciaToCod(const TipoOcorrencia: TACBrTipoOcorrencia): String; virtual;
     function CodMotivoRejeicaoToDescricao(const TipoOcorrencia: TACBrTipoOcorrencia;CodMotivo:Integer): String; overload; virtual;
     function CodMotivoRejeicaoToDescricao(const TipoOcorrencia: TACBrTipoOcorrencia; const CodMotivo: String): String; overload; virtual;
 
@@ -1091,7 +1093,7 @@ type
 
     function TipoOcorrenciaToDescricao(const TipoOcorrencia: TACBrTipoOcorrencia): String;
     function CodOcorrenciaToTipo(const CodOcorrencia:Integer): TACBrTipoOcorrencia;
-    function TipoOCorrenciaToCod(const TipoOcorrencia: TACBrTipoOcorrencia): String;
+    function TipoOcorrenciaToCod(const TipoOcorrencia: TACBrTipoOcorrencia): String;
     function CodMotivoRejeicaoToDescricao(const TipoOcorrencia: TACBrTipoOcorrencia;CodMotivo:Integer): String;
 
     function CompOcorrenciaOutrosDadosToDescricao(const CompOcorrencia: TACBrComplementoOcorrenciaOutrosDados): String; virtual;
@@ -1966,17 +1968,57 @@ implementation
 Uses {$IFNDEF NOGUI}Forms,{$ENDIF} Math, dateutils, strutils,  ACBrBoletoWS,
      ACBrUtil.Base, ACBrUtil.Strings, ACBrUtil.DateTime, ACBrUtil.Math,ACBrUtil.XMLHTML,
      ACBrUtil.FilesIO,
-     ACBrBancoBradesco, ACBrBancoBrasil, ACBrBancoAmazonia, ACBrBancoBanestes,
-     ACBrBancoItau, ACBrBancoSicredi, ACBrBancoMercantil, ACBrBancoCaixa, ACBrBancoBanrisul,
-     ACBrBancoSantander, ACBrBancoBancoob, ACBrBancoCaixaSICOB, ACBrBancoHSBC,
-     ACBrBancoNordeste , ACBrBancoBRB, ACBrBancoBic, ACBrBancoBradescoSICOOB,
-     ACBrBancoSafra, ACBrBancoSafraBradesco, ACBrBancoCecred, ACBrBancoBrasilSicoob,
-     ACBrUniprime, ACBrBancoUnicredRS, ACBrBancoBanese, ACBrBancoCredisis, ACBrBancoUnicredES,
-     ACBrBancoCresolSCRS, ACBrBancoCitiBank, ACBrBancoABCBrasil, ACBrBancoDaycoval, ACBrUniprimeNortePR,
-     ACBrBancoPine, ACBrBancoPineBradesco, ACBrBancoUnicredSC, ACBrBancoAlfa, ACBrBancoCresol,
-     ACBrBancoBradescoMoneyPlus, ACBrBancoC6, ACBrBancoRendimento, ACBrBancoInter, ACBrBancoSofisaSantander,
-     ACBrBancoBS2, ACBrBancoPenseBank, ACBrBancoBTGPactual, ACBrBancoOriginal, ACBrBancoVotorantim,
-     ACBrBancoPefisa, ACBrBancoFibra, ACBrBancoSofisaItau;
+     ACBrBancoBradesco,
+     ACBrBancoBrasil,
+     ACBrBancoAmazonia,
+     ACBrBancoBanestes,
+     ACBrBancoItau,
+     ACBrBancoSicredi,
+     ACBrBancoMercantil,
+     ACBrBancoCaixa,
+     ACBrBancoBanrisul,
+     ACBrBancoSantander,
+     ACBrBancoBancoob,
+     ACBrBancoCaixaSICOB,
+     ACBrBancoHSBC,
+     ACBrBancoNordeste ,
+     ACBrBancoBRB,
+     ACBrBancoBic,
+     ACBrBancoBradescoSICOOB,
+     ACBrBancoSafra,
+     ACBrBancoSafraBradesco,
+     ACBrBancoCecred,
+     ACBrBancoBrasilSicoob,
+     ACBrUniprime,
+     ACBrBancoUnicredRS,
+     ACBrBancoBanese,
+     ACBrBancoCredisis,
+     ACBrBancoUnicredES,
+     ACBrBancoCresolSCRS,
+     ACBrBancoCitiBank,
+     ACBrBancoABCBrasil,
+     ACBrBancoDaycoval,
+     ACBrUniprimeNortePR,
+     ACBrBancoPine,
+     ACBrBancoPineBradesco,
+     ACBrBancoUnicredSC,
+     ACBrBancoAlfa,
+     ACBrBancoCresol,
+     ACBrBancoBradescoMoneyPlus,
+     ACBrBancoC6,
+     ACBrBancoRendimento,
+     ACBrBancoInter,
+     ACBrBancoSofisaSantander,
+     ACBrBancoBS2,
+     ACBrBancoPenseBank,
+     ACBrBancoBTGPactual,
+     ACBrBancoOriginal,
+     ACBrBancoVotorantim,
+     ACBrBancoPefisa,
+     ACBrBancoFibra,
+     ACBrBancoSofisaItau,
+     ACBrBancoIndustrialBrasil, 
+     ACBrBancoAthenaBradesco;
 
 {$IFNDEF FPC}
    {$R ACBrBoleto.dcr}
@@ -2249,7 +2291,6 @@ end;
 
 function TACBrWebService.Enviar: Boolean;
 begin
-  Result := False;
   Raise Exception.Create(ACBrStr('Método Enviar não ' +
             'implementado no ACBrBoleto!'));
 end;
@@ -3648,6 +3689,7 @@ begin
     389: Result := cobBancoMercantil;
     399: Result := cobHSBC;
     422: Result := cobBancoSafra;
+    604: Result := cobBancoIndustrialBrasil;
     633: Result := cobBancoRendimento;
     637: begin
            if StrToInt(Carteira) = 109 then
@@ -3696,7 +3738,7 @@ begin
       //Cedente
       if IniBoletos.SectionExists('Cedente') then
       begin
-        wTipoInscricao := IniBoletos.ReadInteger(CCedente,'TipoInscricao',1);
+        wTipoInscricao := IniBoletos.ReadInteger(CCedente,'TipoInscricao', IniBoletos.ReadInteger(CCedente,'TipoPessoa', 1 ) );
         try
            Cedente.TipoInscricao := TACBrPessoa( wTipoInscricao ) ;
         except
@@ -4484,6 +4526,8 @@ begin
      cobBancoPefisa          : fBancoClass := TACBrBancoPefisa.create(Self);         {174}
      cobBancoFibra           : fBancoClass := TACBrBancoFibra.create(Self);          {224}
      cobBancoSofisaItau      : fBancoClass := TACBrBancoSofisaItau.Create(Self);      {637}
+     cobBancoIndustrialBrasil: fBancoClass := TACBrBancoIndustrialBrasil.Create(Self); {604}
+     cobBancoAthenaBradesco  : fBancoClass := TACBrBancoAthenaBradesco.Create(Self);  {237}
    else
      fBancoClass := TACBrBancoClass.create(Self);
    end;
@@ -4501,9 +4545,9 @@ begin
    Result:= BancoClass.CodOcorrenciaToTipo(CodOcorrencia);
 end;
 
-function TACBrBanco.TipoOCorrenciaToCod (const TipoOcorrencia: TACBrTipoOcorrencia ) : String;
+function TACBrBanco.TipoOcorrenciaToCod (const TipoOcorrencia: TACBrTipoOcorrencia ) : String;
 begin
-   Result:= BancoClass.TipoOCorrenciaToCod(TipoOcorrencia);
+   Result:= BancoClass.TipoOcorrenciaToCod(TipoOcorrencia);
 end;
 
 function TACBrBanco.CompOcorrenciaOutrosDadosToDescricao(
@@ -4889,7 +4933,8 @@ procedure TACBrBancoClass.LerRetorno400(ARetorno: TStringList);
 var
   Titulo : TACBrTitulo;
   ContLinha, CodOcorrencia  :Integer;
-  CodMotivo, i, MotivoLinha :Integer;
+  CodMotivo : Variant;
+  i, MotivoLinha :Integer;
   CodMotivo_19, rAgencia    :String;
   rConta, rDigitoConta      :String;
   Linha, rCedente, rCNPJCPF :String;
@@ -5001,7 +5046,7 @@ begin
            MotivoLinha := 319;
            for i := 0 to 4 do
            begin
-              CodMotivo := StrToInt(IfThen(copy(Linha,MotivoLinha,2) = '  ','00',copy(Linha,MotivoLinha,2)));
+              CodMotivo := IfThen(copy(Linha,MotivoLinha,2) = '  ','00',copy(Linha,MotivoLinha,2));
 
               {Se for o primeiro motivo}
               if (i = 0) then
@@ -5010,7 +5055,10 @@ begin
                  if(CodOcorrencia in [02, 06, 09, 10, 15, 17])then
                   begin
                     MotivoRejeicaoComando.Add(IfThen(copy(Linha,MotivoLinha,2) = '  ','00',copy(Linha,MotivoLinha,2)));
-                    DescricaoMotivoRejeicaoComando.Add(CodMotivoRejeicaoToDescricao(OcorrenciaOriginal.Tipo,CodMotivo));
+                    if VarIsNumeric(CodMotivo) then
+                      DescricaoMotivoRejeicaoComando.Add(CodMotivoRejeicaoToDescricao(OcorrenciaOriginal.Tipo,Integer(CodMotivo)))
+                    else
+                      DescricaoMotivoRejeicaoComando.Add(CodMotivoRejeicaoToDescricao(OcorrenciaOriginal.Tipo,VarToStr(CodMotivo)));
                   end
                  else
                   begin
@@ -5022,7 +5070,10 @@ begin
                     else
                      begin
                        MotivoRejeicaoComando.Add(IfThen(copy(Linha,MotivoLinha,2) = '  ','00',copy(Linha,MotivoLinha,2)));
-                       DescricaoMotivoRejeicaoComando.Add(CodMotivoRejeicaoToDescricao(OcorrenciaOriginal.Tipo,CodMotivo));
+                       if VarIsNumeric(CodMotivo) then
+                          DescricaoMotivoRejeicaoComando.Add(CodMotivoRejeicaoToDescricao(OcorrenciaOriginal.Tipo,Integer(CodMotivo)))
+                        else
+                          DescricaoMotivoRejeicaoComando.Add(CodMotivoRejeicaoToDescricao(OcorrenciaOriginal.Tipo,VarToStr(CodMotivo)));
                      end;
                   end;
                end
@@ -5032,7 +5083,10 @@ begin
                  if CodMotivo <> 0 then
                  begin
                     MotivoRejeicaoComando.Add(IfThen(copy(Linha,MotivoLinha,2) = '  ','00',copy(Linha,MotivoLinha,2)));
-                    DescricaoMotivoRejeicaoComando.Add(CodMotivoRejeicaoToDescricao(OcorrenciaOriginal.Tipo,CodMotivo));
+                    if VarIsNumeric(CodMotivo) then
+                      DescricaoMotivoRejeicaoComando.Add(CodMotivoRejeicaoToDescricao(OcorrenciaOriginal.Tipo,Integer(CodMotivo)))
+                    else
+                      DescricaoMotivoRejeicaoComando.Add(CodMotivoRejeicaoToDescricao(OcorrenciaOriginal.Tipo,VarToStr(CodMotivo)));
                  end;
                end;
 
@@ -5081,7 +5135,6 @@ var
   Titulo: TACBrTitulo;
   TempData, Linha, rCedente, rCNPJCPF: String;
   ContLinha : Integer;
-  idxMotivo: Integer;
   rConvenioCedente: String;
   ACodBeneficiario: String;
 begin
@@ -5249,7 +5302,7 @@ begin
   Result := toRemessaRegistrar;
 end ;
 
-function TACBrBancoClass.TipoOCorrenciaToCod(const TipoOcorrencia : TACBrTipoOcorrencia) : String;
+function TACBrBancoClass.TipoOcorrenciaToCod(const TipoOcorrencia : TACBrTipoOcorrencia) : String;
 begin
   Result := '';
 end ;
@@ -5656,7 +5709,8 @@ begin
 end;
 
 procedure TACBrBancoClass.DefineRejeicaoComplementoRetorno(const ALinha: String; out ATitulo : TACBrTitulo);
-var LIdxMotivo : Integer;
+var 
+	LIdxMotivo : Integer;
 begin
   LIdxMotivo := 214;
 
@@ -6416,7 +6470,7 @@ end;
 { TACBrOcorrencia }
 function TACBrOcorrencia.GetCodigoBanco: String;
 begin
-   Result:= fpAowner.AcbrBoleto.Banco.TipoOCorrenciaToCod(Tipo);
+   Result:= fpAowner.AcbrBoleto.Banco.TipoOcorrenciaToCod(Tipo);
 end;
 
 function TACBrOcorrencia.GetDescricao: String;

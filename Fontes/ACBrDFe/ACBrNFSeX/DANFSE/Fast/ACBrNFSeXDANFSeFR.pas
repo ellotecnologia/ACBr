@@ -902,11 +902,14 @@ end;
 procedure TACBrNFSeXDANFSeFR.CarregaCondicaoPagamento(ANFSe: TNFSe);
 var
   LCDS: TACBrFRDataSet;
+  FProvider    : IACBrNFSeXProvider;
 begin
+  FProvider := TACBrNFSeX(FACBrNFSe).Provider;
+  
   LCDS := cdsCondicaoPagamento;
   LCDS.EmptyDataSet;
   LCDS.Append;
-  LCDS.FieldByName('Condicao').AsString := CondicaoToStr(ANFSe.CondicaoPagamento.Condicao);
+  LCDS.FieldByName('Condicao').AsString := FProvider.CondicaoPagToStr(ANFSe.CondicaoPagamento.Condicao);
   LCDS.FieldByName('Parcela').AsString  := IntToStr(ANFSe.CondicaoPagamento.QtdParcela);
   LCDS.Post;
 end;
@@ -915,14 +918,17 @@ procedure TACBrNFSeXDANFSeFR.CarregaCondicaoPagamentoParcelas(ANFSe: TNFSe);
 var
   I   : Integer;
   LCDS: TACBrFRDataSet;
+  FProvider    : IACBrNFSeXProvider;
 begin
+  FProvider := TACBrNFSeX(FACBrNFSe).Provider;
+
   LCDS := cdsCondicaoPagamentoParcelas;
   LCDS.EmptyDataSet;
 
   for I := 0 to Pred(ANFSe.CondicaoPagamento.Parcelas.Count) do
   begin
     LCDS.Append;
-    LCDS.FieldByName('Condicao').AsString       := CondicaoToStr(ANFSe.CondicaoPagamento.Parcelas[ I ].Condicao);
+    LCDS.FieldByName('Condicao').AsString       := FProvider.CondicaoPagToStr(ANFSe.CondicaoPagamento.Parcelas[ I ].Condicao);
     LCDS.FieldByName('Parcela').AsString        := ANFSe.CondicaoPagamento.Parcelas[ I ].Parcela;
     LCDS.FieldByName('DataVencimento').AsString := FormatDateBr(ANFSe.CondicaoPagamento.Parcelas[ I ].DataVencimento);
     LCDS.FieldByName('Valor').AsFloat           := ANFSe.CondicaoPagamento.Parcelas[ I ].Valor;
@@ -977,7 +983,17 @@ begin
   if (Provedor in [ proGINFES, proBetha, proDSF ]) then
     LCDS.FieldByName('DataEmissao').AsString := FormatDateTimeBr(ANFSe.DataEmissao)
   else
-    LCDS.FieldByName('DataEmissao').AsString := FormatDateBr(ANFSe.DataEmissao);
+  begin
+    if ANFSe.Numero <> '' then
+      LCDS.FieldByName('DataEmissao').AsString := FormatDateBr(ANFSe.DataEmissao)
+    else
+    begin
+      if frxReport.findcomponent('Memo12') <> nil then
+        TfrxMemoView(frxReport.findcomponent('Memo12')).Text := 'Data do RPS';
+
+      LCDS.FieldByName('DataEmissao').AsString := FormatDateBr(ANFSe.DataEmissaoRps);
+    end;
+  end;
 
   LCDS.FieldByName('CodigoVerificacao').AsString := ANFSe.CodigoVerificacao;
   LCDS.FieldByName('LinkNFSe').AsString          := ANFSe.Link;
@@ -1210,12 +1226,13 @@ begin
   LCDS.EmptyDataSet;
   LCDS.Append;
 
-  if Provedor = proEL then
+  if LServico.ItemServico.Count > 0 then
   begin
-    LCDS.FieldByName('ItemListaServico').AsString  := LServico.ItemListaServico;
-    LCDS.FieldByName('xItemListaServico').AsString := CodItemServToDesc(StringReplace(LServico.ItemListaServico, '.', '', [ rfReplaceAll, rfIgnoreCase ]));
-  end
-  else
+    LCDS.FieldByName('ItemListaServico').AsString := LServico.ItemServico.Items[0].ItemListaServico;
+    LCDS.FieldByName('xItemListaServico').AsString := LServico.ItemServico.Items[0].xItemListaServico;
+  end;
+
+  if LCDS.FieldByName('xItemListaServico').AsString = '' then
   begin
     LCDS.FieldByName('ItemListaServico').AsString  := LServico.ItemListaServico;
     LCDS.FieldByName('xItemListaServico').AsString := LServico.xItemListaServico;

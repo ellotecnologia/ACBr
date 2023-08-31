@@ -171,8 +171,8 @@ var
   I: Integer;
   ANode: TACBrXmlNode;
   ANodeArray: TACBrXmlNodeArray;
-  AErro: TNFSeEventoCollectionItem;
-  Correcao: string;
+  AErro, AAlerta: TNFSeEventoCollectionItem;
+  aID, aCorrecao, aMensagem: string;
 begin
   ANode := RootNode.Childrens.FindAnyNs(AListTag);
 
@@ -188,14 +188,29 @@ begin
 
   for I := Low(ANodeArray) to High(ANodeArray) do
   begin
-    Correcao := ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('DescricaoErro'), tcStr);
+    aID := ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('id'), tcStr);
+    aCorrecao := ACBrStr(ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('DescricaoErro'), tcStr));
+    aMensagem := ACBrStr(ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('DescricaoProcesso'), tcStr));
 
-    if Correcao <> 'Sem erros' then
+    if (aID = '0') or (aCorrecao = '') or (aCorrecao = 'Sem erros') then
+    begin
+      if aMensagem <> '' then
+      begin
+        AAlerta := Response.Alertas.New;
+        AAlerta.Codigo := aID;
+        AAlerta.Descricao := aMensagem;
+        AAlerta.Correcao := aCorrecao;
+
+        if AAlerta.Descricao = '' then
+          AAlerta.Descricao := ACBrStr(ANodeArray[I].AsString);
+      end;
+    end
+    else
     begin
       AErro := Response.Erros.New;
-      AErro.Codigo := ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('id'), tcStr);
-      AErro.Descricao := ACBrStr(ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('DescricaoProcesso'), tcStr));
-      AErro.Correcao := ACBrStr(Correcao);
+      AErro.Codigo := aID;
+      AErro.Descricao := aMensagem;
+      AErro.Correcao := aCorrecao;
 
       if AErro.Descricao = '' then
         AErro.Descricao := ACBrStr(ANodeArray[I].AsString);
@@ -349,17 +364,19 @@ begin
 
       if AuxNode <> nil then
       begin
+        NumRps := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('num_rps'), tcStr);
+
         with Response do
         begin
-          Sucesso := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('StatusNFe'), tcStr);
+          Situacao := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('StatusNFe'), tcStr);
           NumeroNota := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('nota'), tcStr);
           CodigoVerificacao := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('autenticidade'), tcStr);
+          Protocolo := CodigoVerificacao;
           Link := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('LinkImpressao'), tcStr);
           Link := StringReplace(Link, '&amp;', '&', [rfReplaceAll]);
+          NumeroRps := NumRps;
         end;
       end;
-
-      NumRps := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('num_rps'), tcStr);
 
       ANota := TACBrNFSeX(FAOwner).NotasFiscais.FindByRps(NumRps);
 

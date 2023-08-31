@@ -95,7 +95,7 @@ type
 
     procedure ProcessarMensagemDeErros(LJson: TACBrJSONObject;
                                      Response: TNFSeWebserviceResponse;
-                                     const AListTag: string = 'erros');
+                                     const AListTag: string = 'Erros');
 
     procedure ValidarSchema(Response: TNFSeWebserviceResponse; aMetodo: TMetodo); override;
   public
@@ -211,34 +211,22 @@ procedure TACBrNFSeProviderPadraoNacional.ProcessarMensagemDeErros(
   LJson: TACBrJSONObject; Response: TNFSeWebserviceResponse;
   const AListTag: string);
 var
-  i: Integer;
-  JSonErros: TACBrJSONArray;
-  JsonErro, JSon: TACBrJSONObject;
-  Codigo: string;
-  AErro: TNFSeEventoCollectionItem;
-  LerErro: Boolean;
-begin
-  LerErro := True;
-  JSonErros := LJson.AsJSONArray[AListTag];
+  JSonLista: TACBrJSONArray;
+  JSon: TACBrJSONObject;
 
-  if JSonErros.Count = 0 then
+  procedure AdicionaCollectionItem(JSonItem: TACBrJSONObject; Collection: TNFSeEventoCollection);
+  var
+    AItem: TNFSeEventoCollectionItem;
+    Codigo: string;
   begin
-    JSonErros := LJson.AsJSONArray['erro'];
-    LerErro := False;
-  end;
-
-  for i := 0 to JSonErros.Count-1 do
-  begin
-    JSon := JSonErros.ItemAsJSONObject[i];
-
-    Codigo := JSon.AsString['Codigo'];
+    Codigo := JSonItem.AsString['Codigo'];
 
     if Codigo <> '' then
     begin
-      AErro := Response.Erros.New;
-      AErro.Codigo := Codigo;
-      AErro.Descricao := ACBrStr(JSon.AsString['Descricao']);
-      AErro.Correcao := ACBrStr(JSon.AsString['Complemento']);
+      AItem := Collection.New;
+      AItem.Codigo := Codigo;
+      AItem.Descricao := ACBrStr(JSonItem.AsString['Descricao']);
+      AItem.Correcao := ACBrStr(JSonItem.AsString['Complemento']);
     end
     else
     begin
@@ -246,30 +234,54 @@ begin
 
       if Codigo <> '' then
       begin
-        AErro := Response.Erros.New;
-        AErro.Codigo := Codigo;
-        AErro.Descricao := ACBrStr(JSon.AsString['descricao']);
-        AErro.Correcao := ACBrStr(JSon.AsString['complemento']);
+        AItem := Collection.New;
+        AItem.Codigo := Codigo;
+        AItem.Descricao := ACBrStr(JSonItem.AsString['descricao']);
+        AItem.Correcao := ACBrStr(JSonItem.AsString['complemento']);
       end;
     end;
   end;
 
-  if LerErro then
+  procedure LerListaErrosAlertas(jsLista: TACBrJSONArray; Collection: TNFSeEventoCollection);
+  var
+    i: Integer;
   begin
-    JSonErro := LJson.AsJSONObject['erro'];
-
-    if JsonErro <> nil then
+    for i := 0 to jsLista.Count-1 do
     begin
-      Codigo := JSonErro.AsString['codigo'];
+      JSon := jsLista.ItemAsJSONObject[i];
 
-      if Codigo <> '' then
-      begin
-        AErro := Response.Erros.New;
-        AErro.Codigo := Codigo;
-        AErro.Descricao := ACBrStr(JSonErro.AsString['descricao']);
-        AErro.Correcao := ACBrStr(JSonErro.AsString['complemento']);
-      end;
+      AdicionaCollectionItem(JSon, Collection);
     end;
+  end;
+begin
+  // Verifica se no retorno contem a lista de Erros
+  JSonLista := LJson.AsJSONArray[AListTag];
+
+  // Verifica se no retorno contem a lista de erros
+  if JSonLista.Count = 0 then
+    JSonLista := LJson.AsJSONArray['erros'];
+
+  if JSonLista.Count > 0 then
+    LerListaErrosAlertas(JSonLista, Response.Erros);
+
+  // Verifica se no retorno contem a lista de Alertas
+  JSonLista := LJson.AsJSONArray['Alertas'];
+
+  if JSonLista.Count > 0 then
+    LerListaErrosAlertas(JSonLista, Response.Alertas);
+
+  // Verifica se no retorno contem o elemento erro  (erro unico no retorno)
+  if LJson.IsJSONArray('erro') then
+  begin
+    JSonLista := LJson.AsJSONArray['erro'];
+    LerListaErrosAlertas(JSonLista, Response.Erros);
+  end
+  else
+  begin
+    JSon := LJson.AsJSONObject['erro'];
+
+    if JSon <> nil then
+      AdicionaCollectionItem(JSon, Response.Erros);
   end;
 end;
 
@@ -581,7 +593,7 @@ begin
   end
   else
   begin
-    Response.ArquivoRetorno := RemoverDeclaracaoXML(Response.ArquivoRetorno);
+//    Response.ArquivoRetorno := RemoverDeclaracaoXML(Response.ArquivoRetorno);
     SalvarPDFNfse(Response.InfConsultaNFSe.NumeroIniNFSe, Response.ArquivoRetorno);
   end;
 end;

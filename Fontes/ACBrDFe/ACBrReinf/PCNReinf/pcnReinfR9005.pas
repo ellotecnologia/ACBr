@@ -119,14 +119,18 @@ type
 
   TInfoRecEv = class(TObject)
   private
+    FnrRecArqBase: String;
     FnrProtLote: String;
     FdhProcess: TDateTime;
+    FdhRecepcao: TDateTime;
     FtpEv: String;
     FidEv: String;
     Fhash: String;
   public
+    property nrRecArqBase: String read FnrRecArqBase;
     property nrProtLote: String read FnrProtLote;
     property dhProcess: TDateTime read FdhProcess;
+    property dhRecepcao: TDateTime read FdhRecepcao;
     property tpEv: String read FtpEv;
     property idEv: String read FidEv;
     property hash: String read Fhash;
@@ -152,6 +156,7 @@ type
     FnrInsc: string;
     FnrInscBenef: string;
     FnmBenef: string;
+    FideEvtAdic: string;
     FtotApurMen: TtotApurMenCollection;
     FtotApurQui: TtotApurQuiCollection;
     FtotApurDec: TtotApurDecCollection;
@@ -171,6 +176,7 @@ type
     property nrInsc: string read FnrInsc write FnrInsc;
     property nrInscBenef: string read FnrInscBenef write FnrInscBenef;
     property nmBenef: string read FnmBenef write FnmBenef;
+    property ideEvtAdic: string read FideEvtAdic write FideEvtAdic;
     property totApurMen: TtotApurMenCollection read FtotApurMen write SettotApurMen;
     property totApurQui: TtotApurQuiCollection read FtotApurQui write SettotApurQui;
     property totApurDec: TtotApurDecCollection read FtotApurDec write SettotApurDec;
@@ -545,8 +551,10 @@ begin
 
       if leitor.rExtrai(2, 'infoRecEv') <> '' then
       begin
+        infoRecEv.FnrRecArqBase := leitor.rCampo(tcStr, 'nrRecArqBase');
         infoRecEv.FnrProtLote := leitor.rCampo(tcStr, 'nrProtLote');
         infoRecEv.FdhProcess  := leitor.rCampo(tcDatHor, 'dhProcess');
+        infoRecEv.FdhRecepcao := leitor.rCampo(tcDatHor, 'dhRecepcao');
         infoRecEv.FtpEv       := leitor.rCampo(tcStr, 'tpEv');
         infoRecEv.FidEv       := leitor.rCampo(tcStr, 'idEv');
         infoRecEv.Fhash       := leitor.rCampo(tcStr, 'hash');
@@ -562,6 +570,7 @@ begin
           infoTotal.ideEstab.nrInsc      := leitor.rCampo(tcStr, 'nrInsc');
           infoTotal.ideEstab.nrInscBenef := leitor.rCampo(tcStr, 'nrInscBenef');
           infoTotal.ideEstab.nmBenef     := leitor.rCampo(tcStr, 'nmBenef');
+          infoTotal.ideEstab.ideEvtAdic  := leitor.rCampo(tcStr, 'ideEvtAdic');
 
           i := 0;
           while Leitor.rExtrai(4, 'totApurMen', '', i + 1) <> '' do
@@ -706,8 +715,10 @@ begin
       end;
 
       sSecao := 'infoRecEv';
+      AIni.WriteString(sSecao, 'nrRecArqBase', infoRecEv.nrRecArqBase);
       AIni.WriteString(sSecao, 'nrProtLote', infoRecEv.nrProtLote);
       AIni.WriteString(sSecao, 'dhProcess',  DateToStr(infoRecEv.dhProcess));
+      AIni.WriteString(sSecao, 'dhRecepcao', DateToStr(infoRecEv.dhRecepcao));
       AIni.WriteString(sSecao, 'tpEv',       infoRecEv.tpEv);
       AIni.WriteString(sSecao, 'idEv',       infoRecEv.idEv);
       AIni.WriteString(sSecao, 'hash',       infoRecEv.hash);
@@ -722,6 +733,7 @@ begin
         AIni.WriteString(sSecao, 'nrInsc',      infoTotal.ideEstab.nrInsc);
         AIni.WriteString(sSecao, 'nrInscBenef', infoTotal.ideEstab.nrInscBenef);
         AIni.WriteString(sSecao, 'nmBenef',     infoTotal.ideEstab.nmBenef);
+        AIni.WriteString(sSecao, 'ideEvtAdic',  infoTotal.ideEstab.ideEvtAdic);
 
         for i := 0 to infoTotal.ideEstab.totApurMen.Count - 1 do
         begin

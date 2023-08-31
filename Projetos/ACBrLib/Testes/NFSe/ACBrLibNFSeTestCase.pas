@@ -95,6 +95,10 @@ type
     procedure Test_NFSE_ConsultarNFSeServicoTomadoPorPeriodo;
     procedure Test_NFSE_ConsultarNFSeServicoTomadoPorIntermediario;
     procedure Test_NFSe_SalvarProvedor;
+    procedure Test_NFSe_ImprimirXML;
+    procedure Test_NFSe_IniServicos_Vazio_Carregando_ACBrNFSeXServicos_Resources;
+    procedure Test_NFSe_IniServicos_Informando_Path_Com_ACBrNFSeXServicos_Sem_Provedor;
+    procedure Test_NFSe_IniServicos_Informando_Path_Com_ACBrNFSeXServicos_Com_Provedor;
 
   end;
 
@@ -428,7 +432,7 @@ var
   Tamanho: Longint;
 begin
   AssertEquals(ErrOK, NFSE_Inicializar(Handle, '', ''));
-    Resposta:= '';
+  Resposta:= '';
   Tamanho:= 0;
 
   AssertEquals('Erro ao Limpar Lista NFSe', ErrOK, NFSE_LimparLista(Handle));
@@ -1010,6 +1014,136 @@ begin
 
   AStr := copy(AStr,1,Bufflen);
 
+
+  AssertEquals(ErrOK, NFSE_Finalizar(Handle));
+end;
+
+procedure TTestACBrNFSeLib.Test_NFSe_ImprimirXML();
+var
+  AStr: String;
+  Handle: THandle;
+  Bufflen: Integer;
+begin
+  AssertEquals(ErrOK, NFSE_Inicializar(Handle, '', ''));
+
+  AssertEquals(ErrOk, NFSE_ConfigLerValor(Handle, 'NFSe', 'CodigoMunicipio', PChar(AStr), Bufflen));
+
+  AssertEquals('Erro ao Mudar configuração', ErrOk, NFSE_ConfigGravarValor(Handle, 'NFSe', 'CodigoMunicipio', '3506003'));
+
+  AssertEquals(ErrOK, NFSE_ConfigGravar(Handle,'ACBrLib.ini'));
+
+  AssertEquals('Erro ao carregar XML NFSe', ErrOK,
+  NFSE_CarregarXML(Handle, PChar(fCaminhoExec+'\540-nfse.xml')));
+
+  AssertEquals('Erro ao Imprimir NFSe', ErrOK,
+  NFSE_Imprimir(Handle, '', 1, '', '1', ''));
+
+  AssertEquals('Erro ao Limpar Lista NFSe', ErrOK, NFSE_LimparLista(Handle));
+
+  AssertEquals('Erro ao carregar XML NFSe', ErrOK,
+  NFSE_CarregarXML(Handle, PChar(fCaminhoExec+'\540-nfse.xml')));
+
+  AssertEquals('Erro ao Imprimir NFSe', ErrOK,
+  NFSE_Imprimir(Handle, '', 1, '', '1', ''));
+
+  AssertEquals(ErrOK, NFSE_Finalizar(Handle));
+end;
+
+procedure TTestACBrNFSeLib.Test_NFSe_IniServicos_Vazio_Carregando_ACBrNFSeXServicos_Resources();
+var
+  AStr: String;
+  Handle: THandle;
+  Bufflen: Integer;
+  Resposta: PChar;
+  Tamanho: Longint;
+begin
+  AssertEquals(ErrOK, NFSE_Inicializar(Handle, '', ''));
+  Resposta:= '';
+  Tamanho:= 0;
+
+    AssertEquals(ErrOk, NFSE_ConfigLerValor(Handle, 'NFSe', 'IniServicos', PChar(AStr), Bufflen));
+
+  AssertEquals('Erro ao Mudar configuração', ErrOk, NFSE_ConfigGravarValor(Handle, 'NFSe', 'IniServicos', ''));
+
+  AssertEquals('Erro ao Mudar configuração', ErrOk, NFSE_ConfigGravarValor(Handle, 'NFSe', 'CodigoMunicipio', '3554003'));
+
+  AssertEquals(ErrOk, NFSE_ConfigLerValor(Handle, 'NFSe', 'CodigoMunicipio', PChar(AStr), Bufflen));
+
+  AssertEquals(ErrOK, NFSE_ConfigGravar(Handle,'ACBrLib.ini'));
+
+  AssertEquals('Erro ao carregar XML NFSe', ErrOK,
+  NFSE_CarregarINI(Handle, PChar(fCaminhoExec+'\IniNFSE-UmServico.ini')));
+
+  AssertEquals('Erro ao Emitir NFSe', ErrOK,
+  NFSE_Emitir(Handle, '1', 0, False, Resposta, Tamanho));
+  AssertEquals('Resposta= ' + AnsiString(Resposta), '', '');
+  AssertEquals('Tamanho= ' + IntToStr(Tamanho), '', '');
+
+  AssertEquals(ErrOK, NFSE_Finalizar(Handle));
+end;
+
+procedure TTestACBrNFSeLib.Test_NFSe_IniServicos_Informando_Path_Com_ACBrNFSeXServicos_Sem_Provedor();
+var
+  AStr: String;
+  Handle: THandle;
+  Bufflen: Integer;
+  Resposta: PChar;
+  Tamanho: Longint;
+begin
+  AssertEquals(ErrOK, NFSE_Inicializar(Handle, '', ''));
+  Resposta:= '';
+  Tamanho:= 0;
+
+  AssertEquals(ErrOk, NFSE_ConfigLerValor(Handle, 'NFSe', 'IniServicos', PChar(AStr), Bufflen));
+
+  AssertEquals('Erro ao Mudar configuração', ErrOk, NFSE_ConfigGravarValor(Handle, 'NFSe', 'IniServicos', 'C:\ProjetoACBr\ACBrLib\ACBrLibNFSe-1.0.0.20\dep\ACBrNFSeXServicos.ini'));
+
+  AssertEquals('Erro ao Mudar configuração', ErrOk, NFSE_ConfigGravarValor(Handle, 'NFSe', 'CodigoMunicipio', '3554003'));
+
+  AssertEquals(ErrOk, NFSE_ConfigLerValor(Handle, 'NFSe', 'CodigoMunicipio', PChar(AStr), Bufflen));
+
+  AssertEquals(ErrOK, NFSE_ConfigGravar(Handle,'ACBrLib.ini'));
+
+  AssertEquals('Erro ao carregar XML NFSe', ErrOK,
+  NFSE_CarregarINI(Handle, PChar(fCaminhoExec+'\IniNFSE-UmServico.ini')));
+
+  AssertEquals('Erro ao Emitir NFSe', ErrOK,
+  NFSE_Emitir(Handle, '1', 0, False, Resposta, Tamanho));
+  AssertEquals('Resposta= ' + AnsiString(Resposta), '', '');
+  AssertEquals('Tamanho= ' + IntToStr(Tamanho), '', '');
+
+  AssertEquals(ErrOK, NFSE_Finalizar(Handle));
+end;
+
+procedure TTestACBrNFSeLib.Test_NFSe_IniServicos_Informando_Path_Com_ACBrNFSeXServicos_Com_Provedor();
+var
+  AStr: String;
+  Handle: THandle;
+  Bufflen: Integer;
+  Resposta: PChar;
+  Tamanho: Longint;
+begin
+  AssertEquals(ErrOK, NFSE_Inicializar(Handle, '', ''));
+  Resposta:= '';
+  Tamanho:= 0;
+
+  AssertEquals(ErrOk, NFSE_ConfigLerValor(Handle, 'NFSe', 'IniServicos', PChar(AStr), Bufflen));
+
+  AssertEquals('Erro ao Mudar configuração', ErrOk, NFSE_ConfigGravarValor(Handle, 'NFSe', 'IniServicos', 'C:\ProjetoACBr\ACBrLib\ACBrLibNFSe-1.0.0.24\dep\ACBrNFSeXServicos.ini'));
+
+  AssertEquals('Erro ao Mudar configuração', ErrOk, NFSE_ConfigGravarValor(Handle, 'NFSe', 'CodigoMunicipio', '3554003'));
+
+  AssertEquals(ErrOk, NFSE_ConfigLerValor(Handle, 'NFSe', 'CodigoMunicipio', PChar(AStr), Bufflen));
+
+  AssertEquals(ErrOK, NFSE_ConfigGravar(Handle,'ACBrLib.ini'));
+
+  AssertEquals('Erro ao carregar XML NFSe', ErrOK,
+  NFSE_CarregarINI(Handle, PChar(fCaminhoExec+'\IniNFSE-UmServico.ini')));
+
+  AssertEquals('Erro ao Emitir NFSe', ErrOK,
+  NFSE_Emitir(Handle, '1', 0, False, Resposta, Tamanho));
+  AssertEquals('Resposta= ' + AnsiString(Resposta), '', '');
+  AssertEquals('Tamanho= ' + IntToStr(Tamanho), '', '');
 
   AssertEquals(ErrOK, NFSE_Finalizar(Handle));
 end;

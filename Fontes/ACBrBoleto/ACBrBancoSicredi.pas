@@ -71,7 +71,7 @@ type
     function TipoDescontoToString(const AValue: TACBrTipoDesconto): String; override;
     function TipoOcorrenciaToDescricao(const TipoOcorrencia: TACBrTipoOcorrencia): String; override;
     function CodOcorrenciaToTipo(const CodOcorrencia:Integer): TACBrTipoOcorrencia; override;
-    function TipoOCorrenciaToCod(const TipoOcorrencia: TACBrTipoOcorrencia): String; override;
+    function TipoOcorrenciaToCod(const TipoOcorrencia: TACBrTipoOcorrencia): String; override;
     function CodMotivoRejeicaoToDescricao(const TipoOcorrencia: TACBrTipoOcorrencia; const CodMotivo:String): String; override;
 
     function CompOcorrenciaOutrosDadosToDescricao(const CompOcorrencia: TACBrComplementoOcorrenciaOutrosDados): String; override;
@@ -1166,7 +1166,12 @@ begin
                Result:= PadLeft(CodMotivo,2,'0') +' - Outros Motivos';
             end;
           end;
-
+        toRetornoIntensaoPagamento: //07
+          case AnsiIndexStr(CodMotivo,['H5']) of
+              0: Result:= 'H5-Recebimento de liquidação fora da rede Sicredi - VLB Inferior - Via compensação';
+            else
+                Result:= PadLeft(CodMotivo,2,'0') +' - Outros Motivos';
+            end;
         toRetornoBaixadoViaArquivo: //09
           case StrToIntDef(CodMotivo,-1) of
             00: Result:= '00-Ocorrência aceita, baixado automaticamente via arquivo';
@@ -1412,6 +1417,15 @@ begin
               Result:= PadLeft(CodMotivo,2,'0') +' - Motivos não identificados';
             end;
           end;
+
+        toRetornoAlteracaoDadosNovaEntrada: //33
+          case AnsiIndexStr(CodMotivo,['H4']) of
+            0 : Result:= 'H4-Alteração de Carteira';
+          else
+            Result:= PadLeft(CodMotivo,2,'0') +' - Outros Motivos';
+          end;
+
+
         toRetornoEntradaNegativacaoRejeitada,
         toRetornoExclusaoNegativacaoRejeitada: //81 e 83
            if CodMotivo = 'S1' then
@@ -1525,7 +1539,7 @@ var
  CodOcorrencia: Integer;
 begin
   Result := '';
-  CodOcorrencia := StrToIntDef(TipoOCorrenciaToCod(TipoOcorrencia),0);
+  CodOcorrencia := StrToIntDef(TipoOcorrenciaToCod(TipoOcorrencia),0);
 
   if (ACBrBanco.ACBrBoleto.LayoutRemessa = c240) then
   begin
@@ -1674,7 +1688,7 @@ begin
   end;
 end;
 
-function TACBrBancoSicredi.TipoOCorrenciaToCod(
+function TACBrBancoSicredi.TipoOcorrenciaToCod(
   const TipoOcorrencia: TACBrTipoOcorrencia): String;
 begin
   Result := '';

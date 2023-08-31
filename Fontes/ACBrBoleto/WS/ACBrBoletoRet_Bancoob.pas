@@ -45,7 +45,8 @@ uses
   Jsons,
   DateUtils,
   pcnConversao,
-  ACBrBoletoWS.Rest;
+  ACBrBoletoWS.Rest,
+  ACBrUtil.Base;
 
 type
 
@@ -70,9 +71,10 @@ uses
 
 resourcestring
   C_CANCELADO = 'CANCELADO';
+  C_BAIXADO = 'BAIXADO';
   C_EXPIRADO = 'EXPIRADO';
   C_VENCIDO = 'VENCIDO';
-  C_EMABERTO = 'EMABERTO';
+  C_EMABERTO = 'EM ABERTO';
   C_PAGO = 'Liquidado';
 
 
@@ -133,10 +135,12 @@ begin
             for x := 0 to aJsonViolacoes.Count -1 do
             begin
               aJsonViolacao        := aJsonViolacoes[x].AsObject;
-			  aJsonViolacoes       := aJsonViolacao['status'].AsArray;
-              ARejeicao            := ARetornoWS.CriarRejeicaoLista;
-              ARejeicao.Codigo     := aJsonViolacao.Values['codigo'].AsString;
-              ARejeicao.mensagem   := aJsonViolacao.Values['mensagem'].AsString;  
+              if (aJSonViolacao.Values['status'].AsObject.Values['codigo'].AsString <> '200') then
+              begin
+                ARejeicao            := ARetornoWS.CriarRejeicaoLista;
+                ARejeicao.Codigo     := aJSonViolacao.Values['status'].AsObject.Values['codigo'].AsString;
+                ARejeicao.mensagem   := aJSonViolacao.Values['status'].AsObject.Values['mensagem'].AsString;
+              end;
             end;
           end;
           400,406,500 :
@@ -168,6 +172,7 @@ begin
             ARetornoWS.DadosRet.TituloRet.LinhaDig       := ARetornoWS.DadosRet.IDBoleto.LinhaDig;
             ARetornoWS.DadosRet.TituloRet.NossoNumero    := ARetornoWS.DadosRet.IDBoleto.NossoNum;
             ARetornoWS.DadosRet.TituloRet.EMV            := AJSonObject.Values['qrcode'].AsString;
+            ARetornoWS.DadosRet.TituloRet.UrlPix         := AJSonObject.Values['qrCode'].AsString;
             ARetornoWS.DadosRet.TituloRet.Vencimento     := DateBancoobToDateTime(AJSonObject.Values['dataVencimento'].AsString);
             ARetornoWS.DadosRet.TituloRet.NossoNumero    := AJSonObject.Values['nossoNumero'].AsString;
             ARetornoWS.DadosRet.TituloRet.SeuNumero      := AJSonObject.Values['seuNumero'].AsString;
@@ -231,7 +236,20 @@ begin
             ARetornoWS.DadosRet.TituloRet.Vencimento      := DateBancoobToDateTime( AJSonObject.Values['dataVencimento'].asString );
 
             ARetornoWS.DadosRet.TituloRet.EstadoTituloCobranca  := AJSonObject.Values['situacaoBoleto'].asString;
-            ARetornoWS.DadosRet.TituloRet.UrlPix                := AJSonObject.Values['qrCode'].AsString;
+
+            if UpperCase(ARetornoWS.DadosRet.TituloRet.EstadoTituloCobranca) = C_EMABERTO then
+               ARetornoWS.DadosRet.TituloRet.CodigoEstadoTituloCobranca := '1';
+
+            if (UpperCase(ARetornoWS.DadosRet.TituloRet.EstadoTituloCobranca) = C_BAIXADO) or
+               (UpperCase(ARetornoWS.DadosRet.TituloRet.EstadoTituloCobranca) = C_CANCELADO) then
+               ARetornoWS.DadosRet.TituloRet.CodigoEstadoTituloCobranca := '7';
+
+            if UpperCase(ARetornoWS.DadosRet.TituloRet.EstadoTituloCobranca) = UpperCase(C_PAGO) then
+               ARetornoWS.DadosRet.TituloRet.CodigoEstadoTituloCobranca := '6';
+
+
+            ARetornoWS.DadosRet.TituloRet.UrlPix  := AJSonObject.Values['qrCode'].AsString;
+            ARetornoWS.DadosRet.TituloRet.EMV     := AJSonObject.Values['qrcode'].AsString;
 
             //ARetornoWS.DadosRet.TituloRet.ValorAtual      := AJSonObject.Values['valor'].AsNumber;
             //ARetornoWS.DadosRet.TituloRet.ValorPago       := AJSonObject.Values['valorTotalRecebimento'].AsNumber;
@@ -266,7 +284,7 @@ begin
                  ARetornoWS.DadosRet.TituloRet.ValorPago := 0;
 
                  if vpos > 0 then
-                  ARetornoWS.DadosRet.TituloRet.ValorPago := StrToCurrDef(copy(AJsonListaHistoricoObject.Values['descricaoHistorico'].AsString, vPos+2, length(AJsonListaHistoricoObject.Values['descricaoHistorico'].AsString)), 0);
+                  ARetornoWS.DadosRet.TituloRet.ValorPago := StringToFloatDef(copy(AJsonListaHistoricoObject.Values['descricaoHistorico'].AsString, vPos+2, length(AJsonListaHistoricoObject.Values['descricaoHistorico'].AsString)), 0);
                 end;
               end;
             end;

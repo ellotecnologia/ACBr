@@ -51,6 +51,7 @@ type
     procedure ConsultaLoteRps;
     procedure ConsultaNFSeporRps;
     procedure ConsultaNFSe;
+    procedure ConsultaLinkNFSe;
     procedure CancelaNFSe;
     procedure SubstituiNFSe;
     procedure GerarToken;
@@ -58,6 +59,7 @@ type
     procedure ConsultarEvento;
     procedure ConsultarDFe;
     procedure ConsultarParam;
+    procedure ConsultarSeqRps;
 
     function GetConfigGeral: TConfigGeral;
     function GetConfigWebServices: TConfigWebServices;
@@ -109,6 +111,12 @@ type
 
     function TipoDeducaoToStr(const t: TTipoDeducao): string;
     function StrToTipoDeducao(out ok: Boolean; const s: string): TTipoDeducao;
+
+    function TipoTributacaoRPSToStr(const t: TTipoTributacaoRPS): string;
+    function StrToTipoTributacaoRPS(out ok: boolean; const s: string): TTipoTributacaoRPS;
+
+    function CondicaoPagToStr(const t: TnfseCondicaoPagamento): string;
+    function StrToCondicaoPag(out ok: boolean; const s: string): TnfseCondicaoPagamento;
   end;
 
 implementation

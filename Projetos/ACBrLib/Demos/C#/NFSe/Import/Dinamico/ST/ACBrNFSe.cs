@@ -254,12 +254,12 @@ namespace ACBrLib.NFSe
             return ProcessResult(buffer, bufferLen);
         }
 
-        public string LinkNFSE(string aNumeroNFSe, string aCodigoVerificacao, string aChaveAcesso, string aValorServico)
+        public string LinkNFSe(string aNumeroNFSe, string aCodigoVerificacao, string aChaveAcesso, string aValorServico)
         {
             var bufferLen = BUFFER_LEN;
             var buffer = new StringBuilder(bufferLen);
 
-            var method = GetMethod<NFSE_LinkNFSE>();
+            var method = GetMethod<NFSE_LinkNFSe>();
             var ret = ExecuteMethod(() => method(ToUTF8(aNumeroNFSe), ToUTF8(aCodigoVerificacao), ToUTF8(aChaveAcesso), ToUTF8(aValorServico), buffer, ref bufferLen));
 
             CheckResult(ret);
@@ -291,7 +291,7 @@ namespace ACBrLib.NFSe
             CheckResult(ret);
         }
 
-        public string ConsultarSitucao(string aProtocolo, string aNumeroLote)
+        public string ConsultarSituacao(string aProtocolo, string aNumeroLote)
         {
             var bufferLen = BUFFER_LEN;
             var buffer = new StringBuilder(bufferLen);
@@ -526,6 +526,82 @@ namespace ACBrLib.NFSe
             return ProcessResult(buffer, bufferLen);
         }
 
+		public string EnviarEvento(string aInfEvento)
+        {
+            var bufferLen = BUFFER_LEN;
+            var buffer = new StringBuilder(bufferLen);
+
+            var method = GetMethod<NFSE_EnviarEvento>();
+            var ret = ExecuteMethod(() => method(ToUTF8(aInfEvento), buffer, ref bufferLen));
+
+            return ProcessResult(buffer, bufferLen);
+        }
+
+        public string ConsultarDPSPorChave(string aChaveDPS)
+        {
+            var bufferLen = BUFFER_LEN;
+            var buffer = new StringBuilder(bufferLen);
+
+            var method = GetMethod<NFSE_ConsultarDPSPorChave>();
+            var ret = ExecuteMethod(() => method(ToUTF8(aChaveDPS), buffer, ref bufferLen));
+
+            return ProcessResult(buffer, bufferLen);
+        }
+
+        public string ConsultarNFSePorChave(string aChaveNFSe)
+        {
+            var bufferLen = BUFFER_LEN;
+            var buffer = new StringBuilder(bufferLen);
+
+            var method = GetMethod<NFSE_ConsultarNFSePorChave>();
+            var ret = ExecuteMethod(() => method(ToUTF8(aChaveNFSe), buffer, ref bufferLen));
+
+            return ProcessResult(buffer, bufferLen);
+        }
+
+        public string ConsultarEvento(string aChave, int aTipoEvento, int aNumSeq)
+        {
+            var bufferLen = BUFFER_LEN;
+            var buffer = new StringBuilder(bufferLen);
+
+            var method = GetMethod<NFSE_ConsultarEvento>();
+            var ret = ExecuteMethod(() => method(ToUTF8(aChave), aTipoEvento, aNumSeq, buffer, ref bufferLen));
+
+            return ProcessResult(buffer, bufferLen);
+        }
+
+        public string ConsultarDFe(int aNSU)
+        {
+            var bufferLen = BUFFER_LEN;
+            var buffer = new StringBuilder(bufferLen);
+
+            var method = GetMethod<NFSE_ConsultarDFe>();
+            var ret = ExecuteMethod(() => method(aNSU, buffer, ref bufferLen));
+
+            return ProcessResult(buffer, bufferLen);
+        }
+
+        public string ObterDANFSE(string aChaveNFSe)
+        {
+            var bufferLen = BUFFER_LEN;
+            var buffer = new StringBuilder(bufferLen);
+
+            var method = GetMethod<NFSE_ObterDANFSE>();
+            var ret = ExecuteMethod(() => method(ToUTF8(aChaveNFSe), buffer, ref bufferLen));
+
+            return ProcessResult(buffer, bufferLen);
+        }
+
+        public string ConsultarParametros(int aTipoParametroMunicipio, string aCodigoServico, DateTime aCompetencia, string aNumeroBeneficio)
+        {
+            var bufferLen = BUFFER_LEN;
+            var buffer = new StringBuilder(bufferLen);
+
+            var method = GetMethod<NFSE_ConsultarParametros>();
+            var ret = ExecuteMethod(() => method(aTipoParametroMunicipio, ToUTF8(aCodigoServico), aCompetencia, ToUTF8(aNumeroBeneficio), buffer, ref bufferLen));
+
+            return ProcessResult(buffer, bufferLen);
+        }
         #endregion Diversos
 
         #region Private Methods

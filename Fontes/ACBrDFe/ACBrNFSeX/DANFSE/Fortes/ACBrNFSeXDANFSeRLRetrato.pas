@@ -288,32 +288,27 @@ var
   QRCodeData: string;
   rlImgQrCode: TRLImage;
   Row, Column: Integer;
-  Link: string;
 begin
   inherited;
 
   rlmDadosAdicionais.Lines.BeginUpdate;
   rlmDadosAdicionais.Lines.Clear;
-  Link := '';
+
+  if fpNFSe.Servico.MunicipioIncidencia <> 0 then
+    rlmDadosAdicionais.Lines.Add('Cod/Municipio da incidencia do ISSQN: ' +
+      IntToStr(fpNFSe.Servico.MunicipioIncidencia) + ' / ' +
+      fpNFSe.Servico.xMunicipioIncidencia);
 
   if fpDANFSe.OutrasInformacaoesImp <> '' then
     rlmDadosAdicionais.Lines.Add(StringReplace(fpDANFSe.OutrasInformacaoesImp, FQuebradeLinha, #13#10, [rfReplaceAll, rfIgnoreCase]))
   else
     if fpNFSe.OutrasInformacoes <> '' then
-    rlmDadosAdicionais.Lines.Add(StringReplace(fpNFSe.OutrasInformacoes, FQuebradeLinha, #13#10, [rfReplaceAll, rfIgnoreCase]));
+    rlmDadosAdicionais.Lines.Add(fpNFSe.OutrasInformacoes);
 
   if fpNFSe.InformacoesComplementares <> '' then
-    rlmDadosAdicionais.Lines.Add(StringReplace(fpNFSe.InformacoesComplementares, FQuebradeLinha, #13#10, [rfReplaceAll, rfIgnoreCase]));
+    rlmDadosAdicionais.Lines.Add(fpNFSe.InformacoesComplementares);
 
-  if (pos('http://', LowerCase(fpNFSe.OutrasInformacoes)) > 0) or
-     (pos('https://', LowerCase(fpNFSe.OutrasInformacoes)) > 0) then
-    Link := fpNFSe.OutrasInformacoes;
-
-  if (Link = '') and ((pos('http://', LowerCase(fpNFSe.Link)) > 0) or
-     (pos('https://', LowerCase(fpNFSe.Link)) > 0)) then
-    Link := fpNFSe.Link;
-
-  if Link <> '' then
+  if fpNFSe.Link <> '' then
   begin
     rlmDadosAdicionais.Width := 643;
     rbOutrasInformacoes.AutoSize := True;
@@ -326,11 +321,7 @@ begin
     rlImgQrCode.SetBounds(648, 3, 90, 90);
     rlImgQrCode.BringToFront;
 
-    if pos('http://', LowerCase(Link)) > 0 then
-      QRCodeData := Trim(MidStr(Link, pos('http://', LowerCase(Link)), Length(Link)))
-    else
-      QRCodeData := Trim(MidStr(Link, pos('https://', LowerCase(Link)), Length(Link)));
-
+    QRCodeData := fpNFSe.Link;
     QrCode := TDelphiZXingQRCode.Create;
     QrCodeBitmap := TBitmap.Create;
     try
@@ -408,7 +399,7 @@ begin
   with fpNFSe.Servico.ItemServico.Items[FNumItem] do
   begin
     rlmServicoDescricao.Lines.Clear;
-    rlmServicoDescricao.Lines.Add(StringReplace(Descricao, FQuebradeLinha, #13#10, [rfReplaceAll, rfIgnoreCase]));
+    rlmServicoDescricao.Lines.Add(Descricao);
     txtServicoUnitario.Caption := FormatFloatBr(ValorUnitario);
     txtServicoQtde.Caption := FormatFloatBr(Quantidade);
 
@@ -429,6 +420,7 @@ procedure TfrlXDANFSeRLRetrato.rlbISSQNBeforePrint(Sender: TObject; var PrintIt:
 var
   MostrarObra, MostrarNaturezaOperacao: Boolean;
   FProvider: IACBrNFSeXProvider;
+  i: Integer;
 begin
   inherited;
 
@@ -461,6 +453,17 @@ begin
     begin
       rllValorTotal.Caption := 'VALOR TOTAL DA NOTA = R$ ' + FormatFloat(',0.00', ValorServicos);
       rlmCodServico.Lines.Clear;
+
+      if (Servico.xItemListaServico = '') and (Servico.ItemServico.Count > 0) then
+      begin
+        RLLabel16.Visible := True;
+
+        for i := 0 to Servico.ItemServico.Count -1 do
+        begin
+          rlmCodServico.Lines.Append(Servico.ItemServico.Items[i].ItemListaServico +
+            ' - ' + Servico.ItemServico.Items[i].xItemListaServico);
+        end;
+      end;
 
       if Servico.xItemListaServico <> '' then
       begin
@@ -498,11 +501,7 @@ begin
       rllValorServicos1.Caption := FormatFloat(',0.00', ValorServicos);
       rllDescIncondicionado1.Caption := FormatFloat(',0.00', DescontoIncondicionado);
       rllDescCondicionado.Caption := FormatFloat(',0.00', DescontoCondicionado);
-      rllRetencoesFederais.Caption := FormatFloat(',0.00', ValorPis +
-        ValorCofins +
-        ValorInss +
-        ValorIr +
-        ValorCsll);
+      rllRetencoesFederais.Caption := FormatFloat(',0.00', RetencoesFederais);
       rllOutrasRetencoes.Caption := FormatFloat(',0.00', OutrasRetencoes);
       rllValorIssRetido.Caption := FormatFloat(',0.00', ValorIssRetido);
       rllValorLiquido.Caption := FormatFloat(',0.00', ValorLiquidoNfse);
@@ -522,8 +521,7 @@ begin
   inherited;
 
   rlmDescricao.Lines.Clear;
-  rlmDescricao.Lines.Add(StringReplace(fpNFSe.Servico.Discriminacao,
-    FQuebradeLinha, #13#10, [rfReplaceAll, rfIgnoreCase]));
+  rlmDescricao.Lines.Add(fpNFSe.Servico.Discriminacao);
 end;
 
 procedure TfrlXDANFSeRLRetrato.rlbPrestadorBeforePrint(Sender: TObject; var PrintIt: Boolean);

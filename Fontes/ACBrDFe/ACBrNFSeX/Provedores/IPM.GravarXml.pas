@@ -124,7 +124,7 @@ begin
 
   FDocument.Root := NFSeNode;
 
-  if (VersaoNFSe = ve100) and (Ambiente = taHomologacao) then
+  if (VersaoNFSe in [ve100, ve101]) and (Ambiente = taHomologacao) then
     NFSeNode.AppendChild(AddNode(tcStr, '#3', 'nfse_teste', 1, 1, 1, '1', ''));
 
   NFSeNode.AppendChild(AddNode(tcStr, '#2', 'identificador', 1, 80, 0,
@@ -171,16 +171,12 @@ end;
 
 function TNFSeW_IPM.GerarFormaPagamento: TACBrXmlNode;
 var
-  codFp: String;
   xmlNode: TACBrXmlNode;
 begin
   Result := CreateElement('forma_pagamento');
 
-  codFp := EnumeradoToStr(NFSe.CondicaoPagamento.Condicao,
-        ['1', '2', '3', '4', '5'],
-        [cpAVista, cpAPrazo, cpNaApresentacao, cpCartaoDebito, cpCartaoCredito]);
-
-  Result.AppendChild(AddNode(tcStr, '#1', 'tipo_pagamento', 1, 1, 1, codFp, ''));
+  Result.AppendChild(AddNode(tcStr, '#1', 'tipo_pagamento', 1, 1, 1,
+               FpAOwner.CondicaoPagToStr(NFSe.CondicaoPagamento.Condicao), ''));
 
   if (NFSe.CondicaoPagamento.QtdParcela > 0) then
   begin
@@ -312,7 +308,7 @@ begin
     Result[i].AppendChild(AddNode(tcDe2, '#', 'unidade_quantidade', 1, 15, 0,
                                    NFSe.Servico.ItemServico[I].Quantidade, ''));
 
-    Result[i].AppendChild(AddNode(tcDe2, '#', 'unidade_valor_unitario', 1, 15, 0,
+    Result[i].AppendChild(AddNode(tcDe10, '#', 'unidade_valor_unitario', 1, 15, 0,
                                 NFSe.Servico.ItemServico[I].ValorUnitario, ''));
 
     Result[i].AppendChild(AddNode(tcStr, '#', 'codigo_item_lista_servico', 1, 9, 1,
@@ -341,7 +337,11 @@ begin
     Result[i].AppendChild(AddNode(tcDe2, '#', 'valor_deducao', 1, 15, 0,
                                 NFSe.Servico.ItemServico[I].ValorDeducoes, ''));
 
-    Result[i].AppendChild(AddNode(tcDe2, '#', 'valor_issrf', 1, 15, 0,
+    if NFSe.Servico.ItemServico[I].SituacaoTributaria = 3 then
+      Result[i].AppendChild(AddNode(tcDe2, '#', 'valor_issrf', 1, 15, 1,
+                         NFSe.Servico.ItemServico[I].ValorISSRetido, DSC_VISS))
+    else
+      Result[i].AppendChild(AddNode(tcDe2, '#', 'valor_issrf', 1, 15, 0,
                          NFSe.Servico.ItemServico[I].ValorISSRetido, DSC_VISS));
   end;
 

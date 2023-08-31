@@ -76,6 +76,7 @@ const
   Key_Valor         = 'valor';
   Key_NsuSitef      = 'NSU_SITEF';
   Key_CNPJ_CPF      = 'CNPJ_CPF';
+  Key_CNPJ_AUTOMACAO = 'cnpj_automacao';
   Key_pinpadMac      = 'pinpadMac';
   Key_ComExterna    = 'comExterna';
   Key_ISDoubleValidation  = 'isDoubleValidation';
@@ -97,10 +98,12 @@ type
     fSuportaViasDiferenciadas: Boolean;
     fUtilizaSaldoTotalVoucher: Boolean;
     fImprimeViaClienteReduzida: Boolean;
+    fCNPJSoftwareHouse: String;
 
   public
     constructor Create;
     procedure Clear;
+    property CNPJSoftwareHouse: String read fCNPJSoftwareHouse write fCNPJSoftwareHouse;
     Property SuportaSaque: Boolean read fSuportaSaque write fSuportaSaque default False;
     Property SuportaDesconto: Boolean read fSuportaDesconto write fSuportaDesconto default False;
     property ImprimeViaClienteReduzida: Boolean read fImprimeViaClienteReduzida write fImprimeViaClienteReduzida default True;
@@ -244,6 +247,7 @@ end;
 
 procedure TACBrTEFSIWebAndroidDadosAutomacao.Clear;
 begin
+  fCNPJSoftwareHouse := '';
   fImprimeViaClienteReduzida := True;
   fSuportaDesconto := False;
   fSuportaSaque := False;
@@ -373,6 +377,12 @@ begin
 
   GravarLog('  '+Key_ComExterna+': '+ParametrosAdicionais.ValueInfo[PWOPER_COMEXTERNA]);
   intent.putExtra( StringToJString(Key_ComExterna), StringToJString(ParametrosAdicionais.ValueInfo[PWOPER_COMEXTERNA]));
+
+  if (fDadosAutomacao.CNPJSoftwareHouse.Trim <> '') then
+  begin
+    GravarLog('  '+Key_CNPJ_AUTOMACAO+': '+fDadosAutomacao.CNPJSoftwareHouse);
+    intent.putExtra( StringToJString(Key_CNPJ_AUTOMACAO), StringToJString(fDadosAutomacao.CNPJSoftwareHouse));
+  end;
 end;
 
 function TACBrTEFSIWebAndroid.GerarTransactionId: String;
@@ -499,7 +509,8 @@ begin
   fDadosTransacao.ValueInfo[PWINFO_FINTYPE]      := buscarStringExtra('TIPO_PARC');
   fDadosTransacao.ValueInfo[PWINFO_CASHBACKAMT]  := buscarStringExtra('VLTROCO');
   fDadosTransacao.ValueInfo[PWINFO_AUTHSYST]     := buscarStringExtra('REDE_AUT');
-  fDadosTransacao.ValueInfo[PWINFO_CARDNAME]     := buscarStringExtra('BADEIRA');
+  fDadosTransacao.ValueInfo[PWINFO_CARDNAME]     := buscarStringExtra('BANDEIRA');
+  fDadosTransacao.ValueInfo[PWINFO_BANDCODE]     := buscarStringExtra('BANDEIRA');
   fDadosTransacao.ValueInfo[PWINFO_AUTLOCREF]    := buscarStringExtra('NSU_SITEF');
   fDadosTransacao.ValueInfo[PWINFO_REQNUM]       := buscarStringExtra('NSU_SITEF');
   fDadosTransacao.ValueInfo[PWINFO_AUTEXTREF]    := buscarStringExtra('NSU_HOST');

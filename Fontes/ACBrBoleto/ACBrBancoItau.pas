@@ -79,7 +79,7 @@ type
 
     function TipoOcorrenciaToDescricao(const TipoOcorrencia: TACBrTipoOcorrencia) : String; override;
     function CodOcorrenciaToTipo(const CodOcorrencia:Integer): TACBrTipoOcorrencia; override;
-    function TipoOCorrenciaToCod(const TipoOcorrencia: TACBrTipoOcorrencia):String; override;
+    function TipoOcorrenciaToCod(const TipoOcorrencia: TACBrTipoOcorrencia):String; override;
     function CodMotivoRejeicaoToDescricao(const TipoOcorrencia:TACBrTipoOcorrencia; CodMotivo:Integer): String; override;
 
     function CodOcorrenciaToTipoRemessa(const CodOcorrencia:Integer): TACBrTipoOcorrencia; override;
@@ -463,7 +463,8 @@ begin
     with ACBrTitulo do
     begin
        {SEGMENTO P}
-
+       inc(fpQtdRegsCobranca);
+       inc(fpQtdRegsLote);
        {Tipo de Ocorrencia}
        TipoOcorrenciaRemessa := TipoOcorrenciaToCodRemessa(ACBrTitulo.OcorrenciaOriginal.Tipo);
 
@@ -494,7 +495,7 @@ begin
        ListTransacao.Add( IntToStrZero(ACBrBanco.Numero, 3)                + //1 a 3 - Código do banco
                 '0001'                                                     + //4 a 7 - Lote de serviço
                 '3'                                                        + //8 - Tipo do registro: Registro detalhe
-                IntToStrZero(fpQtdRegsLote + 1 ,5)                         + //9 a 13 - Número seqüencial do registro no lote - Cada registro possui dois segmentos
+                IntToStrZero(fpQtdRegsLote ,5)                             + //9 a 13 - Número seqüencial do registro no lote - Cada registro possui dois segmentos
                 'P'                                                        + //14 - Código do segmento do registro detalhe
                 ' '                                                        + //15 - Uso exclusivo FEBRABAN/CNAB: Branco
                 TipoOcorrenciaRemessa                                      + //16 a 17 - Código de movimento
@@ -540,13 +541,13 @@ begin
                         PadLeft(IntToStr(DaysBetween(DataBaixa, Vencimento)), 2, '0'), '00')  + // 225 A 226 - Dias para baixa
                 '0000000000000 ');
 
-       Inc(fpQtdRegsLote);
 
        {SEGMENTO Q}
+       inc(fpQtdRegsLote);
        ListTransacao.Add( IntToStrZero(ACBrBanco.Numero, 3)                + //Código do banco
                 '0001'                                                     + //Número do lote
                 '3'                                                        + //Tipo do registro: Registro detalhe
-                IntToStrZero(fpQtdRegsLote + 1 ,5)                         + //Número seqüencial do registro no lote - Cada registro possui dois segmentos
+                IntToStrZero(fpQtdRegsLote ,5)                             + //Número seqüencial do registro no lote - Cada registro possui dois segmentos
                 'Q'                                                        + //Código do segmento do registro detalhe
                 ' '                                                        + //Uso exclusivo FEBRABAN/CNAB: Branco
                 TipoOcorrenciaRemessa                                      + // 16 a 17
@@ -568,15 +569,16 @@ begin
                 PadRight('0',3, '0')                                       + //Uso exclusivo FEBRABAN/CNAB
                 space(28));                                                   //Uso exclusivo FEBRABAN/CNAB
 
-       Inc(fpQtdRegsLote);
+
 
        {Segmento R}
        if(MatchText(TipoOcorrenciaRemessa,['01','49','31']))then
        begin
+         inc(fpQtdRegsLote);
          ListTransacao.Add(IntToStrZero(ACBrBanco.Numero,3)                         + // 001 a 003 - Codigo do Banco
                 '0001'                                                              + // 004 a 007 - Lote de Serviço
                 '3'                                                                 + // 008 a 008 - Registro Detalhe
-                IntToStrZero(fpQtdRegsLote + 1 ,5)                                  + // 009 a 013 - Seq. Registro do Lote
+                IntToStrZero(fpQtdRegsLote ,5)                                      + // 009 a 013 - Seq. Registro do Lote
                 'R'                                                                 + // 014 a 014 - Codigo do Segmento registro detalhe
                 ' '                                                                 + // 015 a 015 - Complemento de Registro
                 TipoOcorrenciaRemessa                                               + // 016 a 017 - Identificação da Ocorrencia
@@ -611,7 +613,6 @@ begin
                 '0'                                                                 + // 231 a 231 Complemento de Registro
                 StringOfChar(' ',9));                                                  // 232 a 240 Complemento de Registro
 
-         Inc(fpQtdRegsLote);
        end;
 
     end;
@@ -623,15 +624,10 @@ end;
 
 function TACBrBancoItau.GerarRegistroTrailler240(ARemessa: TStringList): String;
 begin
-   fpQtdRegsLote := 0;
-   if(MatchText(TipoOcorrenciaRemessa,['01','49','31']))then
-     fpQtdRegsLote:= (ARemessa.Count -1) * 3
-   else
-     fpQtdRegsLote:= (ARemessa.Count -1) * 2;
-
-   fpQtdRegsCobranca:= fpQtdRegsLote;
 
   Result:= inherited GerarRegistroTrailler240(ARemessa);
+  fpQtdRegsLote := 0;
+  fpQtdRegsCobranca := 0;
 end;
 
 procedure TACBrBancoItau.GerarRegistroHeader400(
@@ -1041,7 +1037,7 @@ var
  CodOcorrencia: Integer;
 begin
   Result := '';
-  CodOcorrencia := StrToIntDef(TipoOCorrenciaToCod(TipoOcorrencia),0);
+  CodOcorrencia := StrToIntDef(TipoOcorrenciaToCod(TipoOcorrencia),0);
 
   if (ACBrBanco.ACBrBoleto.LayoutRemessa = c240) then
   begin
@@ -1257,7 +1253,7 @@ begin
   end;
 end;
 
-function TACBrBancoItau.TipoOCorrenciaToCod(
+function TACBrBancoItau.TipoOcorrenciaToCod(
   const TipoOcorrencia: TACBrTipoOcorrencia): String;
 begin
   Result := '';

@@ -339,10 +339,10 @@ begin
     rlmDadosAdicionais.Lines.Add(StringReplace(fpDANFSe.OutrasInformacaoesImp, FQuebradeLinha, #13#10, [rfReplaceAll, rfIgnoreCase]))
   else
     if fpNFSe.OutrasInformacoes <> '' then
-    rlmDadosAdicionais.Lines.Add(StringReplace(fpNFSe.OutrasInformacoes, FQuebradeLinha, #13#10, [rfReplaceAll, rfIgnoreCase]));
+    rlmDadosAdicionais.Lines.Add(fpNFSe.OutrasInformacoes);
 
   if fpNFSe.InformacoesComplementares <> '' then
-    rlmDadosAdicionais.Lines.Add(StringReplace(fpNFSe.InformacoesComplementares, FQuebradeLinha, #13#10, [rfReplaceAll, rfIgnoreCase]));
+    rlmDadosAdicionais.Lines.Add(fpNFSe.InformacoesComplementares);
 
   rlmDadosAdicionais.Lines.EndUpdate;
   rllDataHoraImpressao.Caption := Format(ACBrStr('DATA E HORA DA IMPRESSÃO: %s'), [FormatDateTime('dd/mm/yyyy hh:nn', Now)]);
@@ -426,7 +426,7 @@ begin
   begin
     txtServicoQtde.Caption := FormatFloatBr(Quantidade);
     rlmServicoDescricao.Lines.Clear;
-    rlmServicoDescricao.Lines.Add(StringReplace(Descricao, FQuebradeLinha, #13#10, [rfReplaceAll, rfIgnoreCase]));
+    rlmServicoDescricao.Lines.Add(Descricao);
     txtServicoUnitario.Caption := FormatFloatBr(ValorUnitario);
 
     if ValorTotal = 0.0 then
@@ -476,8 +476,7 @@ begin
   inherited;
 
   rlmDescricao.Lines.Clear;
-  rlmDescricao.Lines.Add(StringReplace(fpNFSe.Servico.Discriminacao,
-    FQuebradeLinha, #13#10, [rfReplaceAll, rfIgnoreCase]));
+  rlmDescricao.Lines.Add(fpNFSe.Servico.Discriminacao);
 end;
 
 procedure TfrlXDANFSeRLISSnet.rlbPrestadorBeforePrint(Sender: TObject; var PrintIt: Boolean);
@@ -527,22 +526,9 @@ begin
     rllPrestNomeEnt.Caption := IfThen(RazaoSocial <> '', RazaoSocial, fpDANFSe.Prestador.RazaoSocial);
   end;
 
-  if ((pos('http://', LowerCase(fpNFSe.OutrasInformacoes)) > 0) or
-    (pos('https://', LowerCase(fpNFSe.OutrasInformacoes)) > 0) or
-    (pos('http://', LowerCase(fpNFSe.Link)) > 0) or
-    (pos('https://', LowerCase(fpNFSe.Link)) > 0)) then
+  if fpNFSe.Link <> '' then
   begin
-    QRCodeData := Trim(MidStr(fpNFSe.Link, pos('http://', LowerCase(fpNFSe.Link)), Length(fpNFSe.Link)));
-
-    if QRCodeData = '' then
-      QRCodeData := Trim(MidStr(fpNFSe.Link, pos('https://', LowerCase(fpNFSe.Link)), Length(fpNFSe.Link)));
-
-    if QRCodeData = '' then
-      QRCodeData := Trim(MidStr(fpNFSe.OutrasInformacoes, pos('http://', LowerCase(fpNFSe.OutrasInformacoes)), Length(fpNFSe.OutrasInformacoes)));
-
-    if QRCodeData = '' then
-      QRCodeData := Trim(MidStr(fpNFSe.OutrasInformacoes, pos('https://', LowerCase(fpNFSe.OutrasInformacoes)), Length(fpNFSe.OutrasInformacoes)));
-
+    QRCodeData := fpNFSe.Link;
     QrCode := TDelphiZXingQRCode.Create;
     QrCodeBitmap := TBitmap.Create;
 

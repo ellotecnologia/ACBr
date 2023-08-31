@@ -76,7 +76,7 @@ type
 
     function TipoOcorrenciaToDescricao(const TipoOcorrencia: TACBrTipoOcorrencia) : String; override;
     function CodOcorrenciaToTipo(const CodOcorrencia:Integer): TACBrTipoOcorrencia; override;
-    function TipoOCorrenciaToCod(const TipoOcorrencia: TACBrTipoOcorrencia):String; override;
+    function TipoOcorrenciaToCod(const TipoOcorrencia: TACBrTipoOcorrencia):String; override;
     function CodMotivoRejeicaoToDescricao(const TipoOcorrencia:TACBrTipoOcorrencia; CodMotivo:Integer): String; override;
     function CodOcorrenciaToTipoRemessa(const CodOcorrencia:Integer): TACBrTipoOcorrencia; override;
     function TipoOcorrenciaToCodRemessa(const TipoOcorrencia: TACBrTipoOcorrencia): String; override;
@@ -101,6 +101,7 @@ begin
    fpNumero                 := 033;
    fpTamanhoMaximoNossoNum  := 12;
    fpTamanhoCarteira        := 3;
+   fpCodigosMoraAceitos    := '123456';
    fpTamanhoConta           := 11;
    fpLayoutVersaoArquivo    := 40;
    fpLayoutVersaoLote       := 30;
@@ -113,9 +114,14 @@ end;
 function TACBrBancoSantander.DefineNossoNumeroRetorno(const Retorno: String): String;
 begin
   if ACBrBanco.ACBrBoleto.LerNossoNumeroCompleto then
+  begin
+    ACBrBanco.TamanhoMaximoNossoNum := 13;
     Result := Copy(Retorno,DefinePosicaoNossoNumeroRetorno,13)
-  else
+  end else
+  begin
+    ACBrBanco.TamanhoMaximoNossoNum := 12;
     Result := Copy(Retorno,DefinePosicaoNossoNumeroRetorno,12);
+  end;
 end;
 
 function TACBrBancoSantander.DefineNumeroDocumentoModulo(
@@ -142,7 +148,7 @@ begin
   begin
     Result := '9'
                + PadLeft(trim(Cedente.CodigoCedente),7,'0')
-               + PadLeft(ACBrTitulo.NossoNumero + CalcularDigitoVerificador(ACBrTitulo), 13,'0')
+               + PadLeft(OnlyNumber(MontarCampoNossoNumero(ACBrTitulo)), 13,'0')
                + '0'
                + PadLeft(trim(Cedente.Modalidade),3,'0');
   end;
@@ -431,6 +437,7 @@ end;
 
 function TACBrBancoSantander.MontarCampoNossoNumero (
    const ACBrTitulo: TACBrTitulo ) : String;
+var LDV : String;
 begin
    with ACBrTitulo do
    begin
@@ -441,7 +448,10 @@ begin
       end;
    end;
 
-   Result:= PadLeft(ACBrTitulo.NossoNumero,12,'0')+ ' '+ CalcularDigitoVerificador(ACBrTitulo);
+   if not (ACBrTitulo.ACBrBoleto.Configuracoes.WebService.VersaoDF = 'V1') then
+     LDV := ' ' + CalcularDigitoVerificador(ACBrTitulo);
+
+   Result:= PadLeft(ACBrTitulo.NossoNumero,12,'0') + LDV;
 end;
 
 function TACBrBancoSantander.MontarCampoCodigoCedente (
@@ -1073,52 +1083,58 @@ begin
     if copy(Linha, 14, 1) = 'T' then // se for segmento T cria um novo Titulo
        Titulo := ACBrBanco.ACBrBoleto.CriarTituloNaLista;
 
-    with Titulo do
-    begin
-      if copy(Linha, 14, 1) = 'T' then
+    try
+      with Titulo do
       begin
-        NossoNumero          := DefineNossoNumeroRetorno(Linha);
-        NumeroDocumento      := Copy(Linha, 55, 15);
-        SeuNumero            := Copy(Linha, 101, 25);
-        Carteira             := Copy(Linha, 54, 1);
-        Vencimento           := StringToDateTimeDef(Copy(Linha, 70, 2)+'/'+
-                                                    Copy(Linha, 72, 2)+'/'+
-                                                    Copy(Linha, 74,4),0, 'DD/MM/YYYY' );
-        ValorDocumento       := StrToFloatDef(copy(Linha, 78, 15), 0) / 100;
-        ValorDespesaCobranca := StrToFloatDef(copy(Linha, 194, 15), 0) / 100;
-        // Sacado
-        if Copy(Linha, 128, 1) = '1' then
+        if copy(Linha, 14, 1) = 'T' then
         begin
-          Sacado.Pessoa  := pFisica;
-          Sacado.CNPJCPF := Trim(Copy(Linha, 133, 11));
-        end
-        else
-        begin
-          Sacado.Pessoa := pJuridica;
-          Sacado.CNPJCPF    := Trim(Copy(Linha, 129, 15));
-        end;
-        Sacado.NomeSacado := Trim(Copy(Linha, 144, 40));
+          NossoNumero          := DefineNossoNumeroRetorno(Linha);
+          NumeroDocumento      := Copy(Linha, 55, 15);
+          SeuNumero            := Copy(Linha, 101, 25);
+          Carteira             := Copy(Linha, 54, 1);
+          Vencimento           := StringToDateTimeDef(Copy(Linha, 70, 2)+'/'+
+                                                      Copy(Linha, 72, 2)+'/'+
+                                                      Copy(Linha, 74,4),0, 'DD/MM/YYYY' );
+          ValorDocumento       := StrToFloatDef(copy(Linha, 78, 15), 0) / 100;
+          ValorDespesaCobranca := StrToFloatDef(copy(Linha, 194, 15), 0) / 100;
+          // Sacado
+          if Copy(Linha, 128, 1) = '1' then
+          begin
+            Sacado.Pessoa  := pFisica;
+            Sacado.CNPJCPF := Trim(Copy(Linha, 133, 11));
+          end
+          else
+          begin
+            Sacado.Pessoa := pJuridica;
+            Sacado.CNPJCPF    := Trim(Copy(Linha, 129, 15));
+          end;
+          Sacado.NomeSacado := Trim(Copy(Linha, 144, 40));
 
-        // Algumas ocorrências estão diferentes do cnab400, farei uma separada aqui
-        DoVerOcorrencia(Copy(Linha, 16, 2));
-      end
-      else if copy(Linha, 14, 1) = 'U' then
-      begin
-        ValorMoraJuros      := StrToFloatDef(copy(Linha, 18, 15), 0) / 100;
-        ValorDesconto       := StrToFloatDef(copy(Linha, 33, 15), 0) / 100;
-        ValorAbatimento     := StrToFloatDef(copy(Linha, 48, 15), 0) / 100;
-        ValorIOF            := StrToFloatDef(copy(Linha, 63, 15), 0) / 100;
-        ValorPago           := StrToFloatDef(copy(Linha, 78, 15), 0) / 100;
-        ValorRecebido       := StrToFloatDef(copy(Linha, 93, 15), 0) / 100;
-        ValorOutrasDespesas := StrToFloatDef(copy(Linha, 108, 15), 0) / 100;
-        ValorOutrosCreditos := StrToFloatDef(copy(Linha, 123, 15), 0) / 100;
-        DataOcorrencia      := StringToDateTimeDef(Copy(Linha, 138, 2)+'/'+
-                                                   Copy(Linha, 140, 2)+'/'+
-                                                   Copy(Linha, 142,4),0, 'DD/MM/YYYY' );
-        DataCredito := StringToDateTimeDef(Copy(Linha, 146, 2)+'/'+
-                                           Copy(Linha, 148, 2)+'/'+
-                                           Copy(Linha, 150,4),0, 'DD/MM/YYYY' );
+          // Algumas ocorrências estão diferentes do cnab400, farei uma separada aqui
+          DoVerOcorrencia(Copy(Linha, 16, 2));
+        end
+        else if copy(Linha, 14, 1) = 'U' then
+        begin
+          ValorMoraJuros      := StrToFloatDef(copy(Linha, 18, 15), 0) / 100;
+          ValorDesconto       := StrToFloatDef(copy(Linha, 33, 15), 0) / 100;
+          ValorAbatimento     := StrToFloatDef(copy(Linha, 48, 15), 0) / 100;
+          ValorIOF            := StrToFloatDef(copy(Linha, 63, 15), 0) / 100;
+          ValorPago           := StrToFloatDef(copy(Linha, 78, 15), 0) / 100;
+          ValorRecebido       := StrToFloatDef(copy(Linha, 93, 15), 0) / 100;
+          ValorOutrasDespesas := StrToFloatDef(copy(Linha, 108, 15), 0) / 100;
+          ValorOutrosCreditos := StrToFloatDef(copy(Linha, 123, 15), 0) / 100;
+          DataOcorrencia      := StringToDateTimeDef(Copy(Linha, 138, 2)+'/'+
+                                                     Copy(Linha, 140, 2)+'/'+
+                                                     Copy(Linha, 142,4),0, 'DD/MM/YYYY' );
+          DataCredito := StringToDateTimeDef(Copy(Linha, 146, 2)+'/'+
+                                             Copy(Linha, 148, 2)+'/'+
+                                             Copy(Linha, 150,4),0, 'DD/MM/YYYY' );
+        end
+        else if((copy(Linha, 14, 1) = 'Y') and (copy(Linha, 18, 2) = '03'))  then
+          QrCode.PIXQRCodeDinamico(Trim(Copy(Linha, 82, 77)), Trim(Copy(Linha, 159, 35)), Titulo);
       end;
+    finally
+      ACBrBanco.TamanhoMaximoNossoNum := 12;
     end;
   end;
 end;
@@ -1271,7 +1287,7 @@ var
  CodOcorrencia: Integer;
 begin
   Result := '';
-  CodOcorrencia := StrToIntDef(TipoOCorrenciaToCod(TipoOcorrencia),0);
+  CodOcorrencia := StrToIntDef(TipoOcorrenciaToCod(TipoOcorrencia),0);
 
   { Atribuindo Ocorrências divergêntes entre CNAB240 e CNAB400 }
   if (ACBrBanco.ACBrBoleto.LayoutRemessa = c240) then
@@ -1498,7 +1514,7 @@ begin
   end;
 end;
 
-function TACBrBancoSantander.TipoOCorrenciaToCod (
+function TACBrBancoSantander.TipoOcorrenciaToCod (
    const TipoOcorrencia: TACBrTipoOcorrencia ) : String;
 begin
   Result := '';

@@ -47,6 +47,69 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+14/08/2023
+-- ACBrPIXCD --
+[*] Remoção da fução "Trim()" no momento de setar o conteúdo do PFX, pra não ocorrer 
+    perca de caracteres de controle.
+
+04/08/2023
+-- ACBrPIXPSPBancoDoBrasil --
+[*] Alteração do ResultCode recebido ao solicitar uma devolução de Pix (Método PUT ao endpoint /pix)
+    Por: Elias César
+
+02/08/2023
+-- ACBrPIXPSPSicoob --
+[-] Correções para ambiente Sandbox funcionar corretamente no componente ACBrPIXCD.
+    Por: Lucas VG
+
+24/07/2023
+-- ACBrPIXPSPAilos --
+[-] Correção da URL de homologação no PSP Ailos
+    Por: Genesio Becker
+
+24/07/2023
+-- ACBrPIXPSPBradesco --
+[-] Alteração do ResultCode de 200 pra 201 ao criar uma cobrança com vencimento
+    Por: Elias César
+
+17/07/2023
+-- ACBrPIXPSPBancoDoBrasil --
+[-] Correção para não exibir mensagem de erro incorretamente ao utilizar PSP BB com certificado PFX
+    Por: Elias César
+
+30/06/2023
+-- ACBrPIXPSPAilos --
+[*] Correção em métodos que o PSP Ailos respondem diferente do especificado no Bacen
+[*] Alteração para limpar propriedade exclusiva do PSP Ailos ao criar o componente
+	Por: MaagraowaR e Alexandre de Paula
+	
+05/07/2023
+[*] Ajuste na URL em ambiente de produção API versão 2
+    Por: Elias César
+
+26/06/2023
+-- ACBrPIXPSPSicoob --
+[*] Alteração para renomear a tag 'brcode' para 'pixCopiaECola' na resposta do endpoint /cob
+    Por: Elias César
+
+19/06/2023
+-- ACBrPIXPSPBancoDoBrasil --
+[+] Criação de propriedade para definir qual versão da API utilizar;
+[*] Alteração do PSP para utilizar certificados (Necessário em ambiente de Produção
+    na versão 2 da API).
+    por: Elias César
+
+02/06/2023
+-- ACBrPIXPSPAilos --
+[+] Inclusão do novo PSP Ailos
+    Por: MaagraowaR
+
+22/05/2023
+-- ACBrPIXPSPShipay --
+[+] Inclusão de propriedades para possibilitar a definição das URLs de produção e 
+    sandbox para o PSP Shipay.
+    Por: Elias César
+
 24/04/2023
 -- ACBrPIXPSPShipay --
 [-] Correção no carregamento das carteiras ao utilizar o PSP Shipay controlando o Token manualmente

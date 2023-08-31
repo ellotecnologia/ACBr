@@ -77,7 +77,7 @@ type
 
     function TipoOcorrenciaToDescricao(const TipoOcorrencia: TACBrTipoOcorrencia): string; override;
     function CodOcorrenciaToTipo(const CodOcorrencia: Integer): TACBrTipoOcorrencia; override;
-    function TipoOCorrenciaToCod(const TipoOcorrencia: TACBrTipoOcorrencia): string; override;
+    function TipoOcorrenciaToCod(const TipoOcorrencia: TACBrTipoOcorrencia): string; override;
     function CodMotivoRejeicaoToDescricao(const TipoOcorrencia: TACBrTipoOcorrencia; const CodMotivo: String): string; override;
   end;
 
@@ -279,7 +279,7 @@ var
     begin
       if Mensagem.Count = 0 then
       begin
-        Result := PadRight('', 80, ' '); // 2 registros
+        Result := PadRight('', 140, ' '); // 2 registros
         Exit;
       end;
 
@@ -287,20 +287,20 @@ var
       if Mensagem.Count >= 1 then
       begin
         Result := Result +
-          Copy(PadRight(Mensagem[0], 40, ' '), 1, 40);
+          Copy(PadRight(Mensagem[0], 70, ' '), 1, 70);
       end;
 
       if Mensagem.Count >= 2 then
       begin
         Result := Result +
-          Copy(PadRight(Mensagem[1], 40, ' '), 1, 40)
+          Copy(PadRight(Mensagem[1], 70, ' '), 1, 70)
       end
       else
       begin
         if (Result <> EmptyStr) then
-          Result := Result + PadRight('', 40, ' ') // 1 registro
+          Result := Result + PadRight('', 70, ' ') // 1 registro
         else
-          Result := Result + PadRight('', 80, ' '); // 2 registros
+          Result := Result + PadRight('', 140, ' '); // 2 registros
         Exit;
       end;
     end;
@@ -681,9 +681,27 @@ begin
     IfThen(PercentualMulta > 0, IntToStrZero(round(PercentualMulta * 10000), 15), IntToStrZero(0, 15)) + // 075 - 089 / Valor/Percentual a ser aplicado
     // IntToStrZero(round(MultaValorFixo * 100), 15))
     Space(10) + // 090 - 099 / Reservado (uso Banco)
-    MontarInstrucoes1 + // 100 - 139 / Mensagem 3
-    // 140 - 179 / Mensagem 4
+    Space(40) + // 100 - 139 / Branco
+    Space(40) + // 140 - 179 / branco
     Space(61); // 180 - 240 / Reservado (uso Banco)
+
+    if MontarInstrucoes1 <> '' then begin
+      Inc(ISequencia);
+      {SEGMENTO S}
+      Result := Result + #13#10 +
+        '246' + 						          //001 - 003 Código do Banco na compensação
+        '0001' + 						          //004 - 007 Numero do lote remessa
+        '3' + 							          //008 - 008 Tipo de registro
+        IntToStrZero(ISequencia, 5) + //009 - 013 Número seqüencial do registro no lote
+        'S' + 							          //014 - 014 Cód. Segmento do registro detalhe
+        ' ' + 							          //015 - 015 Reservado (uso Banco)
+        sCodMovimento + 				      //016 - 017 Código de movimento remessa
+        '1'  +  						          //018 - 018 Tipo de Impressão Identificação da Impressão  //
+        '01' + 							          //019 - 020 Número da Linha a ser Impressa
+        MontarInstrucoes1 + 			    //021 - 160 Mensagem a ser Impressa
+        '01' +							          //161 - 162 Tipo do Caracter a ser Impresso
+        Space (78); 					        //163 -  240 Uso Exclusivo FEBRABAN/CNAB
+    end;
 
     if ACBrTitulo.ListaDadosNFe.Count > 0 then // Se tem informacoes de NFe associadas ao titulo
     begin
@@ -939,6 +957,13 @@ var
       Titulo.MotivoRejeicaoComando.Clear;
       Titulo.DescricaoMotivoRejeicaoComando.Clear;
       pMotivoRejeicao := 214;
+      if Tipo = toRetornoTituloDDARecusadoCIP then
+      begin
+        CodMotivoRejeicao := copy(Linha, pMotivoRejeicao, 8);
+        Titulo.MotivoRejeicaoComando.Add(CodMotivoRejeicao);
+        Titulo.DescricaoMotivoRejeicaoComando.Add(CodMotivoRejeicao);
+        Exit;
+      end;
       //Adiciona as Rejeiçoes caso existam
       for I := 0 to 4 do
       begin
@@ -1197,7 +1222,7 @@ var
   CodOcorrencia: Integer;
 begin
   Result := '';
-  CodOcorrencia := StrToIntDef(TipoOCorrenciaToCod(TipoOcorrencia), 0);
+  CodOcorrencia := StrToIntDef(TipoOcorrenciaToCod(TipoOcorrencia), 0);
 
   case CodOcorrencia of
     01: Result := '01-Título Não Existe';
@@ -1224,6 +1249,7 @@ begin
     28: Result := '28-Débito de Tarifas/Custas';
     29: Result := '29-Ocorrências do Sacado';
     30: Result := '30-Alteração de Dados Rejeitada';
+    53: Result := '53-Título DDA recusado pela CIP';
     94: Result := '94-Confirma Recebimento de Instrução de Sustar e Alterar Vencimento';
     95: Result := '95-Confirma Recebimento de Instrução de Alteração do ‘Campo Livre’';
     96: Result := '96-Confirma Recebimento de Instrução de Alteração do ‘Seu Número’';
@@ -1296,6 +1322,7 @@ begin
     28: Result := toRetornoDebitoTarifas;
     29: Result := toRetornoOcorrenciasDoSacado;
     30: Result := toRetornoAlteracaoDadosRejeitados;
+    53: Result := toRetornoTituloDDARecusadoCIP;
     94: Result := toRemessaAlterarVencSustarProtesto;
     //95: Result := toRetornoAlterarCampoLivre;
     96: Result := toRemessaAlterarSeuNumero;
@@ -1307,7 +1334,7 @@ begin
   end;
 end;
 
-function TACBrBancoABCBrasil.TipoOCorrenciaToCod(
+function TACBrBancoABCBrasil.TipoOcorrenciaToCod(
   const TipoOcorrencia: TACBrTipoOcorrencia): string;
 begin
   Result := '';
@@ -1316,17 +1343,17 @@ begin
   begin
     case TipoOcorrencia of
       toRetornoLiquidadoAposBaixaOuNaoRegistro: Result := '17';
-      toRetornoRetiradoDeCartorio: Result := '24';
-      toRetornoBaixaPorProtesto: Result := '25';
-      toRetornoInstrucaoRejeitada: Result := '26';
+      toRetornoRetiradoDeCartorio: Result              := '24';
+      toRetornoBaixaPorProtesto: Result                := '25';
+      toRetornoInstrucaoRejeitada: Result              := '26';
     end;
   end
   else
   begin
     case TipoOcorrencia of
-      toRetornoLiquidadoEmCartorio: Result := '17';
-      toRetornoCustasCartorio: Result := '24';
-      toRetornoRecebimentoInstrucaoProtestar: Result := '25';
+      toRetornoLiquidadoEmCartorio: Result                := '17';
+      toRetornoCustasCartorio: Result                     := '24';
+      toRetornoRecebimentoInstrucaoProtestar: Result      := '25';
       toRetornoRecebimentoInstrucaoSustarProtesto: Result := '26';
     end;
   end;
@@ -1355,6 +1382,7 @@ begin
     toRetornoDebitoTarifas: Result := '28';
     toRetornoOcorrenciasDoSacado: Result := '29';
     toRetornoAlteracaoDadosRejeitados: Result := '30';
+    toRetornoTituloDDARecusadoCIP: Result := '53';
     toRemessaAlterarVencSustarProtesto: Result := '94';
     //toRetornoAlterarCampoLivre                               : Result := '95';
     toRemessaAlterarSeuNumero: Result := '96';
@@ -1371,12 +1399,12 @@ function TACBrBancoABCBrasil.CodMotivoRejeicaoToDescricao(const TipoOcorrencia: 
 var
   vlCodOcorrencia: string;
 begin
-  vlCodOcorrencia := TipoOCorrenciaToCod(TipoOcorrencia);
+  vlCodOcorrencia := TipoOcorrenciaToCod(TipoOcorrencia);
 
-  if (vlCodOcorrencia = '02') or
-    (vlCodOcorrencia = '03') or
-    (vlCodOcorrencia = '26') or
-    (vlCodOcorrencia = '30') then
+  if (vlCodOcorrencia = '02') or    //Entrada Confirmada
+    (vlCodOcorrencia = '03') or     //Entrada Rejeitada
+    (vlCodOcorrencia = '26') or     //Instrução Rejeitada
+    (vlCodOcorrencia = '30') then   //Alteração de Dados Rejeitada
   begin
     if CodMotivo = '01' then
       Result := 'BANCO INVÁLIDO'

@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace ACBrLib.NFSe
 {
-    //MT
     public sealed partial class ACBrNFSe
     {
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -77,7 +76,7 @@ namespace ACBrLib.NFSe
         public delegate int NFSE_SubstituirNFSe(IntPtr handle, string aNumeroNFSe, string aSerieNFSe, string aCodigoCancelamento, string aMotivoCancelamento, string aNumeroLote, string aCodigoVerificacao, StringBuilder buffer, ref int bufferSize);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate int NFSE_LinkNFSE(IntPtr handle, string aNumeroNFSe, string aCodigoVerificacao, string aChaveAcesso, string aValorServico, StringBuilder buffer, ref int bufferSize);
+        public delegate int NFSE_LinkNFSe(IntPtr handle, string aNumeroNFSe, string aCodigoVerificacao, string aChaveAcesso, string aValorServico, StringBuilder buffer, ref int bufferSize);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate int NFSE_GerarLote(IntPtr handle, string aLote, int aQtdMaximaRps, int aModoEnvio, StringBuilder buffer, ref int bufferSize);
@@ -142,6 +141,27 @@ namespace ACBrLib.NFSe
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate int NFSE_ConsultarNFSeServicoTomadoPorIntermediario(IntPtr handle, string aCNPJ, string aInscMun, int aPagina, DateTime aDataInicial, DateTime aDataFinal, int aTipoPeriodo, StringBuilder buffer, ref int bufferSize);
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate int NFSE_EnviarEvento(IntPtr handle, string aInfEvento, StringBuilder buffer, ref int bufferSize);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate int NFSE_ConsultarDPSPorChave(IntPtr handle, string aChaveDPS, StringBuilder buffer, ref int bufferSize);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate int NFSE_ConsultarNFSePorChave(IntPtr handle, string aChaveNFSe, StringBuilder buffer, ref int bufferSize);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate int NFSE_ConsultarEvento(IntPtr handle, string aChave, int aTipoEvento, int aNumSeq, StringBuilder buffer, ref int bufferSize);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate int NFSE_ConsultarDFe(IntPtr handle, int aNSU, StringBuilder buffer, ref int bufferSize);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate int NFSE_ObterDANFSE(IntPtr handle, string aChaveNFSe, StringBuilder buffer, ref int bufferSize);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate int NFSE_ConsultarParametros(IntPtr handle, int aTipoParametroMunicipio, string aCodigoServico, DateTime aCompetencia, string aNumeroBeneficio, StringBuilder buffer, ref int bufferSize);
+
         protected override void InitializeMethods()
         {
             AddMethod<NFSE_Inicializar>("NFSE_Inicializar");
@@ -166,12 +186,12 @@ namespace ACBrLib.NFSe
             AddMethod<NFSE_Emitir>("NFSE_Emitir");
             AddMethod<NFSE_Cancelar>("NFSE_Cancelar");
             AddMethod<NFSE_SubstituirNFSe>("NFSE_SubstituirNFSe");
-            AddMethod<NFSE_LinkNFSE>("NFSE_LinkNFSE");
+            AddMethod<NFSE_LinkNFSe>("NFSE_LinkNFSe");
             AddMethod<NFSE_GerarLote>("NFSE_GerarLote");
             AddMethod<NFSE_GerarToken>("NFSE_GerarToken");
             AddMethod<NFSE_ConsultarSituacao>("NFSE_ConsultarSituacao");
             AddMethod<NFSE_ConsultarLoteRps>("NFSE_ConsultarLoteRps");
-            AddMethod<NFSE_ConsultarNFSePorRps>("ConsultarNFSePorRps");
+            AddMethod<NFSE_ConsultarNFSePorRps>("NFSE_ConsultarNFSePorRps");
             AddMethod<NFSE_ConsultarNFSePorNumero>("NFSE_ConsultarNFSePorNumero");
             AddMethod<NFSE_ConsultarNFSePorPeriodo>("NFSE_ConsultarNFSePorPeriodo");
             AddMethod<NFSE_ConsultarNFSePorFaixa>("NFSE_ConsultarNFSePorFaixa");
@@ -187,7 +207,14 @@ namespace ACBrLib.NFSe
             AddMethod<NFSE_ConsultarNFSeServicoTomadoPorPrestador>("NFSE_ConsultarNFSeServicoTomadoPorPrestador");
             AddMethod<NFSE_ConsultarNFSeServicoTomadoPorTomador>("NFSE_ConsultarNFSeServicoTomadoPorTomador");
             AddMethod<NFSE_ConsultarNFSeServicoTomadoPorPeriodo>("NFSE_ConsultarNFSeServicoTomadoPorPeriodo");
-            AddMethod<NFSE_ConsultarNFSeServicoTomadoPorIntermediario>("ConsultarNFSeServicoTomadoPorIntermediario");
+            AddMethod<NFSE_ConsultarNFSeServicoTomadoPorIntermediario>("NFSE_ConsultarNFSeServicoTomadoPorIntermediario");
+            AddMethod<NFSE_EnviarEvento>("NFSE_EnviarEvento");
+            AddMethod<NFSE_ConsultarDPSPorChave>("NFSE_ConsultarDPSPorChave");
+            AddMethod<NFSE_ConsultarNFSePorChave>("NFSE_ConsultarNFSePorChave");
+            AddMethod<NFSE_ConsultarEvento>("NFSE_ConsultarEvento");
+            AddMethod<NFSE_ConsultarDFe>("NFSE_ConsultarDFe");
+            AddMethod<NFSE_ObterDANFSE>("NFSE_ObterDANFSE");
+            AddMethod<NFSE_ConsultarParametros>("NFSE_ConsultarParametros");
         }
     }
 }

@@ -39,7 +39,7 @@ interface
 uses
   SysUtils;
 
-const
+resourcestring
   DSC_NUMRPS = 'Numero do RPS';
   DSC_SERIERPS = 'Serie do RPS';
   DSC_TIPORPS = 'Tipo do RPS';
@@ -149,6 +149,10 @@ const
   Desc128	= 'NSU não informado.';
   Cod129 = 'X129';
   Desc129	= 'Emitente.InscMun não informada.';
+  Cod130 = 'X130';
+  Desc130	= 'Emitente.CNPJ não informado.';
+  Cod131 = 'X131';
+  Desc131 =	'Data de Competencia não informada.';
 
   Cod201 = 'X201';
   Desc201 = 'WebService retornou um XML vazio.';

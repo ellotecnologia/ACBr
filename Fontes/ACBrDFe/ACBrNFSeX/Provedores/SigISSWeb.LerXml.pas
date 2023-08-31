@@ -69,8 +69,12 @@ function TNFSeR_SigISSWeb.LerXml: Boolean;
 var
   XmlNode: TACBrXmlNode;
 begin
+  FpQuebradeLinha := FpAOwner.ConfigGeral.QuebradeLinha;
+
   if EstaVazio(Arquivo) then
     raise Exception.Create('Arquivo xml não carregado.');
+
+  LerParamsTabIni(True);
 
   Arquivo := NormatizarXml(Arquivo);
 
@@ -193,6 +197,8 @@ begin
     with Servico do
     begin
       Discriminacao := ObterConteudo(ANode.Childrens.FindAnyNs('descricao'), tcStr);
+      Discriminacao := StringReplace(Discriminacao, FpQuebradeLinha,
+                                      sLineBreak, [rfReplaceAll, rfIgnoreCase]);
       ItemListaServico := ObterConteudo(ANode.Childrens.FindAnyNs('id_codigo_servico'), tcStr);
 
       with Valores do
@@ -228,6 +234,8 @@ begin
         BaseCalculo := ObterConteudo(ANode.Childrens.FindAnyNs('bc_inss'), tcDe2);
         AliquotaInss := ObterConteudo(ANode.Childrens.FindAnyNs('aliq_inss'), tcDe2);
         ValorInss := ObterConteudo(ANode.Childrens.FindAnyNs('valor_inss'), tcDe2);
+
+        RetencoesFederais := ValorPis + ValorCofins + ValorInss + ValorIr + ValorCsll;
       end;
     end;
 
@@ -245,6 +253,8 @@ begin
 
     CodigoVerificacao := ObterConteudo(ANode.Childrens.FindAnyNs('codigo'), tcStr);
   end;
+
+  LerCampoLink;
 end;
 
 function TNFSeR_SigISSWeb.LerXmlRps(const ANode: TACBrXmlNode): Boolean;
@@ -310,6 +320,8 @@ begin
     with Servico do
     begin
       Discriminacao := ObterConteudo(ANode.Childrens.FindAnyNs('descricao'), tcStr);
+      Discriminacao := StringReplace(Discriminacao, FpQuebradeLinha,
+                                      sLineBreak, [rfReplaceAll, rfIgnoreCase]);
       ItemListaServico := ObterConteudo(ANode.Childrens.FindAnyNs('id_codigo_servico'), tcStr);
 
       with Valores do

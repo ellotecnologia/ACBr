@@ -42,6 +42,53 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+23/06/2023
+--- ACBrLibNFSeST, ACBrLibNFSeMT ---
+[*] Correção parametros dos métodos
+    Por: Antonio Carlos Junior
+
+21/06/2023
+--- ACBrLibNFSeConfig, ACBrLibNFSeDataModule ---
+[*] Correção da Procedure LerParams, removido da unit ACBrLibNFSeConfig e passado para o DataModule
+    Por: Antonio Carlos Junior / Elton Barbosa
+
+19/06/2023
+--- ACBrLibNFSeStaticImportMT ---
+[*] Ajuste unit ACBrLibNFSeStaticImportMT
+    Por: Antonio Carlos Junior
+
+14/06/2023
+--- ACBrLibNFSeBase, ACBrLibNFSeRespostas ---
+[*] Correção no método e resposta NFSE_GerarLote
+    Por: Antonio Carlos Junior
+
+12/06/2023
+--- ACBrLibNFSeBase, ACBrLibNFSeConsts, ACBrLibNFSeRespostas, ACBrLibNFSeStaticImport, ACBrLibNFSeStaticImportMT, ACBrLibNFSeST, ACBrLibNFSeMT ---
+[+] Novos métodos ACBrLibNFSe para uso do Layout no Padrão Nacional
+    Por: Antonio Carlos Junior
+
+31/05/2023
+--- ACBrLibNFSeBase, ACBrLibNFSeResposta ---
+[*] Ajuste no método NFSE_LinkNFSe para retornar um LinkNFSe
+[*] Novos campos para retornar Erros e Alertas TLibNFSeServiceResposta
+    Contribuição: Emerson Teixeira / Revisão: Diego Foliene, Antonio Carlos Junior
+
+30/02/2023
+--- ACBrLibNFSeDataModule ---
+[*] Correção nas Procedures ConfigurarImpressao e FinalizarImpressao para evitar de ocorrer Access Violation
+    Por: Antonio Carlos Junior
+
+25/05/2023
+--- ACBrLibNFSeRespostas ---
+[*] Novos campos na resposta para o método Emitir
+    https://www.projetoacbr.com.br/forum/topic/72328-ajuste-no-retorno-da-resposta-ao-emitir-uma-nfse-pela-lib-acbrlibnfse/
+    Contribuição: Emerson Teixeira / Revisão: Antonio Carlos Junior
+
+24/05/2023
+--- ACBrLibNFSeBase ---
+[*] Correção dos métodos ConsultarNFSeServicoPrestadoPorNumero e ConsultarNFSeServicoTomadoPorPeriodo
+    Por: Antonio Carlos Junior
+
 02/05/2023
 --- ACBrLibNFSeDemo.lpi ---
 [+] Criação versão Demonstração ACBrLibNFSe
