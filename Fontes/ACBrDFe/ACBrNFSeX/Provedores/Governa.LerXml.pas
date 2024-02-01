@@ -222,6 +222,9 @@ begin
       Discriminacao := ObterConteudo(AuxNode.Childrens.FindAnyNs('DesSvc'), tcStr);
       Discriminacao := StringReplace(Discriminacao, FpQuebradeLinha,
                                       sLineBreak, [rfReplaceAll, rfIgnoreCase]);
+
+      VerificarSeConteudoEhLista(Discriminacao);
+
       Descricao := ObterConteudo(AuxNode.Childrens.FindAnyNs('DescricaoServ'), tcStr);
       Descricao := StringReplace(Descricao, FpQuebradeLinha,
                                       sLineBreak, [rfReplaceAll, rfIgnoreCase]);
@@ -235,6 +238,9 @@ begin
         ValorIr := ObterConteudo(AuxNode.Childrens.FindAnyNs('VlrIR'), tcDe2);
 
         RetencoesFederais := ValorPis + ValorCofins + ValorInss + ValorIr + ValorCsll;
+
+        ValorTotalNotaFiscal := ValorServicos - DescontoCondicionado -
+                                DescontoIncondicionado;
 
         ValorLiquidoNfse := 0;
 

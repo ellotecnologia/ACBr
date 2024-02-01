@@ -45,7 +45,8 @@ interface
 
 uses
   Classes, SysUtils,
-  ACBrPIXCD, ACBrBase, ACBrPIXSchemasProblema;
+  {$IFDEF RTL230_UP}ACBrBase,{$ENDIF RTL230_UP}
+  ACBrPIXCD, ACBrPIXSchemasProblema;
 
 const
   cBBParamDevAppKey = 'gw-dev-app-key';

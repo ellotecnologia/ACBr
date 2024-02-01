@@ -38,7 +38,7 @@ uses
   Interfaces, Forms, sysutils, Classes,
   {$IFDEF MT} ACBrLibPIXCDMT{$ELSE}ACBrLibPIXCDST{$ENDIF},
   ACBrLibPIXCDDataModule, ACBrLibPIXCDConfig, ACBrLibPIXCDBase, ACBrLibConfig,
-  ACBrLibResposta, ACBrLibComum, ACBrLibConsts, ACBrLibDataModule, ACBrPIXPSPBradesco;
+  ACBrLibResposta, ACBrLibComum, ACBrLibConsts, ACBrLibDataModule;
 
 {$R *.res}
 
@@ -59,30 +59,28 @@ exports
   PIXCD_ConfigLer,
   PIXCD_ConfigGravar,
   PIXCD_ConfigLerValor,
-  PIXCD_ConfigGravarValor;
-
-  //EndPoint /Pix
-  //PIXCD_ConsultarPIX,
-  //PIXCD_ConsultarPixRecebidos,
-  //PIXCD_SolicitarDevolucaoPix,
-  //PIXCD_ConsultarDevolucaoPix,
-
-  //EndPoint /cob
-  //PIXCD_CriarCobrancaImediata,
-  //PIXCD_RevisarCobrancaImediata,
-  //PIXCD_ConsultarCobrancaImediata,
-  //PIXCD_ConsultarCobrancas,
-
-  //EndPoint /cobv
-  //PIXCD_CriarCobranca,
-  //PIXCD_RevisarCobranca,
-  //PIXCD_ConsultarCobranca,
-  //PIXCD_ConsultarCobrancas,
+  PIXCD_ConfigGravarValor,
 
   //PIXCD
-  //PIXCD_ConsultarCobrancas,
-  //PIXCD_GerarQRCodeEstatico,
-  //PIXCD_GerarQRCodeDinamico;
+  PIXCD_GerarQRCodeEstatico,
+
+  //EndPoint /pix
+  PIXCD_ConsultarPix,
+  PIXCD_ConsultarPixRecebidos,
+  PIXCD_SolicitarDevolucaoPix,
+  PIXCD_ConsultarDevolucaoPix,
+
+  //EndPoint /cob
+  PIXCD_CriarCobrancaImediata,
+  PIXCD_ConsultarCobrancaImediata,
+  PIXCD_RevisarCobrancaImediata,
+  PIXCD_CancelarCobrancaImediata,
+
+  //EndPoint /cobv
+  PIXCD_CriarCobranca,
+  PIXCD_ConsultarCobranca,
+  PIXCD_RevisarCobranca,
+  PIXCD_CancelarCobranca;
 
 begin
   {$IFDEF DEBUG}
@@ -92,5 +90,6 @@ begin
   {$ENDIF}
 
   MainThreadID := GetCurrentThreadId();
+  Application.Initialize;
 end.
 

@@ -172,6 +172,8 @@ begin
 
       NFSe.Servico.Discriminacao := StringReplace(NFSe.Servico.Discriminacao,
                      FpQuebradeLinha, sLineBreak, [rfReplaceAll, rfIgnoreCase]);
+
+      VerificarSeConteudoEhLista(NFSe.Servico.Discriminacao);
     end;
   end;
 end;
@@ -216,6 +218,8 @@ begin
         NFSe.Servico.Valores.IssRetido := stRetencao
       else
         NFSe.Servico.Valores.IssRetido := stNormal;
+
+      ValorTotal := Quantidade * ValorUnitario;
     end;
   end;
 end;
@@ -413,7 +417,7 @@ begin
 
     with Servico.Valores do
     begin
-      ValorIss         := (ValorServicos * Aliquota) /100;
+      ValorIss := (ValorServicos * Aliquota) /100;
 
       RetencoesFederais := ValorPis + ValorCofins + ValorInss + ValorIr + ValorCsll;
 
@@ -421,7 +425,10 @@ begin
                                       (ValorDeducoes + DescontoCondicionado +
                                        DescontoIncondicionado + ValorIssRetido +
                                        RetencoesFederais);
-      BaseCalculo      := ValorLiquidoNfse;
+      BaseCalculo := ValorLiquidoNfse;
+
+      ValorTotalNotaFiscal := ValorServicos - DescontoCondicionado -
+                              DescontoIncondicionado;
     end;
   end;
 

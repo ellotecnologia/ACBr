@@ -275,6 +275,9 @@ begin
     ValorLiquidoNfse := ValorServicos -
         (ValorDeducoes + DescontoCondicionado +
          DescontoIncondicionado + ValorIssRetido);
+
+    ValorTotalNotaFiscal := ValorServicos - DescontoCondicionado -
+                            DescontoIncondicionado;
   end;
 end;
 
@@ -313,6 +316,8 @@ begin
       Discriminacao := ObterConteudo(ANode.Childrens.FindAnyNs('OBSERVACAO'), tcStr);
       Discriminacao := StringReplace(Discriminacao, FpQuebradeLinha,
                                       sLineBreak, [rfReplaceAll, rfIgnoreCase]);
+
+      VerificarSeConteudoEhLista(Discriminacao);
 
       with Valores do
       begin
@@ -396,6 +401,8 @@ begin
           ValorUnitario := ObterConteudo(ANodes[i].Childrens.FindAnyNs('VALORUNIT'), tcDe2);
 
           Quantidade := ObterConteudo(ANodes[i].Childrens.FindAnyNs('QUANTIDADE'), tcDe4);
+
+          ValorTotal := Quantidade * ValorUnitario;
 
           DescontoIncondicionado := ObterConteudo(ANodes[i].Childrens.FindAnyNs('DESCONTO'), tcDe2);
         end;

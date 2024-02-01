@@ -61,6 +61,8 @@ type
     FpQuebradeLinha: string;
     FpIniParamsTabCarregado: Boolean;
 
+    procedure Configuracao; virtual;
+
     function NormatizarItemListaServico(const Codigo: string): string;
     function ItemListaServicoDescricao(const Codigo: string): string;
     function TipodeXMLLeitura(const aArquivo: string): TtpXML; virtual;
@@ -104,6 +106,13 @@ uses
 
 { TNFSeRClass }
 
+procedure TNFSeRClass.Configuracao;
+begin
+  FpQuebradeLinha := FpAOwner.ConfigGeral.QuebradeLinha;
+
+  FpAOwner.ConfigGeral.ImprimirLocalPrestServ := not FpAOwner.ConfigGeral.Params.TemParametro('NaoImprimirLocalPrestServ');
+end;
+
 constructor TNFSeRClass.Create(AOwner: IACBrNFSeXProvider);
 begin
   FpAOwner := AOwner;
@@ -111,12 +120,14 @@ begin
 
   FIniParamsTab := TMemIniFile.Create('');
   FpIniParamsTabCarregado := False;
+
+  Configuracao;
 end;
 
 destructor TNFSeRClass.Destroy;
 begin
   FParamsTab.Free;
-
+  FIniParamsTab.Free;
   inherited;
 end;
 
@@ -390,7 +401,7 @@ begin
   Url := '';
   j := PosIni;
 
-  while (j < Length(Texto)) and (Texto[j] <> ' ') do
+  while (j <= Length(Texto)) and (Texto[j] <> ' ') do
   begin
     Url := Url + Texto[j];
     Inc(j);

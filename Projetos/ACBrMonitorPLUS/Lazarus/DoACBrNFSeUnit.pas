@@ -294,11 +294,190 @@ public
    procedure Executar; override;
 end;
 
+{ TMetodoObterInformacoesProvedor }
+
+TMetodoObterInformacoesProvedor = class(TACBrMetodo)
+public
+  procedure Executar; override;
+end;
+
+{ TMetodoSetLayoutNFSe }
+
+TMetodoSetLayoutNFSe = class(TACBrMetodo)
+public
+  procedure Executar; override;
+end;
+
+{ TMetodoSetCodigoMunicipio }
+
+TMetodoSetCodigoMunicipio = class(TACBrMetodo)
+public
+  procedure Executar; override;
+end;
+
+{ TMetodoSetEmitente }
+
+TMetodoSetEmitente = class(TACBrMetodo)
+public
+  procedure Executar; override;
+end;
+
+{ TMetodoSetAutenticacaoNFSe }
+
+TMetodoSetAutenticacaoNFSe = class(TACBrMetodo)
+public
+  procedure Executar; override;
+end;
+
 implementation
 
 uses
-  Forms, DoACBrUnit, strutils,
+  Forms, DoACBrUnit, strutils, IniFiles,
   ACBrNFSeXWebserviceBase;
+
+{ TMetodoSetAutenticacaoNFSe }
+
+{ Params: 0 - WSUser: Usuário
+          1 - WSSenha: Senha
+          2 - WSChaveAcesso: Chave de acesso
+          3 - WSChaveAutoriz: Chave Autenticação
+          4 - WSFraseSecr: Frase Secreta
+}
+procedure TMetodoSetAutenticacaoNFSe.Executar;
+var
+  AUsuario, ASenha, AChaveAcesso, AChaveAutenticacao, AFraseSecreta: String;
+begin
+  AUsuario := fpCmd.Params(0);
+  ASenha := fpCmd.Params(1);
+  AChaveAcesso := fpCmd.Params(2);
+  AChaveAutenticacao := fpCmd.Params(3);
+  AFraseSecreta := fpCmd.Params(4);
+
+  with TACBrObjetoNFSe(fpObjetoDono) do
+  begin
+    ACBrNFSeX.Configuracoes.Geral.Emitente.WSUser := AUsuario;
+    ACBrNFSeX.Configuracoes.Geral.Emitente.WSSenha := ASenha;
+    ACBrNFSeX.Configuracoes.Geral.Emitente.WSChaveAcesso := AChaveAcesso;
+    ACBrNFSeX.Configuracoes.Geral.Emitente.WSChaveAutoriz := AChaveAutenticacao;
+    ACBrNFSeX.Configuracoes.Geral.Emitente.WSFraseSecr := AFraseSecreta;
+
+    with MonitorConfig.NFSE do
+    begin
+      Usuario := AUsuario;
+      Senha := ASenha;
+      ChaveAcesso := AChaveAcesso;
+      ChaveAutenticacao := AChaveAutenticacao;
+      FraseSecreta := AFraseSecreta;
+    end;
+
+    MonitorConfig.SalvarArquivo;
+  end;
+
+end;
+
+{ TMetodoSetEmitente }
+
+{ Params: 0 - CNPJ do emitente da NFSe
+          1 - Inscrição Municipal do emitente da NFSe
+          2 - Razão Social do emitente da NFSe
+}
+procedure TMetodoSetEmitente.Executar;
+var
+  ACNPJEmitente, AIMEmitente, ARazaoSocial: String;
+begin
+  ACNPJEmitente := fpCmd.Params(0);
+  AIMEmitente   := fpCmd.Params(1);
+  ARazaoSocial  := fpCmd.Params(2);
+
+  with TACBrObjetoNFSe(fpObjetoDono) do
+  begin
+    ACBrNFSeX.Configuracoes.Geral.Emitente.CNPJ :=  ACNPJEmitente;
+    ACBrNFSeX.Configuracoes.Geral.Emitente.InscMun := AIMEmitente;
+    ACBrNFSeX.Configuracoes.Geral.Emitente.RazSocial := ARazaoSocial;
+
+    with MonitorConfig.NFSE do
+    begin
+      CNPJEmitente := ACNPJEmitente;
+      IMEmitente := AIMEmitente;
+      NomeEmitente := ARazaoSocial;
+    end;
+    MonitorConfig.SalvarArquivo;
+  end;
+end;
+
+{ TMetodoSetCodigoMunicipio }
+
+{ Params: 0 - Código IBGE do Município}
+procedure TMetodoSetCodigoMunicipio.Executar;
+var
+  ACodMunicipio: Integer;
+  ANomeMunicipio, AUFMunicipio: String;
+  ListaMunicipios: TMemIniFile;
+begin
+  ACodMunicipio := StrToIntDef(fpCmd.Params(0), 0);
+
+  with TACBrObjetoNFSe(fpObjetoDono) do
+  begin
+
+    ListaMunicipios := TMemIniFile.Create('');
+    try
+      ListaMunicipios.SetStrings(ACBrNFSeX.Configuracoes.WebServices.Params);
+      ANomeMunicipio := ListaMunicipios.ReadString(IntToStr(ACodMunicipio), 'Nome', '');
+      AUFMunicipio := ListaMunicipios.ReadString(IntToStr(ACodMunicipio), 'UF', '');
+    finally
+      ListaMunicipios.Free;
+    end;
+
+    ACBrNFSeX.Configuracoes.Geral.CodigoMunicipio := ACodMunicipio;
+
+    with MonitorConfig.NFSE do
+    begin
+      CodigoMunicipio := ACodMunicipio;
+      NomeMunicipio := ANomeMunicipio;
+      UFMunicipio := AUFMunicipio;
+    end;
+
+    MonitorConfig.SalvarArquivo;
+  end;
+end;
+
+{ TMetodoSetLayoutNFSe }
+
+{ Params: 0 - LayoutNFSe}
+procedure TMetodoSetLayoutNFSe.Executar;
+var
+  ALayout: string;
+  OK: boolean;
+begin
+  ALayout := fpCmd.Params(0);
+  with TACBrObjetoNFSe(fpObjetoDono) do
+  begin
+    ACBrNFSeX.Configuracoes.Geral.LayoutNFSe := StrToLayoutNFSe(Ok, ALayout);
+
+    with MonitorConfig.NFSE do
+      LayoutProvedor := StrToIntDef(LayoutNFSeToStr(ACBrNFSeX.Configuracoes.Geral.LayoutNFSe), 0);
+
+    MonitorConfig.SalvarArquivo;
+  end;
+end;
+
+{ TMetodoObterInformacoesProvedor }
+
+procedure TMetodoObterInformacoesProvedor.Executar;
+var
+  RespObterInfo: TObterInformacoesProvedorResposta;
+begin
+  with TACBrObjetoNFSe(fpObjetoDono) do
+  begin
+    RespObterInfo := TObterInformacoesProvedorResposta.Create(TpResp, codUTF8);
+    try
+      RespObterInfo.Processar(ACBrNFSeX.Configuracoes.Geral);
+      fpCmd.Resposta := fpCmd.Resposta + sLineBreak + RespObterInfo.Gerar;
+    finally
+      RespObterInfo.Free;
+    end;
+  end;
+end;
 
 { TMetodoTotalRPSLote }
 
@@ -1588,6 +1767,11 @@ begin
 
   ListaDeMetodos.Add(CMetodoLimparLoteRPS);
   ListaDeMetodos.Add(CMetodoTotalRPSLote);
+  ListaDeMetodos.Add(CMetodoObterInformacoesProvedor);
+  ListaDeMetodos.Add(CMetodoSetLayoutNFSe);
+  ListaDeMetodos.Add(CMetodoSetCodigoMunicipio);
+  ListaDeMetodos.Add(CMetodoSetEmitente);
+  ListaDeMetodos.Add(CMetodoSetAutenticacaoNFSe);
 
   // DoACBrUnit
   ListaDeMetodos.Add(CMetodoSavetofile);
@@ -1658,6 +1842,11 @@ begin
     34  : AMetodoClass := TMetodoConsultarParametrosNFSe;
     35  : AMetodoClass := TMetodoLimparLoteRPS;
     36  : AMetodoClass := TMetodoTotalRPSLote;
+    37  : AMetodoClass := TMetodoObterInformacoesProvedor;
+    38  : AMetodoClass := TMetodoSetLayoutNFSe;
+    39  : AMetodoClass := TMetodoSetCodigoMunicipio;
+    40  : AMetodoClass := TMetodoSetEmitente;
+    41  : AMetodoClass := TMetodoSetAutenticacaoNFSe;
 
     else
     begin

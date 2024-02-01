@@ -128,6 +128,7 @@ begin
       SituacaoNfse := snCancelado;
 
 //      <xsd:element name="nfecontrole" type="xsd:string"/>
+    InfID.ID := ObterConteudo(ANode.Childrens.FindAnyNs('nfecontrole'), tcStr);
 
     with Prestador do
     begin
@@ -231,6 +232,8 @@ begin
 //      <xsd:element name="nfevaltributavel" type="xsd:string"/>
         RetencoesFederais := ValorPis + ValorCofins + ValorInss + ValorIr + ValorCsll;
 
+        ValorTotalNotaFiscal := ValorServicos - DescontoCondicionado -
+                                DescontoIncondicionado;
       end;
 
       i := 0;

@@ -226,6 +226,9 @@ begin
         (ValorDeducoes + DescontoCondicionado + DescontoIncondicionado +
                                                                 ValorIssRetido);
       BaseCalculo      := ValorLiquidoNfse;
+
+      ValorTotalNotaFiscal := ValorServicos - DescontoCondicionado -
+                              DescontoIncondicionado;
     end;
   end;
 end;
@@ -245,6 +248,8 @@ begin
       Discriminacao    := ObterConteudo(AuxNode.Childrens.FindAnyNs('descricao'), tcStr);
       Discriminacao := StringReplace(Discriminacao, FpQuebradeLinha,
                                       sLineBreak, [rfReplaceAll, rfIgnoreCase]);
+
+      VerificarSeConteudoEhLista(Discriminacao);
 
       with Valores do
       begin

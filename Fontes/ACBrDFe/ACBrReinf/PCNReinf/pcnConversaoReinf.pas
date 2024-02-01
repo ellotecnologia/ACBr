@@ -181,7 +181,8 @@ type
                             itdFapi,       // 3 - Fapi
                             itdFunpresp,   // 4 - Funpresp
                             itdPensao,     // 5 - Pensão Alimentícia
-                            itdDependentes // 7 - Dependentes
+                            itdDependentes,// 7 - Dependentes
+                            itdDescontoSimplMensal// 8 - Desconto simplificado mensal
                             );
 
   TtpIsencao              = (
@@ -434,6 +435,10 @@ function TipoEventoToStrEvento(const t: TTipoEvento): string;
 
 function TpInscricaoToStr(const t: TtpInsc): string;
 function StrToTpInscricao(out ok: boolean; const s: string): TtpInsc;
+
+function ContribuinteToStr(const t: TContribuinte): string;
+function ContribuinteEnumToStr(const t: TContribuinte): string;
+function StrToContribuinte(var ok: boolean; const s: string): TContribuinte;
 
 function procEmiReinfToStr(const t: TprocEmi): string;
 function StrToprocEmiReinf(var ok: boolean; const s: string): TprocEmi;
@@ -722,6 +727,21 @@ begin
   result := TtpInsc(StrToEnumerado2(ok , s, ['1', '2', '3', '4']));
 end;
 
+function ContribuinteToStr(const t: TContribuinte): string;
+begin
+  result := EnumeradoToStr2(t, ['0', '1', '2']);
+end;
+
+function ContribuinteEnumToStr(const t: TContribuinte): string;
+begin
+  result := GetEnumName(TypeInfo(TContribuinte), Integer(t));
+end;
+
+function StrToContribuinte(var ok: boolean; const s: string): TContribuinte;
+begin
+  result := TContribuinte(StrToEnumerado2(ok , s, ['0', '1', '2']));
+end;
+
 function ProcEmiReinfToStr(const t: TprocEmi): string;
 begin
   result := EnumeradoToStr2(t, ['0', '1', '2']);
@@ -920,13 +940,13 @@ end;
 
 function indTpDeducaoToStr(const t: TindTpDeducao): string;
 begin
-  result := EnumeradoToStr2(t, ['1', '2', '3', '4', '5', '7']);
+  result := EnumeradoToStr2(t, ['1', '2', '3', '4', '5', '7', '8']);
 end;
 
 function StrToindTpDeducao(var ok: boolean; const s: string): TindTpDeducao;
 begin
   result := TindTpDeducao(StrToEnumerado2(ok , s, ['1', '2', '3', '4', '5',
-                                                    '7']));
+                                                    '7', '8']));
 end;
 
 function tpIsencaoToStr(const t: TtpIsencao): string;
@@ -1044,13 +1064,13 @@ end;
 
 function tpDependenteToStr(const t: TtpDependente): string;
 begin
-  result := EnumeradoToStr2(t, ['1', '2', '3', '6', '8', '9',
+  result := EnumeradoToStr2(t, ['1', '2', '3', '6', '9',
                                 '10', '11', '12', '99']);
 end;
 
 function StrToTpDependente(var ok: boolean; const s: string): TtpDependente;
 begin
-  result := TtpDependente(StrToEnumerado2(ok , s, ['1', '2', '3', '6', '8', '9',
+  result := TtpDependente(StrToEnumerado2(ok , s, ['1', '2', '3', '6', '9',
                                                    '10', '11', '12', '99']));
 end;
 

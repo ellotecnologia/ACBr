@@ -175,11 +175,16 @@ begin
     Discriminacao := StringReplace(Discriminacao, FpQuebradeLinha,
                                       sLineBreak, [rfReplaceAll, rfIgnoreCase]);
 
+    VerificarSeConteudoEhLista(Discriminacao);
+
     Valores.ValorServicos := ObterConteudo(AuxNode.Childrens.FindAnyNs('NFS_E_VLR_BRUTO'), tcDe2);
     Valores.ValorIss := ObterConteudo(AuxNode.Childrens.FindAnyNs('NFS_E_VLR_ISSQN'), tcDe2);
     Valores.BaseCalculo := ObterConteudo(AuxNode.Childrens.FindAnyNs('NFS_E_VLR_BASE_CALC'), tcDe2);
     Valores.Aliquota := ObterConteudo(AuxNode.Childrens.FindAnyNs('NFS_E_ALQ_APL'), tcDe2);
     Valores.ValorLiquidoNfse := Valores.ValorServicos;
+
+    Valores.ValorTotalNotaFiscal := Valores.ValorServicos - Valores.DescontoCondicionado -
+                                    Valores.DescontoIncondicionado;
   end;
 
   NFSe.OutrasInformacoes := ObterConteudo(AuxNode.Childrens.FindAnyNs('NFS_E_DES_RES'), tcStr);

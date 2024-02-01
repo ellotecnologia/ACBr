@@ -81,6 +81,8 @@ ResourceString
   SErroReinfConsulta = 'Erro ao Consultar Evento - Parâmetro não Preenchido.';
   SErroSSLDesabilitado = 'Será utilizado a configuração padrão SSL: %s !';
 
+  SErroVersaoInvalida = 'Versão Inválida.';
+  SErroTipoContribuinteInvalido = 'Tipo de Contribuinte Inválido.';
 
 const
   CMonitorIni = 'ACBrMonitor.ini';
@@ -386,6 +388,7 @@ const
   CMetodoSetformaemissao =             'setformaemissao';
   CMetodoSetTipoImpressao =            'settipoimpressao';
   CMetodoSetversaodf =                 'setversaodf';
+  CMetodoSetTipoContribuinte =         'settipocontribuinte';
   CMetodoLermdfe =                     'lermdfe';
   CMetodoMdfetotxt =                   'mdfetotxt';
   CMetodoFileexist =                   'fileexists';
@@ -423,6 +426,7 @@ const
   CMetodoEncodeBase64 =                'encodebase64';
   CMetodoDecodeBase64 =                'decodebase64';
   CMetodoRoundABNT =                   'roundabnt';
+  CMetodoSetTimeZone =                 'settimezone';
 
   CMetodoValidarnfe =                  'validarnfe';
   CMetodoAssinarnfe =                  'assinarnfe';
@@ -508,6 +512,11 @@ const
   CMetodoConsultarDFeNFSePorNSU =      'ConsultarDFeNFSePorNSU';
   CMetodoConsultarDFeNFSePorChave =    'ConsultarDFeNFSePorChave';
   CMetodoConsultarParametrosNFSe =     'ConsultarParametrosNFSe';
+  CMetodoObterInformacoesProvedor =    'ObterInformacoesProvedor';
+  CMetodoSetLayoutNFSe = 'SetLayoutNFSe';
+  CMetodoSetCodigoMunicipio = 'SetCodigoMunicipio';
+  CMetodoSetEmitente = 'SetEmitente';
+  CMetodoSetAutenticacaoNFSe = 'SetAutenticacaoNFSe';
 
   CMetodoValidarCTe =                  'validarcte';
   CMetodoAssinarCTe =                  'assinarcte';
@@ -595,6 +604,10 @@ const
   CMetodoEnviarBoleto =              'enviarboleto';
   CMetodoSetOperacaoWS =             'setoperacaows';
   CMetodoConsultarTitulosPorPeriodo= 'consultartitulosporperiodo';
+  CMetodoGerarPDFComSenha=           'gerarpdfcomsenha';
+  CMetodoGerarPDFBoletoComSenha =    'gerarpdfboletocomsenha';
+  CMetodoSetMotorBoletoRelatorio =   'setmotorboletorelatorio';
+  CMetodoSetMargem  =                'setmargem';
 
   CMetodoAtivar =               'ativar';
   CMetodoDesativar =            'desativar';
@@ -738,6 +751,7 @@ const
   CMetodoImprimirGNRe    = 'imprimirgnre';
   CMetodoImprimirGNRePDF = 'imprimirgnrepdf';
   CMetodoGerarGuia       = 'gerarguia';
+  CMetodoGerarXMLGNRe    = 'gerarxml';
 
   CMetodoImprimirCMD            = 'imprimircmd';
   CMetodoImprimirTAGs           = 'imprimirtags';
@@ -1012,6 +1026,8 @@ const
   CKeyEmailSegundoPlano =            'SegundoPlano';
   CKeyEmailCodificacao =             'Codificacao';
   CKeyEmailHTML =                    'HTML';
+  CKeyEmailSSLType =                 'SSLType';
+
   CKeyAttemptsMail =                 'AttemptsMail';
   CKeyTimeoutMail =                  'TimeOutMail';
   CKeyMensagemNFe =                  'MensagemNFe';
@@ -1344,6 +1360,12 @@ const
   CKeyBOLETOEmailFormatoHTML =              'EmailFormatoHTML';
   CKeyBOLETOImpressora =                    'Impressora';
   CKeyBOLETONomeArquivoBoleto =             'NomeArquivoBoleto';
+  CKeyBOLETOTipoMotorRelatorio =            'TipoMotorRelatorio';
+  CKeyBOLETOMargemInferior =                'MargemInferior';
+  CKeyBOLETOMargemSuperior =                'MargemSuperior';
+  CKeyBOLETOMargemEsquerda =                'MargemEsquerda';
+  CKeyBOLETOMargemDireita =                 'MargemDireita';
+
   //Manter Compatibilidade
   CKeyBOLETOCedenteNome =                   'Cedente.Nome';
   CKeyBOLETOCedenteCNPJCPF =                'Cedente.CNPJCPF';
@@ -1413,6 +1435,10 @@ const
   CKeyNFSeConsultarAposCancelar =           'ConsultarAposCancelar';
   CKeyNFSeNomePrefeitura =                  'NomePrefeitura';
   CKeyNFSeCNPJPrefeitura =                  'CNPJPrefeitura';
+
+  CSecProvedorCNPJ =                        'ProvedorCNPJ';
+  CKeyProvedorCNPJProvedor =                'Provedor';
+
 
 implementation
 

@@ -115,6 +115,16 @@ begin
     ModoEnvio := meLoteAssincrono;
     ConsultaLote := False;
     ConsultaNFSe := False;
+
+    Autenticacao.RequerCertificado := False;
+    Autenticacao.RequerChaveAutorizacao := True;
+
+    with ServicosDisponibilizados do
+    begin
+      EnviarLoteAssincrono := True;
+      ConsultarRps := True;
+      CancelarNfse := True;
+    end;
   end;
 
   SetXmlNameSpace('');
@@ -405,6 +415,7 @@ begin
           Response.DescSituacao := 'Nota não Encontrada';
 
         Response.NumeroNota := ObterConteudoTag(ANode.Childrens.FindAnyNs('numeroNota'), tcStr);
+        Response.Link := ObterConteudoTag(ANode.Childrens.FindAnyNs('wsLink'), tcStr);
       end;
     except
       on E:Exception do

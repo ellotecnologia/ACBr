@@ -311,6 +311,8 @@ begin
   NFSe.Servico.Discriminacao := StringReplace(NFSe.Servico.Discriminacao, FpQuebradeLinha,
                                       sLineBreak, [rfReplaceAll, rfIgnoreCase]);
 
+  VerificarSeConteudoEhLista(NFSe.Servico.Discriminacao);
+
   AuxNode := ANode.Childrens.FindAnyNs('Tomador');
   if AuxNode <> nil then
   begin
@@ -372,6 +374,9 @@ begin
     ValorLiquidoNfse := ValorServicos - RetencoesFederais - OutrasRetencoes -
                         ValorIssRetido - DescontoIncondicionado -
                         DescontoCondicionado;
+
+    ValorTotalNotaFiscal := ValorServicos - DescontoCondicionado -
+                            DescontoIncondicionado;
   end;
 
   AuxNode := ANode.Childrens.FindAnyNs('Cancelamento');

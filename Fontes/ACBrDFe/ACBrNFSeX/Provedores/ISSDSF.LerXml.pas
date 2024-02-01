@@ -39,7 +39,6 @@ interface
 uses
   SysUtils, Classes, StrUtils, synacode,
   ACBrXmlBase, ACBrXmlDocument,
-  pcnAuxiliar,
   ACBrNFSeXConversao, ACBrNFSeXLerXml;
 
 type
@@ -425,6 +424,9 @@ begin
                          DescontoIncondicionado + ValorIssRetido);
 
     BaseCalculo := ValorServicos - (ValorDeducoes + DescontoIncondicionado);
+
+    ValorTotalNotaFiscal := ValorServicos - DescontoCondicionado -
+                            DescontoIncondicionado;
   end;
 end;
 

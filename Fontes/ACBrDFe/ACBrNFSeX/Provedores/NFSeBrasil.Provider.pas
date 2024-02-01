@@ -45,9 +45,10 @@ uses
 type
   TACBrNFSeXWebserviceNFSeBrasil = class(TACBrNFSeXWebserviceSoap11)
   private
-    function GetDatosUsuario: string;
+    function GetDadosUsuario: string;
   public
     function Recepcionar(ACabecalho, AMSG: String): string; override;
+    function TesteEnvio(ACabecalho, AMSG: string): string; override;
     function ConsultarLote(ACabecalho, AMSG: String): string; override;
     function ConsultarNFSePorRps(ACabecalho, AMSG: String): string; override;
     function ConsultarNFSe(ACabecalho, AMSG: String): string; override;
@@ -55,7 +56,7 @@ type
 
     function TratarXmlRetornado(const aXML: string): string; override;
 
-    property DadosUsuario: string read GetDatosUsuario;
+    property DadosUsuario: string read GetDadosUsuario;
   end;
 
   TACBrNFSeProviderNFSeBrasil = class (TACBrNFSeProviderABRASFv1)
@@ -100,7 +101,7 @@ const
 
 { TACBrNFSeXWebserviceNFSeBrasil }
 
-function TACBrNFSeXWebserviceNFSeBrasil.GetDatosUsuario: string;
+function TACBrNFSeXWebserviceNFSeBrasil.GetDadosUsuario: string;
 begin
   with TACBrNFSeX(FPDFeOwner).Configuracoes.Geral do
   begin
@@ -201,13 +202,30 @@ begin
                      ['xmlns:urn="urn:loterpswsdl"', xsi]);
 end;
 
+function TACBrNFSeXWebserviceNFSeBrasil.TesteEnvio(ACabecalho,
+  AMSG: string): string;
+var
+  Request: string;
+begin
+  FPMsgOrig := AMSG;
+
+  // Tratamento de nomes com &
+  AMSG := StringReplace(AMSG, '&amp;', '&amp;amp;', [rfReplaceAll]);
+
+  Request := '<urn:tm_lote_rps_service.testarLoteRPSRequest' + encodingStyle +'>';
+  Request := Request + '<xml xsi:type="xsd:string">' + XmlToStr(AMSG) + '</xml>';
+  Request := Request + DadosUsuario;
+  Request := Request + '</urn:tm_lote_rps_service.testarLoteRPSRequest>';
+
+  Result := Executar('urn:loterpswsdl#tm_lote_rps_service.testarLoteRPS', Request,
+                     ['return', 'RespostaLoteRps'],
+                     ['xmlns:urn="urn:loterpswsdl"', xsi]);
+end;
+
 function TACBrNFSeXWebserviceNFSeBrasil.TratarXmlRetornado(
   const aXML: string): string;
 begin
   Result := inherited TratarXmlRetornado(aXML);
-
-  if Pos('ISO-8859-1', Result) > 0 then
-    Result := AnsiToNativeString(Result);
 
   Result := StringReplace(Result, '&amp;amp;', 'e',[rfReplaceAll]);
   Result := ParseText(AnsiString(Result), True, {$IfDef FPC}True{$Else}False{$EndIf});
@@ -219,7 +237,6 @@ begin
   Result := StringReplace(Result, 'R$', '', [rfReplaceAll]);
   Result := StringReplace(Result, '&', '&amp;', [rfReplaceAll]);
   Result := StringReplace(Result, ']]', '', [rfReplaceAll]);
-  Result := NativeStringToUTF8(Result);
 end;
 
 { TACBrNFSeProviderNFSeBrasil }
@@ -229,9 +246,21 @@ begin
   inherited Configuracao;
 
   ConfigGeral.UseCertificateHTTP := False;
+  ConfigGeral.Autenticacao.RequerCertificado := False;
+  ConfigGeral.Autenticacao.RequerChaveAcesso := True;
+
+  with ConfigGeral.ServicosDisponibilizados do
+  begin
+    ConsultarSituacao := False;
+    TestarEnvio := True;
+  end;
+
   ConfigMsgDados.Prefixo := 'xs';
 
-  SetXmlNameSpace('http://www.nfsebrasil.net.br/nfse/rps/xsd/rps.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance');
+  if FAOwner.Configuracoes.WebServices.AmbienteCodigo = 1 then
+    SetXmlNameSpace(ConfigWebServices.Producao.XMLNameSpace)
+  else
+    SetXmlNameSpace(ConfigWebServices.Homologacao.XMLNameSpace);
 
   ConfigMsgDados.ConsultarNFSe.DocElemento := 'ConsultarNfsePorRpsEnvio';
 
@@ -280,7 +309,7 @@ var
   TagEnvio, Prefixo, PrefixoTS: string;
   I: Integer;
 begin
-  if Response.ModoEnvio in [meLoteSincrono, meUnitario, meTeste] then
+  if Response.ModoEnvio in [meLoteSincrono, meUnitario] then
   begin
     AErro := Response.Erros.New;
     AErro.Codigo := Cod001;

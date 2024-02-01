@@ -128,6 +128,8 @@ begin
   NFSe.Servico.Discriminacao := StringReplace(NFSe.Servico.Discriminacao, FpQuebradeLinha,
                                       sLineBreak, [rfReplaceAll, rfIgnoreCase]);
 
+  VerificarSeConteudoEhLista(NFSe.Servico.Discriminacao);
+
   with NFSe.ValoresNfse do
   begin
     ValorLiquidoNfse := ObterConteudo(AuxNode.Childrens.FindAnyNs('servicoValor'), tcDe2);
@@ -162,6 +164,9 @@ begin
     RetencoesFederais := ValorPis + ValorCofins + ValorInss + ValorIr + ValorCsll;
 
     ValorLiquidoNfse := ObterConteudo(AuxNode.Childrens.FindAnyNs('valorLiquidoNFSe'), tcDe2);
+
+    ValorTotalNotaFiscal := ValorServicos - DescontoCondicionado -
+                            DescontoIncondicionado;
   end;
 
   NFSe.Servico.CodigoMunicipio := ObterConteudo(AuxNode.Childrens.FindAnyNs('municipioPrestacao'), tcStr);

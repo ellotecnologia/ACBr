@@ -113,6 +113,7 @@ type
     function GetRetConsulta_R5011: TRetConsulta_R5011;
     function GetRetConsulta_R9011: TRetConsulta_R9011;
     function GetRetConsulta_R9015: TRetConsulta_R9015;
+    function GetEvtTotalContribVersao: TEvtTotalContrib;
   protected
     procedure DefinirURL; override;
     procedure DefinirServicoEAction; override;
@@ -134,6 +135,7 @@ type
     property RetConsulta_R5011: TRetConsulta_R5011 read GetRetConsulta_R5011;
     property RetConsulta_R9011: TRetConsulta_R9011 read GetRetConsulta_R9011;
     property RetConsulta_R9015: TRetConsulta_R9015 read GetRetConsulta_R9015;
+    property EvtTotalContribVersao: TEvtTotalContrib read GetEvtTotalContribVersao;
     // Versão 2.1.1
     property RetEnvioLote: TRetEnvioLote read FRetEnvioLote;
   end;
@@ -163,6 +165,7 @@ type
     function GetRetConsulta_R5011: TRetConsulta_R5011;
     function GetRetConsulta_R9011: TRetConsulta_R9011;
     function GetRetConsulta_R9015: TRetConsulta_R9015;
+    function GetEvtTotalContribVersao: TEvtTotalContrib;
   protected
     procedure DefinirURL; override;
     procedure DefinirServicoEAction; override;
@@ -192,6 +195,7 @@ type
     property RetConsulta_R5011: TRetConsulta_R5011 read GetRetConsulta_R5011;
     property RetConsulta_R9011: TRetConsulta_R9011 read GetRetConsulta_R9011;
     property RetConsulta_R9015: TRetConsulta_R9015 read GetRetConsulta_R9015;
+    property EvtTotalContribVersao: TEvtTotalContrib read GetEvtTotalContribVersao;
     // Versão 2.1.1
     property Consulta: TReinfConsulta read FConsulta write FConsulta;
     property RetEnvioLote: TRetEnvioLote read FRetEnvioLote;
@@ -429,6 +433,13 @@ begin
 
   if Assigned(TACBrReinf(FPDFeOwner).OnTransmissaoEventos) then
     TACBrReinf(FPDFeOwner).OnTransmissaoEventos(FPRetWS, erRetornoLote);
+
+  // Controle para exibir mensagem clara ao usuário caso tente utilizar o leiaute ainda não implementado ou descontinuado pela Receita
+  if (Pos('>MS0030</',FPRetornoWS) > 0) and
+     (Pos('em desconformidade com o esquema XSD. O namespace',FPRetornoWS) > 0) and
+     (Pos('informado no documento XML',FPRetornoWS) > 0) and
+     (Pos('um namespace reconhecido',FPRetornoWS) > 0) then
+    GerarException('Atenção: Os schemas da versão ' + VersaoReinfToStr(FPConfiguracoesReinf.Geral.VersaoDF) + ' ainda não estão diponíveis ou foram descontinuados do ambiente utilizado');
 
   Result := True;
 end;
@@ -714,12 +725,7 @@ begin
      (Pos('em desconformidade com o esquema XSD. O namespace',FPRetornoWS) > 0) and
      (Pos('informado no documento XML',FPRetornoWS) > 0) and
      (Pos('um namespace reconhecido',FPRetornoWS) > 0) then
-  begin
-    if TACBrReinf(FPDFeOwner).Configuracoes.Geral.ExibirErroSchema then
-      FazerLog('Atenção: Os schemas da versão ' + VersaoReinfToStr(FPConfiguracoesReinf.Geral.VersaoDF) + ' ainda não estão diponíveis ou foram descontinuados do ambiente utilizado',True)
-    else
-      GerarException('Atenção: Os schemas da versão ' + VersaoReinfToStr(FPConfiguracoesReinf.Geral.VersaoDF) + ' ainda não estão diponíveis ou foram descontinuados do ambiente utilizado');
-  end;
+    GerarException('Atenção: Os schemas da versão ' + VersaoReinfToStr(FPConfiguracoesReinf.Geral.VersaoDF) + ' ainda não estão diponíveis ou foram descontinuados do ambiente utilizado');
 
   Result := True;
 end;
@@ -755,6 +761,14 @@ begin
     GerarException('Propriedade RetConsulta_R9015 disponível a partir da versão 2_01_01, registro indexistente em versões anteriores');
 
   Result := FRetConsulta_R9015;
+end;
+
+function TConsultar.GetEvtTotalContribVersao: TEvtTotalContrib;
+begin
+  if FVersaoDF < v2_01_01 then
+    Result := FRetConsulta_R5011.evtTotalContrib
+  else
+    Result := FRetConsulta_R9011.evtTotalContrib;
 end;
 
 function TConsultar.GerarPrefixoArquivo: String;
@@ -950,6 +964,14 @@ begin
     GerarException('Propriedade RetConsulta_R9015 disponível a partir da versão 2_01_01, registro inexistente em versões anteriores');
 
   Result := FRetConsulta_R9015;
+end;
+
+function TConsultarReciboEvento.GetEvtTotalContribVersao: TEvtTotalContrib;
+begin
+  if FVersaoDF < v2_01_01 then
+    Result := FRetConsulta_R5011.evtTotalContrib
+  else
+    Result := FRetConsulta_R9011.evtTotalContrib;
 end;
 
 procedure TConsultarReciboEvento.InicializarServico;

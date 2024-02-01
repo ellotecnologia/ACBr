@@ -39,30 +39,151 @@ uses
 
 const
   CLibPIXCDNome = 'ACBrLibPIXCD';
-  CLibPIXCDVersao = '1.0.0.9';
+  CLibPIXCDVersao = '1.0.0.73';
 
-  CSessaoPixCDConfig = 'PIXCD';
+  CSessaoRespPIXCD = 'Resposta';
+  CSessaoRespCobGerada = 'CobGerada';
+  CSessaoRespCobVGerada = 'CobVGerada';
+  CSessaoRespCalendario = 'Calendario';
+  CSessaoRespDevedor = 'Devedor';
+  CSessaoRespRecebedor = 'Recebedor';
+  CSessaoRespLocation = 'Loc';
+  CSessaoRespValor = 'Valor';
+
+  CSessaoRespPixInfo = 'PIX';
+  CSessaoRespDevolucao = 'Devolucao';
+  CSessaoRespConsultarPixRecebidos = 'ConsultarPIXRecebidos';
+
+  CSessaoRespProblema = 'Problema';
+
+  CSessaoPIXCDConfig = 'PIXCD';
   CChaveAmbiente = 'Ambiente';
+  CChavePSP = 'PSP';
+  CChaveTipoChave = 'TipoChave';
+  CChaveTimeOut = 'TimeOut';
+  CChaveNivelLog = 'NivelLog';
   CChaveArqLogPixCD = 'ArqLog';
   CChaveCNPJSoftwareHouse = 'CNPJSoftwareHouse';
   CChaveNomeAplicacao = 'NomeAplicacao';
   CChaveNomeSoftwareHouse = 'NomeSoftwareHouse';
   CChaveVersaoAplicacao = 'VersaoAplicacao';
-  CChaveNivelLog = 'NivelLog';
   CChaveProxyHost = 'ProxyHost';
   CChaveProxyPass = 'ProxyPass';
   CChaveProxyPort = 'ProxyPort';
   CChaveProxyUser = 'ProxyUser';
+  CChaveCodCategoriaComerciante = 'ChaveCategoriaComerciante';
   CChaveCEPRecebedor = 'CEPRecebedor';
   CChaveCidadeRecebedor = 'CidadeRecebedor';
-  CChaveCodCategoriaComerciante = 'ChaveCategoriaComerciante';
   CChaveNomeRecebedor = 'NomeRecebedor';
   CChaveUFRecebedor = 'UFRecebedor';
-  CChaveTimeOut = 'TimeOut';
 
-  CSessaoPixCDBradescoConfig = 'Bradesco';
-  CChaveClientID = 'ClientID';
-  CChaveClientSecret = 'ClientSecret';
+  CSessaoPIXCDBradescoConfig = 'Bradesco';
+  CChavePIXBradesco = 'ChavePIX';
+  CChaveClientIDBradesco = 'ClientID';
+  CChaveClientSecretBradesco = 'ClientSecret';
+  CChaveArqPFXBradesco = 'ArqPFX';
+  CChaveSenhaPFXBradesco = 'SenhaPFX';
+
+  CSessaoPIXCDSicrediConfig = 'Sicredi';
+  CChavePIXSicredi = 'ChavePIX';
+  CChaveClientIDSicredi = 'ClientID';
+  CChaveClientSecretSicredi = 'ClientSecret';
+  CChaveArqChavePrivadaSicredi = 'ArqChavePrivada';
+  CChaveArqCertificadoSicredi = 'ArqCertificado';
+  CChaveAPIVersionSicredi = 'APIVersion';
+
+  CSessaoPIXCDSicoobConfig = 'Sicoob';
+  CChavePIXSicoob = 'ChavePIX';
+  CChaveClientIDSicoob = 'ClientID';
+  CChaveTokenSandboxSicoob = 'TokenSandbox';
+  CChaveArqChavePrivadaSicoob = 'ArqChavePrivada';
+  CChaveArqCertificadoSicoob = 'ArqCertificado';
+  CChaveAPIVersionSicoob = 'APIVersion';
+
+  CSessaoPIXCDShipayConfig = 'Shipay';
+  CChaveClientIDShipay = 'ClientID';
+  CChaveSecretKeyShipay = 'SecretKey';
+  CChaveAccessKeyShipay = 'AccessKey';
+
+  CSessaoPIXCDSantanderConfig = 'Santander';
+  CChavePIXSantander = 'ChavePIX';
+  CChaveConsumerKeySantander = 'ConsumerKey';
+  CChaveConsumerSecretSantander = 'ConsumerSecret';
+  CChaveArqCertificadoPFXSantander = 'ArqCertificadoPFX';
+  CChaveSenhaCertificadoPFXSantander = 'SenhaCertificadoPFX';
+  CChaveAPIVersionSantander = 'APIVersion';
+
+  CSessaoPIXCDPixPDVConfig = 'PixPDV';
+  CChaveCNPJPixPDV = 'CNPJ';
+  CChaveToken = 'Token';
+  CChaveSecretKeyPixPDV = 'SecretKey';
+
+  CSessaoPIXCDPagSeguroConfig = 'PagSeguro';
+  CChavePIXPagSeguro = 'ChavePIX';
+  CChaveClientIDPagSeguro = 'ClientID';
+  CChaveClientSecretPagSeguro = 'ClientSecret';
+  CChaveArqChavePrivadaPagSeguro = 'ArqChavePrivada';
+  CChaveArqCertificadoPagSeguro = 'ArqCertificado';
+
+  CSessaoPIXCDItauConfig = 'Itau';
+  CChavePIXItau = 'ChavePIX';
+  CChaveClientIDItau = 'ClientID';
+  CChaveClientSecretItau = 'ClientSecret';
+  CChaveArqChavePrivadaItau = 'ArqChavePrivada';
+  CChaveArqCertificadoItau = 'ArqCertificado';
+  CChaveAPIVersionItau = 'APIVersion';
+
+  CSessaoPIXCDInterConfig = 'Inter';
+  CChavePIXInter = 'ChavePIX';
+  CChaveClientIDInter = 'ClientID';
+  CChaveClientSecretInter = 'ClientSecret';
+  CChaveArqChavePrivadaInter = 'ArqChavePrivada';
+  CChaveArqCertificadoInter = 'ArqCertificado';
+
+  CSessaoPIXCDGerenciaNetConfig = 'GerenciaNet';
+  CChavePIXGerenciaNet = 'ChavePIX';
+  CChaveClientIDGerenciaNet = 'ClientID';
+  CChaveClientSecretGerenciaNet = 'ClientSecret';
+  CChaveArqPFXGerenciaNet = 'ArqPFX';
+
+  CSessaoPIXCDBancoBrasilConfig = 'BancoBrasil';
+  CChavePIXBancoBrasil = 'ChavePIX';
+  CChaveClientIDBancoBrasil = 'ClientID';
+  CChaveClientSecretBancoBrasil = 'ClientSecret';
+  CChaveDeveloperApplicationKeyBancoBrasil = 'DeveloperApplicationKey';
+  CChaveArqChavePrivadaBancoBrasil = 'ArqChavePrivada';
+  CChaveArqCertificadoBancoBrasil = 'ArqCertificado';
+  CChaveArqPFXBancoBrasil = 'ArqPFX';
+  CChaveSenhaPFXBancoBrasil = 'SenhaPFX';
+  CChaveBBAPIVersaoBancoBrasil = 'BBAPIVersao';
+  CChaveAPIVersionBancoBrasil = 'APIVersion';
+
+  CSessaoPIXCDAilosConfig = 'Ailos';
+  CChavePIXAilos = 'ChavePIX';
+  CChaveClientIDAilos = 'ClientID';
+  CChaveClientSecretAilos = 'ClientSecret';
+  CChaveArqChavePrivadaAilos = 'ArqChavePrivada';
+  CChaveArqCertificadoAilos = 'ArqCertificado';
+  CChaveArqCertificadoRootAilos = 'ArqCertificadoRoot';
+
+  CSessaoPIXCDMateraConfig = 'Matera';
+  CChavePIXMatera = 'ChavePIX';
+  CChaveClientIDMatera = 'ClientID';
+  CChaveSecretKeyMatera = 'SecretKey';
+  CChaveClientSecretMatera = 'ClientSecret';
+  CChaveArqCertificadoMatera = 'ArqCertificado';
+  CChaveArqChavePrivadaMatera = 'ArqChavePrivada';
+  CChaveAccountIDMatera = 'AccountID';
+  CChaveMediatorFeeMatera = 'MediatorFee';
+
+  CSessaoPIXCDCieloConfig = 'Cielo';
+  CChavePIXCielo = 'ChavePIX';
+  CChaveClientIDCielo = 'ClientID';
+  CChaveClientSecretCielo = 'ClientSecret';
+
+  CSessaoPIXCDMercadoPagoConfig = 'MercadoPago';
+  CChavePIXMercadoPago = 'ChavePIX';
+  CChaveAccesTokenMercadoPago = 'AccessToken';
 
 implementation
 

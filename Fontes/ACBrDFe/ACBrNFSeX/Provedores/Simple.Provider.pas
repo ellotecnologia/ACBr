@@ -79,8 +79,8 @@ type
     procedure PrepararConsultaNFSeporRps(Response: TNFSeConsultaNFSeporRpsResponse); override;
     procedure TratarRetornoConsultaNFSeporRps(Response: TNFSeConsultaNFSeporRpsResponse); override;
 
-    procedure PrepararConsultaNFSe(Response: TNFSeConsultaNFSeResponse); override;
-    procedure TratarRetornoConsultaNFSe(Response: TNFSeConsultaNFSeResponse); override;
+    procedure PrepararConsultaNFSeporNumero(Response: TNFSeConsultaNFSeResponse); override;
+    procedure TratarRetornoConsultaNFSeporNumero(Response: TNFSeConsultaNFSeResponse); override;
 
     procedure PrepararConsultaNFSeporFaixa(Response: TNFSeConsultaNFSeResponse); override;
     procedure TratarRetornoConsultaNFSeporFaixa(Response: TNFSeConsultaNFSeResponse); override;
@@ -114,8 +114,21 @@ begin
 
   with ConfigGeral do
   begin
+    UseCertificateHTTP := False;
     ModoEnvio := meLoteSincrono;
     DetalharServico := True;
+
+    Autenticacao.RequerCertificado := False;
+    Autenticacao.RequerLogin := True;
+
+    with ServicosDisponibilizados do
+    begin
+      EnviarLoteSincrono := True;
+      ConsultarRps := True;
+      ConsultarNfse := True;
+      ConsultarFaixaNfse := True;
+      CancelarNfse := True;
+    end;
   end;
 
   ConfigSchemas.Validar := False;
@@ -361,7 +374,7 @@ begin
   end;
 end;
 
-procedure TACBrNFSeProviderSimple.PrepararConsultaNFSe(
+procedure TACBrNFSeProviderSimple.PrepararConsultaNFSeporNumero(
   Response: TNFSeConsultaNFSeResponse);
 var
   AErro: TNFSeEventoCollectionItem;
@@ -390,7 +403,7 @@ begin
   end;
 end;
 
-procedure TACBrNFSeProviderSimple.TratarRetornoConsultaNFSe(
+procedure TACBrNFSeProviderSimple.TratarRetornoConsultaNFSeporNumero(
   Response: TNFSeConsultaNFSeResponse);
 var
   Document: TACBrXmlDocument;

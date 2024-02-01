@@ -48,6 +48,8 @@ type
   private
 
   protected
+    procedure Configuracao; override;
+
     function LerDataHoraCancelamento(const ANode: TACBrXmlNode): TDateTime; virtual;
     function LerDataHora(const ANode: TACBrXmlNode): TDateTime; virtual;
     function LerDataEmissao(const ANode: TACBrXmlNode): TDateTime; virtual;
@@ -105,6 +107,13 @@ uses
 //==============================================================================
 
 { TNFSeR_ABRASFv1 }
+
+procedure TNFSeR_ABRASFv1.Configuracao;
+begin
+  // Executa a Configuração Padrão
+  inherited Configuracao;
+
+end;
 
 function TNFSeR_ABRASFv1.LerCompetencia(const ANode: TACBrXmlNode): TDateTime;
 begin
@@ -810,11 +819,22 @@ begin
 
       RetencoesFederais := ValorPis + ValorCofins + ValorInss + ValorIr + ValorCsll;
 
+      if ValorIssRetido = 0 then
+      begin
+        if IssRetido = stRetencao then
+          ValorIssRetido := ValorIss
+        else
+          ValorIssRetido := 0;
+      end;
+
       ValorLiq := ValorServicos - RetencoesFederais - OutrasRetencoes -
                   ValorIssRetido - DescontoIncondicionado - DescontoCondicionado;
 
       if (ValorLiquidoNfse = 0) or (ValorLiquidoNfse <> ValorLiq) then
         ValorLiquidoNfse := ValorLiq;
+
+      ValorTotalNotaFiscal := ValorServicos - DescontoCondicionado -
+                              DescontoIncondicionado;
     end;
   end;
 end;

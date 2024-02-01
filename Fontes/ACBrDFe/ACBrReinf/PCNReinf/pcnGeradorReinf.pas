@@ -220,10 +220,9 @@ begin
   begin
     Result := VersaoReinfToStr(Configuracoes.Geral.VersaoDF);
 
-    // Producao Restrita da versao 1_05_01 migrada para versao 2_01_02
+    // Versao 1_05_01 migrada para versao 2_01_02
     // Mantidas urls, mudança apenas na URN
-    if ( Configuracoes.WebServices.Ambiente = taHomologacao ) and
-       ( Configuracoes.Geral.VersaoDF = v1_05_01 ) then
+    if ( Configuracoes.Geral.VersaoDF = v1_05_01 ) then
       Result := '2_01_02';
   end;
 end;
@@ -240,7 +239,10 @@ begin
   begin
     NomeEvento := TipoEventoToStrEvento(StringXMLToTipoEvento(Ok, FXML));
     FXML := Assinar(FXML, NomeEvento);
+  end;
 
+  if ((not XmlEstaAssinado(FXML)) or (Self.Id = '')) then
+  begin
     Leitor := TLeitor.Create;
     try
       Leitor.Grupo := FXML;
@@ -248,9 +250,10 @@ begin
     finally
       Leitor.Free;
     end;
-
-    Validar(TipoEventiToSchemaReinf(StringXMLToTipoEvento(Ok, FXML)));
   end;
+
+  if not XmlEstaAssinado(FXML) then
+    Validar(TipoEventiToSchemaReinf(StringXMLToTipoEvento(Ok, FXML)));
 end;
 
 procedure TReinfEvento.Validar(Schema: TReinfSchema);

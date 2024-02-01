@@ -56,8 +56,9 @@ type
     function DefineCampoDigitoAgenciaConta: String; override;
     function DefinePosicaoUsoExclusivo: String; override;
     function DefineEspecieDoc(const ACBrTitulo: TACBrTitulo): String; override;
-    function DefineTipoSacado(const ACBrTitulo: TACBrTitulo): String; override;
+    function DefineTipoBeneficiario(const ACBrTitulo: TACBrTitulo): String;
     function DefinePosicaoNossoNumeroRetorno: Integer; override;
+    function DefineTipoSacado(const ACBrTitulo: TACBrTitulo): String; override;
     function DefinePosicaoCarteiraRetorno:Integer; override;
     function InstrucoesProtesto(const ACBrTitulo: TACBrTitulo): String;override;
     function MontaInstrucoesCNAB400(const ACBrTitulo :TACBrTitulo; const nRegistro: Integer ): String; override;
@@ -121,7 +122,8 @@ begin
    fpModuloMultiplicadorInicial:= 1;
    fpModuloMultiplicadorFinal:= 2;
    fpModuloMultiplicadorAtual:= 2;
-   fpCodigosMoraAceitos    := '1235';
+
+   fpCodigosMoraAceitos    := '123590919305';
 end;
 
 function TACBrBancoItau.DefineNumeroDocumentoModulo(
@@ -269,6 +271,29 @@ begin
   end;
 end;
 
+function TACBrBancoItau.DefineTipoBeneficiario(const ACBrTitulo: TACBrTitulo): String;
+var LTamanhoPagadorFinal : Byte;
+begin
+  LTamanhoPagadorFinal := Length(OnlyNumber(ACBrTitulo.Sacado.SacadoAvalista.CNPJCPF));
+  if (ACBrTitulo.ACBrBoleto.LayoutRemessa = c400) AND (LTamanhoPagadorFinal > 0) then
+  begin
+    case LTamanhoPagadorFinal of
+      11 : Result := '3'; //CPF DO PAGADOR FINAL
+      14 : Result := '4'; //CNPJ DO PAGADOR FINAL
+    else
+      Result := '9';
+    end;
+  end else
+  begin
+    case ACBrTitulo.ACBrBoleto.Cedente.TipoInscricao of
+      pFisica   : Result := '1'; //N DO CPF DO BENEFICIÁRIO
+      pJuridica : Result := '2'; //N DO CNPJ DO BENEFICIÁRIO
+    else
+      Result := '9';
+    end;
+  end;
+end;
+
 function TACBrBancoItau.DefineTipoSacado(const ACBrTitulo: TACBrTitulo): String;
 begin
   with ACBrTitulo do
@@ -311,8 +336,8 @@ begin
     if ((DataProtesto > 0) and (DataProtesto > Vencimento)) then
     begin
       case TipoDiasProtesto of
-        diCorridos : Result := '34';
-        diUteis    : Result := '35';
+        diCorridos : Result := '81';
+        diUteis    : Result := '82';
       else
         Result := '';
       end;
@@ -574,45 +599,49 @@ begin
        {Segmento R}
        if(MatchText(TipoOcorrenciaRemessa,['01','49','31']))then
        begin
-         inc(fpQtdRegsLote);
-         ListTransacao.Add(IntToStrZero(ACBrBanco.Numero,3)                         + // 001 a 003 - Codigo do Banco
-                '0001'                                                              + // 004 a 007 - Lote de Serviço
-                '3'                                                                 + // 008 a 008 - Registro Detalhe
-                IntToStrZero(fpQtdRegsLote ,5)                                      + // 009 a 013 - Seq. Registro do Lote
-                'R'                                                                 + // 014 a 014 - Codigo do Segmento registro detalhe
-                ' '                                                                 + // 015 a 015 - Complemento de Registro
-                TipoOcorrenciaRemessa                                               + // 016 a 017 - Identificação da Ocorrencia
-                '0'                                                                 + // 018 a 018 - Complemento de Registro
+         if (ValorDesconto2  > 0) or
+            (ValorDesconto3  > 0) or
+            (PercentualMulta > 0) then
+         begin
+           inc(fpQtdRegsLote);
+           ListTransacao.Add(IntToStrZero(ACBrBanco.Numero,3)                         + // 001 a 003 - Codigo do Banco
+                  '0001'                                                              + // 004 a 007 - Lote de Serviço
+                  '3'                                                                 + // 008 a 008 - Registro Detalhe
+                  IntToStrZero(fpQtdRegsLote ,5)                                      + // 009 a 013 - Seq. Registro do Lote
+                  'R'                                                                 + // 014 a 014 - Codigo do Segmento registro detalhe
+                  ' '                                                                 + // 015 a 015 - Complemento de Registro
+                  TipoOcorrenciaRemessa                                               + // 016 a 017 - Identificação da Ocorrencia
+                  '0'                                                                 + // 018 a 018 - Complemento de Registro
 
-                IfThen(ValorDesconto2>0,FormatDateTime( 'ddmmyyyy', DataDesconto2),
-                StringOfChar('0',8))                                                + // 019 a 026 - Data Segundo Desconto
+                  IfThen(ValorDesconto2>0,FormatDateTime( 'ddmmyyyy', DataDesconto2),
+                  StringOfChar('0',8))                                                + // 019 a 026 - Data Segundo Desconto
 
-                IntToStrZero(round(ValorDesconto2 * 100),15)                        + // 027 a 041 - Valor Segundo Desconto
-                '0'                                                                 + // 042 a 042 - Complemento de Registro
+                  IntToStrZero(round(ValorDesconto2 * 100),15)                        + // 027 a 041 - Valor Segundo Desconto
+                  '0'                                                                 + // 042 a 042 - Complemento de Registro
 
-                IfThen(ValorDesconto3>0,FormatDateTime( 'ddmmyyyy', DataDesconto3),
-                StringOfChar('0',8))                                                + // 043 a 050 - Data Terceiro Desconto
+                  IfThen(ValorDesconto3>0,FormatDateTime( 'ddmmyyyy', DataDesconto3),
+                  StringOfChar('0',8))                                                + // 043 a 050 - Data Terceiro Desconto
 
-                IntToStrZero(round(ValorDesconto3 * 100),15)                        + // 051 a 065 - Valor Terceiro Desconto
+                  IntToStrZero(round(ValorDesconto3 * 100),15)                        + // 051 a 065 - Valor Terceiro Desconto
 
-                IfThen((PercentualMulta > 0),
-                      IfThen(MultaValorFixo,'1','2'), '0')                          + // 066 a 066 1- Cobrar Multa Valor Fixo / 2- Percentual / 0-Não cobrar multa
-                IfThen((PercentualMulta > 0),
-                       FormatDateTime('ddmmyyyy', DataMulta), '00000000')           + // 067 a 074 Se cobrar informe a data para iniciar a cobrança ou informe zeros se não cobrar
-                IfThen( (PercentualMulta > 0), IntToStrZero(round(PercentualMulta * 100), 15),
-                         PadRight('', 15, '0'))                                     + // 075 a 089 Valor / Percentual de multa.
+                  IfThen((PercentualMulta > 0),
+                        IfThen(MultaValorFixo,'1','2'), '0')                          + // 066 a 066 1- Cobrar Multa Valor Fixo / 2- Percentual / 0-Não cobrar multa
+                  IfThen((PercentualMulta > 0),
+                         FormatDateTime('ddmmyyyy', DataMulta), '00000000')           + // 067 a 074 Se cobrar informe a data para iniciar a cobrança ou informe zeros se não cobrar
+                  IfThen( (PercentualMulta > 0), IntToStrZero(round(PercentualMulta * 100), 15),
+                           PadRight('', 15, '0'))                                     + // 075 a 089 Valor / Percentual de multa.
 
-                StringOfChar(' ',10)                                                + // 090 a 099 Complemento de Registro
-                StringOfChar(' ',40)                                                + // 100 a 139 Informação ao Pagador
-                StringOfChar(' ',60)                                                + // 140 a 199 Complemento de Registro
-                '00000000'                                                          + // 200 a 207 Codigo de Ocorrencia do Pagador
-                '00000000'                                                          + // 208 a 215 Complemento de Registro
-                ' '                                                                 + // 216 a 216 Complemento de Registro
-                StringOfChar('0',12)                                                + // 217 a 228 Complemento de Registro
-                '  '                                                                + // 229 a 230 Complemento de Registro
-                '0'                                                                 + // 231 a 231 Complemento de Registro
-                StringOfChar(' ',9));                                                  // 232 a 240 Complemento de Registro
-
+                  StringOfChar(' ',10)                                                + // 090 a 099 Complemento de Registro
+                  StringOfChar(' ',40)                                                + // 100 a 139 Informação ao Pagador
+                  StringOfChar(' ',60)                                                + // 140 a 199 Complemento de Registro
+                  '00000000'                                                          + // 200 a 207 Codigo de Ocorrencia do Pagador
+                  '00000000'                                                          + // 208 a 215 Complemento de Registro
+                  ' '                                                                 + // 216 a 216 Complemento de Registro
+                  StringOfChar('0',12)                                                + // 217 a 228 Complemento de Registro
+                  '  '                                                                + // 229 a 230 Complemento de Registro
+                  '0'                                                                 + // 231 a 231 Complemento de Registro
+                  StringOfChar(' ',9));                                                 // 232 a 240 Complemento de Registro
+         end;
        end;
 
     end;
@@ -626,7 +655,7 @@ function TACBrBancoItau.GerarRegistroTrailler240(ARemessa: TStringList): String;
 begin
 
   Result:= inherited GerarRegistroTrailler240(ARemessa);
-  fpQtdRegsLote := 0;
+  fpQtdRegsLote     := 0;
   fpQtdRegsCobranca := 0;
 end;
 
@@ -664,7 +693,7 @@ var
    ATipoCedente, ATipoSacado, ATipoSacadoAvalista, ATipoOcorrencia    :String;
    ADataMoraJuros, ADataDesconto, ATipoAceite    :String;
    ATipoEspecieDoc, ANossoNumero,wLinha,wCarteira :String;
-   wLinhaMulta :String;
+   wLinhaMulta,LCPFCNPJBeneciciario :String;
    iSequencia : integer;
 
 begin
@@ -686,7 +715,12 @@ begin
      ADataDesconto := DefineDataDesconto(ACBrTitulo, 'ddmmyy');
 
      {Pegando Tipo de Cedente}
-     ATipoCedente := DefineTipoInscricao;
+     ATipoCedente := DefineTipoBeneficiario(ACBrTitulo);
+
+     if (StrToIntDef(ATipoCedente,0) in [3..4]) then
+       LCPFCNPJBeneciciario := OnlyNumber(ACBrTitulo.Sacado.SacadoAvalista.CNPJCPF)
+     else
+       LCPFCNPJBeneciciario := ACBrBoleto.Cedente.CNPJCPF;
 
      {Pegando Tipo de Sacado}
      ATipoSacado:= DefineTipoSacado(ACBrTitulo);
@@ -758,7 +792,7 @@ begin
         begin
           wLinha:= '1'                                                                            + // 1 a 1 - IDENTIFICAÇÃO DO REGISTRO TRANSAÇÃO
                    PadLeft(ATipoCedente,2,'0')                                                    + // TIPO DE INSCRIÇÃO DA EMPRESA
-                   PadLeft(OnlyNumber(Cedente.CNPJCPF),14,'0')                                    + // Nº DE INSCRIÇÃO DA EMPRESA (CPF/CGC)
+                   PadLeft(OnlyNumber(LCPFCNPJBeneciciario),14,'0')                               + // Nº DE INSCRIÇÃO DA EMPRESA (CPF/CGC)
                    PadLeft(OnlyNumber(Cedente.Agencia), 4, '0')                                   + // AGÊNCIA MANTENEDORA DA CONTA
                    '00'                                                                           + // COMPLEMENTO DE REGISTRO
                    PadLeft(OnlyNumber(Cedente.Conta), 5, '0')                                     + // NÚMERO DA CONTA CORRENTE DA EMPRESA

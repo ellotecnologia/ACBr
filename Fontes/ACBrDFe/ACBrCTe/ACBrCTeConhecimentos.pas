@@ -81,7 +81,9 @@ type
     destructor Destroy; override;
 
     procedure Imprimir;
-    procedure ImprimirPDF;
+    procedure ImprimirPDF; overload;
+    procedure ImprimirPDF(AStream: TStream); overload;
+
     procedure Assinar;
     procedure Validar;
     function VerificarAssinatura: Boolean;
@@ -238,6 +240,20 @@ begin
       raise EACBrCTeException.Create('Componente DACTE não associado.')
     else
       DACTE.ImprimirDACTEPDF(CTe);
+  end;
+end;
+
+procedure Conhecimento.ImprimirPDF(AStream: TStream);
+begin
+  with TACBrCTe(TConhecimentos(Collection).ACBrCTe) do
+  begin
+    if not Assigned(DACTE) then
+      raise EACBrCTeException.Create('Componente DACTE não associado.')
+    else
+    begin
+      AStream.Size := 0;
+      DACTE.ImprimirDACTEPDF(AStream, CTe);
+    end;
   end;
 end;
 
@@ -942,6 +958,8 @@ begin
         INIRec.WriteFloat('ICMSUFFim', 'vICMSUFFim', Imp.ICMSUFFim.vICMSUFFim);
         INIRec.WriteFloat('ICMSUFFim', 'vICMSUFIni', Imp.ICMSUFFim.vICMSUFIni);
 
+        INIRec.WriteString('infCTeNorm', 'refCTeCanc', infCTeNorm.refCTeCanc);
+
         INIRec.WriteString('infCarga', 'vCarga', CurrToStr(infCTeNorm.infCarga.vCarga));
         INIRec.WriteString('infCarga', 'proPred', infCTeNorm.infCarga.proPred);
         INIRec.WriteString('infCarga', 'xOutCat', infCTeNorm.infCarga.xOutCat);
@@ -1050,6 +1068,8 @@ begin
                 INIRec.WriteString(sSecao, 'placa', placa);
                 INIRec.WriteString(sSecao, 'RENAVAM', RENAVAM);
                 INIRec.WriteString(sSecao, 'UF', UF);
+
+                sSecao := 'prop'+IntToStrZero(1,3);
 
                 INIRec.WriteString(sSecao, 'CNPJCPF', prop.CNPJCPF);
                 INIRec.WriteString(sSecao, 'TAF', prop.TAF);
@@ -1391,6 +1411,32 @@ begin
             INIRec.WriteString(sSecao, 'vLiq', CurrToStr(vDup));
           end;
         end;
+
+        if infCTeNorm.infCteSub.chCte <> '' then
+        begin
+          sSecao := 'infCTeSub';
+
+          with infCTeNorm.infCTeSub do
+          begin
+            INIRec.WriteString(sSecao, 'chCTe', chCte);
+            INIRec.WriteString(sSecao, 'indAlteraToma', TIndicadorToStr(indAlteraToma));
+
+            if FConfiguracoes.Geral.VersaoDF = ve300 then
+            begin
+              sSecao := 'tomaICMS';
+
+              INIRec.WriteString(sSecao, 'refNFe', tomaICMS.refNFe);
+              INIRec.WriteString(sSecao, 'CNPJ', tomaICMS.refNF.CNPJCPF);
+              INIRec.WriteString(sSecao, 'mod', tomaICMS.refNF.modelo);
+              INIRec.WriteInteger(sSecao, 'serie', tomaICMS.refNF.serie);
+              INIRec.WriteInteger(sSecao, 'subserie', tomaICMS.refNF.subserie);
+              INIRec.WriteInteger(sSecao, 'nro', tomaICMS.refNF.nro);
+              INIRec.WriteFloat(sSecao, 'valor', tomaICMS.refNF.valor);
+              INIRec.WriteDateTime(sSecao, 'dEmi', tomaICMS.refNF.dEmi);
+              INIRec.WriteString(sSecao, 'refCte', tomaICMS.refCte);
+            end;
+          end;
+        end;//
       end;
 
       if TACBrCTe(TConhecimentos(Collection).ACBrCTe).Configuracoes.Geral.ModeloDF = moGTVe then
@@ -1944,6 +1990,8 @@ begin
         toma.endertoma.xPais   := INIRec.ReadString('toma','xPais','');
       end;
 
+      infCTeNorm.refCTeCanc := INIRec.ReadString('infCTeNorm', 'refCTeCanc', '');
+
       I := 1;
       while true do
       begin
@@ -2190,7 +2238,7 @@ begin
       while true do
       begin
         sSecao := 'infOutros'+IntToStrZero(I,3);
-        sFim   := INIRec.ReadString(sSecao,'nDoc','FIM');
+        sFim   := INIRec.ReadString(sSecao,'tpDoc','FIM');
         if sFim = 'FIM' then
           break;
 
@@ -2339,6 +2387,7 @@ begin
 
       Dest.enderDest.xLgr    := INIRec.ReadString('Dest','xLgr','');
       Dest.enderDest.nro     := INIRec.ReadString('Dest','nro','');
+      Dest.enderDest.xCpl    := INIRec.ReadString('Dest', 'xCpl', '');
       Dest.enderDest.xBairro := INIRec.ReadString('Dest','xBairro','');
       Dest.enderDest.cMun    := INIRec.ReadInteger('Dest','cMun',0);
       Dest.enderDest.xMun    := INIRec.ReadString('Dest','xMun','');
@@ -2696,6 +2745,9 @@ begin
             tpCar   := StrToTpCarroceria(OK,INIRec.ReadString(sSecao,'tpCar',''));
             UF      := INIRec.ReadString(sSecao,'UF','');
 
+            if INIRec.SectionExists('prop' + IntToStrZero(I,3))then
+              sSecao := 'prop' + IntToStrZero(I, 3);
+
             Prop.CNPJCPF := INIRec.ReadString(sSecao,'CNPJ','');
             Prop.RNTRC   := INIRec.ReadString(sSecao,'RNTRC','');
             Prop.xNome   := INIRec.ReadString(sSecao,'xNome','');
@@ -2759,12 +2811,15 @@ begin
             RENAVAM := INIRec.ReadString(sSecao,'RENAVAM','');
             UF      := INIRec.ReadString(sSecao,'UF','');
 
+            if INIRec.SectionExists('prop' + IntToStrZero(I,3))then
+              sSecao := 'prop' + IntToStrZero(I, 3);
+
             prop.CNPJCPF        := INIRec.ReadString(sSecao,'CNPJCPF','');
             prop.TAF            := INIRec.ReadString(sSecao,'TAF','');
             prop.NroRegEstadual := INIRec.ReadString(sSecao,'NroRegEstadual','');
             prop.xNome          := INIRec.ReadString(sSecao,'xNome','');
             prop.IE             := INIRec.ReadString(sSecao,'IE','');
-            prop.UF             := INIRec.ReadString(sSecao,'propUF','');
+            prop.UF             := INIRec.ReadString(sSecao,'propUF', INIRec.ReadString(sSecao, 'UF', ''));
             prop.tpProp         := StrToTpProp(OK,INIRec.ReadString(sSecao,'ProptpProp',INIRec.ReadString(sSecao,'tpProp','')));
           end;
           Inc(I);
@@ -3117,24 +3172,28 @@ begin
 
       if INIRec.ReadString( 'infCteSub','chCte','') <> '' then
       begin
+        sSecao := 'infCteSub';
         with infCTeNorm.infCteSub do
         begin
-          chCte         := INIRec.ReadString( 'infCteSub','chCte','');
-          indAlteraToma := StrToTIndicador(Ok, INIRec.ReadString( 'infCteSub','indAlteraToma','0'));
+          chCte         := INIRec.ReadString( sSecao,'chCte','');
+          indAlteraToma := StrToTIndicador(Ok, INIRec.ReadString( sSecao,'indAlteraToma','0'));
 
-          tomaICMS.refNFe := INIRec.ReadString( 'infCteSub','refNFe','');
+          if INIRec.SectionExists('tomaICMS')then
+            sSecao := 'tomaICMS';
 
-          tomaICMS.refNF.CNPJCPF := INIRec.ReadString( 'infCteSub','CNPJ','');
-          tomaICMS.refNF.modelo   := INIRec.ReadString( 'infCteSub','mod','');
-          tomaICMS.refNF.serie    := INIRec.ReadInteger( 'infCteSub','serie',0);
-          tomaICMS.refNF.subserie := INIRec.ReadInteger( 'infCteSub','subserie',0);
-          tomaICMS.refNF.nro      := INIRec.ReadInteger( 'infCteSub','nro',0);
-          tomaICMS.refNF.valor    :=  StringToFloatDef(INIRec.ReadString('infCteSub','valor','') ,0);
-          tomaICMS.refNF.dEmi     := StringToDateTime(INIRec.ReadString( 'infCteSub','dEmi','0'));
-          tomaICMS.refCte         := INIRec.ReadString( 'infCteSub','refCte','');
+          tomaICMS.refNFe := INIRec.ReadString( sSecao,'refNFe','');
+
+          tomaICMS.refNF.CNPJCPF := INIRec.ReadString( sSecao,'CNPJ','');
+          tomaICMS.refNF.modelo   := INIRec.ReadString( sSecao,'mod','');
+          tomaICMS.refNF.serie    := INIRec.ReadInteger( sSecao,'serie',0);
+          tomaICMS.refNF.subserie := INIRec.ReadInteger( sSecao,'subserie',0);
+          tomaICMS.refNF.nro      := INIRec.ReadInteger( sSecao,'nro',0);
+          tomaICMS.refNF.valor    :=  StringToFloatDef(INIRec.ReadString(sSecao,'valor','') ,0);
+          tomaICMS.refNF.dEmi     := StringToDateTime(INIRec.ReadString( sSecao,'dEmi','0'));
+          tomaICMS.refCte         := INIRec.ReadString( sSecao,'refCte','');
 
           // Usado pela versão 2.00
-          tomaNaoICMS.refCteAnu := INIRec.ReadString( 'infCteSub','refCteAnu','');
+          tomaNaoICMS.refCteAnu := INIRec.ReadString( sSecao,'refCteAnu','');
           // Usado pela versão 3.00
           refCteAnu := tomaNaoICMS.refCteAnu;
         end;

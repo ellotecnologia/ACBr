@@ -234,7 +234,12 @@ uses
   ACBrBoletoW_Inter_API,
   ACBrBoletoRet_Inter_API,
   ACBrBoletoW_Bancoob,
-  ACBrBoletoRet_Bancoob;
+  ACBrBoletoRet_Bancoob,
+  ACBrBoletoW_Itau_API,
+  ACBrBoletoRet_Itau_API,
+  ACBrBoletoW_Safra,
+  ACBrBoletoRet_Safra
+  ;
 
 { TRetornoEnvioClass }
 
@@ -356,8 +361,16 @@ begin
       end;
     cobItau:
       begin
-        FBoletoWSClass := TBoletoW_Itau.Create(Self);
-        FRetornoBanco  := TRetornoEnvio_Itau.Create(FBoleto);
+        if UpperCase(FBoleto.Configuracoes.WebService.VersaoDF) = 'V2' then
+        begin //API V2 (NOVA 2023)
+          FBoletoWSClass := TBoletoW_Itau_API.Create(Self);
+          FRetornoBanco  := TRetornoEnvio_Itau_API.Create(FBoleto);
+        end else
+        begin
+          FBoletoWSClass := TBoletoW_Itau.Create(Self);
+          FRetornoBanco  := TRetornoEnvio_Itau.Create(FBoleto);
+        end;
+
       end;
     cobCrediSIS:
       begin
@@ -390,6 +403,11 @@ begin
       begin
         FBoletoWSClass := TBoletoW_Bancoob.Create(Self);
         FRetornoBanco  := TRetornoEnvio_Bancoob.Create(FBoleto);
+      end;
+    cobBancoSafra :
+      begin
+        FBoletoWSClass := TBoletoW_Safra.Create(Self);
+        FRetornoBanco  := TRetornoEnvio_Safra.Create(FBoleto);
       end;
   else
     FBoletoWSClass := TBoletoWSClass.Create(Self);
@@ -476,7 +494,7 @@ begin
       begin
         FBoletoWSClass.FTitulo := FBoleto.ListadeBoletos[indice];
         LJsonEnvio := FBoletoWSClass.GerarRemessa;
-        Result     :=  FBoletoWSClass.Enviar;
+        Result     := FBoletoWSClass.Enviar;
         FRetornoWS := FBoletoWSClass.FRetornoWS;
 
         RetornoBanco.RetWS := FRetornoWS;

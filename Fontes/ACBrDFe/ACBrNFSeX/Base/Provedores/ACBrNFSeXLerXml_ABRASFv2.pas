@@ -48,6 +48,8 @@ type
   private
 
   protected
+    procedure Configuracao; override;
+
     function LerDataHoraCancelamento(const ANode: TACBrXmlNode): TDateTime; virtual;
     function LerDataHora(const ANode: TACBrXmlNode): TDateTime; virtual;
     function LerDataEmissao(const ANode: TACBrXmlNode): TDateTime; virtual;
@@ -117,6 +119,13 @@ uses
 //==============================================================================
 
 { TNFSeR_ABRASFv2 }
+
+procedure TNFSeR_ABRASFv2.Configuracao;
+begin
+  // Executa a Configuração Padrão
+  inherited Configuracao;
+
+end;
 
 function TNFSeR_ABRASFv2.LerCompetencia(const ANode: TACBrXmlNode): TDateTime;
 begin
@@ -520,6 +529,7 @@ procedure TNFSeR_ABRASFv2.LerInfDeclaracaoPrestacaoServico(
 var
   AuxNode: TACBrXmlNode;
   Ok: Boolean;
+  sNatureza: string;
 begin
   if not Assigned(ANode) or (ANode = nil) then Exit;
 
@@ -543,9 +553,17 @@ begin
     LerConstrucaoCivil(AuxNode);
 
     NFSe.RegimeEspecialTributacao := FpAOwner.StrToRegimeEspecialTributacao(Ok, ObterConteudo(AuxNode.Childrens.FindAnyNs('RegimeEspecialTributacao'), tcStr));
-    NFSe.OptanteSimplesNacional   := FpAOwner.StrToSimNao(Ok, ObterConteudo(AuxNode.Childrens.FindAnyNs('OptanteSimplesNacional'), tcStr));
-    NFSe.IncentivadorCultural     := FpAOwner.StrToSimNao(Ok, ObterConteudo(AuxNode.Childrens.FindAnyNs('IncentivoFiscal'), tcStr));
-    NFSe.DataPagamento            := ObterConteudo(AuxNode.Childrens.FindAnyNs('DataPagamento'), tcDat);
+
+    sNatureza := ObterConteudo(AuxNode.Childrens.FindAnyNs('NaturezaOperacao'), tcStr);
+
+    if sNatureza = '' then
+      NFSe.NaturezaOperacao := noNenhum
+    else
+      NFSe.NaturezaOperacao := StrToNaturezaOperacao(Ok, sNatureza);
+
+    NFSe.OptanteSimplesNacional := FpAOwner.StrToSimNao(Ok, ObterConteudo(AuxNode.Childrens.FindAnyNs('OptanteSimplesNacional'), tcStr));
+    NFSe.IncentivadorCultural := FpAOwner.StrToSimNao(Ok, ObterConteudo(AuxNode.Childrens.FindAnyNs('IncentivoFiscal'), tcStr));
+    NFSe.DataPagamento := ObterConteudo(AuxNode.Childrens.FindAnyNs('DataPagamento'), tcDat);
 
     if NFSe.InformacoesComplementares = '' then
     begin
@@ -901,45 +919,17 @@ begin
         else
           ValorIssRetido := 0;
 
-        if RetidoPis = snSim then
-          ValorPisRetido := ValorPis
-        else
-          ValorPisRetido := 0;
-
-        if RetidoCofins = snSim then
-          ValorCofinsRetido := ValorCofins
-        else
-          ValorCofinsRetido := 0;
-
-        if RetidoInss = snSim then
-          ValorInssRetido := ValorInss
-        else
-          ValorInssRetido := 0;
-
-        if RetidoIr = snSim then
-          ValorIrRetido := ValorIr
-        else
-          ValorIrRetido := 0;
-
-        if RetidoCsll = snSim then
-          ValorCsllRetido := ValorCsll
-        else
-          ValorCsllRetido := 0;
-
-        if RetidoCpp = snSim then
-          ValorCppRetido := ValorCpp
-        else
-          ValorCppRetido := 0;
-
-        RetencoesFederais := ValorPisRetido + ValorCofinsRetido +
-                             ValorInssRetido + ValorIrRetido +
-                             ValorCsllRetido + ValorCppRetido;
+        RetencoesFederais := ValorPis + ValorCofins + ValorInss + ValorIr +
+                             ValorCsll + ValorCpp;
 
         ValorLiq := ValorServicos - RetencoesFederais - OutrasRetencoes -
                     ValorIssRetido - DescontoIncondicionado - DescontoCondicionado;
 
-        if (ValorLiquidoNfse = 0) or (ValorLiquidoNfse <> ValorLiq) then
+        if (ValorLiquidoNfse = 0) or (ValorLiquidoNfse > ValorLiq) then
           ValorLiquidoNfse := ValorLiq;
+
+        ValorTotalNotaFiscal := ValorServicos - DescontoCondicionado -
+                                DescontoIncondicionado;
       end;
     end;
   end;
@@ -1020,43 +1010,17 @@ begin
         else
           ValorIssRetido := 0;
 
-        if RetidoPis = snSim then
-          ValorPisRetido := ValorPis
-        else
-          ValorPisRetido := 0;
+        RetencoesFederais := ValorPis + ValorCofins + ValorInss + ValorIr +
+                             ValorCsll + ValorCpp;
 
-        if RetidoCofins = snSim then
-          ValorCofinsRetido := ValorCofins
-        else
-          ValorCofinsRetido := 0;
+        ValorLiq := ValorServicos - RetencoesFederais - OutrasRetencoes -
+                    ValorIssRetido - DescontoIncondicionado - DescontoCondicionado;
 
-        if RetidoInss = snSim then
-          ValorInssRetido := ValorInss
-        else
-          ValorInssRetido := 0;
-
-        if RetidoIr = snSim then
-          ValorIrRetido := ValorIr
-        else
-          ValorIrRetido := 0;
-
-        if RetidoCsll = snSim then
-          ValorCsllRetido := ValorCsll
-        else
-          ValorCsllRetido := 0;
-
-        if RetidoCpp = snSim then
-          ValorCppRetido := ValorCpp
-        else
-          ValorCppRetido := 0;
-
-        ValorLiq := ValorServicos - ValorPisRetido - ValorCofinsRetido -
-                    ValorInssRetido - ValorIrRetido - ValorCsllRetido -
-                    ValorCppRetido - OutrasRetencoes - ValorIssRetido -
-                    DescontoIncondicionado - DescontoCondicionado;
-
-        if (ValorLiquidoNfse = 0) or (ValorLiquidoNfse <> ValorLiq) then
+        if (ValorLiquidoNfse = 0) or (ValorLiquidoNfse > ValorLiq) then
           ValorLiquidoNfse := ValorLiq;
+
+        ValorTotalNotaFiscal := ValorServicos - DescontoCondicionado -
+                                DescontoIncondicionado;
       end;
     end;
   end;
@@ -1171,9 +1135,6 @@ begin
       if ValorCpp = 0 then
         ValorCpp := ObterConteudo(AuxNode.Childrens.FindAnyNs('ValorCpp'), tcDe2);
 
-      if ValorIss = 0 then
-        ValorIss := ObterConteudo(AuxNode.Childrens.FindAnyNs('ValorIss'), tcDe2);
-
       OutrasRetencoes := ObterConteudo(AuxNode.Childrens.FindAnyNs('OutrasRetencoes'), tcDe2);
       ValorTotalTributos := ObterConteudo(AuxNode.Childrens.FindAnyNs('ValorTotTributos'), tcDe2);
 
@@ -1184,10 +1145,7 @@ begin
       end;
 
       if NFSe.ValoresNfse.ValorIss = 0 then
-      begin
-        ValorIss := ObterConteudo(AuxNode.Childrens.FindAnyNs('ValorIss'), tcDe2);
         NFSe.ValoresNfse.ValorIss := ValorIss;
-      end;
 
       if Aliquota = 0 then
         Aliquota := ObterConteudo(AuxNode.Childrens.FindAnyNs('Aliquota'), tcDe4);
@@ -1297,7 +1255,13 @@ begin
 
   if not Assigned(ANode) or (ANode = nil) then Exit;
 
-  AuxNode := ANode.Childrens.FindAnyNs('Nfse');
+  // O provedor Tecnos tem essa tag entre as tag CompNfse e Nfse.
+  AuxNode := ANode.Childrens.FindAnyNs('tcCompNfse');
+
+  if AuxNode = nil then
+    AuxNode := ANode;
+
+  AuxNode := AuxNode.Childrens.FindAnyNs('Nfse');
 
   if AuxNode = nil then
     AuxNode := ANode;

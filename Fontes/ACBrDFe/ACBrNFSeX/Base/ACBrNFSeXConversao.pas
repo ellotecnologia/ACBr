@@ -70,6 +70,8 @@ type
                            no50, no51, no52, no53, no54, no55, no56, no57, no58, no59,
                            no60, no61, no62, no63, no64, no65, no66, no67, no68, no69,
                            no70, no71, no72, no78, no79,
+                           no81,
+                           no91,
                            no101, no102, no103, no104, no105, no106, no107, no108, no109,
                            no110, no111, no112, no113, no114, no115, no116, no117, no118,
                            no121,
@@ -81,7 +83,8 @@ type
                            no601, no611, no612, no613, no615, no616, no621, no622,
                            no701, no711, no712,
                            no901, no902, no911, no912, no921, no931, no951, no952, no971,
-                           no981, no991);
+                           no981, no991,
+                           noNenhum);
 
   TnfseExigibilidadeISS = (exiExigivel, exiNaoIncidencia, exiIsencao, exiExportacao, exiImunidade,
                            exiSuspensaDecisaoJudicial, exiSuspensaProcessoAdministrativo, exiISSFixo);
@@ -107,8 +110,9 @@ type
 
   TIndicacaoCpfCnpj = (iccCPF, iccCNPJ, iccNaoInformado);
 
-  TSituacaoLoteRPS = (sLoteNaoRecibo, sLoteNaoProcessado, sLoteProcessadoErro,
-                      sLoteProcessadoSucesso, sLoteProcessadoAviso);
+  TSituacaoLoteRps = (sLoteNaoRecibo, sLoteNaoProcessado, sLoteProcessadoErro,
+                      sLoteProcessadoSucesso, sLoteProcessadoAviso,
+                      sLoteEmProcessamento, sLoteValidado, sLoteImportado);
 
   TDeducaoPor = (dpNenhum, dpPercentual, dpValor);
 
@@ -122,30 +126,32 @@ type
                    proBHISS, proCenti, proCIGA, proCitta, proConam, proContass,
                    proCoplan, proCTA, proCTAConsult, proDataSmart, proDBSeller,
                    proDeISS, proDesenvolve, proDigifred, proDSF, proeGoverneISS,
-                   proEL, proEloTech, proEquiplano, proeReceita, proEtherium,
+                   proeISS, proEL, proEloTech, proEquiplano, proeReceita, proEtherium,
                    proFacundo, proFGMaiss, profintelISS, proFiorilli, proFisco,
                    proFISSLex, proFuturize, proGeisWeb, progeNFe, proGestaoISS,
                    proGiap, proGinfes, proGiss, proGovBR, proGovDigital, proGoverna,
                    proHorus, proiiBrasil, proInfisc, proIntertec, proIPM,
-                   proISSBarueri, proISSCamacari, proISSCambe, proISSCuritiba,
-                   proISSDigital, proISSDSF, proISSe, proISSFortaleza,
-                   proISSGoiania, proISSIntel, proISSJoinville, proISSLencois,
-                   proISSNatal, proISSNet, proISSPortoVelho, proISSRecife,
-                   proISSRio, proISSSalvador, proISSSaoPaulo, proISSSJP,
-                   proISSVitoria, proLexsom, proLibre, proLink3, proMegaSoft,
-                   proMetropolisWeb, proMitra, proModernizacaoPublica,
-                   proNEAInformatica, proNFSeBrasil, proNotaInteligente,
-                   proPrescon, proPriMax, proProdata, proPronim, proPublica,
-                   proPublicSoft, proRLZ, proSaatri, proSafeWeb, proSH3, proSiam,
-                   proSiapNet, proSiappa, proSiapSistemas, proSiat, proSigCorp,
-                   proSigep, proSigISS, proSigISSWeb, proSilTecnologia, proSimple,
-                   proSimplISS, proSintese, proSisPMJP, proSistemas4R, proSmarAPD,
-                   proSoftPlan, proSpeedGov, proSSInformatica, proSudoeste,
-                   proSysISS, proSystemPro, proTcheInfo, proTecnos, proThema,
-                   proTinus, proTiplan, proTributus, proVersaTecnologia,
-                   proVirtual, proWebFisco, proWebISS);
+                   proIsaneto, proISSBarueri, proISSCamacari, proISSCambe,
+                   proISSCuritiba, proISSDigital, proISSDSF, proISSe,
+                   proISSFortaleza, proISSGoiania, proISSIntel, proISSJoinville,
+                   proISSLegal, proISSLencois, proISSNatal, proISSNet,
+                   proISSPortoVelho, proISSRecife, proISSRio, proISSSalvador,
+                   proISSSaoPaulo, proISSSJP, proISSVitoria, proLexsom, proLibre,
+                   proLink3, proMegaSoft, proMetropolisWeb, proMitra,
+                   proModernizacaoPublica, proNEAInformatica, proNFSeBrasil,
+                   proNotaInteligente, proPrescon, proPriMax, proProdata,
+                   proPRODAUB, proPronim, proPublica, proPublicSoft, proRLZ,
+                   proSaatri, proSafeWeb, proSH3, proSiam, proSiapNet, proSiappa,
+                   proSiapSistemas, proSiat, proSigCorp, proSigep, proSigISS,
+                   proSigISSWeb, proSilTecnologia, proSimple, proSimplISS,
+                   proSintese, proSisPMJP, proSistemas4R, proSmarAPD, proSoftPlan,
+                   proSpeedGov, proSSInformatica, proSudoeste, proSysISS,
+                   proSystemPro, proTcheInfo, proTecnos, proThema, proTinus,
+                   proTiplan, proTributus, proVersaTecnologia, proVirtual,
+                   proWebFisco, proWebISS);
 
-  TnfseSituacaoTributaria = (stRetencao, stNormal, stSubstituicao, stNenhum);
+  TnfseSituacaoTributaria = (stRetencao, stNormal, stSubstituicao, stNenhum,
+                             stRetidoForaMunicipio, stDevidoForaMunicipioNaoRetido);
 
   TnfseResponsavelRetencao = (rtTomador, rtPrestador, rtIntermediario, rtNenhum);
 
@@ -181,7 +187,8 @@ type
                  ttNaoTributavel, ttTributavel, ttTributavelFixo, ttTributavelSN,
                  ttMEI);
 
-  TUnidade = (tuHora, tuQtde);
+  TUnidade = (tuHora, tuQtde, tuMetroQuadrado, tuMetro, tuUnidadeMigrada5,
+              tuMetroCubico, tuQuilo);
 
   TMetodo = (tmRecepcionar, tmConsultarSituacao, tmConsultarLote,
              tmConsultarNFSePorRps, tmConsultarNFSe,
@@ -190,7 +197,8 @@ type
              tmGerar, tmGerarLote, tmRecepcionarSincrono, tmSubstituirNFSe,
              tmAbrirSessao, tmFecharSessao, tmTeste, tmTodos,
              tmGerarToken, tmEnviarEvento, tmConsultarEvento, tmConsultarDFe,
-             tmConsultarParam, tmConsultarSeqRps, tmConsultarLinkNFSe);
+             tmConsultarParam, tmConsultarSeqRps, tmConsultarLinkNFSe,
+             tmConsultarNFSePorChave);
 
   TFormatoItemListaServico = (filsComFormatacao, filsSemFormatacao,
                               filsComFormatacaoSemZeroEsquerda,
@@ -204,7 +212,7 @@ type
                  tpPJforaPais);
 
   TtpConsulta = (tcPorNumero, tcPorFaixa, tcPorPeriodo, tcServicoPrestado,
-                 tcServicoTomado, tcPorCodigoVerificacao);
+                 tcServicoTomado, tcPorCodigoVerificacao, tcPorChave);
 
   TtpPeriodo = (tpEmissao, tpCompetencia);
 
@@ -216,9 +224,9 @@ type
   TTipoLancamento = (tlDevidoNoMunicPrestador, tlDevidoNoMunicTomador,
                      tlSimplesNacional, tlIsentoImune, tlCancelado);
 
-  TtpDocumento = (tdNFSe, tdRPS);
-
   TtpRetorno = (trXml, trPDF);
+
+  TFormatoArq = (tfaXml, tfaJson, tfaTxt);
 
   // Usado pelo PadraoNacional
   TtpEmit = (tePrestador, teTomador, teIntermediario);
@@ -266,20 +274,20 @@ type
                drRepasseConsorciado, drRepassePlanoSaude, drServicos,
                drSubEmpreitada, drOutrasDeducoes);
 
-  TtribISSQN = (tiOperacaoTributavel, tiExportacao, tiNaoIncidencia, tiImunidade);
+  TtribISSQN = (tiOperacaoTributavel, tiImunidade, tiExportacao, tiNaoIncidencia);
 
-  TtpImunidade = (timImunidade, timPatrimonio, timTemplos, timPatrimonioPartidos,
-                  timLivros, timFonogramas);
+  TtpImunidade = (timNenhum, timImunidade, timPatrimonio, timTemplos,
+                  timPatrimonioPartidos, timLivros, timFonogramas);
 
   TtpRetISSQN = (trNaoRetido, trRetidoPeloTomador, trRetidoPeloIntermediario);
 
   TtpBM = (tbAliquota, tbReducaoBC, tbIsencao);
 
-  TtpSusp = (tsDecisaoJudicial, tsProcessoAdm);
+  TtpSusp = (tsNenhum, tsDecisaoJudicial, tsProcessoAdm);
 
   TCST = (cst00, cst01, cst02, cst03, cst04, cst05, cst06, cst07, cst08, cst09);
 
-  TtpRetPisCofins = (trpcRetido, trpcNaoRetido);
+  TtpRetPisCofins = (trpcRetido, trpcNaoRetido, trpcNenhum);
 
   TindTotTrib = (indNao, indSim);
 
@@ -303,6 +311,8 @@ type
 
   TAssinaturas = (taConfigProvedor, taAssinar, taNaoAssinar);
 
+  TNaoNIF = (tnnNaoInformado, tnnDispensado, tnnNaoExigencia);
+
 function StatusRPSToStr(const t: TStatusRPS): string;
 function StrToStatusRPS(out ok: boolean; const s: string): TStatusRPS;
 
@@ -314,10 +324,6 @@ function StrToNaturezaOperacao(out ok: boolean; const s: string): TnfseNaturezaO
 
 function IndicacaoCpfCnpjToStr(const t: TIndicacaoCpfCnpj): string;
 function StrToIndicacaoCpfCnpj(out ok: boolean; const s: string): TIndicacaoCpfCnpj;
-
-function SituacaoLoteRPSToStr(const t: TSituacaoLoteRPS): string;
-function StrToSituacaoLoteRPS(out ok: boolean; const s: string): TSituacaoLoteRPS;
-function SituacaoLoteRPSToDescr(const t: TSituacaoLoteRPS): string;
 
 function StrToProvedor(const s: string): TnfseProvedor;
 
@@ -384,14 +390,12 @@ function ModoEnvioToStr(const t: TmodoEnvio): string;
 function TipoLancamentoToStr(const t: TTipoLancamento): string;
 function StrToTipoLancamento(out ok: boolean; const s: string): TTipoLancamento;
 
-function tpDocumentoToStr(const t: TtpDocumento): string;
-function StrTotpDocumento(out ok: boolean; const s: string): TtpDocumento;
-
 function tpEmitToStr(const t: TtpEmit): string;
 function StrTotpEmit(out ok: Boolean; const s: string): TtpEmit;
 
 function OptanteSNToStr(const t: TOptanteSN): string;
 function StrToOptanteSN(out ok: Boolean; const s: string): TOptanteSN;
+function OptanteSNToDesc(const t: TOptanteSN): string;
 
 function RegimeApuracaoSNToStr(const t: TRegimeApuracaoSN): string;
 function StrToRegimeApuracaoSN(out ok: Boolean; const s: string): TRegimeApuracaoSN;
@@ -471,6 +475,12 @@ function StrToParamMunic(out ok: Boolean; const s: string): TParamMunic;
 
 function CodIBGEPaisToSiglaISO2(t: Integer): string;
 function SiglaISO2ToCodIBGEPais(const t: string): Integer;
+
+function StrToLayoutNFSe(out ok: boolean; const s: string): TLayoutNFSe;
+function LayoutNFSeToStr(const t: TLayoutNFSe): string;
+
+function StrToNaoNIF(out ok: boolean; const s: string): TNaoNIF;
+function NaoNIFToStr(const t: TNaoNIF): string;
 
 const
 
@@ -563,6 +573,8 @@ begin
                             '50', '51', '52', '53', '54', '55', '56', '57', '58', '59',
                             '60', '61', '62', '63', '64', '65', '66', '67', '68', '69',
                             '70', '71', '72', '78', '79',
+                            '81',
+                            '91',
                             '101', '102', '103', '104', '105', '106', '107', '108',
                             '109', '110', '111', '112', '113', '114', '115', '116',
                             '117', '118', '121', '200', '201', '300', '301', '400',
@@ -576,6 +588,8 @@ begin
                             no50, no51, no52, no53, no54, no55, no56, no57, no58, no59,
                             no60, no61, no62, no63, no64, no65, no66, no67, no68, no69,
                             no70, no71, no72, no78, no79,
+                            no81,
+                            no91,
                             no101, no102, no103, no104, no105, no106, no107, no108,
                             no109, no110, no111, no112, no113, no114, no115, no116,
                             no117, no118, no121, no200, no201, no300, no301, no400,
@@ -594,6 +608,8 @@ begin
                             '50', '51', '52', '53', '54', '55', '56', '57', '58', '59',
                             '60', '61', '62', '63', '64', '65', '66', '67', '68', '69',
                             '70', '71', '72', '78', '79',
+                            '81',
+                            '91',
                             '101', '102', '103', '104', '105', '106', '107', '108',
                             '109', '110', '111', '112', '113', '114', '115', '116',
                             '117', '118', '121', '200', '201', '300', '301', '400',
@@ -607,6 +623,8 @@ begin
                             no50, no51, no52, no53, no54, no55, no56, no57, no58, no59,
                             no60, no61, no62, no63, no64, no65, no66, no67, no68, no69,
                             no70, no71, no72, no78, no79,
+                            no81,
+                            no91,
                             no101, no102, no103, no104, no105, no106, no107, no108,
                             no109, no110, no111, no112, no113, no114, no115, no116,
                             no117, no118, no121, no200, no201, no300, no301, no400,
@@ -628,36 +646,6 @@ begin
   Result := StrToEnumerado(ok, s,
                            ['1', '2', '3'],
                            [iccCPF, iccCNPJ, iccNaoInformado]);
-end;
-
-function SituacaoLoteRPSToStr(const t: TSituacaoLoteRPS): string;
-begin
-  Result := EnumeradoToStr(t,
-                           ['1', '2', '3', '4', '5'],
-                           [sLoteNaoRecibo, sLoteNaoProcessado,
-                            sLoteProcessadoErro, sLoteProcessadoSucesso,
-                            sLoteProcessadoAviso]);
-end;
-
-function StrToSituacaoLoteRPS(out ok: boolean; const s: string): TSituacaoLoteRPS;
-begin
-  Result := StrToEnumerado(ok, s,
-                           ['1', '2', '3', '4', '5'],
-                           [sLoteNaoRecibo, sLoteNaoProcessado,
-                            sLoteProcessadoErro, sLoteProcessadoSucesso,
-                            sLoteProcessadoAviso]);
-end;
-
-function SituacaoLoteRPSToDescr(const t: TSituacaoLoteRPS): string;
-begin
-  Result := EnumeradoToStr(t,
-                           ['Lote Não Recebido', 'Lote Não Processado',
-                            'Lote Processado com Erro',
-                            'Lote Processado com Sucesso',
-                            'Lote Processado com Aviso'],
-                           [sLoteNaoRecibo, sLoteNaoProcessado,
-                            sLoteProcessadoErro, sLoteProcessadoSucesso,
-                            sLoteProcessadoAviso]);
 end;
 
 function StrToProvedor(const s: string): TnfseProvedor;
@@ -12262,15 +12250,17 @@ end;
 function UnidadeToStr(const t: TUnidade): string;
 begin
   Result := EnumeradoToStr(t,
-                           ['1', '2'],
-                           [tuHora, tuQtde]);
+                           ['1', '2', '3', '4', '5', '6', '7'],
+                           [tuHora, tuQtde, tuMetroQuadrado, tuMetro,
+                            tuUnidadeMigrada5, tuMetroCubico, tuQuilo]);
 end;
 
 function StrToUnidade(out ok: boolean; const s: string): TUnidade;
 begin
   Result := StrToEnumerado(ok, s,
-                           ['1', '2'],
-                           [tuHora, tuQtde]);
+                           ['1', '2', '3', '4', '5', '6', '7'],
+                           [tuHora, tuQtde, tuMetroQuadrado, tuMetro,
+                            tuUnidadeMigrada5, tuMetroCubico, tuQuilo]);
 end;
 
 function SepararDados(const AString: string; const Chave: string; const MantemChave: Boolean = False;
@@ -12322,17 +12312,19 @@ end;
 function tpConsultaToStr(const t: TtpConsulta): string;
 begin
   Result := EnumeradoToStr(t,
-                           ['1', '2', '3', '4', '5', '6'],
+                           ['1', '2', '3', '4', '5', '6', '7'],
                            [tcPorNumero, tcPorFaixa, tcPorPeriodo,
-                            tcServicoPrestado, tcServicoTomado, tcPorCodigoVerificacao]);
+                            tcServicoPrestado, tcServicoTomado,
+                            tcPorCodigoVerificacao, tcPorChave]);
 end;
 
 function StrTotpConsulta(out ok: boolean; const s: string): TtpConsulta;
 begin
   Result := StrToEnumerado(ok, s,
-                           ['1', '2', '3', '4', '5', '6'],
+                           ['1', '2', '3', '4', '5', '6', '7'],
                            [tcPorNumero, tcPorFaixa, tcPorPeriodo,
-                            tcServicoPrestado, tcServicoTomado, tcPorCodigoVerificacao]);
+                            tcServicoPrestado, tcServicoTomado,
+                            tcPorCodigoVerificacao, tcPorChave]);
 end;
 
 function tpPeriodoToStr(const t: TtpPeriodo): string;
@@ -12366,15 +12358,18 @@ end;
 function MetodoToStr(const t: TMetodo): string;
 begin
   Result := EnumeradoToStr(t,
-                       ['Recepcionar', 'ConsultarSituacao', 'ConsultarLote',
-                        'ConsultarNFSePorRps', 'ConsultarNFSe',
-                        'ConsultarNFSePorFaixa', 'ConsultarNFSeServicoPrestado',
-                        'ConsultarNFSeServicoTomado', 'CancelarNFSe',
-                        'Gerar', 'GerarLote', 'RecepcionarSincrono', 'SubstituirNFSe',
-                        'AbrirSessao', 'FecharSessao', 'Teste', 'Todos',
-                        'GerarToken', 'EnviarEvento', 'ConsultarEvento',
-                        'ConsultarDFe', 'ConsultarParam', 'ConsultarSeqRps',
-                        'ConsultarLinkNFSe'],
+                       ['Recepcionar Lote Assíncrono', 'Consultar a Situacao',
+                        'Consultar o Lote de Rps', 'Consultar NFSe Por Rps',
+                        'Consultar NFSe', 'Consultar NFSe Por Faixa',
+                        'Consultar NFSe Serviço Prestado',
+                        'Consultar NFSe Serviço Tomado',
+                        'Cancelar NFSe', 'Gerar NFSe', 'Gerar Lote de RPS',
+                        'Recepcionar Lote Síncrono', 'Substituir NFSe',
+                        'Abrir Sessão', 'Fechar Sessão', 'Teste', 'Todos',
+                        'Gerar Token', 'Enviar Evento', 'Consultar Evento',
+                        'Consultar DFe', 'Consultar Parâmetros',
+                        'Consultar Sequencia de Rps', 'Consultar Link da NFSe',
+                        'Consultar NFSe Por Chave'],
                        [tmRecepcionar, tmConsultarSituacao, tmConsultarLote,
                         tmConsultarNFSePorRps, tmConsultarNFSe,
                         tmConsultarNFSePorFaixa, tmConsultarNFSeServicoPrestado,
@@ -12383,14 +12378,15 @@ begin
                         tmAbrirSessao, tmFecharSessao, tmTeste, tmTodos,
                         tmGerarToken, tmEnviarEvento, tmConsultarEvento,
                         tmConsultarDFe, tmConsultarParam, tmConsultarSeqRps,
-                        tmConsultarLinkNFSe]);
+                        tmConsultarLinkNFSe, tmConsultarNFSePorChave]);
 end;
 
 function ModoEnvioToStr(const t: TmodoEnvio): string;
 begin
   Result := EnumeradoToStr(t,
-                       ['Automatico', 'Enviar Lote', 'Enviar Lote Síncrono',
-                        'Gerar NFSe', 'Teste de Envio de Lote'],
+                       ['Automatico', 'Enviar Lote Assíncrono',
+                        'Enviar Lote Síncrono', 'Gerar NFSe',
+                        'Teste de Envio de Lote'],
                        [meAutomatico, meLoteAssincrono, meLoteSincrono,
                         meUnitario, meTeste]);
 end;
@@ -12407,16 +12403,6 @@ begin
   Result := StrToEnumerado(ok, s, ['N', 'T', 'P', 'R', 'C'],
                          [tlDevidoNoMunicPrestador, tlDevidoNoMunicTomador,
                           tlSimplesNacional, tlIsentoImune, tlCancelado]);
-end;
-
-function tpDocumentoToStr(const t: TtpDocumento): string;
-begin
-  Result := EnumeradoToStr(t, ['1', '2'], [tdNFSe, tdRPS]);
-end;
-
-function StrTotpDocumento(out ok: boolean; const s: string): TtpDocumento;
-begin
-  Result := StrToEnumerado(ok, s, ['1', '2'], [tdNFSe, tdRPS]);
 end;
 
 function tpEmitToStr(const t: TtpEmit): string;
@@ -12440,6 +12426,12 @@ end;
 function StrToOptanteSN(out ok: Boolean; const s: string): TOptanteSN;
 begin
   Result := StrToEnumerado(ok, s, ['1', '2', '3'],
+                           [osnNaoOptante, osnOptanteMEI, osnOptanteMEEPP]);
+end;
+
+function OptanteSNToDesc(const t: TOptanteSN): string;
+begin
+  Result := EnumeradoToStr(t, ['Não', 'MEI', 'ME/EPP'],
                            [osnNaoOptante, osnOptanteMEI, osnOptanteMEEPP]);
 end;
 
@@ -12655,30 +12647,30 @@ function tribISSQNToStr(const t: TtribISSQN): string;
 begin
   result := EnumeradoToStr(t,
                            ['1', '2', '3', '4'],
-            [tiOperacaoTributavel, tiExportacao, tiNaoIncidencia, tiImunidade]);
+            [tiOperacaoTributavel, tiImunidade, tiExportacao, tiNaoIncidencia]);
 end;
 
 function StrTotribISSQN(out ok: Boolean; const s: string): TtribISSQN;
 begin
   result := StrToEnumerado(ok, s,
                            ['1', '2', '3', '4'],
-            [tiOperacaoTributavel, tiExportacao, tiNaoIncidencia, tiImunidade]);
+            [tiOperacaoTributavel, tiImunidade, tiExportacao, tiNaoIncidencia]);
 end;
 
 function tpImunidadeToStr(const t: TtpImunidade): string;
 begin
   result := EnumeradoToStr(t,
-                           ['0', '1', '2', '3', '4', '5'],
-                [timImunidade, timPatrimonio, timTemplos, timPatrimonioPartidos,
-                 timLivros, timFonogramas]);
+                           ['', '0', '1', '2', '3', '4', '5'],
+                [timNenhum, timImunidade, timPatrimonio, timTemplos,
+                 timPatrimonioPartidos, timLivros, timFonogramas]);
 end;
 
 function StrTotpImunidade(out ok: Boolean; const s: string): TtpImunidade;
 begin
   result := StrToEnumerado(ok, s,
-                           ['0', '1', '2', '3', '4', '5'],
-                [timImunidade, timPatrimonio, timTemplos, timPatrimonioPartidos,
-                 timLivros, timFonogramas]);
+                           ['', '0', '1', '2', '3', '4', '5'],
+                [timNenhum, timImunidade, timPatrimonio, timTemplos,
+                 timPatrimonioPartidos, timLivros, timFonogramas]);
 end;
 
 function tpRetISSQNToStr(const t: TtpRetISSQN): string;
@@ -12712,15 +12704,15 @@ end;
 function tpSuspToStr(const t: TtpSusp): string;
 begin
   result := EnumeradoToStr(t,
-                           ['1', '2'],
-                           [tsDecisaoJudicial, tsProcessoAdm]);
+                           ['', '1', '2'],
+                           [tsNenhum, tsDecisaoJudicial, tsProcessoAdm]);
 end;
 
 function StrTotpSusp(out ok: Boolean; const s: string): TtpSusp;
 begin
   result := StrToEnumerado(ok, s,
-                           ['1', '2'],
-                           [tsDecisaoJudicial, tsProcessoAdm]);
+                           ['', '1', '2'],
+                           [tsNenhum, tsDecisaoJudicial, tsProcessoAdm]);
 end;
 
 function CSTToStr(const t: TCST): string;
@@ -12740,29 +12732,29 @@ end;
 function tpRetPisCofinsToStr(const t: TtpRetPisCofins): string;
 begin
   result := EnumeradoToStr(t,
-                           ['1', '2'],
-                           [trpcRetido, trpcNaoRetido]);
+                           ['1', '2', ''],
+                           [trpcRetido, trpcNaoRetido, trpcNenhum]);
 end;
 
 function StrTotpRetPisCofins(out ok: Boolean; const s: string): TtpRetPisCofins;
 begin
   result := StrToEnumerado(ok, s,
-                           ['1', '2'],
-                           [trpcRetido, trpcNaoRetido]);
+                           ['1', '2', ''],
+                           [trpcRetido, trpcNaoRetido, trpcNenhum]);
 end;
 
 function indTotTribToStr(const t: TindTotTrib): string;
 begin
   result := EnumeradoToStr(t,
-                           ['0'],
-                           [indNao]);
+                           ['0', '1'],
+                           [indNao, indSim]);
 end;
 
 function StrToindTotTrib(out ok: Boolean; const s: string): TindTotTrib;
 begin
   result := StrToEnumerado(ok, s,
-                           ['0'],
-                           [indNao]);
+                           ['0', '1'],
+                           [indNao, indSim]);
 end;
 
 function ambGerToStr(const t: TambGer): string;
@@ -12888,7 +12880,6 @@ begin
                             pmRegimesEspeciais, pmRetencoes, pmBeneficios]);
 end;
 
-
 function CodIBGEPaisToSiglaISO2(t: Integer): string;
 var
   i: Integer;
@@ -12909,7 +12900,7 @@ function SiglaISO2ToCodIBGEPais(const t: string): Integer;
 var
   i: Integer;
 begin
-  Result := -1;
+  Result := 0;
 
   for i := Low(SiglaISO2Pais) to High(SiglaISO2Pais) do
   begin
@@ -12919,6 +12910,31 @@ begin
       exit;
     end;
   end;
+end;
+
+function StrToLayoutNFSe(out ok: boolean; const s: string): TLayoutNFSe;
+begin
+  Result := StrToEnumerado(OK, s,
+                           ['0', '1'],
+                           [lnfsProvedor, lnfsPadraoNacionalv1]);
+end;
+
+function LayoutNFSeToStr(const t: TLayoutNFSe): string;
+begin
+  Result := EnumeradoToStr(t, ['0', '1'], [lnfsProvedor, lnfsPadraoNacionalv1]);
+end;
+
+function StrToNaoNIF(out ok: boolean; const s: string): TNaoNIF;
+begin
+  Result := StrToEnumerado(OK, s,
+                           ['0', '1', '2'],
+                           [tnnNaoInformado, tnnDispensado, tnnNaoExigencia]);
+end;
+
+function NaoNIFToStr(const t: TNaoNIF): string;
+begin
+  Result := EnumeradoToStr(t, ['0', '1', '2'],
+                           [tnnNaoInformado, tnnDispensado, tnnNaoExigencia]);
 end;
 
 end.

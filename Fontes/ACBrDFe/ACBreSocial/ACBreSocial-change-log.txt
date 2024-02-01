@@ -4,7 +4,7 @@
 { mentos de Automação Comercial utilizados no Brasil                           }
 {                                                                              }
 { Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
-{															                                      				   }
+{                                                                              }
 {  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
 {                                                                              }
@@ -51,6 +51,117 @@ Símbolo : Significado
 [+]     : Novo recurso
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
+
+29/01/2024
+-- pcesS1210.pas, pcesS5002.pas, Frm_ACBreSocial --
+[-] Corrigido campo regANS, do evento S-1210, convertendo para string e permitindo o preenchimento de zeros à esquerda
+  Por: alemartinssilva@gmail.com, Renato Rubinho
+
+19/01/2024
+-- pcesS1280.pas --
+[*] Corrigida a geração do grupo infoAtivConcom, do evento S-1280, para ser opcional, consideranto fatorMes
+  Por: Renato Rubinho
+
+19/01/2024
+-- pcesGerador.pas --
+[*] Corrigida geração do grupo aprend, do evento S-2200, consideranto NrInsc ou cnpjEntQual
+  Por: HugoH
+
+15/01/2024
+-- pcesConversaoeSocial.pas, pcesS5011.pas  --
+[*] Implementados ajustes da NT 2024.06
+  Por: Renato Rubinho
+
+10/01/2024
+-- pcesS1210.pas --
+[*] Corrigida leitura do grupo infoIRComplem ao ler dados do INI
+  Por: Renato Rubinho
+
+05/01/2024
+-- pcesS2299 --
+[*] Corrige leitura do campo pensAlim na rotina de leitura do INI
+  Por: Diego Folieni
+
+07/12/2023
+-- pcesS2240 --
+[*] Corrigidas condições do critério para envio da tag dtFimCondicao, no evento S-2240
+  Por: CarlosSolla
+
+30/11/2023
+-- pcesS1210 --
+[*] Utilizado eSTpInscricaoToStr para preenchimento do tpInsc em detReembTit/detReembDep, preenchidos cnpjOper e regANS somente quando indOrgReemb=1
+  Por: Hudson G Leite
+
+28/11/2023
+-- pcesS5501 --
+[*] Corrigida leitura do evento via xml, adicionando item na lista ao ler os InfoTributos
+  Por: Renato Rubinho
+
+22/11/2023
+-- pcesS2501 --
+[*] Correção na geração do grupo infoIR do evento S-2501
+  Por: alemartinssilva@gmail.com
+
+20/11/2023
+-- pcesS1010, pcesS2200 --
+[*] Correção ao LerXML para identificar id como atributo
+  Por: MSS
+
+16/11/2023
+-- pcesConversaoeSocial --
+[*] Adicionado item "Nenhum" nos enumerados tpTpRegTrab, tpTpRegPrev e tpTmpParc para controle de propriedades não preenchidas
+-- pcesS2500 --
+[*] Configuradas condições para geração do infoVinc e infoCompl somente quando houver alguma propriedade preenchida
+  Por: Andergoncalves / Renato Rubinho
+
+16/11/2023
+-- pcesConversaoeSocial --
+[+] Novo enumerado tpSimFacultativo e funcções de conversão, permitindo "S" ou em branco
+-- pcesS2500 --
+[*] Alterados TInfoVlr.indenSD e TInfoVlr.indenAbono para utilizar o tpSimFacultativo
+-- pcesS5503 --
+[*] Corrigida identificação do tipo do evento, na leitura do xml e incrementada lista infoTrabFGTS na leitura dos itens
+  Por: Sandro Felipe Adad
+
+14/11/2023
+-- pcesConversaoeSocial --
+[*] Corrigida identificação do schema para o evento S-1207 em versões anteriores à S01_00_00
+  Por: MSS / Renato Rubinho
+
+10/10/2023
+-- pcesS2405, pcesS2500, pcesS2501, S2405.ini, S2500.ini, S2501.ini --
+[+] Criada leitura dos inis e arquivos de exemplo para o Evento S-2405, S-2500 e S-2501
+  Por: Renato Rubinho
+-- Frm_ACBreSocial.lfm, Frm_ACBreSocial.pas, pcesGerador --
+[+] Criados métodos no programa de exemplo em Lazarus nos Eventos S-2500 e S-2501
+  Por: Renato Rubinho
+-- pcesS5002 --
+[*] Implementadas novas classes no método SalvarINI
+  Por: Renato Rubinho
+
+09/10/2023
+-- ACBre_Social.dpk --
+[+] Adicionada nova unit pcesS5503, do leiaute 1.2, no pacote do Delphi
+  Por: Renato Rubinho
+
+22/09/2023
+-- pcesS2200 --
+[*] Correção quando não for informada a dtBase, no grupo infoCeletista, na leitura do XML e INI
+  Por: Ray Hildebrant / Renato Rubinho
+
+20/09/2023
+-- diversos --
+[+] Implementado novo leiaute 1.2
+  Por: Marcelo Pontes Melim / Renato Rubinho
+
+-- pcesS2500, pcesConversaoeSocial, schemas --
+[+] Implementações para o novo leiaute 1.2
+  Por: Andergoncalves / Renato Rubinho
+
+31/08/2023
+-- pcesNaoPeriodicos, pcesS2200 --
+[+] Implementada leitura do xml para o evento S-2200
+  Por: Rodrigo - Digibyte / Renato Rubinho
 
 17/07/2023
 -- pcesS5003 --

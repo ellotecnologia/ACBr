@@ -137,6 +137,7 @@ type
     FTipo: TTipoPessoa;
     FNif: string;
     FCAEPF: string;
+    FcNaoNIF: TNaoNIF;
 
     function GetCnpj: string;
     procedure SetCnpj(const Value: string);
@@ -149,6 +150,7 @@ type
     property Tipo: TTipoPessoa read FTipo write FTipo;
     property Nif: string read FNif write FNif;
     property CAEPF: string read FCAEPF write FCAEPF;
+    property cNaoNIF: TNaoNIF read FcNaoNIF write FcNaoNIF;
   end;
 
   TContato = class(TObject)
@@ -378,13 +380,8 @@ type
     FtribFed: TtribFed;
     FtotTrib: TtotTrib;
     FTipoDeducao: TTipoDeducao;
-    FValorPisRetido: Double;
-    FValorCofinsRetido: Double;
-    FValorInssRetido: Double;
-    FValorIrRetido: Double;
-    FValorCsllRetido: Double;
-    FValorCppRetido: Double;
     FRetencoesFederais: Double;
+    FValorTotalNotaFiscal: Double;
 
     procedure SetDocDeducao(const Value: TDocDeducaoCollection);
   public
@@ -441,12 +438,6 @@ type
     property RetidoIr: TnfseSimNao read FRetidoIr write FRetidoIr;
     property RetidoCsll: TnfseSimNao read FRetidoCsll write FRetidoCsll;
     property RetidoCpp: TnfseSimNao read FRetidoCpp write FRetidoCpp;
-    property ValorPisRetido: Double read FValorPisRetido write FValorPisRetido;
-    property ValorCofinsRetido: Double read FValorCofinsRetido write FValorCofinsRetido;
-    property ValorInssRetido: Double read FValorInssRetido write FValorInssRetido;
-    property ValorIrRetido: Double read FValorIrRetido write FValorIrRetido;
-    property ValorCsllRetido: Double read FValorCsllRetido write FValorCsllRetido;
-    property ValorCppRetido: Double read FValorCppRetido write FValorCppRetido;
     //Provedor SystemPro
     property QtdeDiaria: Double read FQtdeDiaria write FQtdeDiaria;
     property ValorTaxaTurismo: Double read FValorTaxaTurismo write FValorTaxaTurismo;
@@ -459,7 +450,9 @@ type
     property totTrib: TtotTrib read FtotTrib write FtotTrib;
     //provedor CTAConsult
     property TipoDeducao: TTipoDeducao read FTipoDeducao write FTipoDeducao;
+
     property RetencoesFederais: Double read FRetencoesFederais write FRetencoesFederais;
+    property ValorTotalNotaFiscal: Double read FValorTotalNotaFiscal write FValorTotalNotaFiscal;
   end;
 
   TDadosDeducao = class(TObject)
@@ -477,6 +470,20 @@ type
     property ValorTotalNotaFiscal: Double read FValorTotalNotaFiscal write FValorTotalNotaFiscal;
     property PercentualADeduzir: Double read FPercentualADeduzir write FPercentualADeduzir;
     property ValorADeduzir: Double read FValorADeduzir write FValorADeduzir;
+  end;
+
+  TDadosProfissionalParceiro = class(TObject)
+  private
+    FIdentificacaoParceiro: TIdentificacao;
+    FRazaoSocial: string;
+    FPercentualProfissionalParceiro: Double;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    property IdentificacaoParceiro: TIdentificacao read FIdentificacaoParceiro write FIdentificacaoParceiro;
+    property RazaoSocial: string read FRazaoSocial write FRazaoSocial;
+    property PercentualProfissionalParceiro: Double read FPercentualProfissionalParceiro write FPercentualProfissionalParceiro;
   end;
 
   TItemServicoCollectionItem = class(TObject)
@@ -541,11 +548,13 @@ type
 
     FTributavel: TnfseSimNao;
     FCodigoCnae: string;
+    FDadosDeducao: TDadosDeducao;
 
     FTribMunPrestador: TnfseSimNao;
     FCodMunPrestacao: string;
     FSituacaoTributaria: Integer;
-    FDadosDeducao: TDadosDeducao;
+    FCodCNO: string;
+    FDadosProfissionalParceiro: TDadosProfissionalParceiro;
   public
     constructor Create;
     destructor Destroy; override;
@@ -578,7 +587,7 @@ type
     property Aliquota: Double read FAliquota write FAliquota;
     property ValorISS: Double read FValorISS write FValorISS;
     property ValorISSRetido: Double read FValorISSRetido write FValorISSRetido;
-	property ValorPisRetido: Double read FValorPisRetido write FValorPisRetido;
+    property ValorPisRetido: Double read FValorPisRetido write FValorPisRetido;
     property ValorCofinsRetido: Double read FValorCofinsRetido write FValorCofinsRetido;
     property ValorInssRetido: Double read FValorInssRetido write FValorInssRetido;
     property ValorIrRetido: Double read FValorIrRetido write FValorIrRetido;
@@ -617,6 +626,10 @@ type
     property TribMunPrestador: TnfseSimNao read FTribMunPrestador write FTribMunPrestador;
     property CodMunPrestacao: string read FCodMunPrestacao write FCodMunPrestacao;
     property SituacaoTributaria: Integer read FSituacaoTributaria write FSituacaoTributaria;
+    property CodCNO: string read FCodCNO write FCodCNO;
+
+    // Provedor Agili
+    property DadosProfissionalParceiro: TDadosProfissionalParceiro read FDadosProfissionalParceiro write FDadosProfissionalParceiro;
   end;
 
   TItemServicoCollection = class(TACBrObjectList)
@@ -699,19 +712,19 @@ type
 
   TEvento = class(TObject)
   private
-    Fdesc: string;
+    FxNome: string;
     FdtIni: TDateTime;
     FdtFim: TDateTime;
-    Fid: string;
+    FidAtvEvt: string;
     FEndereco: TEndereco;
   public
     constructor Create;
     destructor Destroy; override;
 
-    property desc: string read Fdesc write Fdesc;
+    property xNome: string read FxNome write FxNome;
     property dtIni: TDateTime read FdtIni write FdtIni;
     property dtFim: TDateTime read FdtFim write FdtFim;
-    property id: string read Fid write Fid;
+    property idAtvEvt: string read FidAtvEvt write FidAtvEvt;
     property Endereco: TEndereco read FEndereco write FEndereco;
   end;
 
@@ -797,6 +810,7 @@ type
     FValorCargaTributaria: Double;
     FPercentualCargaTributaria: Double;
     FFonteCargaTributaria: string;
+    FValorTotalRecebido: Double;
     // Provedor ISSBarueri
     FPrestadoEmViasPublicas: Boolean;
     // Provedor GeisWeb
@@ -811,6 +825,7 @@ type
     FImposto: TImpostoCollection;
     FIdentifNaoExigibilidade: string;
     FxMunicipioIncidencia: string;
+    FCFPS: string;
 
     procedure SetItemServico(Value: TItemServicoCollection);
     procedure SetDeducao(const Value: TDeducaoCollection);
@@ -847,6 +862,8 @@ type
     property ValorCargaTributaria: Double read FValorCargaTributaria write FValorCargaTributaria;
     property PercentualCargaTributaria: Double read FPercentualCargaTributaria write FPercentualCargaTributaria;
     property FonteCargaTributaria: string read FFonteCargaTributaria write FFonteCargaTributaria;
+    property ValorTotalRecebido: Double read FValorTotalRecebido write FValorTotalRecebido;
+
     // Provedor ISSBarueri
     property PrestadoEmViasPublicas: Boolean read FPrestadoEmViasPublicas write FPrestadoEmViasPublicas;
     // Provedor GeisWeb
@@ -861,6 +878,8 @@ type
     property infoCompl: TinfoCompl read FinfoCompl write FinfoCompl;
     // Provedor CTAConsult
     property Imposto: TImpostoCollection read FImposto write SetImposto;
+    // Provedor SoftPlan
+    property CFPS: string read FCFPS write FCFPS;
   end;
 
   TDadosPessoa = class(TObject)
@@ -1316,7 +1335,6 @@ type
     FDespesa: TDespesaCollection;
 
     FNumeroLote: string;
-//    FProtocolo: string;
     FdhRecebimento: TDateTime;
 
     FNfseCancelamento: TConfirmacaoCancelamento;
@@ -1325,6 +1343,7 @@ type
     FMotivoCancelamento: string;
     // Provedor ISSBarueri
     FCodigoCancelamento: string;
+    FIdentificacaoRemessa: string;
     // Provedor Infisc
     FcNFSe: Integer;
 
@@ -1428,7 +1447,6 @@ type
     property Link: string read FLink write FLink;
     property NumeroLote: string read FNumeroLote write FNumeroLote;
     property DescricaoCodigoTributacaoMunicipio: string read FDescricaoCodigoTributacaoMunicipio write FDescricaoCodigoTributacaoMunicipio;
-//    property Protocolo: string read FProtocolo write FProtocolo;
     property dhRecebimento: TDateTime read FdhRecebimento write FdhRecebimento;
     property NfseCancelamento: TConfirmacaoCancelamento read FNfseCancelamento write FNfseCancelamento;
     property NfseSubstituidora: string read FNfseSubstituidora write FNfseSubstituidora;
@@ -1436,6 +1454,7 @@ type
     property MotivoCancelamento: string read FMotivoCancelamento write FMotivoCancelamento;
     // Provedor ISSBarueri
     property CodigoCancelamento: string read FCodigoCancelamento write FCodigoCancelamento;
+    property IdentificacaoRemessa: string read FIdentificacaoRemessa write FIdentificacaoRemessa;
     // Provedor Infisc
     property cNFSe: Integer read FcNFSe write FcNFSe;
     property refNF: string read FrefNF write FrefNF;
@@ -1534,12 +1553,6 @@ begin
     FIssRetido := stNormal;
     FValorIss := 0;
     FValorIssRetido := 0;
-    FValorPisRetido := 0;
-    FValorCofinsRetido := 0;
-    FValorInssRetido := 0;
-    FValorIrRetido := 0;
-    FValorCsllRetido := 0;
-    FValorCppRetido := 0;
     FOutrasRetencoes := 0;
     FBaseCalculo := 0;
     FAliquota := 0;
@@ -1548,6 +1561,7 @@ begin
     FDescontoCondicionado := 0;
     FValorDespesasNaoTributaveis := 0;
     FRetencoesFederais := 0;
+    FValorTotalNotaFiscal := 0;
   end;
 
   FItemServico := TItemServicoCollection.Create;
@@ -1968,12 +1982,14 @@ begin
   FCodServ := '';
   FUnidade := 'UN';
 
-  FDadosDeducao := TDadosDeducao.Create;;
+  FDadosDeducao := TDadosDeducao.Create;
+  FDadosProfissionalParceiro := TDadosProfissionalParceiro.Create;
 end;
 
 destructor TItemServicoCollectionItem.Destroy;
 begin
   FDadosDeducao.Free;
+  FDadosProfissionalParceiro.Free;
 
   inherited Destroy;
 end;
@@ -2333,6 +2349,22 @@ procedure TImpostoCollection.SetItem(Index: Integer;
   Value: TImpostoCollectionItem);
 begin
   inherited Items[Index] := Value;
+end;
+
+{ TDadosProfissionalParceiro }
+
+constructor TDadosProfissionalParceiro.Create;
+begin
+  inherited Create;
+
+  FIdentificacaoParceiro := TIdentificacao.Create;
+end;
+
+destructor TDadosProfissionalParceiro.Destroy;
+begin
+  FIdentificacaoParceiro.Free;
+
+  inherited Destroy;
 end;
 
 end.

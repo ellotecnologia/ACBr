@@ -151,6 +151,9 @@ function NFSE_Imprimir(const cImpressora: PChar; nNumCopias: integer; const bGer
 function NFSE_ImprimirPDF: longint;
   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
 
+function NFSE_SalvarPDF(const sResposta: PChar; var esTamanho: longint): longint;
+  {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
+
 function NFSE_ConsultarNFSeServicoPrestadoPorNumero(const aNumero: PChar; aPagina: longint; aDataInicial, aDataFinal: TDateTime; aTipoPeriodo: longint; const sResposta: PChar; var esTamanho: longint): longint;
   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
 
@@ -197,6 +200,9 @@ function NFSE_ObterDANFSE(const aChaveNFSe: PChar; const sResposta: PChar; var e
   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
 
 function NFSE_ConsultarParametros(aTipoParametroMunicipio: longint; const aCodigoServico: PChar; aCompetencia: TDateTime; aNumeroBeneficio: PChar; const sResposta: PChar; var esTamanho: longint): longint;
+  {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
+
+function NFSE_ObterInformacoesProvedor(const sResposta: PChar; var esTamanho: longint): longint;
   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
 
 {%endregion}
@@ -642,6 +648,21 @@ begin
   end;
 end;
 
+function NFSE_SalvarPDF(const sResposta: PChar; var esTamanho: longint): longint;
+ {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
+begin
+  try
+    VerificarLibInicializada(pLib);
+    Result := TACBrLibNFSe(pLib^.Lib).SalvarPDF(sResposta, esTamanho);
+  except
+      on E: EACBrLibException do
+       Result := E.Erro;
+
+      on E: Exception do
+        Result := ErrExecutandoMetodo;
+  end;
+end;
+
 function NFSE_ConsultarNFSeServicoPrestadoPorNumero(const aNumero: PChar; aPagina: longint; aDataInicial, aDataFinal: TDateTime; aTipoPeriodo: longint; const sResposta: PChar; var esTamanho: longint ): longint;
  {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
 begin
@@ -879,6 +900,21 @@ begin
 
       on E: Exception do
         Result := ErrExecutandoMetodo;
+  end;
+end;
+
+function NFSE_ObterInformacoesProvedor(const sResposta: PChar; var esTamanho: longint): longint; cdecl;
+  {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
+begin
+  try
+    VerificarLibInicializada(pLib);
+    Result := TACBrLibNFSe(pLib^.Lib).ObterInformacoesProvedor(sResposta, esTamanho);
+  except
+      on E: EACBrLibException do
+         Result := E.Erro;
+
+      on E: Exception do
+         Result := ErrExecutandoMetodo;
   end;
 end;
 

@@ -858,6 +858,10 @@ procedure TCTeRecepcao.InicializarServico;
 var
   ok: Boolean;
 begin
+
+  if FPConfiguracoesCTe.Geral.VersaoDF >= ve400 then
+    Sincrono := True;
+
   if FConhecimentos.Count > 0 then    // Tem CTe ? Se SIM, use as informações do XML
     FVersaoDF := DblToVersaoCTe(ok, FConhecimentos.Items[0].CTe.infCTe.Versao)
   else
@@ -2572,6 +2576,9 @@ procedure TCTeInutilizacao.DefinirDadosMsg;
 var
   InutCTe: TinutCTe;
 begin
+  if FPConfiguracoesCTe.Geral.VersaoDF >= ve400 then
+    raise EACBrCTeException.Create('A partir da versão 4.00 o serviço de Inutilizadação foi descontinuado.');
+
   InutCTe := TinutCTe.Create;
   try
     InutCTe.tpAmb := FPConfiguracoesCTe.WebServices.Ambiente;
@@ -3825,7 +3832,7 @@ begin
   if not Enviar.Executar then
     Enviar.GerarException( Enviar.Msg );
 
-  if not ASincrono or ((FEnviar.Recibo <> '') and (FEnviar.cStat = 103)) then
+  if not FEnviar.Sincrono or ((FEnviar.Recibo <> '') and (FEnviar.cStat = 103)) then
   begin
     FRetorno.Recibo := FEnviar.Recibo;
 

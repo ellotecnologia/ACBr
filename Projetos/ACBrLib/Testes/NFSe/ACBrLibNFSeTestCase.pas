@@ -99,6 +99,8 @@ type
     procedure Test_NFSe_IniServicos_Vazio_Carregando_ACBrNFSeXServicos_Resources;
     procedure Test_NFSe_IniServicos_Informando_Path_Com_ACBrNFSeXServicos_Sem_Provedor;
     procedure Test_NFSe_IniServicos_Informando_Path_Com_ACBrNFSeXServicos_Com_Provedor;
+    procedure Test_NFSe_LayoutImpressao;
+    procedure Test_NFSe_ObterInformacoesProvedor;
 
   end;
 
@@ -1142,6 +1144,65 @@ begin
 
   AssertEquals('Erro ao Emitir NFSe', ErrOK,
   NFSE_Emitir(Handle, '1', 0, False, Resposta, Tamanho));
+  AssertEquals('Resposta= ' + AnsiString(Resposta), '', '');
+  AssertEquals('Tamanho= ' + IntToStr(Tamanho), '', '');
+
+  AssertEquals(ErrOK, NFSE_Finalizar(Handle));
+end;
+
+procedure TTestACBrNFSeLib.Test_NFSe_LayoutImpressao;
+var
+  AStr: String;
+  Handle: THandle;
+  Bufflen: Integer;
+begin
+  AssertEquals(ErrOK, NFSE_Inicializar(Handle, '', ''));
+
+  Bufflen := 255;
+  AStr := Space(Bufflen);
+
+  AssertEquals(ErrOk, NFSE_ConfigLerValor(Handle, 'NFSe', 'LayoutNFSe', PChar(AStr), Bufflen));
+
+  AssertEquals('Erro ao Mudar configuração', ErrOk, NFSE_ConfigGravarValor(Handle, 'NFSe', 'LayoutNFSe', '0'));
+
+  AssertEquals(ErrOk, NFSE_ConfigLerValor(Handle, 'NFSe', 'CodigoMunicipio', PChar(AStr), Bufflen));
+
+  AssertEquals('Erro ao Mudar configuração', ErrOk, NFSE_ConfigGravarValor(Handle, 'NFSe', 'CodigoMunicipio', '3301702'));
+
+  AssertEquals(ErrOK, NFSE_ConfigGravar(Handle,'ACBrLib.ini'));
+
+  AssertEquals('Erro ao carregar XML NFSe', ErrOK,
+  NFSE_CarregarXML(Handle, PChar(fCaminhoExec+'\NFSe.xml')));
+
+  AssertEquals('Erro ao Imprimir NFSe', ErrOK,
+  NFSE_Imprimir(Handle, '', 1, '', '', ''));
+
+  AssertEquals(ErrOK, NFSE_Finalizar(Handle));
+end;
+
+procedure TTestACBrNFSeLib.Test_NFSe_ObterInformacoesProvedor;
+var
+  Handle: THandle;
+  Resposta: PChar;
+  Tamanho: longint;
+begin
+
+  AssertEquals(ErrOK, NFSE_Inicializar(Handle, '', ''));
+  Resposta := '';
+  Tamanho := 0;
+
+  NFSE_ObterInformacoesProvedor(Handle, Resposta, Tamanho);
+
+  AssertEquals('Resposta= ' + AnsiString(Resposta), '', '');
+  AssertEquals('Tamanho= ' + IntToStr(Tamanho), '', '');
+
+  AssertEquals('Erro ao configurar a cidade', ErrOK,
+  NFSE_ConfigGravarValor(Handle, 'NFSe', 'LayoutNFSe', '1'));
+
+  Resposta := '';
+  Tamanho := 0;
+  NFSE_ObterInformacoesProvedor(Handle, Resposta, Tamanho);
+
   AssertEquals('Resposta= ' + AnsiString(Resposta), '', '');
   AssertEquals('Tamanho= ' + IntToStr(Tamanho), '', '');
 

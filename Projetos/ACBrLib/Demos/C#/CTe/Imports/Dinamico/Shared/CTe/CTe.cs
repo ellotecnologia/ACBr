@@ -28,7 +28,6 @@ namespace ACBrLib.CTe
             Recebedor = new RecebedorCTe();
             Destinatario = new DestinatarioCTe();
             ValoresPrestacaoServico = new ValoresPrestacaoServicoCTe();
-            ComponentesValorPrestacao = new ComponentesValorPrestacaoCTe();
             InformacoesRelativasImpostos = new InformacoesRelativasImpostosCTe();
             GrupoInformacoesNormalSubstituto = new GrupoInformacoesNormalSubstitutoCTe();           
             DetalhamentoAnulacao = new DetalhamentoAnulacaoCTe();
@@ -78,7 +77,7 @@ namespace ACBrLib.CTe
 
         public ValoresPrestacaoServicoCTe ValoresPrestacaoServico { get; }
 
-        public ComponentesValorPrestacaoCTe ComponentesValorPrestacao { get; }
+        public List<ComponentesValorPrestacaoCTe> ComponentesValorPrestacao { get; } = new List<ComponentesValorPrestacaoCTe> ();
 
         public InformacoesRelativasImpostosCTe InformacoesRelativasImpostos { get; }
 
@@ -116,7 +115,7 @@ namespace ACBrLib.CTe
             var iniData = new ACBrIniFile();
 
             iniData.WriteToIni(InfCTe, "InfCTe");
-            iniData.WriteToIni(Identificacao, "Ide");
+            iniData.WriteToIni(Identificacao, "ide");
 
             for (var i = 0; i < Identificacao.infPercurso.Count; i++)
             {
@@ -142,13 +141,20 @@ namespace ACBrLib.CTe
                 iniData.WriteToIni(obsFisco, $"ObsFisco{i + 1:000}");
             }
 
-            iniData.WriteToIni(Emitente, "Emit");
+            iniData.WriteToIni(Emitente, "emit");
             iniData.WriteToIni(Remetente, "Rem");
             iniData.WriteToIni(Expedidor, "Exped");
             iniData.WriteToIni(Recebedor, "Receb");
             iniData.WriteToIni(Destinatario, "Dest");
             iniData.WriteToIni(ValoresPrestacaoServico, "vPrest");
-            iniData.WriteToIni(ComponentesValorPrestacao, "Comp");
+            
+            for (var i = 0; i < ComponentesValorPrestacao.Count; i++)
+            {
+                ComponentesValorPrestacaoCTe comp = ComponentesValorPrestacao[i];
+                iniData.WriteToIni(comp, $"Comp{i + 1:000}");
+
+            }
+            
             iniData.WriteToIni(InformacoesRelativasImpostos, "Imp");
             if (InformacoesRelativasImpostos.ICMSSN.CST == CSTCTe.ICMSSN)
             {
@@ -180,7 +186,33 @@ namespace ACBrLib.CTe
             }
             iniData.WriteToIni(InformacoesRelativasImpostos.infTribFed, "InfTribFed");
             iniData.WriteToIni(GrupoInformacoesNormalSubstituto, "infCTeNorm");
+            iniData.WriteToIni(GrupoInformacoesNormalSubstituto.infCTeSub, "infCTeSub");
+            iniData.WriteToIni(GrupoInformacoesNormalSubstituto.infCTeSub.tomaICMS, "tomaICMS");
             iniData.WriteToIni(GrupoInformacoesNormalSubstituto.infServico, "infServico");
+
+            switch (Identificacao.mod)
+            {
+                case 57:
+                    { 
+                        iniData.WriteToIni(Rodoviario, "rodo"); 
+
+                        for(var i=0; i < Rodoviario.occ.Count; i++)
+                        {
+                            OrdensColetaCTe occ = Rodoviario.occ[i];
+                            iniData.WriteToIni(occ, $"occ{i + 1:000}");
+                        }
+                        
+                        break; 
+                    }
+                case 67:
+                    {
+                        iniData.WriteToIni(Rodoviario, "rodoOS");
+                        iniData.WriteToIni(Rodoviario.veic, "veic001");
+                        iniData.WriteToIni(Rodoviario.veic.prop, "prop001");
+                        iniData.WriteToIni(Rodoviario.infFretamento, "infFretamento");
+                        break;                        
+                    }
+            }
 
             for (var i = 0; i < GrupoInformacoesNormalSubstituto.infDocRef.Count; i++)
             {
@@ -238,9 +270,14 @@ namespace ACBrLib.CTe
                 var infCTeMultimodal = GrupoInformacoesNormalSubstituto.infServVinc.infCTeMultimodal[i];
                 iniData.WriteToIni(infCTeMultimodal, $"infCTeMultimodal{i + 1:000}");
             }
-
-            iniData.WriteToIni(Rodoviario, "rodo");
+            
             iniData.WriteToIni(GrupoInformacoesNormalSubstituto.infModal, "infModal");
+
+            for (var i = 0; i < GrupoInformacoesNormalSubstituto.veicNovos.Count; i++)
+            {
+                var veicNovos = GrupoInformacoesNormalSubstituto.veicNovos[i];
+                iniData.WriteToIni(veicNovos, $"veicNovos{i + 1:000}");
+            }
             
             for (var i = 0; i < GrupoInformacoesNormalSubstituto.infDoc.infNFe.Count; i++)
             {
@@ -428,7 +465,7 @@ namespace ACBrLib.CTe
         private void ReadFromIni(ACBrIniFile iniData)
         {
             iniData.ReadFromIni(InfCTe, "InfCTe");
-            iniData.ReadFromIni(Identificacao, "Ide");
+            iniData.ReadFromIni(Identificacao, "ide");
 
             var i = 0;
             if (Identificacao != null)
@@ -469,15 +506,24 @@ namespace ACBrLib.CTe
                 if(obsFisco != null) ObsFisco.Add(obsFisco);
 
             } while (obsFisco != null);
-            
-            iniData.ReadFromIni(ObsFisco, "ObsFisco");
-            iniData.ReadFromIni(Emitente, "Emit");
+                       
+            iniData.ReadFromIni(Emitente, "emit");
             iniData.ReadFromIni(Remetente, "Rem");
             iniData.ReadFromIni(Expedidor, "Exped");
             iniData.ReadFromIni(Recebedor, "Receb");
             iniData.ReadFromIni(Destinatario, "Dest");
             iniData.ReadFromIni(ValoresPrestacaoServico, "vPrest");
-            iniData.ReadFromIni(ComponentesValorPrestacao, "Comp");
+
+            i = 0;
+            ComponentesValorPrestacaoCTe comp;
+            do
+            {
+                i++;
+                comp = iniData.ReadFromIni<ComponentesValorPrestacaoCTe>($"Comp{i:000}");
+
+                if (comp != null) ComponentesValorPrestacao.Add(comp);
+            } while(comp != null);            
+            
             iniData.ReadFromIni(InformacoesRelativasImpostos, "Imp");
             iniData.ReadFromIni(InformacoesRelativasImpostos.ICMSSN, "ICMSSN");
             iniData.ReadFromIni(InformacoesRelativasImpostos.ICMSOutraUF, "ICMSOutrasUF");
@@ -488,7 +534,38 @@ namespace ACBrLib.CTe
             iniData.ReadFromIni(InformacoesRelativasImpostos.ICMS90, "ICMS90");
             iniData.ReadFromIni(InformacoesRelativasImpostos.infTribFed, "InfTribFed");
             iniData.ReadFromIni(GrupoInformacoesNormalSubstituto, "infCTeNorm");
+            iniData.ReadFromIni(GrupoInformacoesNormalSubstituto.infCTeSub, "infCTeSub");
+            iniData.ReadFromIni(GrupoInformacoesNormalSubstituto.infCTeSub.tomaICMS, "tomaICMS");
             iniData.ReadFromIni(GrupoInformacoesNormalSubstituto.infServico, "infServico");
+
+            switch (Identificacao.mod)
+            {
+                case 57:
+                    {
+                        iniData.ReadFromIni(Rodoviario, "rodo");
+
+                        i = 0;
+                        OrdensColetaCTe occ;
+                        do
+                        {
+                            i++;
+                            occ = iniData.ReadFromIni<OrdensColetaCTe>($"occ{i:000}");
+
+                            if (occ != null) Rodoviario.occ.Add(occ);
+
+                        }while(occ != null);
+
+                        break;
+                    }
+                case 67:
+                    {
+                        iniData.ReadFromIni(Rodoviario, "rodoOS");
+                        iniData.ReadFromIni(Rodoviario.veic, "veic001");
+                        iniData.ReadFromIni(Rodoviario.veic.prop, "prop001");
+                        iniData.ReadFromIni(Rodoviario.infFretamento, "infFretamento");
+                        break;
+                    }
+            }
 
             i = 0;
             InfDocRef infDocRef;
@@ -561,6 +638,17 @@ namespace ACBrLib.CTe
             
             iniData.ReadFromIni(Rodoviario, "rodo");
             iniData.ReadFromIni(GrupoInformacoesNormalSubstituto.infModal, "infModal");
+
+            i = 0;
+            VeicNovosCTe veicNovos;
+            do
+            {
+                i++;
+                veicNovos = iniData.ReadFromIni<VeicNovosCTe>($"veicNovos{i:000}");
+
+                if(veicNovos != null) GrupoInformacoesNormalSubstituto.veicNovos.Add(veicNovos);
+
+            }while( veicNovos != null);
 
             var j = 0;
             InfNFeCTe infNFe;

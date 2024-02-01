@@ -121,6 +121,10 @@ begin
   NFSe.Servico.Valores.Aliquota := ObterConteudo(AuxNode.Childrens.FindAnyNs('Aliquota'), tcDe2);
   NFSe.Servico.Valores.ValorIss := ObterConteudo(AuxNode.Childrens.FindAnyNs('ValorIss'), tcDe2);
   NFSe.Servico.Valores.ValorLiquidoNfse := ObterConteudo(AuxNode.Childrens.FindAnyNs('ValorLiquidoNfe'), tcDe2);
+
+  NFSe.Servico.Valores.ValorTotalNotaFiscal := NFSe.Servico.Valores.ValorServicos -
+                                               NFSe.Servico.Valores.DescontoCondicionado -
+                                               NFSe.Servico.Valores.DescontoIncondicionado;
 end;
 
 procedure TNFSeR_ISSBarueri.LerPrestadorServico(const ANode: TACBrXmlNode);
@@ -218,6 +222,9 @@ begin
   NFSe.Servico.Discriminacao := ObterConteudo(AuxNode.Childrens.FindAnyNs('Discriminacao'), tcStr);
   NFSe.Servico.Discriminacao := StringReplace(NFSe.Servico.Discriminacao, FpQuebradeLinha,
                                       sLineBreak, [rfReplaceAll, rfIgnoreCase]);
+
+  VerificarSeConteudoEhLista(NFSe.Servico.Discriminacao);
+
   NFSe.InformacoesComplementares := ObterConteudo(AuxNode.Childrens.FindAnyNs('ObservacaoLocalTributado'), tcStr);
 
   NFSe.Servico.Valores.IssRetido := FpAOwner.StrToSituacaoTributaria(OK, ObterConteudo(AuxNode.Childrens.FindAnyNs('IssRetido'), tcInt));
@@ -425,6 +432,8 @@ begin
   Item.ValorUnitario := StrToFloatDef(Trim(Copy(ALinha, 77, 15)), 0.00) / 100;
   //Item.ValorISS := StrToFloatDef(Trim(Copy(ALinha, 77, 15)), 0.00) / 100;
   Item.Aliquota := StrToFloatDef(Trim(Copy(ALinha, 92, 4)), 0.00) / 100;
+
+  Item.ValorTotal := Item.Quantidade * Item.ValorUnitario;
 
   NFSe.Servico.Descricao := Trim(Copy(ALinha, 8, 60));
   NFSe.Servico.CodigoMunicipio := Trim(Copy(ALinha, 68, 9));

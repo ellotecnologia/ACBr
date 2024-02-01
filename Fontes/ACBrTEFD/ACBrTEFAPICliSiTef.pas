@@ -236,18 +236,22 @@ begin
 
   // acertar quebras de linhas e abertura e fechamento da lista de parametros
   ParamAdic := StringReplace(Trim(ParamAdicConfig.Text), sLineBreak, ';', [rfReplaceAll]);
-  ParamAdic := '['+ ParamAdic + ']';
+  if NaoEstaVazio(ParamAdic) then
+    ParamAdic := '['+ ParamAdic + ']';
 
   if NaoEstaVazio(fpACBrTEFAPI.DadosEstabelecimento.CNPJ) and
     NaoEstaVazio(fpACBrTEFAPI.DadosAutomacao.CNPJSoftwareHouse) then
   begin
-     ParamAdic := ParamAdic + '[ParmsClient=1='+fpACBrTEFAPI.DadosEstabelecimento.CNPJ+';'+
-                                           '2='+fpACBrTEFAPI.DadosAutomacao.CNPJSoftwareHouse+']';
+    if NaoEstaVazio(ParamAdic) then
+      ParamAdic := ParamAdic + ';';
+
+    ParamAdic := ParamAdic + '[ParmsClient=1='+fpACBrTEFAPI.DadosEstabelecimento.CNPJ+';'+
+                                          '2='+fpACBrTEFAPI.DadosAutomacao.CNPJSoftwareHouse+']';
   end;
 
-  EnderecoIP := fpACBrTEFAPI.DadosTerminal.EnderecoServidor;
-  CodLoja := fpACBrTEFAPI.DadosTerminal.CodFilial;
-  NumeroTerminal := fpACBrTEFAPI.DadosTerminal.CodTerminal;
+  EnderecoIP := IfEmptyThen(fpACBrTEFAPI.DadosTerminal.EnderecoServidor, 'localhost');
+  CodLoja := IfEmptyThen(fpACBrTEFAPI.DadosTerminal.CodFilial, IfEmptyThen(fpACBrTEFAPI.DadosTerminal.CodEmpresa, '00000000' ));
+  NumeroTerminal := IfEmptyThen(fpACBrTEFAPI.DadosTerminal.CodTerminal, 'SE000001');
 
   fpACBrTEFAPI.GravarLog( '*** ConfiguraIntSiTefInterativoEx. '+
                           ' EnderecoIP: ' + EnderecoIP +
@@ -375,6 +379,7 @@ begin
   Continua := 0;
   Resposta := '';
   Buffer := '';
+  TituloMenu := '' ;
 
   TefAPI := TACBrTEFAPI(fpACBrTEFAPI);
   RespCliSiTef := TACBrTEFRespCliSiTef(fpACBrTEFAPI.UltimaRespostaTEF);
@@ -406,7 +411,6 @@ begin
                               ' Tam.Min = '+IntToStr(TamanhoMinimo) +
                               ' Tam.Max = '+IntToStr(TamanhoMaximo)) ;
 
-      TituloMenu := '' ;
       Resposta := '';
       Voltar := False;
       Digitado := True;
@@ -492,7 +496,7 @@ begin
              SL := TStringList.Create;
              try
                SL.Add('SIM');
-               SL.Add('NÃO');
+               SL.Add(ACBrStr('NÃO'));
 
                ItemSelecionado := -1;
                TefAPI.QuandoPerguntarMenu( Mensagem, SL, ItemSelecionado);
@@ -752,7 +756,7 @@ begin
 
   fpACBrTEFAPI.UltimaRespostaTEF.ConteudoToProperty;
   if (fUltimoRetornoAPI <> 0) then
-    fpACBrTEFAPI.UltimaRespostaTEF.TextoEspecialOperador := fTEFCliSiTefAPI.TraduzirErroTransacao(fUltimoRetornoAPI);
+    fpACBrTEFAPI.UltimaRespostaTEF.TextoEspecialOperador := ACBrStr(fTEFCliSiTefAPI.TraduzirErroTransacao(fUltimoRetornoAPI));
 end;
 
 function TACBrTEFAPIClassCliSiTef.EfetuarAdministrativa(
@@ -981,7 +985,7 @@ begin
       TipoDocumento := 1;
 
     dpCNPJ, dpRedCNPJ:
-      TipoDocumento := 1;
+      TipoDocumento := 2;
   else
     fpACBrTEFAPI.DoException(Format(ACBrStr(sACBrTEFAPICapturaNaoSuportada),
       [GetEnumName(TypeInfo(TACBrTEFAPIDadoPinPad), integer(TipoDado) ), ClassName] ));

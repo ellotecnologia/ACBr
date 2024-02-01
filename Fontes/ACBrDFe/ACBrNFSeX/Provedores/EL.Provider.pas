@@ -96,8 +96,8 @@ type
     procedure PrepararConsultaNFSeporRps(Response: TNFSeConsultaNFSeporRpsResponse); override;
     procedure TratarRetornoConsultaNFSeporRps(Response: TNFSeConsultaNFSeporRpsResponse); override;
 
-    procedure PrepararConsultaNFSe(Response: TNFSeConsultaNFSeResponse); override;
-    procedure TratarRetornoConsultaNFSe(Response: TNFSeConsultaNFSeResponse); override;
+    procedure PrepararConsultaNFSeporNumero(Response: TNFSeConsultaNFSeResponse); override;
+    procedure TratarRetornoConsultaNFSeporNumero(Response: TNFSeConsultaNFSeResponse); override;
 
     procedure PrepararCancelaNFSe(Response: TNFSeCancelaNFSeResponse); override;
     procedure TratarRetornoCancelaNFSe(Response: TNFSeCancelaNFSeResponse); override;
@@ -109,6 +109,10 @@ type
 
   public
     procedure Emite; override;
+
+    function SituacaoLoteRpsToStr(const t: TSituacaoLoteRps): string; override;
+    function StrToSituacaoLoteRps(out ok: boolean; const s: string): TSituacaoLoteRps; override;
+    function SituacaoLoteRpsToDescr(const t: TSituacaoLoteRps): string; override;
 
     function RegimeEspecialTributacaoToStr(const t: TnfseRegimeEspecialTributacao): string; override;
     function StrToRegimeEspecialTributacao(out ok: boolean; const s: string): TnfseRegimeEspecialTributacao; override;
@@ -584,6 +588,31 @@ begin
   end;
 end;
 
+function TACBrNFSeProviderEL.SituacaoLoteRpsToStr(const t: TSituacaoLoteRps): string;
+begin
+  Result := EnumeradoToStr(t,
+                           ['1', '2', '3', '4'],
+                           [sLoteNaoProcessado, sLoteProcessadoErro,
+                            sLoteProcessadoAviso, sLoteProcessadoSucesso]);
+end;
+
+function TACBrNFSeProviderEL.StrToSituacaoLoteRps(out ok: boolean; const s: string): TSituacaoLoteRps;
+begin
+  Result := StrToEnumerado(ok, s,
+                           ['1', '2', '3', '4'],
+                           [sLoteNaoProcessado, sLoteProcessadoErro,
+                            sLoteProcessadoAviso, sLoteProcessadoSucesso]);
+end;
+
+function TACBrNFSeProviderEL.SituacaoLoteRpsToDescr(const t: TSituacaoLoteRps): string;
+begin
+  Result := EnumeradoToStr(t,
+                           ['Lote Não Processado', 'Lote Processado com Erro',
+                            'Lote Processado com Aviso', 'Lote Processado com Sucesso'],
+                           [sLoteNaoProcessado, sLoteProcessadoErro,
+                            sLoteProcessadoAviso, sLoteProcessadoSucesso]);
+end;
+
 function TACBrNFSeProviderEL.RegimeEspecialTributacaoToStr(
   const t: TnfseRegimeEspecialTributacao): string;
 begin
@@ -647,6 +676,22 @@ begin
   end;
 
   Emitente := TACBrNFSeX(FAOwner).Configuracoes.Geral.Emitente;
+
+  if EstaVazio(Emitente.CNPJ) then
+  begin
+    AErro := EmiteResponse.Erros.New;
+    AErro.Codigo := Cod130;
+    AErro.Descricao := ACBrStr(Desc130);
+    Exit;
+  end;
+
+  if EstaVazio(Emitente.WSSenha) then
+  begin
+    AErro := EmiteResponse.Erros.New;
+    AErro.Codigo := Cod120;
+    AErro.Descricao := ACBrStr(Desc120);
+    Exit;
+  end;
 
   Response.ArquivoEnvio := '<el:autenticarContribuinte>' +
                              '<identificacaoPrestador>' +
@@ -888,6 +933,8 @@ var
   AErro: TNFSeEventoCollectionItem;
   ANode: TACBrXmlNode;
   AuxNode: TACBrXmlNode;
+  Ok: Boolean;
+  Situacao: TSituacaoLoteRps;
 begin
   Document := TACBrXmlDocument.Create;
 
@@ -918,6 +965,9 @@ begin
           NumeroLote := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('numeroLote'), tcStr);
           Situacao := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('situacaoLoteRps'), tcStr);
         end;
+
+        Situacao := TACBrNFSeX(FAOwner).Provider.StrToSituacaoLoteRps(Ok, Response.Situacao);
+        Response.DescSituacao := TACBrNFSeX(FAOwner).Provider.SituacaoLoteRpsToDescr(Situacao);
       end;
     except
       on E:Exception do
@@ -1177,7 +1227,7 @@ begin
   end;
 end;
 
-procedure TACBrNFSeProviderEL.PrepararConsultaNFSe(
+procedure TACBrNFSeProviderEL.PrepararConsultaNFSeporNumero(
   Response: TNFSeConsultaNFSeResponse);
 var
   AErro: TNFSeEventoCollectionItem;
@@ -1205,7 +1255,7 @@ begin
                            '</el:ConsultarNfseEnvio>';
 end;
 
-procedure TACBrNFSeProviderEL.TratarRetornoConsultaNFSe(
+procedure TACBrNFSeProviderEL.TratarRetornoConsultaNFSeporNumero(
   Response: TNFSeConsultaNFSeResponse);
 var
   Document: TACBrXmlDocument;
@@ -1352,6 +1402,19 @@ begin
     ModoEnvio := meLoteAssincrono;
     NumMaxRpsEnviar := 5;
     DetalharServico := True;
+
+    Autenticacao.RequerCertificado := False;
+    Autenticacao.RequerLogin := True;
+
+    with ServicosDisponibilizados do
+    begin
+      EnviarLoteAssincrono := True;
+      ConsultarSituacao := True;
+      ConsultarLote := True;
+      ConsultarRps := True;
+      ConsultarNfse := True;
+      CancelarNfse := True;
+    end;
   end;
 
   SetXmlNameSpace('http://www.el.com.br/nfse/xsd/el-nfse.xsd');

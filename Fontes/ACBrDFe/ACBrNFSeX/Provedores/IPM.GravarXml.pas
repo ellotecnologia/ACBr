@@ -39,7 +39,6 @@ interface
 uses
   SysUtils, Classes, StrUtils,
   ACBrXmlBase, ACBrXmlDocument,
-  pcnConsts,
   ACBrNFSeXParametros, ACBrNFSeXGravarXml, ACBrNFSeXGravarXml_ABRASFv2,
   ACBrNFSeXConversao, ACBrNFSeXConsts;
 
@@ -51,11 +50,11 @@ type
     FpGerarID: Boolean;
     FpNrOcorrTagsTomador: Integer;
     FpNrOcorrCodigoAtividade: Integer;
+    FpNaoGerarGrupoRps: Boolean;
 
   protected
     procedure Configuracao; override;
 
-    function GerarGrupoRPS: Boolean;
     function GerarIdentificacaoRPS: TACBrXmlNode;
     function GerarValoresServico: TACBrXmlNode;
     function GerarPrestador: TACBrXmlNode;
@@ -112,6 +111,11 @@ begin
 
   Opcoes.QuebraLinha := FpAOwner.ConfigGeral.QuebradeLinha;
   Opcoes.DecimalChar := ',';
+  {
+    Se no arquivo ACBrNFSeXServicos.ini existe o campo: NaoGerarGrupoRps na
+    definição da cidade o valor de NaoGerar é True
+  }
+  FpNaoGerarGrupoRps := FpAOwner.ConfigGeral.Params.TemParametro('NaoGerarGrupoRps');
 
   FDocument.Clear();
 
@@ -125,10 +129,19 @@ begin
   FDocument.Root := NFSeNode;
 
   if (VersaoNFSe in [ve100, ve101]) and (Ambiente = taHomologacao) then
-    NFSeNode.AppendChild(AddNode(tcStr, '#3', 'nfse_teste', 1, 1, 1, '1', ''));
+  begin
+    if not FpNaoGerarGrupoRps then
+      NFSeNode.AppendChild(AddNode(tcStr, '#2', 'identificador', 1, 80, 0,
+        'nfseh_' + NFSe.IdentificacaoRps.Numero + '.' + NFSe.IdentificacaoRps.Serie, ''));
 
-  NFSeNode.AppendChild(AddNode(tcStr, '#2', 'identificador', 1, 80, 0,
-    'nfse_' + NFSe.IdentificacaoRps.Numero + '.' + NFSe.IdentificacaoRps.Serie, ''));
+    NFSeNode.AppendChild(AddNode(tcStr, '#3', 'nfse_teste', 1, 1, 1, '1', ''));
+  end
+  else
+  begin
+    if not FpNaoGerarGrupoRps then
+      NFSeNode.AppendChild(AddNode(tcStr, '#2', 'identificador', 1, 80, 0,
+        'nfse_' + NFSe.IdentificacaoRps.Numero + '.' + NFSe.IdentificacaoRps.Serie, ''));
+  end;
 
   xmlNode := GerarIdentificacaoRPS;
   NFSeNode.AppendChild(xmlNode);
@@ -208,25 +221,12 @@ begin
   end;
 end;
 
-function TNFSeW_IPM.GerarGrupoRPS: Boolean;
-var
-  NaoGerar: Boolean;
-begin
-  {
-    Se no arquivo ACBrNFSeXServicos.ini existe o campo: NaoGerarGrupoRps na
-    definição da cidade o valor de NaoGerar é True
-  }
-  NaoGerar := FpAOwner.ConfigGeral.Params.TemParametro('NaoGerarGrupoRps');
-
-  // Na condição abaixo se faz necessário o "not".
-  Result := (StrToIntDef(NFSe.IdentificacaoRps.Numero, 0) > 0) and (not NaoGerar);
-end;
-
 function TNFSeW_IPM.GerarIdentificacaoRPS: TACBrXmlNode;
 begin
   Result :=  nil;
 
-  if GerarGrupoRPS then
+  if (StrToIntDef(NFSe.IdentificacaoRps.Numero, 0) > 0) and
+     (not FpNaoGerarGrupoRps) then
   begin
     Result := CreateElement('rps');
 
@@ -343,6 +343,9 @@ begin
     else
       Result[i].AppendChild(AddNode(tcDe2, '#', 'valor_issrf', 1, 15, 0,
                          NFSe.Servico.ItemServico[I].ValorISSRetido, DSC_VISS));
+
+    Result[i].AppendChild(AddNode(tcStr, '#', 'cno', 1, 15, 0,
+                                   NFSe.Servico.ItemServico[I].CodCNO, ''));
   end;
 
   if NFSe.Servico.ItemServico.Count > 10 then
@@ -551,9 +554,6 @@ begin
 
   FormatoAliq := tcDe2;
 
-  GerarEnderecoExterior := True;
-
-  NrOcorrNIFTomador := 0;
   NrOcorrInformacoesComplemetares := 0;
   NrOcorrCodigoPaisTomador := -1;
 

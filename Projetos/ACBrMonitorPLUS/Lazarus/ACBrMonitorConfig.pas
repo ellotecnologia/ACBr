@@ -195,6 +195,8 @@ type
     HTML              : Boolean;
     AttemptsMail      : Integer;
     TimeOutMail       : Integer;
+    SSLType           : Integer;
+
   end;
 
   TCertificado = record
@@ -642,6 +644,11 @@ type
     DirArquivoBoleto           : String ;
     Impressora                 : String ;
     NomeArquivoBoleto          : String;
+    TipoMotorRelatorio         : integer;
+    MargemInferior             : double;
+    MargemSuperior             : double;
+    MargemEsquerda             : double;
+    MargemDireita              : double;
   end;
 
   TBoletoRemessaRetorno = record
@@ -750,6 +757,11 @@ type
     CNPJPrefeitura: string;
   end;
 
+  TConsultaCNPJ = record
+    ProvedorCnpjWS: integer;
+  end;
+
+
   EDFeException = class(Exception);
   EDFeConfigException = class(EDFeException);
 
@@ -782,6 +794,7 @@ type
     FBoleto : TBOLETO;
     FFonteLinha: TFont;
     FNFSE: TNFSe;
+    FConsultaCNPJ :TConsultaCNPJ;
 
     FOnGravarConfig: TACBrOnGravarConfig;
     procedure DefinirValoresPadrao;
@@ -822,6 +835,7 @@ type
     property BOLETO : TBOLETO                read FBoleto;
     property FonteLinha: TFont               read FFonteLinha;
     property NFSE: TNFSe                     read FNFSE;
+    property ConsultaCNPJ :TConsultaCNPJ     read FConsultaCNPJ;
 
     property OnGravarConfig: TACBrOnGravarConfig read FOnGravarConfig write FOnGravarConfig;
   end;
@@ -1022,6 +1036,7 @@ begin
       Ini.WriteBool( CSecEmail, CKeyEmailHTML, HTML );
       Ini.WriteInteger( CSecEmail, CKeyAttemptsMail, AttemptsMail );
       Ini.WriteInteger( CSecEmail, CKeyTimeoutMail, TimeOutMail );
+      ini.WriteInteger( CSecEmail, CKeyEmailSSLType, SSLType);
     end;
 
     with DFe do
@@ -1493,6 +1508,12 @@ begin
       ini.WriteString( CSecBOLETO, CKeyBOLETODirArquivoBoleto,  DirArquivoBoleto       );
       Ini.WriteString( CSecBOLETO, CKeyBOLETOImpressora,                Impressora             );
       Ini.WriteString( CSecBOLETO, CKeyBOLETONomeArquivoBoleto, NomeArquivoBoleto);
+      ini.WriteInteger(CSecBOLETO, CKeyBOLETOTipoMotorRelatorio,TipoMotorRelatorio);
+      ini.WriteFloat(CSecBOLETO,   CKeyBOLETOMargemInferior,MargemInferior);
+      ini.WriteFloat(CSecBOLETO,   CKeyBOLETOMargemSuperior,MargemSuperior);
+      ini.WriteFloat(CSecBOLETO,   CKeyBOLETOMargemEsquerda,MargemEsquerda);
+      ini.WriteFloat(CSecBOLETO,   CKeyBOLETOMargemDireita ,MargemDireita);
+
     end;
 
     with BOLETO.RemessaRetorno do
@@ -1575,6 +1596,11 @@ begin
       Ini.WriteBool( CSecNFSE, CKeyNFSeConsultarAposCancelar, ConsultarAposCancelar );
       Ini.WriteString( CSecNFSE, CKeyNFSeNomePrefeitura, NomePrefeitura );
       Ini.WriteString( CSecNFSE, CKeyNFSeCNPJPrefeitura, CNPJPrefeitura );
+    end;
+
+    with ConsultaCNPJ do
+    begin
+       Ini.WriteInteger( CSecProvedorCNPJ, CKeyProvedorCNPJProvedor, ProvedorCnpjWS );
     end;
 
     SL := TStringList.Create;
@@ -1797,6 +1823,7 @@ begin
       HTML                      := Ini.ReadBool( CSecEmail, CKeyEmailHTML, HTML );
       AttemptsMail              := Ini.ReadInteger( CSecEmail, CKeyAttemptsMail, AttemptsMail );
       TimeOutMail               := Ini.ReadInteger( CSecEmail, CKeyTimeoutMail, TimeOutMail );
+      SSLType                   := Ini.ReadInteger( CSecEmail, CKeyEmailSSLType, SSLType );
     end;
 
     with DFe do
@@ -2274,7 +2301,12 @@ begin
       Filtro                 :=  ini.ReadInteger(CSecBOLETO, CKeyBOLETOFiltro,           Filtro                 );
       DirArquivoBoleto       :=  ini.ReadString( CSecBOLETO, CKeyBOLETODirArquivoBoleto, DirArquivoBoleto       );
       Impressora             :=  Ini.ReadString( CSecBOLETO, CKeyBOLETOImpressora,       Impressora             );
-      NomeArquivoBoleto      :=  Ini.ReadString( CSecBOLETO, CKeyBOLETONomeArquivoBoleto, NomeArquivoBoleto);
+      NomeArquivoBoleto      :=  Ini.ReadString( CSecBOLETO, CKeyBOLETONomeArquivoBoleto, NomeArquivoBoleto     );
+      TipoMotorRelatorio     :=  ini.ReadInteger(CSecBOLETO, CKeyBOLETOTipoMotorRelatorio,TipoMotorRelatorio    );
+      MargemInferior         :=  ini.ReadFloat(CSecBOLETO,   CKeyBOLETOMargemInferior,    MargemInferior        );
+      MargemSuperior         :=  ini.ReadFloat(CSecBOLETO,   CKeyBOLETOMargemSuperior,    MargemSuperior        );
+      MargemEsquerda         :=  ini.ReadFloat(CSecBOLETO,   CKeyBOLETOMargemEsquerda,    MargemEsquerda        );
+      MargemDireita          :=  ini.ReadFloat(CSecBOLETO,   CKeyBOLETOMargemDireita,     MargemDireita        );
     end;
 
     with BOLETO.RemessaRetorno do
@@ -2357,6 +2389,13 @@ begin
       NomePrefeitura := ini.ReadString( CSecNFSE, CKeyNFSeNomePrefeitura, NomePrefeitura);
       CNPJPrefeitura := ini.ReadString( CSecNFSE, CKeyNFSeCNPJPrefeitura, CNPJPrefeitura);
     end;
+
+    with ConsultaCNPJ do
+    begin
+      ProvedorCnpjWS := ini.ReadInteger( CSecProvedorCNPJ, CKeyProvedorCNPJProvedor, ProvedorCnpjWS);
+    end;
+
+
   finally
     Ini.Free;
 
@@ -2554,6 +2593,7 @@ begin
     HTML                      := False;
     AttemptsMail              := 3;
     TimeOutMail               := 0;
+    SSLType                   := 0;
   end;
 
   with DFe do
@@ -3020,6 +3060,11 @@ begin
     DirArquivoBoleto       :=  '';
     NomeArquivoBoleto      :=  '';
     Impressora             :=  '';
+    TipoMotorRelatorio     :=  0;
+    MargemInferior         :=  5;
+    MargemSuperior         :=  5;
+    MargemEsquerda         :=  4;
+    MargemDireita          :=  3;
   end;
 
   with BOLETO.RemessaRetorno do
@@ -3099,6 +3144,12 @@ begin
     ConsultarAposCancelar := True;
     NomePrefeitura := '';
     CNPJPrefeitura := '';
+  end;
+
+
+  with ConsultaCNPJ do
+  begin
+    ProvedorCnpjWS := 0;
   end;
 
 end;

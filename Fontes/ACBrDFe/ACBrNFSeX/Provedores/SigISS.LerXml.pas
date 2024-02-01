@@ -141,6 +141,9 @@ begin
         Discriminacao := ObterConteudo(AuxNode.Childrens.FindAnyNs('descricaoNF'), tcStr);
         Discriminacao := StringReplace(Discriminacao, FpQuebradeLinha,
                                       sLineBreak, [rfReplaceAll, rfIgnoreCase]);
+
+        VerificarSeConteudoEhLista(Discriminacao);
+
         CodigoTributacaoMunicipio := ObterConteudo(AuxNode.Childrens.FindAnyNs('servico'), tcStr);
         MunicipioIncidencia := ObterConteudo(AuxNode.Childrens.FindAnyNs('codigo_cidade_local_servico'), tcInt);
 
@@ -308,6 +311,8 @@ begin
       Discriminacao := StringReplace(Discriminacao, FpQuebradeLinha,
                                       sLineBreak, [rfReplaceAll, rfIgnoreCase]);
 
+      VerificarSeConteudoEhLista(Discriminacao);
+
       with Valores do
       begin
         ValorServicos := NFSe.ValoresNfse.ValorLiquidoNfse;
@@ -330,6 +335,9 @@ begin
         ValorLiquidoNfse := ValorServicos -
                             (RetencoesFederais + ValorDeducoes + ValorIssRetido +
                              DescontoCondicionado + DescontoIncondicionado);
+
+        ValorTotalNotaFiscal := ValorServicos - DescontoCondicionado -
+                                DescontoIncondicionado;
       end;
     end;
 
@@ -459,6 +467,8 @@ begin
       Discriminacao := StringReplace(Discriminacao, FpQuebradeLinha,
                                       sLineBreak, [rfReplaceAll, rfIgnoreCase]);
 
+      VerificarSeConteudoEhLista(Discriminacao);
+
       with Valores do
       begin
         ValorServicos := ObterConteudo(DadosNfseNode.Childrens.FindAnyNs('ValorServicos'), tcDe2);
@@ -480,6 +490,9 @@ begin
           IssRetido := stRetencao;
 
         ValorLiquidoNfse := ObterConteudo(DadosNfseNode.Childrens.FindAnyNs('ValorLiquidoNfse'), tcDe2);
+
+        ValorTotalNotaFiscal := ValorServicos - DescontoCondicionado -
+                                DescontoIncondicionado;
       end;
     end;
 

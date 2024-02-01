@@ -44,6 +44,82 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+29/01/2024
+-- ACBrCTeDACTeRLRetrato, ACBrCTeDACTeRLRetratoA5 --
+[*] Remoção da coluna Valor Complementado da seção CTe-Complementado, pois não há tag correspondente para preencher a informação
+  Por: Diego Folieni
+
+08/01/2023
+-- ACBrCTeConhecimentos --
+[*] Adiciona na rotina de leitura do INI o campo xCpl do grupo Dest
+  Por: Diego Folieni
+
+17/11/2023
+-- Diversos --
+[+] Implementado o método ImprimirEventoPDF usando o Stream.
+  Por: Italo Giurizzato Junior
+
+14/11/2023
+-- ACBrCTeConhecimentos --
+[+] Implementado o método ImprimirPDF usando o Stream na classe Conhecimento.
+  Por: Italo Giurizzato Junior
+-- pcteRetEnvEventoCTe --
+[*] Reversão das alterações do commit anterior
+  Por: Diego Folieni
+
+13/11/2023
+-- pcteRetEnvEventoCTe --
+[*] Ajuste para resolver problema na leitura do retorno da carta de correção
+  Por: Diego Folieni
+
+03/11/2023
+-- ACBrCTeDACTeRLRetrato --
+[*] Ajuste para corrigir acentuação na seção Documentos Originarios
+  Por: Diego Folieni
+
+21/09/2023
+-- ACBrCTeWebServices --
+[-] Correção para não fazer a consulta do recibo após o envio, quando o envio foi no modo síncrono.
+  Por: BigWings
+
+19/09/2023
+-- pcteCTeW --
+[*] Possível solução para a rejeição: Rejeição 646: 
+   CT-e emitido em ambiente de homologação com Razão Social do remetente diferente de 
+   CT-E EMITIDO EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL.
+  Por: Italo Giurizzato Junior
+
+06/09/2023
+-- ACBrCTeConhecimentos --
+[*] Altera a condição para ler a seção infOutros no arquivo INI.
+  Por: Diego Folieni
+-- pcteCTeW --
+[*] Altera a validação que verifica se vai gerar a tag TAF do grupo prop para CTe-OS.
+  Por: Diego Folieni
+
+30/08/2023
+-- ACBrCTeWebServices --
+[*] Adiciona checagem para que o parâmetro de envio seja definido como sincrôno quando versão for 4.00
+  Por: Diego Folieni
+
+29/08/2023
+-- ACBrCTeConhecimentos --
+[*] Alteração na leitura do valor da UF do grupo prop para que leia UF caso não ache propUF.
+  Por: Diego Folieni
+
+28/08/2023
+-- ACBrCTe/ACBrCTeWebServices --
+[*] Movido a checagem da versão para definir se é síncrono ou não para o CTe da
+    unit ACBrCTe para ACBrCTeWebServices.
+  Por: Italo Giurizzato Junior
+
+24/08/2023
+-- ACBrCTeConhecimentos --
+[*] Ajuste na rotina de geração e leitura do ini no grupo infCTeSub, visando melhor compatibilidade com MOC.
+  Por: Diego Folieni
+[*] Ajuste na rotina de leitura e geração do ini no grupo prop, visando melhor compatibilidade com MOC.
+  Por: Diego Folieni
+
 18/08/2023
 -- ACBrCTeWebServices --
 [*] Possível solução para a leitura correta do retorno do status de serviço.
