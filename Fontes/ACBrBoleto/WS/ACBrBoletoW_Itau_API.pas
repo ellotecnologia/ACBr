@@ -66,6 +66,7 @@ type
     procedure RequisicaoJson;
     procedure GerarData(AJson: TJsonObject);
     procedure GeraIdBeneficiario(AJson: TJsonObject);
+    procedure GerarDadosQrCode(AJson: TJsonObject);
     procedure GeraDadoBoleto(AJson: TJsonObject);
     procedure GerarPagador(AJson: TJsonObject);
     procedure GerarPessoaPg(AJson: TJsonObject);
@@ -110,6 +111,10 @@ type
   end;
 
 const
+
+  C_URL_PIX     = 'https://secure.api.itau/pix_recebimentos_conciliacoes/v2';
+  C_URL_PIX_HOM = 'https://sandbox.devportal.itau.com.br/itau-ep9-gtw-pix-recebimentos-conciliacoes-v2-ext/v2';
+
   C_URL =     'https://api.itau.com.br/cash_management/v2';
   C_URL_HOM = 'https://sandbox.devportal.itau.com.br/itau-ep9-gtw-cash-management-ext-v2/v2';
 
@@ -119,7 +124,8 @@ const
 
   C_URL_OAUTH_HOM = 'https://devportal.itau.com.br/api/jwt';
 
-  C_ACCEPT = '';
+  C_ACCEPT_PIX = 'application/json';
+  C_ACCEPT     = '';
 
   C_AUTHORIZATION = 'Authorization';
 
@@ -135,11 +141,16 @@ begin
 
   FPURL := IfThen(Boleto.Configuracoes.WebService.Ambiente = taProducao, C_URL, C_URL_HOM);
   case Boleto.Configuracoes.WebService.Operacao of
-    tpInclui: FPURL := FPURL + '/boletos';
+    tpInclui:
+      begin
+        if Boleto.Cedente.CedenteWS.IndicadorPix then
+         FPURL := IfThen(Boleto.Configuracoes.WebService.Ambiente = taProducao, C_URL_PIX, C_URL_PIX_HOM) + '/boletos_pix'
+        else
+         FPURL := IfThen(Boleto.Configuracoes.WebService.Ambiente = taProducao, C_URL, C_URL_HOM) + '/boletos';
+      end;
 
     tpConsulta:
-      FPURL := IfThen(Boleto.Configuracoes.WebService.Ambiente = taProducao,
-        C_URL_CONSULTA, C_URL_HOM) + '/boletos?' + DefinirParametros;
+      FPURL := IfThen(Boleto.Configuracoes.WebService.Ambiente = taProducao, C_URL_CONSULTA, C_URL_HOM) + '/boletos?' + DefinirParametros;
 
     tpConsultaDetalhe:
       FPURL := IfThen(Boleto.Configuracoes.WebService.Ambiente = taProducao,
@@ -151,7 +162,6 @@ begin
     tpBaixa:
       FPURL := FPURL + '/boletos/' + DefinirParametros;
   end;
-
 end;
 
 procedure TBoletoW_Itau_API.DefinirContentType;
@@ -227,7 +237,7 @@ end;
 
 procedure TBoletoW_Itau_API.DefinirAuthorization;
 begin
-  FPAuthorization := C_AUTHORIZATION + ' : Bearer ' + GerarTokenAutenticacao;
+  FPAuthorization := C_Authorization + ': ' + 'Bearer ' + GerarTokenAutenticacao;
 end;
 
 function TBoletoW_Itau_API.GerarTokenAutenticacao: string;
@@ -257,9 +267,13 @@ end;
 
 procedure TBoletoW_Itau_API.DefinirKeyUser;
 begin
-  FPKeyUser := 'x-itau-apikey: ' + Boleto.Cedente.CedenteWS.ClientID + #13#10 +
-    'x-itau-flowID: 1' + #13#10 +
-    'x-itau-correlationID: ' + GerarUUID;
+  if Boleto.Cedente.CedenteWS.IndicadorPix and Assigned(ATitulo) then
+      FPKeyUser := 'x-itau-correlationID: ' + Boleto.Cedente.CedenteWS.ClientID
+  else
+  begin
+    FPHeaders.Add('x-itau-apikey: ' + Boleto.Cedente.CedenteWS.ClientID);
+    FPHeaders.Add('x-itau-correlationID: ' + Boleto.Cedente.CedenteWS.ClientID);
+  end;
 end;
 
 function TBoletoW_Itau_API.DefinirParametros: String;
@@ -302,19 +316,10 @@ begin
           begin
             LConsulta.Add('id_beneficiario=' + LId_Beneficiario);
 
-            if Boleto.Configuracoes.WebService.Filtro.carteira > 0 then
-              LConsulta.Add('codigo_carteira=' +
-                inttostr(Boleto.Configuracoes.WebService.Filtro.carteira));
+            LConsulta.Add('codigo_carteira=' + ATitulo.Carteira);
 
             if LNossoNumero <> EmptyStr then
                LConsulta.Add('nosso_numero=' + LNossoNumero);
-
-            if Boleto.Configuracoes.WebService.Operacao = tpConsulta then
-              if Boleto.Configuracoes.WebService.Filtro.dataVencimento.DataInicio > 0
-              then
-                LConsulta.Add('data_inclusao=' +
-                  FormatDateBr(Boleto.Configuracoes.WebService.Filtro.
-                  dataVencimento.DataInicio, 'YYYY-MM-DD'));
           end;
         tpAltera :
           begin
@@ -416,30 +421,90 @@ begin
   end;
 end;
 
+
+procedure TBoletoW_Itau_API.GerarDadosQrCode(AJson: TJsonObject);
+var
+  JsonDados: TJsonObject;
+  JsonPair: TJsonPair;
+begin
+  if Assigned(ATitulo) then
+  begin
+    if Assigned(AJson) then
+    begin
+      JsonDados := TJsonObject.Create;
+      try
+
+        //ACBrPIXBase
+        //JsonDados.Add('chave').Value.AsString := OnlyNumber(Boleto.Cedente.PIX.TipoChavePIX);
+        JsonDados.Add('chave').Value.AsString := Trim(Boleto.Cedente.PIX.Chave);
+        //JsonDados.Add('tipo_cobranca').Value.AsString := 'cob = cobrança pix imediata';
+
+        JsonPair := TJsonPair.Create(AJson, 'dados_qrcode');
+        try
+          JsonPair.Value.AsObject := JsonDados;
+          AJson.Add('dados_qrcode').Assign(JsonPair);
+        finally
+          JsonPair.Free;
+        end;
+      finally
+        JsonDados.Free;
+      end;
+    end;
+  end;
+end;
+
+
 function TBoletoW_Itau_API.CodigoEspeciaDoc: string;
 begin
-  if AnsiSameText(ATitulo.EspecieDoc, 'DM') then
-    Result := '01'
-  else if AnsiSameText(ATitulo.EspecieDoc, 'NP') then
-    Result := '02'
-  else if AnsiSameText(ATitulo.EspecieDoc, 'NS') then
-    Result := '03'
-  else if AnsiSameText(ATitulo.EspecieDoc, 'CS') then
-    Result := '04'
-  else if AnsiSameText(ATitulo.EspecieDoc, 'REC') then
-    Result := '05'
-  else if AnsiSameText(ATitulo.EspecieDoc, 'LC') then
-    Result := '09'
-  else if AnsiSameText(ATitulo.EspecieDoc, 'DS') then
-    Result := '08'
-  else if AnsiSameText(ATitulo.EspecieDoc, 'ND') then
-    Result := '13'
-  else if AnsiSameText(ATitulo.EspecieDoc, 'PS') then
-    Result := '17'
-  else if AnsiSameText(ATitulo.EspecieDoc, 'BP') then
-    Result := '18'
-  else
-    Result := '99';
+    if AnsiSameText(ATitulo.EspecieDoc, 'DM') then
+      Result := '01'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'NP') then
+      Result := '02'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'NS') then
+      Result := '03'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'ME') then
+      Result := '04'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'RC') then
+      Result := '05'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'CT') then
+      Result := '09'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'DS') then
+      Result := '08'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'LC') then
+      Result := '09'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'DD') then
+      Result := '15'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'EC') then
+      Result := '16'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'FS') or AnsiSameText(ATitulo.EspecieDoc, 'PS') then
+      Result := '17'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'BDP') or AnsiSameText(ATitulo.EspecieDoc, 'BP') then
+      Result := '18'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'CBI') then
+      Result := '88'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'CC') then
+      Result := '89'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'CCB') then
+      Result := '90'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'CD') then
+      Result := '91'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'CH') then
+      Result := '92'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'CM') then
+      Result := '93'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'CPS') then
+      Result := '94'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'DMI') then
+      Result := '95'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'DSI') then
+      Result := '96'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'RA') then
+      Result := '97'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'TA') then
+      Result := '98'
+    else
+      Result := '99';
+
 end;
 
 procedure TBoletoW_Itau_API.GerarRecebimentoDivergente(AJson: TJsonObject);
@@ -599,7 +664,7 @@ var
 begin
   LJsonDados := TJsonObject.Create;
   try
-    LJsonDados.Add('descricao_instrumento_cobranca').Value.AsString := 'boleto';
+    LJsonDados.Add('descricao_instrumento_cobranca').Value.AsString := ifthen(Boleto.Cedente.CedenteWS.IndicadorPix,'boleto_pix','boleto') ;
     LJsonDados.Add('tipo_boleto').Value.AsString := 'a vista';
     LJsonDados.Add('codigo_carteira').Value.AsInteger   := StrToIntDef(ATitulo.carteira, 0);
     LJsonDados.Add('valor_total_titulo').Value.AsString := IntToStrZero(round(ATitulo.ValorDocumento * 100), 17);
@@ -650,10 +715,7 @@ begin
     begin
       LJsonDados := TJsonObject.Create;
       try
-        if OAuth.Ambiente = taHomologacao then
-          LJsonDados.Add('etapa_processo_boleto').Value.AsString := 'validacao'
-        else
-          LJsonDados.Add('etapa_processo_boleto').Value.AsString := 'efetivacao';
+        LJsonDados.Add('etapa_processo_boleto').Value.AsString := ifthen(OAuth.Ambiente=taHomologacao,'validacao','efetivacao')  ;
         LJsonDados.Add('codigo_canal_operacao').Value.AsString := 'API';
         GeraIdBeneficiario(LJsonDados);
         GeraDadoBoleto(LJsonDados);
@@ -664,7 +726,7 @@ begin
         finally
           LJsonPair.Free;
         end;
-      finally
+        finally
         LJsonDados.Free;
       end;
     end;
@@ -680,7 +742,19 @@ begin
   begin
     LJson := TJsonObject.Create;
     try
-      GerarData(LJson);
+
+      if Boleto.Cedente.CedenteWS.IndicadorPix then
+      begin
+        LJson.Add('etapa_processo_boleto').Value.AsString := ifthen(OAuth.Ambiente=taHomologacao,'simulacao','efetivacao');
+        GeraIdBeneficiario(LJson);
+        GeraDadoBoleto(LJson);
+        GerarDadosQrCode(LJson);
+      end
+      else
+      begin
+        GerarData(LJson);
+      end;
+
       LData := LJson.Stringify;
 
       FPDadosMsg := LData;
@@ -1444,13 +1518,11 @@ end;
 function TBoletoW_Itau_API.GerarRemessa: string;
 begin
   Result := inherited GerarRemessa;
-
 end;
 
 function TBoletoW_Itau_API.Enviar: boolean;
 begin
   Result := inherited Enviar;
-
 end;
 
 function TBoletoW_Itau_API.GerarUUID: string;

@@ -39,7 +39,8 @@ interface
 uses
   Classes, SysUtils,
   ACBrXmlBase, ACBrXmlDocument, ACBrXmlWriter,
-  ACBrNFComClass;
+  ACBrNFComClass,
+  ACBrNFComConversao;
 
 type
   TNFComXmlWriterOptions = class(TACBrXmlWriterOptions)
@@ -68,8 +69,12 @@ type
   private
     FNFCom: TNFCom;
 
-    Versao: string;
-    ChaveNFCom: string;
+    FChaveNFCom: string;
+
+    FVersaoDF: TVersaoNFCom;
+    FModeloDF: Integer;
+    FtpAmb: TACBrTipoAmbiente;
+    FtpEmis: TACBrTipoEmissao;
     FIdCSRT: integer;
     FCSRT: string;
 
@@ -141,6 +146,11 @@ type
 
     property Opcoes: TNFComXmlWriterOptions read GetOpcoes write SetOpcoes;
     property NFCom: TNFCom read FNFCom write FNFCom;
+
+    property VersaoDF: TVersaoNFCom read FVersaoDF write FVersaoDF;
+    property ModeloDF: Integer read FModeloDF write FModeloDF;
+    property tpAmb: TACBrTipoAmbiente read FtpAmb write FtpAmb;
+    property tpEmis: TACBrTipoEmissao read FtpEmis write FtpEmis;
     property IdCSRT: integer read FIdCSRT write FIdCSRT;
     property CSRT: string read FCSRT write FCSRT;
   end;
@@ -148,11 +158,14 @@ type
 implementation
 
 uses
-  ACBrUtil.Base, ACBrUtil.Strings,
+  StrUtils,
+  Math,
+  ACBrUtil.Base,
+  ACBrUtil.Strings,
+  ACBrUtil.DateTime,
   ACBrDFeUtil,
-  ACBrValidador,
-  pcnAuxiliar,
-  ACBrNFComConversao, ACBrNFComConsts;
+//  ACBrValidador,
+  ACBrNFComConsts;
 
 constructor TNFComXmlWriter.Create(AOwner: TNFCom);
 begin
@@ -196,9 +209,9 @@ var
   PaisBrasil: boolean;
 begin
   PaisBrasil := cPais = CODIGO_BRASIL;
-  cMun := IIf(PaisBrasil, vcMun, CMUN_EXTERIOR);
-  xMun := IIf(PaisBrasil, vxMun, XMUN_EXTERIOR);
-  xUF := IIf(PaisBrasil, vxUF, UF_EXTERIOR);
+  cMun := IfThen(PaisBrasil, vcMun, CMUN_EXTERIOR);
+  xMun := IfThen(PaisBrasil, vxMun, XMUN_EXTERIOR);
+  xUF := IfThen(PaisBrasil, vxUF, UF_EXTERIOR);
 
   if Opcoes.NormatizarMunicipios then
     if ((EstaZerado(cMun)) and (xMun <> XMUN_EXTERIOR)) then
@@ -215,23 +228,26 @@ end;
 function TNFComXmlWriter.GerarXml: boolean;
 var
   Gerar: boolean;
-  xCNPJCPF: string;
   NFComNode, xmlNode: TACBrXmlNode;
 begin
   Result := False;
 
   ListaDeAlertas.Clear;
 
-  Versao := Copy(NFCom.infNFCom.VersaoStr, 9, 4);
+  {
+    Os campos abaixo tem que ser os mesmos da configuração
+  }
+  NFCom.infNFCom.Versao := VersaoNFComToDbl(VersaoDF);
+  NFCom.Ide.modelo := ModeloDF;
+  NFCom.Ide.tpAmb := tpAmb;
+  NFCom.ide.tpEmis := tpEmis;
 
-  xCNPJCPF := NFCom.emit.CNPJ;
-
-  ChaveNFCom := GerarChaveAcesso(NFCom.ide.cUF, NFCom.ide.dhEmi, xCNPJCPF,
+  FChaveNFCom := GerarChaveAcesso(NFCom.ide.cUF, NFCom.ide.dhEmi, NFCom.emit.CNPJ,
     NFCom.ide.serie, NFCom.ide.nNF, StrToInt(TipoEmissaoToStr(NFCom.ide.tpEmis)),
     NFCom.ide.cNF, NFCom.ide.modelo,
     StrToInt(SiteAutorizadorToStr(NFCom.Ide.nSiteAutoriz)));
 
-  NFCom.infNFCom.ID := 'NFCom' + ChaveNFCom;
+  NFCom.infNFCom.ID := 'NFCom' + FChaveNFCom;
   NFCom.ide.cDV := ExtrairDigitoChaveAcesso(NFCom.infNFCom.ID);
   NFCom.Ide.cNF := ExtrairCodigoChaveAcesso(NFCom.infNFCom.ID);
 
@@ -352,14 +368,14 @@ begin
   Result.AppendChild(AddNode(tcInt, '#9', 'nNF', 1, 9, 1,
                                                        NFCom.ide.nNF, DSC_NDF));
 
-  Result.AppendChild(AddNode(tcStr, '#10', 'cNF', 7, 7, 1,
-                                      IntToStrZero(NFCom.ide.cNF, 7), DSC_CDF));
+  Result.AppendChild(AddNode(tcInt, '#10', 'cNF', 7, 7, 1,
+                                                       NFCom.ide.cNF, DSC_CDF));
 
   Result.AppendChild(AddNode(tcInt, '#11', 'cDV', 1, 1, 1,
                                                        NFCom.Ide.cDV, DSC_CDV));
 
   Result.AppendChild(AddNode(tcStr, '#12', 'dhEmi', 25, 25, 1,
-    DateTimeTodh(NFCom.ide.dhEmi) + GetUTC(CodigoParaUF(NFCom.ide.cUF),
+    DateTimeTodh(NFCom.ide.dhEmi) + GetUTC(CodigoUFparaUF(NFCom.ide.cUF),
     NFCom.ide.dhEmi), DSC_DHEMI));
 
   Result.AppendChild(AddNode(tcStr, '#13', 'tpEmis', 1, 1, 1,
@@ -397,7 +413,7 @@ begin
   if (NFCom.Ide.dhCont > 0) or (NFCom.Ide.xJust <> '') then
   begin
     Result.AppendChild(AddNode(tcStr, '#21', 'dhCont', 25, 25, 1,
-      DateTimeTodh(NFCom.ide.dhCont) + GetUTC(CodigoParaUF(NFCom.ide.cUF),
+      DateTimeTodh(NFCom.ide.dhCont) + GetUTC(CodigoUFparaUF(NFCom.ide.cUF),
       NFCom.ide.dhCont), DSC_DHCONT));
 
     Result.AppendChild(AddNode(tcStr, '#22', 'xJust', 15, 256, 1,
@@ -425,7 +441,7 @@ begin
       wAlerta('#25', 'IE', DSC_IE, ERR_MSG_VAZIO)
     else
     begin
-      if not pcnAuxiliar.ValidarIE(NFCom.Emit.IE, CodigoParaUF(NFCom.Ide.cUF)) then
+      if not ValidarIE(NFCom.Emit.IE, CodigoUFparaUF(NFCom.Ide.cUF)) then
         wAlerta('#25', 'IE', DSC_IE, ERR_MSG_INVALIDO);
     end;
   end;
@@ -448,8 +464,7 @@ end;
 function TNFComXmlWriter.Gerar_EmitEnderEmit: TACBrXmlNode;
 var
   cMun: integer;
-  xMun: string;
-  xUF: string;
+  xMun, xUF: string;
 begin
   AjustarMunicipioUF(xUF, xMun, cMun, CODIGO_BRASIL, NFCom.Emit.enderEmit.UF,
     NFCom.Emit.enderEmit.xMun, NFCom.Emit.EnderEmit.cMun);
@@ -480,7 +495,7 @@ begin
 
   Result.AppendChild(AddNode(tcStr, '#38', 'UF', 2, 2, 1, xUF, DSC_UF));
 
-  if not pcnAuxiliar.ValidarUF(xUF) then
+  if not ValidarUF(xUF) then
     wAlerta('#38', 'UF', DSC_UF, ERR_MSG_INVALIDO);
 
   Result.AppendChild(AddNode(tcStr, '#39', 'fone', 7, 12, 0,
@@ -499,7 +514,7 @@ begin
   UF := '';
   Result := FDocument.CreateElement('dest');
 
-  if NFCom.Ide.tpAmb = TACBrTipoAmbiente.taProducao then
+  if NFCom.Ide.tpAmb = TACBrTipoAmbiente(taProducao) then
     xNome := NFCom.Dest.xNome
   else
     xNome := HOM_NOME_DEST;
@@ -528,7 +543,7 @@ begin
       Result.AppendChild(AddNode(tcStr, '#47', 'IE', 0, 14, 1, nIE, DSC_IE));
 
       if (Opcoes.ValidarInscricoes) and (nIE <> 'ISENTO') then
-        if not pcnAuxiliar.ValidarIE(nIE, UF) then
+        if not ValidarIE(nIE, UF) then
           wAlerta('#47', 'IE', DSC_IE, ERR_MSG_INVALIDO);
     end;
   end;
@@ -542,8 +557,7 @@ end;
 function TNFComXmlWriter.Gerar_DestEnderDest(var UF: string): TACBrXmlNode;
 var
   cMun: integer;
-  xMun: string;
-  xUF: string;
+  xMun, xUF: string;
 begin
   AjustarMunicipioUF(xUF, xMun, cMun, CODIGO_BRASIL, NFCom.Dest.enderDest.UF,
     NFCom.Dest.enderDest.xMun, NFCom.Dest.enderDest.cMun);
@@ -575,7 +589,7 @@ begin
 
   Result.AppendChild(AddNode(tcStr, '#57', 'UF', 2, 2, 1, xUF, DSC_UF));
 
-  if not pcnAuxiliar.ValidarUF(xUF) then
+  if not ValidarUF(xUF) then
     wAlerta('#57', 'UF', DSC_UF, ERR_MSG_INVALIDO);
 
   Result.AppendChild(AddNode(tcStr, '#58', 'fone', 7, 12, 0,
@@ -781,12 +795,17 @@ var
 begin
   Result := FDocument.CreateElement('imposto');
 
-  Result.AppendChild(Gerar_det_imposto_ICMS(aDet));
-
-  nodeArray := Gerar_det_imposto_ICMSUFDest(aDet);
-  for i := 0 to NFCom.Det[aDet].Imposto.ICMSUFDest.Count - 1 do
+  if NFCom.Det[aDet].Imposto.indSemCST = tiSim  then
+    Result.AppendChild(AddNode(tcStr, '#153', 'indSemCST', 1, 1, 1, '1'))
+  else
   begin
-    Result.AppendChild(nodeArray[i]);
+    Result.AppendChild(Gerar_det_imposto_ICMS(aDet));
+
+    nodeArray := Gerar_det_imposto_ICMSUFDest(aDet);
+    for i := 0 to NFCom.Det[aDet].Imposto.ICMSUFDest.Count - 1 do
+    begin
+      Result.AppendChild(nodeArray[i]);
+    end;
   end;
 
   Result.AppendChild(Gerar_det_imposto_PIS(aDet));
@@ -920,7 +939,8 @@ begin
     else
       begin
         // cstICMSSN
-        Result.AppendChild(AddNode(tcStr, '#209', 'indSN', 1, 1, 1, '1'));
+        if indSN = tiSim then
+          Result.AppendChild(AddNode(tcStr, '#209', 'indSN', 1, 1, 1, '1'));
       end;
     end;
   end;
@@ -1322,8 +1342,7 @@ end;
 function TNFComXmlWriter.Gerar_gFat_enderCorresp: TACBrXmlNode;
 var
   cMun: integer;
-  xMun: string;
-  xUF: string;
+  xMun, xUF: string;
 begin
   AjustarMunicipioUF(xUF, xMun, cMun, CODIGO_BRASIL, NFCom.gFat.enderCorresp.UF,
     NFCom.gFat.enderCorresp.xMun, NFCom.gFat.enderCorresp.cMun);
@@ -1354,7 +1373,7 @@ begin
 
   Result.AppendChild(AddNode(tcStr, '#291', 'UF', 2, 2, 1, xUF, DSC_UF));
 
-  if not pcnAuxiliar.ValidarUF(xUF) then
+  if not ValidarUF(xUF) then
     wAlerta('#291', 'UF', DSC_UF, ERR_MSG_INVALIDO);
 
   Result.AppendChild(AddNode(tcStr, '#292', 'fone', 7, 12, 0,
@@ -1449,7 +1468,7 @@ begin
                                                            idCSRT, DSC_IDCSRT));
 
       Result.AppendChild(AddNode(tcStr, '#316', 'hashCSRT', 28, 28, 1,
-                             CalcularHashCSRT(CSRT, ChaveNFCom), DSC_HASHCSRT));
+                             CalcularHashCSRT(CSRT, FChaveNFCom), DSC_HASHCSRT));
     end;
   end;
 end;
@@ -1472,7 +1491,7 @@ begin
 
   xmlNode.AddChild('dhRecbto').Content :=
     FormatDateTime('yyyy-mm-dd"T"hh:nn:ss', NFCom.procNFCom.dhRecbto) +
-    GetUTC(CodigoParaUF(FNFCom.Ide.cUF), NFCom.procNFCom.dhRecbto);
+    GetUTC(CodigoUFparaUF(FNFCom.Ide.cUF), NFCom.procNFCom.dhRecbto);
 
   xmlNode.AddChild('nProt').Content := NFCom.procNFCom.nProt;
 

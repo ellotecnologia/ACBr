@@ -48,15 +48,15 @@ uses
 type
   TACBrNFSeXWebserviceSigISSWeb = class(TACBrNFSeXWebserviceRest)
   private
-    AjustaSetHeader:Boolean;
+    FAjustaSetHeader:Boolean;
 
   protected
     procedure SetHeaders(aHeaderReq: THTTPHeader); override;
 
   public
-    function GerarToken(ACabecalho, AMSG: String): string; override;
-    function GerarNFSe(ACabecalho, AMSG: String): string; override;
-    function Cancelar(ACabecalho, AMSG: String): string; override;
+    function GerarToken(const ACabecalho, AMSG: String): string; override;
+    function GerarNFSe(const ACabecalho, AMSG: String): string; override;
+    function Cancelar(const ACabecalho, AMSG: String): string; override;
 
     function TratarXmlRetornado(const aXML: string): string; override;
   end;
@@ -122,12 +122,9 @@ begin
     Autenticacao.RequerCertificado := False;
     Autenticacao.RequerLogin := True;
 
-    with ServicosDisponibilizados do
-    begin
-      EnviarUnitario := True;
-      GerarToken := True;
-      CancelarNfse := True;
-    end;
+    ServicosDisponibilizados.EnviarUnitario := True;
+    ServicosDisponibilizados.GerarToken := True;
+    ServicosDisponibilizados.CancelarNfse := True;
   end;
 
   SetXmlNameSpace('');
@@ -193,7 +190,7 @@ begin
   begin
     AErro := Response.Erros.New;
     AErro.Codigo := ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('codigo'), tcStr);
-    AErro.Descricao := ACBrStr(ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('descricao'), tcStr));
+    AErro.Descricao := ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('descricao'), tcStr);
     AErro.Correcao := '';
   end;
 end;
@@ -551,16 +548,16 @@ end;
 
 procedure TACBrNFSeXWebserviceSigISSWeb.SetHeaders(aHeaderReq: THTTPHeader);
 begin
-  if AjustaSetHeader then
+  if FAjustaSetHeader then
     aHeaderReq.AddHeader('Authorization', xToken);
 end;
 
-function TACBrNFSeXWebserviceSigISSWeb.GerarToken(ACabecalho,
+function TACBrNFSeXWebserviceSigISSWeb.GerarToken(const ACabecalho,
   AMSG: String): string;
 var
   Request: string;
 begin
-  AjustaSetHeader := False;
+  FAjustaSetHeader := False;
   FPMsgOrig := AMSG;
 
   Request := AMSG;
@@ -568,12 +565,12 @@ begin
   Result := Executar('', Request, [], []);
 end;
 
-function TACBrNFSeXWebserviceSigISSWeb.GerarNFSe(ACabecalho,
+function TACBrNFSeXWebserviceSigISSWeb.GerarNFSe(const ACabecalho,
   AMSG: String): string;
 var
   Request: string;
 begin
-  AjustaSetHeader := True;
+  FAjustaSetHeader := True;
   FPMsgOrig := AMSG;
 
   Request := AMSG;
@@ -581,28 +578,16 @@ begin
   Result := Executar('', Request, [], []);
 end;
 
-function TACBrNFSeXWebserviceSigISSWeb.Cancelar(ACabecalho, AMSG: String): string;
+function TACBrNFSeXWebserviceSigISSWeb.Cancelar(const ACabecalho, AMSG: String): string;
 var
-  Request{, xCabecalho}: string;
+  Request: string;
 begin
-  AjustaSetHeader := True;
+  FAjustaSetHeader := True;
   FPMsgOrig := AMSG;
 
   Request := AMSG;
 
   Result := Executar('', Request, [], []);
-  {
-  xCabecalho := StringReplace(ACabecalho, 'cabecalhoNfseLote',
-                     'cabecalhoCancelamentoNfseLote', [rfReplaceAll]);
-
-  Request := '<wsn:executar>';
-  Request := Request + '<arg0>' + XmlToStr(xCabecalho) + '</arg0>';
-  Request := Request + '<arg1>' + XmlToStr(AMSG) + '</arg1>';
-  Request := Request + '</wsn:executar>';
-
-  Result := Executar('', Request, ['return', 'retornoCancelamentoNfseLote'],
-                     ['xmlns:wsn="http://wsnfselote.SigISSWeb.com.br/"']);
-  }
 end;
 
 function TACBrNFSeXWebserviceSigISSWeb.TratarXmlRetornado(
@@ -612,8 +597,7 @@ begin
   begin
     Result := inherited TratarXmlRetornado(aXML);
 
-    Result := String(NativeStringToUTF8(Result));
-    Result := ParseText(AnsiString(Result), True, {$IfDef FPC}True{$Else}False{$EndIf});
+    Result := ParseText(Result);
     Result := RemoverDeclaracaoXML(Result);
     Result := RemoverIdentacao(Result);
     Result := RemoverCaracteresDesnecessarios(Result);
@@ -632,8 +616,7 @@ begin
                 '</erros>' +
               '</a>';
 
-    Result := String(NativeStringToUTF8(Result));
-    Result := ParseText(AnsiString(Result), True, {$IfDef FPC}True{$Else}False{$EndIf});
+    Result := ParseText(Result);
   end;
 end;
 

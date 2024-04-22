@@ -421,8 +421,8 @@ begin
           if VersaoDFx <= ve02_05_00 then
             natJurid := '0001';
           indCoop := tpIndCoop(1);
-          indConstr := tpIndConstr(2);
-          indDesFolha := tpIndDesFolha(1);
+          indConstr := tpIndConstr(1);
+          indDesFolha := tpIndDesFolha(2);
           indPorte := tpNao;
           indOptRegEletron := tpIndOptRegEletron(1);
 
@@ -2410,8 +2410,15 @@ begin
         cnpjOpPortuario := '98765432100014';
       end;
 
+      // ClassTrib apenas informativo no S1280 para aplicação de regra de preenchimento da infoAtivConcom
+      //   para Simples Nacional, preencher ClassTrib = ct03 em casos sem faturamento para gerar fatores zerados
+      //ClassTrib := ct03;
+
       InfoAtivConcom.fatorMes := 9.00;
       InfoAtivConcom.fator13 := 1.00;
+
+      with infoPercTransf11096 do
+        percTransf := 5;
     end;
   end;
 end;
@@ -4978,6 +4985,17 @@ begin
               vrInden := 3250.55;
               vrBaseIndenFGTS := 6785.22;
               pagDiretoResc := snfNao;
+
+              with idePeriodo.New do
+              begin
+                perRef := '2012-07';
+
+                with baseCalculo do
+                begin
+                  vrBcCpMensal := 0;
+                  vrBcCp13 := 10000;
+                end;
+              end;
             end;
           end;
         end;

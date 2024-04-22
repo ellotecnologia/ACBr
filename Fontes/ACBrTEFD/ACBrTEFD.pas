@@ -42,7 +42,7 @@ uses
   ACBrTEFDGpu, ACBrTEFDVeSPague, ACBrTEFDBanese, ACBrTEFDGoodCard, ACBrTEFDFoxWin,
   ACBrTEFDCliDTEF, ACBrTEFDPetroCard, ACBrTEFDCrediShop, ACBrTEFDTicketCar,
   ACBrTEFDConvCard, ACBrTEFDCappta, ACBrTEFDCliSiTefModular, ACBrTEFDDirecao,
-  ACBrTEFDDialScopeGetcard
+  ACBrTEFDDialScopeGetcard , ACBrTEFDElgin
   {$IfNDef NOGUI}
     {$IfDef FPC}
       ,LResources
@@ -160,6 +160,8 @@ type
      fTefCappta    : TACBrTEFDCappta;
      fTefCliSiTefModular: TACBrTEFDCliSiTefModular;
      fTefDirecao   : TACBrTEFDDirecao;
+     fTefDialScopeGetcard: TACBrTEFDDialScopeGetcard;
+     fTefElgin      : TACBrTEFDElgin ;
 
      fEsperaSTS    : Integer;
      fEsperaMinimaMensagemFinal: Integer;
@@ -326,6 +328,7 @@ type
      property TEFCappta    : TACBrTEFDCappta    read fTefCappta;
      property TEFCliSiTefModular : TACBrTEFDCliSiTefModular read fTefCliSiTefModular ;
      property TEFDirecao   : TACBrTEFDDirecao  read fTefDirecao;
+     property TEFElgin    : TACBrTEFDElgin     read fTefElgin ;
 
      property OnAguardaResp : TACBrTEFDAguardaRespEvent read fOnAguardaResp
         write fOnAguardaResp ;
@@ -618,6 +621,20 @@ begin
    fTefDirecao.SetSubComponent(True);   // Ajustando como SubComponente para aparecer no ObjectInspector
   {$ENDIF}
 
+  { Criando Classe Dial_ScopeGetcard }
+  fTefDialScopeGetcard := TACBrTEFDDialScopeGetcard.Create(self);
+  fTEFList.Add(fTefDialScopeGetcard);     // Adicionando "fTefDialScopeGetcard" na Lista Objetos de Classes de TEF
+  {$IFDEF COMPILER6_UP}
+   fTefDialScopeGetcard.SetSubComponent(True);   // Ajustando como SubComponente para aparecer no ObjectInspector
+  {$ENDIF}
+
+  { Criando Classe TEF_DIAL }
+  fTefElgin := TACBrTEFDElgin.Create(self);
+  fTEFList.Add(fTefElgin);     // Adicionando "fTefElgin" na Lista Objetos de Classes de TEF
+  {$IFDEF COMPILER6_UP}
+   fTefElgin.SetSubComponent(True);   // Ajustando como SubComponente para aparecer no ObjectInspector
+  {$ENDIF}
+
   GPAtual := gpPayGo;
 end;
 
@@ -739,6 +756,8 @@ begin
     gpCappta    : fTefClass := fTefCappta ;
     gpCliSiTefModular : fTefClass := fTefCliSiTefModular;
     gpTefDirecao : fTefClass := fTefDirecao ;
+    gpTefDialScopeGetcard : fTefClass := fTefDialScopeGetcard ;
+    gpTefElgin: fTefClass := fTefElgin ;
   end;
 
   fGPAtual := AValue;

@@ -2,10 +2,10 @@ object frMain: TfrMain
   Left = 566
   Height = 548
   Top = 266
-  Width = 804
+  Width = 840
   Caption = 'Teste ABECS PinPad'
   ClientHeight = 548
-  ClientWidth = 804
+  ClientWidth = 840
   Constraints.MinWidth = 640
   OnCreate = FormCreate
   Visible = True
@@ -13,16 +13,16 @@ object frMain: TfrMain
     Left = 0
     Height = 268
     Top = 280
-    Width = 804
+    Width = 840
     Align = alClient
     ClientHeight = 268
-    ClientWidth = 804
+    ClientWidth = 840
     TabOrder = 0
     object mLog: TMemo
       Left = 4
-      Height = 175
+      Height = 180
       Top = 61
-      Width = 773
+      Width = 809
       Align = alClient
       BorderSpacing.Around = 3
       ReadOnly = True
@@ -31,8 +31,8 @@ object frMain: TfrMain
       WordWrap = False
     end
     object sbCleanMemoLog: TSpeedButton
-      Left = 780
-      Height = 181
+      Left = 816
+      Height = 186
       Top = 58
       Width = 23
       Align = alRight
@@ -42,9 +42,9 @@ object frMain: TfrMain
     end
     object sbResponse: TStatusBar
       Left = 1
-      Height = 28
-      Top = 239
-      Width = 802
+      Height = 23
+      Top = 244
+      Width = 838
       Panels = <      
         item
           Text = 'STAT:'
@@ -60,17 +60,17 @@ object frMain: TfrMain
       Left = 1
       Height = 57
       Top = 1
-      Width = 802
+      Width = 838
       Align = alTop
       ClientHeight = 57
-      ClientWidth = 802
+      ClientWidth = 838
       TabOrder = 2
       Visible = False
       object btCancel: TButton
         Left = 9
         Height = 39
         Top = 9
-        Width = 784
+        Width = 820
         Align = alClient
         Anchors = []
         BorderSpacing.Around = 8
@@ -84,41 +84,43 @@ object frMain: TfrMain
     Left = 0
     Height = 272
     Top = 0
-    Width = 804
+    Width = 840
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 272
-    ClientWidth = 804
+    ClientWidth = 840
     Constraints.MinHeight = 264
     TabOrder = 1
     object pgcCommands: TPageControl
       Left = 0
       Height = 272
       Top = 0
-      Width = 804
-      ActivePage = tsMultimidia
+      Width = 840
+      ActivePage = tsConfig
       Align = alClient
-      TabIndex = 5
+      Images = ImageList1
+      TabIndex = 0
       TabOrder = 0
       object tsConfig: TTabSheet
         Caption = 'Config'
         ClientHeight = 244
-        ClientWidth = 796
+        ClientWidth = 832
+        ImageIndex = 0
         object gbConfig: TGroupBox
           Left = 0
           Height = 70
           Top = 0
-          Width = 796
+          Width = 832
           Align = alTop
           Caption = 'Serial Port'
           ClientHeight = 50
-          ClientWidth = 792
+          ClientWidth = 828
           TabOrder = 0
           object cbxPort: TComboBox
             Left = 19
             Height = 23
             Top = 14
-            Width = 387
+            Width = 423
             Anchors = [akTop, akLeft, akRight]
             ItemHeight = 15
             TabOrder = 0
@@ -126,7 +128,7 @@ object frMain: TfrMain
           object btSerial: TSpeedButton
             AnchorSideLeft.Side = asrBottom
             AnchorSideBottom.Side = asrBottom
-            Left = 415
+            Left = 451
             Height = 22
             Top = 14
             Width = 25
@@ -138,7 +140,7 @@ object frMain: TfrMain
           object btSearchSerialPorts: TSpeedButton
             AnchorSideLeft.Side = asrBottom
             AnchorSideBottom.Side = asrBottom
-            Left = 446
+            Left = 482
             Height = 22
             Top = 14
             Width = 25
@@ -152,28 +154,28 @@ object frMain: TfrMain
           Left = 0
           Height = 77
           Top = 70
-          Width = 796
+          Width = 832
           Align = alTop
           BevelOuter = bvNone
           ClientHeight = 77
-          ClientWidth = 796
+          ClientWidth = 832
           TabOrder = 1
           object gbConfig1: TGroupBox
             Left = 0
             Height = 77
             Top = 0
-            Width = 541
+            Width = 577
             Align = alClient
             Caption = 'Log'
             ClientHeight = 57
-            ClientWidth = 537
+            ClientWidth = 573
             TabOrder = 0
             object edLogFile: TEdit
               Cursor = crIBeam
               Left = 19
               Height = 23
               Top = 25
-              Width = 388
+              Width = 424
               Anchors = [akTop, akLeft, akRight]
               TabOrder = 0
             end
@@ -187,7 +189,7 @@ object frMain: TfrMain
               ParentColor = False
             end
             object sbShowLogFile: TSpeedButton
-              Left = 417
+              Left = 453
               Height = 22
               Top = 25
               Width = 25
@@ -197,7 +199,7 @@ object frMain: TfrMain
               ParentFont = False
             end
             object seLogLevel: TSpinEdit
-              Left = 465
+              Left = 501
               Height = 23
               Top = 25
               Width = 50
@@ -207,7 +209,7 @@ object frMain: TfrMain
               Value = 2
             end
             object Label14: TLabel
-              Left = 465
+              Left = 501
               Height = 15
               Top = 6
               Width = 50
@@ -218,7 +220,7 @@ object frMain: TfrMain
             end
           end
           object GroupBox2: TGroupBox
-            Left = 541
+            Left = 577
             Height = 77
             Top = 0
             Width = 255
@@ -270,7 +272,7 @@ object frMain: TfrMain
           TabOrder = 3
         end
         object btActivate: TBitBtn
-          Left = 645
+          Left = 681
           Height = 45
           Top = 173
           Width = 109
@@ -281,11 +283,24 @@ object frMain: TfrMain
           OnClick = btActivateClick
           TabOrder = 4
         end
+        object btDetectPinPad: TBitBtn
+          Left = 552
+          Height = 45
+          Top = 173
+          Width = 109
+          Anchors = [akTop, akRight]
+          Caption = 'Detect PinPad'
+          Images = ImageList1
+          ImageIndex = 12
+          OnClick = btDetectPinPadClick
+          TabOrder = 5
+        end
       end
       object tsOpen: TTabSheet
         Caption = 'Open'
         ClientHeight = 244
-        ClientWidth = 796
+        ClientWidth = 832
+        ImageIndex = 14
         object btOPN: TButton
           Left = 24
           Height = 38
@@ -305,18 +320,19 @@ object frMain: TfrMain
           OnChange = cbSecureChange
         end
         object pKeys: TPanel
-          Left = 183
+          Left = 152
           Height = 244
           Top = 0
-          Width = 613
+          Width = 680
           Align = alRight
+          Anchors = [akTop, akLeft, akRight, akBottom]
           BevelOuter = bvNone
           ClientHeight = 244
-          ClientWidth = 613
+          ClientWidth = 680
           Enabled = False
           TabOrder = 2
           object gbExponent: TGroupBox
-            Left = 512
+            Left = 579
             Height = 244
             Top = 0
             Width = 101
@@ -342,17 +358,17 @@ object frMain: TfrMain
             Left = 23
             Height = 244
             Top = 0
-            Width = 489
+            Width = 556
             Align = alClient
             Caption = 'Modulus'
             ClientHeight = 224
-            ClientWidth = 485
+            ClientWidth = 552
             TabOrder = 1
             object mModulus: TMemo
               Left = 0
               Height = 224
               Top = 0
-              Width = 485
+              Width = 552
               Align = alClient
               Lines.Strings = (
                 'AE6F230563307A1FA054C0E5835D9670C2EEC4BCE9E67C10A77B3D1F637C68CFFD2307E8345120084B873F2B7D7E5DE1D3383DEB18D57106E58954B0A8D8E7DCFD84ACC724FB84DAEB2A4082E2CE576F4AAB0EF3522CD2ED1C5F926FFBA070BA6F78E2FFCCBF78508DBD337670F6C121B2E114AD939E87880833CA7B76F850B6D7E24C472CEF6A7F766951CC68CA782D05D37E621D3A7EE0A5FB5AB01437870A82664A3FCE8B3D75A64BE5DFFCF67FA4915C7A87D287E97AAB5FCA6497C420840C0099F23FD089711209A31A6ED5EE9248D8C19D46F62A4EBC797143D80B85DAD47D0A485926298D81AFE23CA3D6229F3E011203713E5B74E9807CF98B71CD7D'
@@ -377,9 +393,10 @@ object frMain: TfrMain
       object tsGIX: TTabSheet
         Caption = 'Information'
         ClientHeight = 244
-        ClientWidth = 796
+        ClientWidth = 832
+        ImageIndex = 15
         object gbGIN: TGroupBox
-          Left = 602
+          Left = 638
           Height = 244
           Top = 0
           Width = 194
@@ -439,11 +456,11 @@ object frMain: TfrMain
           Left = 0
           Height = 244
           Top = 0
-          Width = 328
+          Width = 364
           Align = alClient
           Caption = 'GIX'
           ClientHeight = 224
-          ClientWidth = 324
+          ClientWidth = 360
           TabOrder = 1
           object pGIXParams: TPanel
             Left = 0
@@ -565,7 +582,7 @@ object frMain: TfrMain
             Left = 109
             Height = 224
             Top = 0
-            Width = 215
+            Width = 251
             Align = alClient
             ReadOnly = True
             ScrollBars = ssAutoBoth
@@ -573,7 +590,7 @@ object frMain: TfrMain
           end
         end
         object gbACBrPinPadCapabilities: TGroupBox
-          Left = 333
+          Left = 369
           Height = 244
           Top = 0
           Width = 264
@@ -604,7 +621,7 @@ object frMain: TfrMain
           end
         end
         object Splitter1: TSplitter
-          Left = 328
+          Left = 364
           Height = 244
           Top = 0
           Width = 5
@@ -612,7 +629,7 @@ object frMain: TfrMain
           ResizeAnchor = akRight
         end
         object Splitter3: TSplitter
-          Left = 597
+          Left = 633
           Height = 244
           Top = 0
           Width = 5
@@ -623,7 +640,8 @@ object frMain: TfrMain
       object tsDisplay: TTabSheet
         Caption = 'Display'
         ClientHeight = 244
-        ClientWidth = 796
+        ClientWidth = 832
+        ImageIndex = 17
         object gbDSP: TGroupBox
           Left = 0
           Height = 244
@@ -699,17 +717,17 @@ object frMain: TfrMain
           Left = 235
           Height = 244
           Top = 0
-          Width = 561
+          Width = 597
           Align = alClient
           Caption = 'DEX'
           ClientHeight = 224
-          ClientWidth = 557
+          ClientWidth = 593
           TabOrder = 1
           object mDEX: TMemo
             Left = 19
             Height = 110
             Top = 32
-            Width = 516
+            Width = 552
             Anchors = [akTop, akLeft, akRight]
             Font.Height = -16
             Font.Name = 'Courier'
@@ -741,7 +759,7 @@ object frMain: TfrMain
             Caption = 'Lines'
           end
           object btDEXClear: TButton
-            Left = 290
+            Left = 312
             Height = 31
             Top = 166
             Width = 96
@@ -752,51 +770,11 @@ object frMain: TfrMain
           end
         end
       end
-      object tsAsk: TTabSheet
-        Caption = 'Ask'
-        ClientHeight = 244
-        ClientWidth = 796
-        object btCEX: TButton
-          Left = 51
-          Height = 25
-          Top = 45
-          Width = 75
-          Caption = 'CEX'
-          TabOrder = 0
-          OnClick = btCEXClick
-        end
-        object btGKY: TButton
-          Left = 51
-          Height = 25
-          Top = 154
-          Width = 75
-          Caption = 'GKY'
-          TabOrder = 1
-          OnClick = btGKYClick
-        end
-        object btGCD: TButton
-          Left = 51
-          Height = 25
-          Top = 198
-          Width = 75
-          Caption = 'GCD'
-          TabOrder = 2
-          OnClick = btGCDClick
-        end
-        object btMNU: TButton
-          Left = 51
-          Height = 25
-          Top = 96
-          Width = 75
-          Caption = 'MNU'
-          TabOrder = 3
-          OnClick = btMNUClick
-        end
-      end
       object tsMultimidia: TTabSheet
         Caption = 'Multimedia'
         ClientHeight = 244
-        ClientWidth = 796
+        ClientWidth = 832
+        ImageIndex = 18
         object pMediaFile: TPanel
           Left = 0
           Height = 244
@@ -870,7 +848,7 @@ object frMain: TfrMain
           Left = 298
           Height = 244
           Top = 0
-          Width = 498
+          Width = 534
           ActivePage = tsImage
           Align = alClient
           TabIndex = 0
@@ -878,32 +856,32 @@ object frMain: TfrMain
           object tsImage: TTabSheet
             Caption = 'Image'
             ClientHeight = 216
-            ClientWidth = 490
+            ClientWidth = 526
             object pMedia: TPanel
               Left = 0
               Height = 216
               Top = 0
-              Width = 490
+              Width = 526
               Align = alClient
               ClientHeight = 216
-              ClientWidth = 490
+              ClientWidth = 526
               TabOrder = 0
               object sbMedia: TScrollBox
                 Left = 1
                 Height = 177
                 Top = 1
-                Width = 488
+                Width = 524
                 HorzScrollBar.Page = 192
                 VertScrollBar.Page = 173
                 Align = alClient
                 ClientHeight = 173
-                ClientWidth = 467
+                ClientWidth = 503
                 TabOrder = 0
                 object imgMedia: TImage
                   Left = 0
                   Height = 192
                   Top = 0
-                  Width = 467
+                  Width = 503
                   Align = alClient
                   AutoSize = True
                   Center = True
@@ -1377,13 +1355,13 @@ object frMain: TfrMain
                 Left = 1
                 Height = 37
                 Top = 178
-                Width = 488
+                Width = 524
                 Align = alBottom
                 ClientHeight = 37
-                ClientWidth = 488
+                ClientWidth = 524
                 TabOrder = 1
                 object btMediaLoad: TButton
-                  Left = 394
+                  Left = 430
                   Height = 25
                   Top = 8
                   Width = 75
@@ -1396,7 +1374,7 @@ object frMain: TfrMain
                   Left = 8
                   Height = 23
                   Top = 8
-                  Width = 224
+                  Width = 260
                   Anchors = [akTop, akLeft, akRight]
                   TabOrder = 1
                   Text = 'LOGOACBR'
@@ -1404,7 +1382,7 @@ object frMain: TfrMain
                 object btSearchSerialPorts1: TSpeedButton
                   AnchorSideLeft.Side = asrBottom
                   AnchorSideBottom.Side = asrBottom
-                  Left = 235
+                  Left = 271
                   Height = 22
                   Top = 9
                   Width = 25
@@ -1414,7 +1392,7 @@ object frMain: TfrMain
                   OnClick = btSearchSerialPorts1Click
                 end
                 object pMediaInfo: TPanel
-                  Left = 267
+                  Left = 303
                   Height = 23
                   Top = 8
                   Width = 112
@@ -1429,15 +1407,15 @@ object frMain: TfrMain
           object tsQRCode: TTabSheet
             Caption = 'QRCode'
             ClientHeight = 216
-            ClientWidth = 490
+            ClientWidth = 526
             object pQREGerado: TPanel
               Left = 0
               Height = 216
               Top = 0
-              Width = 490
+              Width = 526
               Align = alClient
               ClientHeight = 216
-              ClientWidth = 490
+              ClientWidth = 526
               TabOrder = 0
               object imgQRCode: TImage
                 Left = 1
@@ -1453,17 +1431,17 @@ object frMain: TfrMain
                 Left = 256
                 Height = 182
                 Top = 1
-                Width = 233
+                Width = 269
                 Align = alClient
                 BevelOuter = bvNone
                 ClientHeight = 182
-                ClientWidth = 233
+                ClientWidth = 269
                 TabOrder = 0
                 object mQRCode: TMemo
                   Left = 0
                   Height = 152
                   Top = 0
-                  Width = 233
+                  Width = 269
                   Align = alClient
                   Alignment = taCenter
                   Lines.Strings = (
@@ -1477,7 +1455,7 @@ object frMain: TfrMain
                   Left = 0
                   Height = 30
                   Top = 152
-                  Width = 233
+                  Width = 269
                   Align = alBottom
                   Caption = 'Generate QRCode'
                   TabOrder = 1
@@ -1488,10 +1466,10 @@ object frMain: TfrMain
                 Left = 1
                 Height = 32
                 Top = 183
-                Width = 488
+                Width = 524
                 Align = alBottom
                 ClientHeight = 32
-                ClientWidth = 488
+                ClientWidth = 524
                 TabOrder = 1
                 object edQRCodeImgName: TEdit
                   Left = 8
@@ -1515,24 +1493,403 @@ object frMain: TfrMain
           end
         end
       end
-      object tsCard: TTabSheet
-        Caption = 'Card'
+      object tsAskEvent: TTabSheet
+        Caption = 'Ask / Events'
         ClientHeight = 244
-        ClientWidth = 796
-        object btRMC: TButton
-          Left = 51
-          Height = 25
-          Top = 45
-          Width = 75
-          Caption = 'RMC'
+        ClientWidth = 832
+        ImageIndex = 16
+        object gbGCD: TGroupBox
+          Left = 146
+          Height = 244
+          Top = 0
+          Width = 217
+          Align = alLeft
+          Caption = 'GCD (Capture Text)'
+          ClientHeight = 224
+          ClientWidth = 213
           TabOrder = 0
-          OnClick = btRMCClick
+          object btGCD: TButton
+            Left = 117
+            Height = 33
+            Top = 128
+            Width = 83
+            Anchors = [akBottom]
+            Caption = 'GCD'
+            TabOrder = 0
+            OnClick = btGCDClick
+          end
+          object Label8: TLabel
+            Left = 0
+            Height = 75
+            Top = 0
+            Width = 213
+            Align = alTop
+            Alignment = taCenter
+            Caption = 'In order to comply with PCI security requirements, the prompt message'#13'shall be selected among those available in a fixed table defined by ABECS specification'
+            WordWrap = True
+          end
+          object pGCDResponse: TPanel
+            Left = 10
+            Height = 40
+            Top = 176
+            Width = 190
+            Anchors = [akLeft, akRight, akBottom]
+            BevelInner = bvRaised
+            BevelOuter = bvLowered
+            Caption = 'Response: '
+            TabOrder = 1
+            Wordwrap = True
+          end
+          object cbxGCD: TComboBox
+            Left = 10
+            Height = 23
+            Top = 96
+            Width = 190
+            Anchors = [akLeft, akRight, akBottom]
+            AutoDropDown = True
+            ItemHeight = 15
+            Style = csDropDownList
+            TabOrder = 2
+          end
+          object Label9: TLabel
+            Left = 10
+            Height = 15
+            Top = 79
+            Width = 55
+            Anchors = [akLeft, akBottom]
+            Caption = 'Msg Index'
+          end
+          object Label15: TLabel
+            Left = 10
+            Height = 15
+            Top = 141
+            Width = 44
+            Alignment = taRightJustify
+            Anchors = [akLeft, akBottom]
+            Caption = 'Timeout'
+            ParentColor = False
+          end
+          object seGCDTimeOut: TSpinEdit
+            Left = 56
+            Height = 23
+            Top = 133
+            Width = 50
+            Anchors = [akLeft, akBottom]
+            MaxValue = 999
+            TabOrder = 3
+            Value = 60
+          end
+        end
+        object gbMNU: TGroupBox
+          Left = 363
+          Height = 244
+          Top = 0
+          Width = 239
+          Align = alLeft
+          Caption = 'MNU (Menu)'
+          ClientHeight = 224
+          ClientWidth = 235
+          TabOrder = 1
+          object Label16: TLabel
+            Left = 160
+            Height = 15
+            Top = 79
+            Width = 44
+            Alignment = taRightJustify
+            Anchors = [akRight, akBottom]
+            Caption = 'Timeout'
+            ParentColor = False
+          end
+          object seMNUTimeOut: TSpinEdit
+            Left = 160
+            Height = 23
+            Top = 96
+            Width = 50
+            Anchors = [akRight, akBottom]
+            MaxValue = 999
+            TabOrder = 0
+            Value = 60
+          end
+          object btMNU: TButton
+            Left = 144
+            Height = 33
+            Top = 128
+            Width = 83
+            Anchors = [akRight, akBottom]
+            Caption = 'MNU'
+            TabOrder = 1
+            OnClick = btMNUClick
+          end
+          object pMNUResponse: TPanel
+            Left = 10
+            Height = 40
+            Top = 176
+            Width = 217
+            Anchors = [akLeft, akRight, akBottom]
+            BevelInner = bvRaised
+            BevelOuter = bvLowered
+            Caption = 'Result: 0'
+            TabOrder = 2
+            Wordwrap = True
+          end
+          object Label10: TLabel
+            Left = 10
+            Height = 15
+            Top = 1
+            Width = 56
+            Caption = 'Menu Title'
+          end
+          object edMNUTitle: TEdit
+            Left = 10
+            Height = 23
+            Top = 20
+            Width = 217
+            Anchors = [akTop, akLeft, akRight]
+            TabOrder = 3
+            Text = 'How was the service?'
+          end
+          object mMNU: TMemo
+            Left = 10
+            Height = 87
+            Top = 74
+            Width = 128
+            Anchors = [akTop, akLeft, akRight, akBottom]
+            Lines.Strings = (
+              'Great'
+              'Satisfactory'
+              'Good'
+              'Bad'
+            )
+            ScrollBars = ssAutoBoth
+            TabOrder = 4
+          end
+          object Label11: TLabel
+            Left = 10
+            Height = 15
+            Top = 56
+            Width = 42
+            Caption = 'Options'
+          end
+          object cbMNUHotKey: TCheckBox
+            Left = 80
+            Height = 19
+            Top = 52
+            Width = 56
+            Anchors = [akTop, akRight]
+            Caption = 'Hotkey'
+            TabOrder = 5
+            OnChange = cbMNUHotKeyChange
+          end
+        end
+        object gbCEX: TGroupBox
+          Left = 602
+          Height = 244
+          Top = 0
+          Width = 230
+          Align = alClient
+          Caption = 'CEX (Wait for event)'
+          ClientHeight = 224
+          ClientWidth = 226
+          TabOrder = 2
+          object btCEX: TButton
+            Left = 56
+            Height = 25
+            Top = 120
+            Width = 83
+            Caption = 'CEX'
+            TabOrder = 0
+            OnClick = btCEXClick
+          end
+          object cbCEXVerifyKey: TCheckBox
+            Left = 16
+            Height = 19
+            Top = 4
+            Width = 70
+            Caption = 'Verify Key'
+            TabOrder = 1
+          end
+          object cbCEXVerifyMagnetic: TCheckBox
+            Left = 16
+            Height = 19
+            Top = 25
+            Width = 101
+            Caption = 'Verify Magnetic'
+            TabOrder = 2
+          end
+          object cbCEXVerifyICCInsertion: TCheckBox
+            Left = 16
+            Height = 19
+            Top = 46
+            Width = 119
+            Caption = 'Verify ICC Insertion'
+            TabOrder = 3
+          end
+          object cbCEXVerifyICCRemoval: TCheckBox
+            Left = 16
+            Height = 19
+            Top = 67
+            Width = 119
+            Caption = 'Verify ICC Removal'
+            TabOrder = 4
+          end
+          object cbCEXVerifyCTLSPresence: TCheckBox
+            Left = 16
+            Height = 19
+            Top = 88
+            Width = 127
+            Caption = 'Verify CTLS Presence'
+            TabOrder = 5
+          end
+          object Label17: TLabel
+            Left = 148
+            Height = 15
+            Top = 8
+            Width = 44
+            Alignment = taRightJustify
+            Caption = 'Timeout'
+            ParentColor = False
+          end
+          object seCEXTimeOut: TSpinEdit
+            Left = 148
+            Height = 23
+            Top = 25
+            Width = 50
+            MaxValue = 999
+            TabOrder = 6
+            Value = 60
+          end
+          object mCEXResponse: TMemo
+            Left = 8
+            Height = 64
+            Top = 152
+            Width = 208
+            Anchors = [akTop, akLeft, akRight, akBottom]
+            Lines.Strings = (
+              'Event identification:'
+              '“00” = [OK/ENTER] key pressed;'
+              '“02” = [] key pressed;'
+              '“03” = [] key pressed;'
+              '“04” = [F1] key pressed;'
+              '“05” = [F2] key pressed;'
+              '“06” = [F3] key pressed;'
+              '“07” = [F4] key pressed;'
+              '“08” = [CLEAR] key pressed;'
+              '“13” = [CANCEL] key pressed;'
+              '“90” = A magnetic card was swiped;'
+              '“91” = ICC removed (or already absent);'
+              '“92” = ICC inserted (or already present);'
+              '“93” = CTLS not detected in 2 (two) minutes;'
+              '“94” = CTLS detected.'
+            )
+            ReadOnly = True
+            ScrollBars = ssAutoBoth
+            TabOrder = 7
+          end
+        end
+        object Panel2: TPanel
+          Left = 0
+          Height = 244
+          Top = 0
+          Width = 146
+          Align = alLeft
+          ClientHeight = 244
+          ClientWidth = 146
+          TabOrder = 3
+          object gbGKY: TGroupBox
+            Left = 1
+            Height = 136
+            Top = 1
+            Width = 144
+            Align = alClient
+            Caption = 'GKY (Get Key)'
+            ClientHeight = 116
+            ClientWidth = 140
+            TabOrder = 0
+            object btGKY: TButton
+              Left = 32
+              Height = 25
+              Top = 56
+              Width = 83
+              Caption = 'GKY'
+              TabOrder = 0
+              OnClick = btGKYClick
+            end
+            object pGKYResponse: TPanel
+              Left = 16
+              Height = 24
+              Top = 88
+              Width = 112
+              Anchors = [akTop, akLeft, akRight]
+              BevelInner = bvRaised
+              BevelOuter = bvLowered
+              Caption = 'Result: 0'
+              TabOrder = 1
+              Wordwrap = True
+            end
+            object Label7: TLabel
+              Left = 0
+              Height = 45
+              Top = 0
+              Width = 140
+              Align = alTop
+              Alignment = taCenter
+              Caption = 'Obsolete. This command does not return numeric keys'
+              WordWrap = True
+            end
+          end
+          object GroupBox1: TGroupBox
+            Left = 1
+            Height = 106
+            Top = 137
+            Width = 144
+            Align = alBottom
+            Caption = 'RMC (ICC removal)'
+            ClientHeight = 86
+            ClientWidth = 140
+            TabOrder = 1
+            object btRMC: TButton
+              Left = 24
+              Height = 25
+              Top = 57
+              Width = 83
+              Caption = 'RMC'
+              TabOrder = 0
+              OnClick = btRMCClick
+            end
+            object edtRMCMsg1: TEdit
+              Left = 4
+              Height = 24
+              Top = 0
+              Width = 128
+              Anchors = [akTop, akLeft, akRight]
+              Font.Height = -16
+              Font.Name = 'Courier'
+              MaxLength = 16
+              ParentFont = False
+              TabOrder = 1
+              Text = 'OPERATION '
+            end
+            object edtRMCMsg2: TEdit
+              Left = 4
+              Height = 24
+              Top = 29
+              Width = 128
+              Anchors = [akTop, akLeft, akRight]
+              Font.Height = -16
+              Font.Name = 'Courier'
+              MaxLength = 16
+              ParentFont = False
+              TabOrder = 2
+              Text = 'FINISHED'
+            end
+          end
         end
       end
       object tsClose: TTabSheet
         Caption = 'Close'
         ClientHeight = 244
-        ClientWidth = 796
+        ClientWidth = 832
+        ImageIndex = 11
         object gbCLO: TGroupBox
           Left = 0
           Height = 244
@@ -1598,11 +1955,11 @@ object frMain: TfrMain
           Left = 235
           Height = 244
           Top = 0
-          Width = 561
+          Width = 597
           Align = alClient
           Caption = 'CLX'
           ClientHeight = 224
-          ClientWidth = 557
+          ClientWidth = 593
           TabOrder = 1
           object btCLX: TButton
             Left = 218
@@ -1617,20 +1974,20 @@ object frMain: TfrMain
             Left = 0
             Height = 173
             Top = 0
-            Width = 557
-            ActivePage = tsCLOLines
+            Width = 593
+            ActivePage = tsCLOMedia
             Align = alTop
-            TabIndex = 0
+            TabIndex = 1
             TabOrder = 1
             object tsCLOLines: TTabSheet
               Caption = 'Lines'
               ClientHeight = 145
-              ClientWidth = 549
+              ClientWidth = 585
               object mCLX: TMemo
                 Left = 0
                 Height = 145
                 Top = 0
-                Width = 549
+                Width = 585
                 Align = alClient
                 Anchors = [akTop, akLeft, akRight]
                 Font.Height = -16
@@ -1650,12 +2007,12 @@ object frMain: TfrMain
             object tsCLOMedia: TTabSheet
               Caption = 'Media'
               ClientHeight = 145
-              ClientWidth = 549
+              ClientWidth = 585
               object lbCLXMedias: TListBox
                 Left = 0
                 Height = 114
                 Top = 31
-                Width = 549
+                Width = 585
                 Align = alClient
                 Columns = 2
                 ItemHeight = 0
@@ -1665,7 +2022,7 @@ object frMain: TfrMain
                 Left = 0
                 Height = 31
                 Top = 0
-                Width = 549
+                Width = 585
                 Align = alTop
                 Caption = 'Media Files'
                 Font.Height = -16
@@ -1683,7 +2040,7 @@ object frMain: TfrMain
     Left = 0
     Height = 8
     Top = 272
-    Width = 804
+    Width = 840
     Align = alTop
     ResizeAnchor = akTop
   end
@@ -1697,60 +2054,80 @@ object frMain: TfrMain
   object ImageList1: TImageList
     Left = 518
     Bitmap = {
-      4C7A0E0000001000000010000000920600000000000078DAED5B696C554514BE
-      2C15A58AC51AA0D20A14D118894B545297B8C52AB298182D0D266A302E4DB0B5
-      CFB8D4D8A48A9A4A48ABD1821413AD2D24D8F84763107FB8128B46229AF84325
-      A8E12958425CA08296D73ECF09DF84D36166EECC7BD42EBE937CE1F5DEF9663D
-      67CE997387281A2093091713CEC7EF50A921F411D2849D84E58471017C2EDB28
-      EA48A10E9794109611C6E0EF13B43A7E214C75F02B09BD8404DACF23D4A36DD5
-      879B1CFC2528F70FE121700FE3591AFD58ECE0CF21F4A06CAF6857E120E18A98
-      397B41E3E8F89C50ECA8E3244233E13794EFC778641DDB093362D6E21CC252CC
-      098FF907431DC501FA7011D64F1FCB8C803A2EB1D411DA0FD3584E0FEC87ACA3
-      9B303BD0BED47CEC25CC8F329352C279D1F092898472428527AE849D2A7918B6
-      93F6C42170947402BEA297E7DF49F13C0E49033F1D88E3CDCF76FC2399DFA8ED
-      D97148C1D749FDBD21407F1710F2A3D125E30945D8576DB08D792CA189F0136C
-      C3864D840203BF08DC26CB7C5711F661ED361BEA2846FD1596FEA9F76AFD3769
-      6351EFAB2CE3BE94B05BF0939AFF51FC7D9671EFD6E2021BDF577F7DF8ECFFB7
-      C1CFF506F239E67904B109EBC59388297CF9DDF0534ACE25FC11C0D763A6726D
-      0C3A7F3A61973646F6D50F202EFCD9F06E9AE073CCB9DA437F93686795885765
-      1C17673FC5E86B5E9493A19602C773DEDF9F21BC4278917027E14C51E66AC2F3
-      062EC7745FC1D6FBA1C7CA2FB10ED611AEC36FDDDFDD45D88F18BE016738D6A7
-      59847B08DFC12E7B0CFEFF72C29F2833CB32AE5B097F1BE207D6C5B7D0769985
-      3B1F31AB29FE60BDBF85F0A0E5ACC831768B21864AE45470584ADCFE152771FB
-      679CC4F93EDFD8D006DBF9E57EC27A0F7E07F215276A799394A7EFDE065B5D26
-      F81B037CFF05A8A36310CF1FCD8618AC39806F8AC32A1CFC32D14E1C5F952B73
-      E88FABFF83ADBFD9DACF500BEFE117126A1113F1DE5D4D988B38DF25A711DAE0
-      4B747DE3F86F2D619285CB7EA2CB436FDF37D4310EB6EBE2B1EF7C9BF03BFA21
-      C7324FF8551B9763819309ED18CB5CC17FC2833B09FE5FED13D582DF8E675FC0
-      8FCA58F755B45BA7E5F45A04BF03CF3E41DEF76EAC01732768F950853582DF20
-      9EBF877CEB5568B7DE72B6AE15FCCB10EBA877EF22BEAEB3EC8BFBA163918841
-      DED4CAEC34E43015DA0CB106B7F7A587FE74414F4D320DFD3868E0F540C7E272
-      8679988F06AC4B3BF4635E602E7DA8E4668B1F7C8D70AD07FF57C256039F9FED
-      F1F4FF6A7F97A8F0D8BFCBC4FEDF8C7C4293F83BEDF01BBE7EB47318F33B3CF8
-      6D0EFE8D315C3ED35CE3E0F39EFAA983FFA1E1DCACCB022DD720F7D1EB3DF487
-      E3B22D96B62704E41743E65D97C4FFF4BC5320E2AD72E48E42E64BEEDFBDC8D3
-      75C6D8AC6DBE25E2F8EC0F5EB6701396F709CFFC5DE771E0FBC49C2EBEFE3E24
-      FFC87CFEBEB850ACED423CCB845F9665FF4DF3712AE133C3BED1A7C5592E998E
-      3C863C332C0ED833468B8CA6F8BFCB52A76FFC5F6138B7A603E27F1BDF16FFAB
-      3E2B9E3A33AABFBB62E2FF10BE2DFEF7EDBF2BFE8FE3FBC4FFAEF5CBC5FF39FB
-      0F3DFF6762FF36849CFFD359D8BF8E50FB77F17DECDF051FFBB7C1D7FED3B9F3
-      FF90C81CE8878A5557466177B65E8A06DEA749E299AF84DE0F5964F83EE5C28F
-      D1C0FB57EB33D0FFC1CCBFE7F861FC8D19F05F17FCDB09DF7AE4FE157644C7DE
-      DF2BF4C8FD2B4CF1C8830CB5FF4F08FF5FE3E9FF0B63FC7F2BCE6A36FFBFD563
-      DD3E30D4C179860D2247B52B3A7A7F58DDF74A8AF361ABC3FFF3DACE44993E70
-      397778963883EAFEBF5EB4C5B9F2A7910B59076E01FE95B9F01A8BFF5775AC88
-      8EDC51CA37705DFE3F2DFAACF8EBB4F970F9FF94D6E715F8DDAAD591B0F8FFEF
-      A1E3AACF6A3E664647EFE8B8FC7F3FEA4869F3B143AC9FC9FFF35D89ED9EFEBF
-      D0A2834531FE7F4386FEBF1E3A363E1A19928F390ABDA73405F9F6AFB1865BB0
-      B7FA8C7B2ABE7FED45BC51853DFA10F4276EEF69817E1569CFF9BBFE81C87D07
-      7F32F6FF470DEF4E217C4378D6C13F036DDF6178C763DF0C1BB4C944E8EE6ACB
-      998AEFAB3D1633FE6A7C2F5B849CD558AC21CF21DF392FF5C89BAF859E7F141D
-      B913C4DFE0BAD1B7FB3CE2D73CE4F9D6C0273F45381BF37A208B1C38DFCF7B0E
-      BAB03CC33AC6408FD8B66FCBA28E7BA3B0FF379093FF462AA1A787A1EF2B6157
-      3E52E3F85E15A7F3BC77FC25FC147FB3D823EA6884BE995082EF5DAAECE3A873
-      B6670C5BA9F1EBC02F0DE0CBFEF3379777A281779DD9EE96005D1AB704EDD55A
-      EAFF58DBFBDF10EFF4FD7C29FC460AF3B72A3AF6BEB98B2F6DD465BF633D7CC9
-      88917F0118A12B56
+      4C7A1300000010000000100000002A0900000000000078DAED5B7B6C553518EF
+      36060A3A07186032E4251AC34B839089C65744918789816D0115337948824C66
+      9CCE3832450D12DC300AC82351601B0184049C1BF8878A1236A68B680423226A
+      988210E20390C91EF7DA865FB36F5DDBD3DE3137E66DF2CB3DF79CFE7ADA9EEF
+      EBF7383D8C3529DD3946718CC0B16FC9E468E008731CE198C711E7C117751793
+      36EAD186ADF4E3C8E088C1FFCE4A1BBF72F4B6F0D3396A39B270FF788E5CDC5B
+      F6E1010B3F0DF5CE733C0D6E1DCE85D18FC916FE108EB3A85B4BEE2B718EE3B6
+      80397B43E1A8A8E448B6B471394701C7EFA81FC278681BFB39FA073C8B1B38A6
+      614EC4987FD4B491EC210F37E3F9A963E9EFD1C62D86367CFBA11BCBD59EFDA0
+      6D9CE018ECA95F723E4E728C679195411C4359FB2A5D39C671A43AE276E8A92C
+      CF4077C28EA80147962D806B51EB8BE36A723E08D51A7ED813179BDFD2F15FCA
+      FCC5CA9A1D847AD83A2ABFF779C8EF048E6EAC63954E1C4958574D308D399623
+      9FE367E88609651C891A7E12B8F986F99ECB710ACF6E97A68D64B49F6AE89FBC
+      2E9F7F993216797DAE61DCA3398E117EB5627F24FF9461DCC714BFC0C477955F
+      17BEB0FF55B073B59E7CE1F364C3371172F1227C0A57FE09D829596EE4F8D383
+      AFFA4CE39431A8FCBE1C4795310A5BFD24FCC25F34D7FA10BEF0395738C86F35
+      EEB394F8ABD48F0BD29F64F4359E454B5B9744CB79B1BEBFC2B196E34D8E191C
+      D7923A77722CD370854FF715743D0439967649C8600EC73D3856EDDD631CA7E1
+      C3E7218613F234906316C721E8E5598DFD1FCBF117EA0C348C6B0AC73F1AFF41
+      C8E20EDC3BC5C01D0F9F55E77F08B97F88E32943AC287CECE51A1F2A2B2A82ED
+      B204AD5F412568FD0C2A41B6CFD53734C114BF3CC151E4C02F44BEE232256F52
+      EF68BBABA0AB1984BFC9C3F68F441B85AD187F14687CB0020FBECE0F4BB5F053
+      C87D82F8B25E8A457E6CFD6F6DF96DA9FEB475116BF84D1C0BE01389B57B3EC7
+      30F8F9B6D283631D6C892A6FC2FF5BC59160E00A3B51EE20B71F69DA8883EEDA
+      78C276BECFF107FA41C73286D8551357F80257706CC0588611FE0B0EDC04D87F
+      B94ECC27FC0D38F705EC28F575DFC17D73949CDE72C22FC4B9CF90F77D1CCF40
+      70BB28F9508995849F47CE7F887CEB1DB86FAE21B65E40F8B7C2D791D776C2BF
+      CE31AC8BA721638CF8205B953A4734394C89751A5F43DCEF4B07F929879CEA4A
+      1FF4E39C867716321694338CC77CE4E1B96C807C8CF1CCA5B75579D06007DFE5
+      B8DB81FF1B4785862FCE1D77B4FF727DA7487558BF53C8FA5F807C423EF91FB6
+      D80D573BBAA51DF30B1DF8EB2CFCFB03B822A6B9CBC2176BEA5E0BFF134DDCAC
+      96094AAE81AEA3F73AC88FF0CBF618EEDDC523BFE833EF6AC9FA9FC63B89C4DF
+      1A87DC91CF7CD1F5BB1679BA2D013A6B9A6F8A20BEB0076F1BB85986EB598EF9
+      BB2D1781EFE273DAF8EA759FFCA3E08BF78B13C9B39D887391F0535AD87FDD7C
+      5CC5B14FB36E34287E96ADF4451E83C60C933DD68C8E523A92FF5F6E68D3D5FF
+      4FD5C4AD610FFFDFC437F9FFB2CF92276346F9BF3CC0FFF7E19BFC7FD7FEDBFC
+      FF20BE8BFF6F7B7E51FF3FAAFFBEF17F24FA6F824FFC1F6E81FEABF0D57F1BDF
+      45FF6D70D17F135CF53F1C8DFFDBA40C817C485F7509F3DBB3F5166BBA9FA61A
+      E75C8BEFFE90499AF75336FCC49AEEBF2A8A40FE5B33FF1EE5FBF13745C05F4F
+      F8D339BE73C8FD4B1C66CDF7EFF574C8FD4BF472C883B4B5FDCF22F63FD3D1FE
+      F70CB0FFAB11AB99EC7F85C373FB58D386C83314931CD551D6B87F58EEF7AA26
+      F1E16A8BFD17CF7600EA34802B7287D7911854B5FFB9E45E2257FE3272216BC0
+      4DC42FCD85671AECBF6C6311BBB047A99B866BB3FF61D267C95FA3CC87CDFED7
+      2B7D5E84E3D54A1B5906FBFF3D645CF659CEC700D6B847C766FF4368A35E998F
+      C3E4F9E9ECBFD82BB1DFD1FEF734C8605280FD2F8ED0FEE742C63AB14BA374C3
+      1CF9EE53EA857CFBD778867BB0B6BA8CBB37DE7F9D84BF31176B740DE42768ED
+      590EF94A52CE8BF7FA67987D0F7E77ACFFCF6AAE5DC97180E3550BFF1ADCFB51
+      CD3531F65DD04153E90AD95D6188A9C47EB5E702C63F1FEFCB262167158B6728
+      E650EC391FE490375F0539DFCD2EEC0912EFE04EA06F731CFCD778E4F956C226
+      BFC4713DE6F54C0B72E0627FDE6B90857911B611033912BA3DB5056DCC667EDF
+      0D44CB7F53D221A77590F725D02B979269795F1524F362EDF89BD829F1CEE238
+      696331E44D877E78DF25EB3E8F36073BFAB0E90A3F07FC411E7CDA7FF1CEE503
+      D674AFB3D0BB34A05CE1F6C3FD1618DAFF5459FB37936BEA7A3E0D76A31EF3B7
+      9435DF6F6EE3531DB5E96FAC832D8916FF2272275358F0B7135335369AC1BF73
+      8DDD8E68F821CFF82F56C32F20B26E42BE85AFEE5B4BD0E42AA738F2056F2F62
+      A2044FBEE4CAB1D2365CF84389BE57E078A867FFA5BEBE17E1F87DF93FA08D06
+      2046E1D7E37C08FE94CEF74FC3BA964EE29AB13896D7D2E0EF75E42262DB8588
+      5F8A703CDC81D703731E62F677E126EE0107BD3D6888DF366BEA5618DE29A832
+      35DCD0E734AC57BA7E8C20FC85CCBC5FC634177996F85D62196BBEEF56A2D821
+      7F69EBFF4687FEDBF879CAFCF9F2476A72BEBA585DB79F68AB417E0E3AC8CFB7
+      96F8BF0764C3C4DD6AE1D23202F3538C79CED38C37AAFF76FDAF42CC391B7901
+      1FFDAF420C3C0A10C79F7BE8FF1CF0A42D11DF7ECFF2D07FAAF7823F1AF90C5F
+      FD0F217FD18735FF7EDD45FFD723AEFF2642FD7F1879EE48F5DFB6FEB9E8BF69
+      FD73D57FE1ABBD1ED57FA7BC86F8DE53ECDB2E410CA84309EA642B7156366BFC
+      AE36885F86BAD984BF13E75D4B1938B29400F2FD452CFA47114B62795A9F91FE
+      B180D83056535FFD1F147FB6065F8CA594E4E0E20C90F9DC5265FC622EB779CC
+      FF3665FED722A73F1D39D019F8A590E7A6A3EE5AC217DF5656921C4ABD01F23B
+      844AD6F83D664C0BE55E9499C8F588716D0FC036D49D49DAC940CE543E071B4A
+      5037A31DE97F1C72473AFD97FDA6FA9FA3E4C572F05C4A157E29D1B552F24B73
+      5552FE4A3DFA5B6AD1FF783C5729F395401CD15F9DFEEF54F2D8523EF6811F4F
+      7259AAFE95C16E74868D384472793186FE53FE76DC63B7C6FE31F81FC20E3E82
+      FF3B94F9A2F6BF8EC4BA61C8EB29C56EAB7CF9EEF4BC62BBE9FBBEF38A2DDFA8
+      E1D711AEFCAD23ED8458E3B74D3AFFA54EE1521F22A4DCA388F0E5FBFF1A5CB7
+      A106753769EC970FB215FDC9469B45189B0E45A893CD2ED25EA07F01BB4E3C5C
     }
   end
   object ApplicationProperties1: TApplicationProperties

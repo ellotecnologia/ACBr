@@ -3,7 +3,7 @@
 {  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
 {                                                                              }
-{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{ Direitos Autorais Reservados (c) 2024 Daniel Simoes de Almeida               }
 {                                                                              }
 { Colaboradores nesse arquivo: Italo Giurizzato Junior                         }
 {                                                                              }
@@ -119,13 +119,13 @@ type
 implementation
 
 uses
-  pcnConsts,
-  pcnAuxiliar,
+  StrUtils,
+  Math,
   ACBrValidador,
   ACBrUtil.Base,
   ACBrUtil.Strings,
+  ACBrUtil.DateTime,
   ACBrDFeUtil,
-  ACBrDFeConversao,
   ACBrDFeConsts,
   ACBrDCe,
   ACBrDCeConversao,
@@ -180,9 +180,9 @@ var
 begin
   PaisBrasil := cPais = CODIGO_BRASIL;
 
-  cMun := IIf(PaisBrasil, vcMun, CMUN_EXTERIOR);
-  xMun := IIf(PaisBrasil, vxMun, XMUN_EXTERIOR);
-  xUF  := IIf(PaisBrasil, vxUF, UF_EXTERIOR);
+  cMun := IfThen(PaisBrasil, vcMun, CMUN_EXTERIOR);
+  xMun := IfThen(PaisBrasil, vxMun, XMUN_EXTERIOR);
+  xUF  := IfThen(PaisBrasil, vxUF, UF_EXTERIOR);
 
   if Opcoes.NormatizarMunicipios then
     if ((EstaZerado(cMun)) and (xMun <> XMUN_EXTERIOR)) then
@@ -273,19 +273,19 @@ begin
   if not ValidarCodigoUF(DCe.ide.cUF) then
     wAlerta('B02', 'cUF', DSC_CUF, ERR_MSG_INVALIDO);
 
-  Result.AppendChild(AddNode(tcStr, 'B03', 'cDC', 6, 6, 1,
-            IntToStrZero(ExtrairCodigoChaveAcesso(DCe.infDCe.ID), 8), DSC_CNF));
+  Result.AppendChild(AddNode(tcInt, 'B03', 'cDC', 6, 6, 1,
+                                                         DCe.Ide.cDC, DSC_CDF));
 
   Result.AppendChild(AddNode(tcInt, 'B04', 'mod', 2, 2, 1, DCe.Ide.modelo, ''));
 
   Result.AppendChild(AddNode(tcInt, 'B05', 'serie', 1, 3, 1,
                                                      DCe.ide.serie, DSC_SERIE));
 
-  Result.AppendChild(AddNode(tcInt, 'B06', 'nDC', 1, 9, 1, DCe.ide.nDC, DSC_NNF));
+  Result.AppendChild(AddNode(tcInt, 'B06', 'nDC', 1, 9, 1, DCe.ide.nDC, DSC_NDF));
 
   Result.AppendChild(AddNode(tcStr, 'B07', 'dhEmi', 25, 25, 1,
       DateTimeTodh(DCe.ide.dhEmi) +
-      GetUTC(CodigoParaUF(DCe.ide.cUF), DCe.ide.dhEmi), DSC_DEMI));
+      GetUTC(CodigoUFparaUF(DCe.ide.cUF), DCe.ide.dhEmi), DSC_DEMI));
 
   Result.AppendChild(AddNode(tcStr, 'B08', 'tpEmis', 1, 1, 1,
                                  TipoEmissaoToStr(DCe.Ide.tpEmis), DSC_TPEMIS));
@@ -294,7 +294,7 @@ begin
                                  EmitenteDCeToStr(DCe.Ide.tpEmit), DSC_TPEMIS));
 
   Result.AppendChild(AddNode(tcInt, 'B10', 'nSiteAutoriz', 1, 1, 1,
-                                                DCe.ide.nSiteAutoriz, DSC_NNF));
+                                                DCe.ide.nSiteAutoriz, DSC_NDF));
 
   Result.AppendChild(AddNode(tcInt, 'B11', 'cDV', 1, 1, 1, DCe.Ide.cDV, DSC_CDV));
 
@@ -353,7 +353,7 @@ begin
 
   Result.AppendChild(AddNode(tcStr, 'C11', 'UF', 2, 2, 1, xUF, DSC_UF));
 
-  if not pcnAuxiliar.ValidarUF(xUF) then
+  if not ValidarUF(xUF) then
     wAlerta('C11', 'UF', DSC_UF, ERR_MSG_INVALIDO);
 
   Result.AppendChild(AddNode(tcInt, 'C12', 'CEP', 8, 8, 1,
@@ -487,7 +487,7 @@ begin
 
   Result.AppendChild(AddNode(tcStr, 'E12', 'UF', 2, 2, 1, xUF, DSC_UF));
 
-  if not pcnAuxiliar.ValidarUF(xUF) then
+  if not ValidarUF(xUF) then
     wAlerta('E12', 'UF', DSC_UF, ERR_MSG_INVALIDO);
 
   Result.AppendChild(AddNode(tcInt, 'E13', 'CEP', 8, 8, 1,
@@ -575,7 +575,7 @@ begin
   Result := FDocument.CreateElement('total');
 
   Result.AppendChild(AddNode(tcDe2, 'W16', 'vDC', 1, 15, 1,
-                                               DCe.Total.vDC, DSC_VNF));
+                                               DCe.Total.vDC, DSC_VDF));
 end;
 
 function TDCeXmlWriter.GerarTransp: TACBrXmlNode;

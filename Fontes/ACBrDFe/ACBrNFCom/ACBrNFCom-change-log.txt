@@ -42,6 +42,60 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+
+02/04/2024
+-- Diversos --
+[*] Melhorias no código usando o FixInsight (ainda não ficou 100%).
+  Por: Italo Giurizzato Junior
+
+02/03/2024
+-- ACBrNFComXmlWriter --
+[*] Corrigido o tipo de conversão para a tag: cNF.
+  Por: Italo Giurizzato Junior
+
+01/03/2024
+-- ACBrNFComXmlReader --
+[*] Melhorias e correções na leitura do XML.
+  Por: Italo Giurizzato Junior
+
+27/02/2024
+-- ACBrNFComWebServices/ACBrNFComRetConsSit/ACBrNFComRetEnvEvento --
+[*] Removido o uso da função ACBrStr ao ler uma mensagem.
+    Deixado o ParseText somente com o primeiro parâmetro.
+  Por: Italo Giurizzato Junior
+
+23/02/2024
+-- ACBrNFComConversao --
+[*] Ajustes na função: DblToVersaoNFCom.
+  Por: Italo Giurizzato Junior
+
+20/02/2024
+-- ACBrNFComWebServices/ACBrNFComClass --
+[*] Pequenas correções e desativação da consulta ao recibo.
+  Por: Italo Giurizzato Junior
+
+14/02/2024
+-- ACBrNFComRetEnvEvento --
+[-] Corrigido a leitura do grupo Signature do retorno.
+  Por: Italo Giurizzato Junior
+
+09/02/2024
+-- Diversos --
+[*] Refactoring visando deixar de usar a unit pcnAuxiliar.
+  Por: Italo Giurizzato Junior
+
+02/02/2024
+-- Diversos --
+[*] Compatibilização com o D7 e outros ajustes.
+  Por: Italo Giurizzato Junior
+-- ACBrNFComConsStatServ/ACBrNFComRetConsStatServ --
+[*] Renoção das units acima, pois o componente vai usar as units respectivas 
+    que estão na pasta Comum.
+  Por: Italo Giurizzato Junior
+-- Diversos --
+[*] Refactoring visando deixar de usar a unit pcnConsts.
+  Por: Italo Giurizzato Junior
+
 23/01/2024
 -- Diversos --
 [*] A unit ACBrNFComConversao foi totalmente reescrita e as demais units ajustes

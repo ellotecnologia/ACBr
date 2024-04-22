@@ -42,6 +42,28 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+19/04/2024
+-- ACBrLibBoletoST --
+[*] Ajuste visando correção de problema de liberação de memória encontrado no Boleto_Finalizar
+ #TK-5367 - https://www.projetoacbr.com.br/forum/topic/77391-erro-ao-fechar-projeto-demo-acbrlibboletodemo-c/
+        Por: Diego Folieni
+
+16/04/2024
+--- ACBrLibBoletoBase, ACBrLibBoletoST, ACBrLibBoletoMT, ACBrLibBoletoStaticImport, ACBrLibBoletoStaticImportMT ---
+[+] Novo método Boleto_GerarRemessaStream
+    #TK-5181 - https://www.projetoacbr.com.br/forum/topic/76687-gerar-remessa-stream/
+	Por: Antonio Carlos Junior
+
+27/03/2024
+--- ACBrLibBoletoRespostas ---
+[*] TK-5273 Add a propriedade CodigoEstadoTituloCobranca para retorno do mesmo na consulta
+Por: Daniel InfoCotidiano
+
+13/03/2024
+--- ACBrLibBoletoDataModule, ACBrLibBoletoConsts, ACBrLibBoletoConfig ---
+[*] TK-4361 Mudança no nivel de Log ACBrBoleto
+Por: Victor Panda, Daniel InfoCotidiano, Antonio Carlos Junior
+
 24/01/2024
 --- ACBrLibBoletoRespostas --
 [+]TK-5003 Adicionado a propriedade ValorPago que existe no componente, mas não existia na reposta da lib. Neste caso o valor esta voltando nesta propriedade.

@@ -37,6 +37,32 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+18/03/2024
+-- ACBr.Inc --
+[+] Adiciona diretiva USE_ACBR_XML_DOCUMENT e validação para que ao definir a mesma use LibXML2
+  Por: Diego Folieni
+
+01/03/2024
+-- ACBrUtil.XMLHTML --
+[*] Alteração no ParseText pois o mesmo ao receber um XML no formato UTF-8
+    estava devolvendo-o no formato ANSI de forma indevida.
+    por: DSA
+
+16/02/2024
+-- ACBrReg.pas -- 
+[*] Ajuste para leitura correta do resource ACBR se existir ou não
+    por: Régys Silveira
+
+12/02/2024
+-- ACBrUtil.DateTime --
+[*] Ajuste para não ocorrer vazamento de memória.
+   Por: André Moraes
+
+09/02/2024
+-- Diversos --
+[*] Refactoring visando deixar de usar a unit pcnAuxiliar.
+  Por: Italo Giurizzato Junior
+
 17/01/2024
 -- ACBrUtil.FilesIO --
 [+] Adicionada a função que permite Definir ou Mudar o valor de Variáveis de Ambiente

@@ -51,9 +51,9 @@ type
   private
     function GetSoapAction: string;
   public
-    function GerarNFSe(ACabecalho, AMSG: String): string; override;
-    function ConsultarNFSe(ACabecalho, AMSG: String): string; override;
-    function Cancelar(ACabecalho, AMSG: String): string; override;
+    function GerarNFSe(const ACabecalho, AMSG: String): string; override;
+    function ConsultarNFSe(const ACabecalho, AMSG: String): string; override;
+    function Cancelar(const ACabecalho, AMSG: String): string; override;
 
     function TratarXmlRetornado(const aXML: string): string; override;
 
@@ -90,7 +90,7 @@ type
 
   TACBrNFSeXWebserviceSigISS103 = class(TACBrNFSeXWebserviceSigISS)
   public
-    function ConsultarNFSe(ACabecalho, AMSG: String): string; override;
+    function ConsultarNFSe(const ACabecalho, AMSG: String): string; override;
 
   end;
 
@@ -130,12 +130,9 @@ begin
 
     Autenticacao.RequerLogin := True;
 
-    with ServicosDisponibilizados do
-    begin
-      EnviarUnitario := True;
-      ConsultarNfse := True;
-      CancelarNfse := True;
-    end;
+    ServicosDisponibilizados.EnviarUnitario := True;
+    ServicosDisponibilizados.ConsultarNfse := True;
+    ServicosDisponibilizados.CancelarNfse := True;
   end;
 
   SetXmlNameSpace('urn:sigiss_ws');
@@ -200,8 +197,8 @@ begin
   for I := Low(ANodeArray) to High(ANodeArray) do
   begin
     aID := ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('id'), tcStr);
-    aCorrecao := ACBrStr(ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('DescricaoErro'), tcStr));
-    aMensagem := ACBrStr(ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('DescricaoProcesso'), tcStr));
+    aCorrecao := ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('DescricaoErro'), tcStr);
+    aMensagem := ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('DescricaoProcesso'), tcStr);
 
     if (aCorrecao = '') or (aCorrecao = 'Sem erros') then
     begin
@@ -213,7 +210,7 @@ begin
         AAlerta.Correcao := aCorrecao;
 
         if AAlerta.Descricao = '' then
-          AAlerta.Descricao := ACBrStr(ANodeArray[I].AsString);
+          AAlerta.Descricao := ANodeArray[I].AsString;
       end;
     end
     else
@@ -224,7 +221,7 @@ begin
       AErro.Correcao := aCorrecao;
 
       if AErro.Descricao = '' then
-        AErro.Descricao := ACBrStr(ANodeArray[I].AsString);
+        AErro.Descricao := ANodeArray[I].AsString;
     end;
   end;
 end;
@@ -513,7 +510,7 @@ begin
     Result := TACBrNFSeX(FPDFeOwner).Provider.ConfigWebServices.Producao.SoapAction;
 end;
 
-function TACBrNFSeXWebserviceSigISS.GerarNFSe(ACabecalho,
+function TACBrNFSeXWebserviceSigISS.GerarNFSe(const ACabecalho,
   AMSG: String): string;
 begin
   FPMsgOrig := AMSG;
@@ -525,7 +522,7 @@ begin
                       'xmlns:urn="' + SoapAction + '"']);
 end;
 
-function TACBrNFSeXWebserviceSigISS.ConsultarNFSe(ACabecalho,
+function TACBrNFSeXWebserviceSigISS.ConsultarNFSe(const ACabecalho,
   AMSG: String): string;
 begin
   FPMsgOrig := AMSG;
@@ -537,7 +534,7 @@ begin
                       'xmlns:urn="' + SoapAction + '"']);
 end;
 
-function TACBrNFSeXWebserviceSigISS.Cancelar(ACabecalho, AMSG: String): string;
+function TACBrNFSeXWebserviceSigISS.Cancelar(const ACabecalho, AMSG: String): string;
 begin
   FPMsgOrig := AMSG;
 
@@ -553,8 +550,7 @@ function TACBrNFSeXWebserviceSigISS.TratarXmlRetornado(
 begin
   Result := inherited TratarXmlRetornado(aXML);
 
-  Result := ParseText(AnsiString(Result), True, {$IfDef FPC}True{$Else}False{$EndIf});
-  Result := string(NativeStringToUTF8(Result));
+  Result := ParseText(Result);
   Result := RemoverPrefixosDesnecessarios(Result);
   Result := RemoverDeclaracaoXML(Result);
   Result := RemoverIdentacao(Result);
@@ -562,7 +558,7 @@ end;
 
 { TACBrNFSeXWebserviceSigISS103 }
 
-function TACBrNFSeXWebserviceSigISS103.ConsultarNFSe(ACabecalho,
+function TACBrNFSeXWebserviceSigISS103.ConsultarNFSe(const ACabecalho,
   AMSG: String): string;
 begin
   FPMsgOrig := AMSG;

@@ -87,6 +87,7 @@ type
     function ImprimirExtratoVenda(eArqXMLVenda, eNomeImpressora: PChar): longint;
     function ImprimirExtratoResumido(eArqXMLVenda, eNomeImpressora: PChar): longint;
     function ImprimirExtratoCancelamento(eArqXMLVenda, eArqXMLCancelamento, eNomeImpressora: PChar): longint;
+    function SalvarPDF(const sResposta: PChar; var esTamanho: longint): longint;
     function GerarImpressaoFiscalMFe(eArqXMLVenda: PChar; const sResposta: PChar; var esTamanho: longint): longint;
     function GerarPDFExtratoVenda(eArqXMLVenda, eNomeArquivo: PChar; const sResposta: PChar;
                                   var esTamanho: longint): longint;
@@ -451,7 +452,6 @@ begin
         Resposta := Resposta + sLineBreak + Resp.Gerar;
       end;
 
-      Resposta := Resposta + SatDM.RespostaIntegrador;
       MoverStringParaPChar(Resposta, sResposta, esTamanho);
       Result := SetRetorno(ErrOK, Resposta);
     finally
@@ -515,8 +515,7 @@ begin
           RespCanc.Free;
         end;
       end;
-
-      Resposta := Resposta + SatDM.RespostaIntegrador;
+     
       MoverStringParaPChar(Resposta, sResposta, esTamanho);
       Result := SetRetorno(ErrOK, Resposta);
     finally
@@ -801,7 +800,6 @@ begin
       Resp.Resultado := SatDM.ACBrSAT1.EnviarDadosVenda;
       Resp.Processar(SatDM.ACBrSAT1);
       Resposta := Resp.Gerar;
-      Resposta := Resposta + SatDM.RespostaIntegrador;
       MoverStringParaPChar(Resposta, sResposta, esTamanho);
       Result := SetRetorno(ErrOK, Resposta);
     finally
@@ -878,7 +876,6 @@ begin
       Resp.Processar(SatDM.ACBrSAT1);
 
       Resposta := Resp.Gerar;
-      Resposta := Resposta + SatDM.RespostaIntegrador;
       MoverStringParaPChar(Resposta, sResposta, esTamanho);
       Result := SetRetorno(ErrOK, Resposta);
     finally
@@ -920,7 +917,6 @@ begin
       Resp.Resultado := SatDM.ACBrSAT1.CancelarUltimaVenda;
       Resp.Processar(SatDM.ACBrSAT1);
       Resposta := Resp.Gerar;
-      Resposta := Resposta + SatDM.RespostaIntegrador;
       MoverStringParaPChar(Resposta, sResposta, esTamanho);
       Result := SetRetorno(ErrOK, Resposta);
     finally
@@ -1033,6 +1029,41 @@ begin
       Result := SetRetorno(ErrOK);
     finally
       SatDM.FinalizarImpressao;
+      SatDM.Destravar;
+    end;
+  except
+    on E: EACBrLibException do
+      Result := SetRetorno(E.Erro, ConverterUTF8ParaAnsi(E.Message));
+
+    on E: Exception do
+      Result := SetRetorno(ErrExecutandoMetodo, ConverterUTF8ParaAnsi(E.Message));
+  end;
+end;
+
+function TACBrLibSAT.SalvarPDF(const sResposta: PChar; var esTamanho: longint): longint;
+var
+  AStream: TMemoryStream;
+  Resposta: AnsiString;
+begin
+  try
+    GravarLog('SAT_SalvarPDF', logNormal);
+
+    SatDM.Travar;
+
+    AStream := TMemoryStream.Create;
+
+    try
+      SatDM.ConfigurarImpressao('', True);
+
+      SatDM.ACBrSAT1.Extrato.ImprimirExtrato(AStream);
+      Resposta := StreamToBase64(AStream);
+
+      MoverStringParaPChar(Resposta, sResposta, esTamanho);
+      Result := SetRetorno(ErrOK, Resposta);
+
+    finally
+      SatDM.FinalizarImpressao;
+      AStream.Free;
       SatDM.Destravar;
     end;
   except

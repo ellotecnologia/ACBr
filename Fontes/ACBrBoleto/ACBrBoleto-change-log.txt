@@ -49,6 +49,81 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+11/04/2024
+-- ACBrBoleto --
+[*]TK-5305 Alterado propriedade fValorMoraJuros para real, pois nao estava aceitando juros com 5 casas decimais qdo percentual.
+https://www.projetoacbr.com.br/forum/topic/77159-banco-santander-casas-decimais-juros-e-multa/
+  Por: Daniel Morais InfoCotidiano
+
+11/04/2024
+-- ACBrBancoBancoob, ACBrBoletoRet_Bancoob, ACBrBoletoW_Bancoob --
+[*]TK-5156 Incluido codigo juros mora aceitos 3 da API 
+[*]TK-5064 Refatorado ACBrJson
+https://www.projetoacbr.com.br/forum/topic/76311-sicoob-juros-c%C3%B3digos-mora-aceitos-codigosmoraaceitos/
+  Por: Daniel Morais InfoCotidiano
+
+
+26/03/2024
+-- ACBrBancoItau --
+[-]TK-5164 Removido uppercase do registro 3 ref. aos dados para gerar qrCode
+https://www.projetoacbr.com.br/forum/topic/76549-itau-bolecode-linha-da-chave-pix-com-uppercase/
+  Por: Daniel Morais InfoCotidiano
+
+19/03/2024
+-- ACBrBoletoRet_Sicredi_APIV2 --
+[*]TK-5239 Tratamento da propriedade qrCode, anexado na TK os retornos em producao. 
+  Por: Daniel Morais InfoCotidiano
+
+18/03/2024
+-- ACBrBoletoRet_BancoBrasil_API --
+[*]TK-5193 Tratamento do codigoEstadoTituloCobranca conforme manual
+https://www.projetoacbr.com.br/forum/topic/76726-como-saber-o-status-de-um-boleto-api-bb/
+  Por: Daniel Morais InfoCotidiano
+
+14/03/2024
+-- ACBrBoletoRet_Santander_API, ACBrBoletoW_Santander_API --
+[-]TK-4804 Alteração do EndPoint para capturar dados necessário para consultas
+https://www.projetoacbr.com.br/forum/topic/76632-altera%C3%A7%C3%A3o-do-endpoint-api-santander-para-testes/
+https://www.projetoacbr.com.br/forum/topic/75325-retorno-boleto-com-juros-santander/
+  Por: Daniel Morais InfoCotidiano / Victor Gonzales Pandaaaa
+
+19/02/2024
+-- ACBrBoletoRet_Itau_API --
+[-]TK-5129 Corrigido para ler a reposta da API em Producao e Homologacao que tem inicio diferentes.
+https://www.projetoacbr.com.br/forum/topic/75906-boleto-hibrido-itau-bolecode/?do=findComment&comment=493377&_rid=1706
+  Por: Daniel Morais InfoCotidiano
+
+15/02/2024
+-- ACBrBancoSantander --
+[-]TK-5113 Corrigido qtde registros qdo existir informação Seguimento Y03
+https://www.projetoacbr.com.br/forum/topic/76214-homologa%C3%A7%C3%A3o-santander-d%C3%BAvidas-c%C3%B3digo-da-remessa/#comment-492912
+  Por: Daniel Morais InfoCotidiano
+
+09/02/2024
+-- Diversos --
+[*] Refactoring visando deixar de usar a unit pcnAuxiliar.
+  Por: Italo Giurizzato Junior
+
+07/02/2024
+-- ACBrBoleto --
+[*] Removido a atribuição da variavel para ela mesma.
+  Por: Daniel de Morais InfoCotidiano
+
+07/02/2024
+-- ACBrBoleto --
+[-] TK-5100 Ajustes para nao dar conflito na leitura ANSI/UTF8 que estava impactando
+  https://www.projetoacbr.com.br/forum/topic/76258-acbrlib-c-n%C3%A3o-estou-conseguindo-ler-arquivo-de-retorno-do-sicoob-400/
+  Por: Daniel de Morais InfoCotidiano
+
+05/02/2024
+-- Diversos --
+[*] Refactoring visando deixar de usar a unit pcnConsts.
+  Por: Italo Giurizzato Junior
+  
+-- ACBrBancoBTGPactual --
+[-] #TK-5079 Criado override da função TipoOcorrenciaToDescricao para retornar os motivos da ocorrencia.
+  Por: Daniel de Morais InfoCotidiano
+
 30/01/2024
 -- ACBrBancoBradesco --
 [-] #TK-5059 Tratamento da leitura do EMV

@@ -1,10 +1,15 @@
-﻿namespace ACBrLib.NFe
+﻿using System;
+
+namespace ACBrLib.NFe
 {
     /// <summary>
     /// Formas de Pagamento
     /// </summary>
     public class PagamentoNFe
     {
+
+        public IndicadorPagamento indPag { get; set; }
+
         /// <summary>
         /// Forma de pagamento
         /// <para>01=Dinheiro</para>
@@ -27,7 +32,14 @@
         /// </summary>
         public decimal vPag { get; set; }
 
-        public IndicadorPagamento indPag { get; set; }
+        public DateTime? dPag { get; set; }
+
+        /// <summary>
+        /// Grupo Opcional
+        /// </summary>
+        public string CNPJPag { get; set; }
+
+        public string UFPag { get; set; }
 
         public TpIntegra tpIntegra { get; set; }
 
@@ -44,12 +56,16 @@
         /// <para>04=Sorocred</para>
         /// <para>99=Outros</para>
         /// </summary>
-        public BandeiraCartao tBand { get; set; }
+        public BandeiraCartao? tBand { get; set; }
 
         /// <summary>
         /// Número de autorização da operação cartão de crédito e/ou débito
         /// </summary>
         public string cAut { get; set; }
+
+        public string CNPJReceb { get; set; }
+
+        public string idTermPag { get; set; }
 
         public decimal vTroco { get; set; }
     }

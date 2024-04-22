@@ -76,6 +76,7 @@ resourcestring
   CERR_SPE_MFINFO = 'Invalid Media file parâmeters';
 
   CERR_INVALID_PARAM = 'Invalid value for %s param';
+  CERR_NOT_IMPLEMENTED = '%s is not implemented yet';
 
 const
   // control characters
@@ -99,6 +100,7 @@ const
   OPN_MODLEN = 256;
 
   TIMEOUT_ACK = 2000;
+  TIMEOUT_SYN = 1000;
   TIMEOUT_RSP = 10000;
   MAX_ACK_TRIES = 3;
 
@@ -348,7 +350,8 @@ const
 
 type
 
-  EACBrAbecsPinPadError = Exception;
+  EACBrAbecsPinPadError = class(Exception);
+  EACBrAbecsPinPadTimeout = class(EACBrAbecsPinPadError);
 
   { TACBrAbecsTLV }
 
@@ -647,8 +650,11 @@ type
     function GCD(MSGIDX: TACBrAbecsMSGIDX; ASPE_TIMEOUT: Byte = 0): String; overload;
     function GKY: Integer;
     function MNU(ASPE_MNUOPT: array of String; ASPE_DSPMSG: String = '';
-      ASPE_TIMEOUT: Byte = 0): String;
-    procedure RMC(const RMC_MSG: String = '');
+      ASPE_TIMEOUT: Byte = 0): String; overload;
+    function MNU(ASPE_MNUOPT: TStrings; ASPE_DSPMSG: String = '';
+      ASPE_TIMEOUT: Byte = 0): String; overload;
+    procedure RMC(const RMC_MSG: String = ''); overload;
+    procedure RMC(const Line1: String; Line2: String); overload;
 
     // Multimidia Commands
     procedure MLI(const ASPE_MFNAME: String; const ASPE_MFINFO: AnsiString); overload;
@@ -1437,16 +1443,16 @@ end;
 
 function TACBrAbecsPacket.GetAsString: AnsiString;
 begin
-  Result := chr(SYN) +
+  Result := AnsiChr(SYN) +
             DC3Substitution(fData) +
-            chr(ETB) +
-            CalcCRC(fData + chr(ETB));
+            AnsiChr(ETB) +
+            CalcCRC(fData + AnsiChr(ETB));
 end;
 
 procedure TACBrAbecsPacket.SetAsString(const AValue: AnsiString);
 var
   l: Integer;
-  s, crc: AnsiString;
+  s, crc1, crc2: AnsiString;
 begin
   l := Length(AValue);
   if (l < 7) then
@@ -1460,8 +1466,9 @@ begin
 
   s := copy(AValue, 2, l-4);
   s := DC3RevertSubstitution(s);
-  crc := copy(AValue, l-1, 2);
-  if (crc <> CalcCRC(s + chr(ETB))) then
+  crc1 := copy(AValue, l-1, 2);
+  crc2 := CalcCRC(s + AnsiChr(ETB));
+  if (crc1 <> crc2) then
     raise EACBrAbecsPinPadError.Create(CERR_INVCRC);
 
   fData := s;
@@ -1475,18 +1482,18 @@ end;
 function TACBrAbecsPacket.DC3Substitution(const AData: AnsiString): AnsiString;
 begin
   Result := AData;
-  Result := ReplaceString(Result, chr(DC3), chr(DC3)+'3');
-  Result := ReplaceString(Result, chr(SYN), chr(DC3)+'6');
-  Result := ReplaceString(Result, chr(ETB), chr(DC3)+'7');
+  Result := ReplaceString(Result, AnsiChr(DC3), AnsiChr(DC3)+'3');
+  Result := ReplaceString(Result, AnsiChr(SYN), AnsiChr(DC3)+'6');
+  Result := ReplaceString(Result, AnsiChr(ETB), AnsiChr(DC3)+'7');
 end;
 
 function TACBrAbecsPacket.DC3RevertSubstitution(const AData: AnsiString
   ): AnsiString;
 begin
   Result := AData;
-  Result := ReplaceString(Result, chr(DC3)+'7', chr(ETB));
-  Result := ReplaceString(Result, chr(DC3)+'6', chr(SYN));
-  Result := ReplaceString(Result, chr(DC3)+'3', chr(DC3));
+  Result := ReplaceString(Result, AnsiChr(DC3)+'7', AnsiChr(ETB));
+  Result := ReplaceString(Result, AnsiChr(DC3)+'6', AnsiChr(SYN));
+  Result := ReplaceString(Result, AnsiChr(DC3)+'3', AnsiChr(DC3));
 end;
 
 { TACBrAbecsPinPad }
@@ -1521,6 +1528,10 @@ end;
 
 destructor TACBrAbecsPinPad.Destroy;
 begin
+  fOnWriteLog := nil;
+  fOnStartCommand := nil;
+  fOnEndCommand := nil;
+  fOnWaitForResponse := nil;
   Disable;
   fCommand.Free;
   fResponse.Free;
@@ -1675,9 +1686,8 @@ begin
     RegisterLog('SetIsEnabled( '+BoolToStr(AValue, True)+' )');
 
   Self.Device.Ativo := AValue;
-  fSPEKmod := '';
-  fSPEKpub := '';
-  fPinpadKSec := '';
+  ClearCacheData;
+  ClearSecureData;
 end;
 
 procedure TACBrAbecsPinPad.Enable;
@@ -1833,6 +1843,8 @@ begin
         if (AckByte = NAK) then
         begin
           Inc(ACKFails);
+          if (Self.LogLevel > 2) then
+            RegisterLog(Format('      ACK Fail: %d', [ACKFails]));
           if (ACKFails >= MAX_ACK_TRIES) then
             DoException(CERR_READING_ACK);
         end
@@ -1950,46 +1962,61 @@ procedure TACBrAbecsPinPad.WaitForResponse;
   var
     TimeToTimeOut: TDateTime;
     b: Byte;
-    Cancel: Boolean;
+    Cancel, OldRaiseExcept: Boolean;
   begin
     TimeToTimeOut := IncMilliSecond(Now, Self.TimeOut);
     if (Self.LogLevel > 2) then
       RegisterLog('  WaitForSYN');
 
-    repeat
-      if not fCommand.IsBlocking then
-      begin
-        if (Now > TimeToTimeOut) then
-          DoException(CERR_TIMEOUT_RSP);
-      end
-      else
-      begin
-        if Assigned(fOnWaitForResponse) then
+    if Self.Device.IsSerialPort then
+    begin
+      OldRaiseExcept := Self.Device.Serial.RaiseExcept;
+      Self.Device.Serial.RaiseExcept := False;
+    end;
+    try
+      repeat
+        if not fCommand.IsBlocking then
         begin
-          Cancel := False;
-          fOnWaitForResponse(Cancel);
-          fIsBusy := not Cancel;
-        end;
-
-        if UserCancelled then
-        begin
-          if (Self.LogLevel > 1) then
-            RegisterLog('    UserCancelled');
-
-          if SendCAN then
-            DoException(CERR_CANCELLED_BY_USER)
+          if (Now > TimeToTimeOut) then
+            DoException(EACBrAbecsPinPadTimeout.Create(CERR_TIMEOUT_RSP))
           else
-            DoException(CERR_READING_CAN);
-        end;
-      end;
+          begin
+            if (Self.LogLevel > 4) then
+              RegisterLog(Format('    TL: %s sec', [FormatFloat('##0.000',SecondSpan(Now, TimeToTimeOut))]));
+          end;
+        end
+        else
+        begin
+          if Assigned(fOnWaitForResponse) then
+          begin
+            Cancel := False;
+            fOnWaitForResponse(Cancel);
+            fIsBusy := not Cancel;
+          end;
 
-      try
-        b := Self.Device.LeByte(500);
-        if (Self.LogLevel > 2) then
-          RegisterLog(Format('    RX <- %d', [b]));
-      except
-      end;
-    until (b = SYN);
+          if UserCancelled then
+          begin
+            if (Self.LogLevel > 1) then
+              RegisterLog('    UserCancelled');
+
+            if SendCAN then
+              DoException(CERR_CANCELLED_BY_USER)
+            else
+              DoException(CERR_READING_CAN);
+          end;
+        end;
+
+        b := Self.Device.LeByte(TIMEOUT_SYN);
+        if (b > 0) then
+        begin
+          if (Self.LogLevel > 2) then
+            RegisterLog(Format('    RX <- %d', [b]));
+        end;
+      until (b = SYN);
+    finally
+      if Self.Device.IsSerialPort then
+        Self.Device.Serial.RaiseExcept := OldRaiseExcept;
+    end;
 
     if (Self.LogLevel > 3) then
       RegisterLog('  SYN received');
@@ -2007,7 +2034,7 @@ procedure TACBrAbecsPinPad.WaitForResponse;
       if (b <> ETB) then
       begin
         if (Length(Result) < MAX_PACKET_SIZE) then
-          Result := Result + chr(b)
+          Result := Result + AnsiChr(b)
         else
           DoException(CERR_DATAPACKET_TO_LARGE);
       end;
@@ -2043,7 +2070,7 @@ begin
           RegisterLog(Format('    CRC: %s', [CRCData]));
 
         // TACBrAbecsPacket.AsString Setter checks for CRC and raise Exception on error
-        pkt.AsString := chr(SYN) + PktData + chr(ETB) + CRCData;
+        pkt.AsString := AnsiChr(SYN) + PktData + AnsiChr(ETB) + CRCData;
         Done := True;
       except
         on E: Exception do
@@ -2076,19 +2103,28 @@ begin
 end;
 
 procedure TACBrAbecsPinPad.EvaluateResponse;
+var
+  s: String;
 begin
   if (Self.LogLevel > 2) then
     RegisterLog(Format('  EvaluateResponse: %d', [fResponse.STAT]));
 
+  s := Format('Error: %d - %s', [fResponse.STAT, ReturnStatusCodeDescription(fResponse.STAT)]);
+  if (fResponse.STAT = ST_TIMEOUT) then
+    DoException(EACBrAbecsPinPadTimeout.Create(s));
+
   if (fResponse.STAT <> ST_OK) then
-    DoException(Format('Error: %d - %s', [fResponse.STAT, ReturnStatusCodeDescription(fResponse.STAT)]));
+    DoException(s);
 end;
 
 procedure TACBrAbecsPinPad.CancelWaiting;
 begin
-  if (Self.LogLevel > 0) then
-    RegisterLog('  CancelWaiting');
-  fIsBusy := False;
+  if fIsBusy then
+  begin
+    if (Self.LogLevel > 0) then
+      RegisterLog('  CancelWaiting');
+    fIsBusy := False;
+  end;
 end;
 
 procedure TACBrAbecsPinPad.OPN;
@@ -2102,10 +2138,13 @@ begin
 end;
 
 procedure TACBrAbecsPinPad.OPN(const OPN_MOD: String; const OPN_EXP: String);
-var
-  LenMod, LenExp: Integer;
-  CRKSEC: String;
+//var
+//  LenMod, LenExp: Integer;
+//  CRKSEC: String;
 begin
+  DoException(Format(CERR_NOT_IMPLEMENTED, ['OPN Secure']));
+
+{
   if (Self.LogLevel > 0) then
     RegisterLog('OPN( '+OPN_MOD+', '+OPN_EXP+' )');
   LenMod := Trunc(Length(OPN_MOD)/2);
@@ -2137,6 +2176,7 @@ begin
   CRKSEC := fResponse.GetResponseData;
   //TODO: A LOT OF TO DO....
   GetPinPadCapabilities;
+}
 end;
 
 procedure TACBrAbecsPinPad.GIN(const GIN_ACQIDX: Byte);
@@ -2239,14 +2279,18 @@ begin
     RegisterLog(Format('CEX( %s, %d, %s )',[ASPE_CEXOPT, ASPE_TIMEOUT, ASPE_PANMASK_LLRR]));
   fCommand.Clear;
   fCommand.ID := 'CEX';
+  fCommand.IsBlocking := True;
   s := trim(ASPE_CEXOPT);
   l := Length(s);
   if (l <> 6) or (not StrIsNumber(s)) then
     DoException(Format(CERR_INVALID_PARAM, ['SPE_CEXOPT']));
 
+  if (StrToIntDef(s,0) = 0) then
+    DoException(Format(CERR_INVALID_PARAM, ['SPE_CEXOPT']));
+
   fCommand.AddParamFromTagValue(SPE_CEXOPT, s);
   if (ASPE_TIMEOUT > 0) then
-    fCommand.AddParamFromTagValue(SPE_TIMEOUT, chr(ASPE_TIMEOUT));
+    fCommand.AddParamFromTagValue(SPE_TIMEOUT, AnsiChr(ASPE_TIMEOUT));
 
   if (ASPE_PANMASK_LLRR <> '') then
   begin
@@ -2329,11 +2373,11 @@ begin
   fCommand.IsBlocking := True;
   fCommand.AddParamFromTagValue(SPE_MSGIDX, IntToBEStr(ASPE_MSGIDX, 2));
   if (ASPE_MINDIG > 0) then
-    fCommand.AddParamFromTagValue(SPE_MINDIG, chr(ASPE_MINDIG));
+    fCommand.AddParamFromTagValue(SPE_MINDIG, AnsiChr(ASPE_MINDIG));
   if (ASPE_MAXDIG > 0) then
-    fCommand.AddParamFromTagValue(SPE_MAXDIG, chr(ASPE_MAXDIG));
+    fCommand.AddParamFromTagValue(SPE_MAXDIG, AnsiChr(ASPE_MAXDIG));
   if (ASPE_TIMEOUT > 0) then
-    fCommand.AddParamFromTagValue(SPE_TIMEOUT, chr(ASPE_TIMEOUT));
+    fCommand.AddParamFromTagValue(SPE_TIMEOUT, AnsiChr(ASPE_TIMEOUT));
 
   ExecCommand;
   Result := fResponse.GetResponseFromTagValue(PP_VALUE);
@@ -2429,6 +2473,7 @@ var
   s: String;
   i: Integer;
 begin
+  Result := '';
   GetPinPadCapabilities;
   if (Self.LogLevel > 0) then
   begin
@@ -2442,7 +2487,7 @@ begin
   fCommand.ID := 'MNU';
   fCommand.IsBlocking := True;
   if (ASPE_TIMEOUT > 0) then
-    fCommand.AddParamFromTagValue(SPE_TIMEOUT, chr(ASPE_TIMEOUT));
+    fCommand.AddParamFromTagValue(SPE_TIMEOUT, AnsiChr(ASPE_TIMEOUT));
   fCommand.AddParamFromTagValue(SPE_DSPMSG, FormatSPE_DSPMSG(ASPE_DSPMSG));
   for i := Low(ASPE_MNUOPT) to High(ASPE_MNUOPT) do
   begin
@@ -2451,6 +2496,22 @@ begin
   end;
   ExecCommand;
   Result := fResponse.GetResponseFromTagValue(PP_VALUE);
+end;
+
+function TACBrAbecsPinPad.MNU(ASPE_MNUOPT: TStrings; ASPE_DSPMSG: String;
+  ASPE_TIMEOUT: Byte): String;
+var
+  i: Integer;
+  Options: array of String;
+begin
+  Result := '';
+  for i := 0 to ASPE_MNUOPT.Count-1 do
+  begin
+    SetLength(Options, i+1);
+    Options[i] := ASPE_MNUOPT[i];
+  end;
+
+  Result := MNU(Options, ASPE_DSPMSG, ASPE_TIMEOUT);
 end;
 
 procedure TACBrAbecsPinPad.RMC(const RMC_MSG: String);
@@ -2462,6 +2523,11 @@ begin
   fCommand.IsBlocking := True;
   fCommand.AddParamFromData(FormatMSG_S32(RMC_MSG));
   ExecCommand;
+end;
+
+procedure TACBrAbecsPinPad.RMC(const Line1: String; Line2: String);
+begin
+  RMC( Line1 + CR + Line2);
 end;
 
 procedure TACBrAbecsPinPad.MLI(const ASPE_MFNAME: String;
@@ -2495,7 +2561,7 @@ var
 begin
   if (Self.LogLevel > 0) then
     RegisterLog('MLI( '+ASPE_MFNAME+', '+IntToStr(FileSize)+', '+IntToStr(CRC)+', '+IntToStr(FileType)+' )');
-  ASPE_MFINFO := IntToBEStr(FileSize, 4) + IntToBEStr(CRC, 2) + chr(FileType) + #0#0#0;
+  ASPE_MFINFO := IntToBEStr(FileSize, 4) + IntToBEStr(CRC, 2) + AnsiChr(FileType) + #0#0#0;
   MLI(ASPE_MFNAME, ASPE_MFINFO);
 end;
 

@@ -45,8 +45,9 @@ uses
   {$IFEND}
   ACBrBase,
   pcnConversao,
-  pcnSignature,
-  ACBrDCeEventoClass, pcnConsts, ACBrDCeConsts;
+  ACBrDFeComum.SignatureClass,
+  ACBrDCeEventoClass,
+  ACBrDCeConsts;
 
 type
   EventoException = class(Exception);
@@ -107,7 +108,6 @@ uses
   ACBrDFeUtil, ACBrXmlBase,
   ACBrUtil.Base, ACBrUtil.Strings, ACBrUtil.FilesIO, ACBrUtil.DateTime,
   ACBrDCeRetEnvEvento,
-  pcnAuxiliar,
   ACBrDCeConversao;
 
 { TInfEventoCollection }
@@ -241,7 +241,7 @@ begin
              '<dhEvento>' +
                 FormatDateTime('yyyy-mm-dd"T"hh:nn:ss',
                                Evento.Items[i].InfEvento.dhEvento) +
-                            GetUTC(CodigoParaUF(Evento.Items[i].InfEvento.cOrgao),
+                            GetUTC(CodigoUFparaUF(Evento.Items[i].InfEvento.cOrgao),
                                    Evento.Items[i].InfEvento.dhEvento) +
              '</dhEvento>' +
              '<tpEvento>' + Evento.Items[i].InfEvento.TipoEvento + '</tpEvento>' +
@@ -363,8 +363,8 @@ begin
         infEvento.cOrgao   := INIRec.ReadInteger(sSecao, 'cOrgao', 0);
         infEvento.CNPJ     := INIRec.ReadString( sSecao, 'CNPJ'  , '');
         infEvento.chDCe   := sFim;
-        infEvento.dhEvento := StringToDateTime(INIRec.ReadString(    sSecao, 'dhEvento', ''));
-        infEvento.tpEvento := StrToEventoDCe(ok,INIRec.ReadString(sSecao, 'tpEvento', ''));
+        infEvento.dhEvento := StringToDateTime(INIRec.ReadString(sSecao, 'dhEvento', ''));
+        infEvento.tpEvento := StrTotpEventoDCe(ok,INIRec.ReadString(sSecao, 'tpEvento', ''));
 
         infEvento.nSeqEvento := INIRec.ReadInteger(sSecao, 'nSeqEvento', 1);
 

@@ -2569,7 +2569,7 @@ inherited frlXDANFSeRLISSnet: TfrlXDANFSeRLISSnet
     end
   end
   inherited RLPDFFilter1: TRLPDFFilter
-    Left = 272
+    Left = 280
     Top = 40
   end
 end

@@ -155,7 +155,7 @@ constructor TACBrNFCom.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  FNotasFiscais := TNotasFiscais.Create(Self, NotaFiscal);
+  FNotasFiscais := TNotasFiscais.Create(Self, TNotaFiscal);
   FEventoNFCom := TEventoNFCom.Create;
   FWebServices := TWebServices.Create(Self);
 end;
@@ -305,7 +305,7 @@ function TACBrNFCom.GerarNomeArqSchemaEvento(ASchemaEventoNFCom: TSchemaNFCom;
 var
   xComplemento: string;
 begin
-  if VersaoServico = 0.0 then
+  if VersaoServico = 0 then
     Result := ''
   else
   begin
@@ -376,9 +376,8 @@ function TACBrNFCom.GetURLConsultaNFCom(const CUF: integer;
 var
   VersaoDFe: TVersaoNFCom;
   VersaoQrCode: TVersaoQrCode;
-  ok: Boolean;
 begin
-  VersaoDFe := DblToVersaoNFCom(ok, Versao);
+  VersaoDFe := DblToVersaoNFCom(Versao);
   VersaoQrCode := AjustarVersaoQRCode(Configuracoes.Geral.VersaoQRCode, VersaoDFe);
 
   Result := LerURLDeParams('NFCom', CUFtoUF(CUF), TpcnTipoAmbiente(TipoAmbiente),
@@ -392,9 +391,8 @@ var
   idNFCom, sEntrada, urlUF, Passo2, sign: string;
   VersaoDFe: TVersaoNFCom;
   VersaoQrCode: TVersaoQrCode;
-  Ok: Boolean;
 begin
-  VersaoDFe := DblToVersaoNFCom(Ok, Versao);
+  VersaoDFe := DblToVersaoNFCom(Versao);
   VersaoQrCode := AjustarVersaoQRCode(Configuracoes.Geral.VersaoQRCode, VersaoDFe);
 
   urlUF := LerURLDeParams('NFCom', CUFtoUF(CUF), TpcnTipoAmbiente(TipoAmbiente),
@@ -409,7 +407,7 @@ begin
   sEntrada := 'chNFCom=' + idNFCom + '&tpAmb=' + TipoAmbienteToStr(TipoAmbiente);
 
   // Passo 2 calcular o SHA-1 da string idCTe se o Tipo de Emissão for EPEC ou FSDA
-  if TipoEmissao = TACBrTipoEmissao.teOffLine then
+  if TipoEmissao = TACBrTipoEmissao(teOffLine) then
   begin
     // Tipo de Emissão em Contingência
     SSL.CarregarCertificadoSeNecessario;

@@ -2369,6 +2369,6 @@ inherited frlXDANFSeRLRetrato: TfrlXDANFSeRLRetrato
     end
   end
   inherited RLPDFFilter1: TRLPDFFilter
-    Left = 120
+    Left = 136
   end
 end

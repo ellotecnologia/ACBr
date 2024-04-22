@@ -54,7 +54,9 @@ uses
   {$ELSE}
    Contnrs,
   {$IFEND}
-  ACBrBase, pcnConversao, pcnConsts,
+  ACBrBase,
+  ACBrDFeConsts,
+  pcnConversao,
   pcesCommon, pcesConversaoeSocial, pcesGerador;
 
 type
@@ -1705,7 +1707,7 @@ procedure TEvtProcTrab.GerarBaseCalculo(obj: TbaseCalculo);
 var
   NrOcorrBcCp: Integer;
 begin
-  if ( (VersaoDF >= veS01_02_00) and (obj.vrBcCpMensal = 0) ) then
+  if ( (VersaoDF >= veS01_02_00) and (obj.vrBcCpMensal = 0) and (obj.vrBcCp13 = 0)) then
     exit;
 
   if (VersaoDF >= veS01_02_00) then

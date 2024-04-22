@@ -44,7 +44,7 @@ uses
   ACBrOpenSSLUtils, ACBrPIXPSPSicredi, ACBrPIXBRCode, ACBrSocket, ACBrBase,
   ImgList, ACBrPIXPSPSicoob, ACBrPIXPSPPagSeguro, ACBrPIXPSPGerenciaNet,
   ACBrPIXPSPBradesco, ACBrPIXPSPPixPDV, ACBrPIXPSPInter, ACBrPIXPSPAilos,
-  ACBrPIXPSPMatera, ACBrPIXPSPCielo, ACBrPIXPSPMercadoPago
+  ACBrPIXPSPMatera, ACBrPIXPSPCielo, ACBrPIXPSPMercadoPago, ACBrPIXPSPGate2All
   {$IfDef FPC}
   , DateTimePicker
   {$EndIf};
@@ -78,6 +78,7 @@ type
     ACBrPSPBancoDoBrasil1: TACBrPSPBancoDoBrasil;
     ACBrPSPBradesco1: TACBrPSPBradesco;
     ACBrPSPCielo1: TACBrPSPCielo;
+    ACBrPSPGate2All1: TACBrPSPGate2All;
     ACBrPSPInter1: TACBrPSPInter;
     ACBrPSPItau1: TACBrPSPItau;
     ACBrPSPMatera1: TACBrPSPMatera;
@@ -189,6 +190,7 @@ type
     edCieloChavePIX: TEdit;
     edMercadoPago: TEdit;
     edCieloClientID: TEdit;
+    edGate2AllAuthenticationApi: TEdit;
     edMercadoPagoAccessToken: TEdit;
     edCieloClientSecret: TEdit;
     edMateraAccountId: TEdit;
@@ -243,6 +245,7 @@ type
     edInterCertificado: TEdit;
     edInterChavePrivada: TEdit;
     edMateraClientSecret: TEdit;
+    edGate2AllAuthenticationKey: TEdit;
     edPagSeguroTokenPay: TEdit;
     edPixPDVCNPJ: TEdit;
     edPixPDVSecretKey: TEdit;
@@ -386,11 +389,13 @@ type
     Label17: TLabel;
     Label18: TLabel;
     lbCieloChave: TLabel;
+    lbGate2AllAuthenticationKey: TLabel;
     lbMercadoPagoChavePIX: TLabel;
     lbCieloClientID: TLabel;
     lbMercadoPagoAccessToken: TLabel;
     lbCieloClientSecret: TLabel;
     lbCieloTipoChave: TLabel;
+    lbGate2AllAuthenticationApi: TLabel;
     lbMercadoPagoTipoChave: TLabel;
     lbMateraMediatorFee: TLabel;
     lbMateraSimularPagamento: TLabel;
@@ -608,6 +613,7 @@ type
     pnBBChaveECert: TPanel;
     pnBBPFX: TPanel;
     pnInter: TPanel;
+    pnGate2All: TPanel;
     pnPixPDV: TPanel;
     pnGerenciaNet: TPanel;
     pnAutenticacaoManual: TPanel;
@@ -736,6 +742,7 @@ type
     sbPagSeguroAcharArqCertificado: TSpeedButton;
     sbSicrediAcharChavePrivada: TSpeedButton;
     sbPagSeguroAcharChavePrivada: TSpeedButton;
+    sbSicrediAcharChavePrivada2: TSpeedButton;
     sbVerSenhaProxy: TSpeedButton;
     seCobrancaExpiracao: TSpinEdit;
     seConsultarCobrancaImediata_Revisao: TSpinEdit;
@@ -764,6 +771,7 @@ type
     btSicoobExtrairChaveCertificadoInfo: TSpeedButton;
     Splitter1: TSplitter;
     Splitter2: TSplitter;
+    tsGate2All: TTabSheet;
     tsMercadoPago: TTabSheet;
     tsCielo: TTabSheet;
     tsMateraSimularPagamento: TTabSheet;
@@ -827,7 +835,6 @@ type
     Valor: TLabel;
     ACBrPSPGerenciaNet1: TACBrPSPGerenciaNet;
     tsGerenciaNet: TTabSheet;
-    sbSicrediAcharChavePrivada2: TSpeedButton;
     procedure ACBrPixCD1QuandoGravarLog(const ALogLine: String; var Tratado: Boolean);
     procedure ACBrPSPBancoDoBrasil1QuandoReceberRespostaHttp(const AURL: String;
       const AMethod: String; RespHeaders: TStrings; var AResultCode: Integer;
@@ -2179,6 +2186,7 @@ end;
 procedure TForm1.btFluxoPagarClick(Sender: TObject);
 var
   wNome, wDoc: String;
+  sl: TStringList;
   I: Integer;
 begin
   VerificarConfiguracao;
@@ -2217,17 +2225,24 @@ begin
           valor := FormatDateTime('yymmddhhnnss', Now);
         end;
 
-        for I := 1 to Pred(gdFluxoItens.RowCount) do
-          with infoAdicionais.New do
+        sl := TStringList.Create;
+        try
+          for I := 1 to Pred(gdFluxoItens.RowCount) do
           begin
-            nome := 'item_' + IntToStr(I);
-            valor := '{' +
-              '"ean": "' + gdFluxoItens.Cells[0, I] + '", ' +
-              '"item_title": "' + gdFluxoItens.Cells[1, I] + '", ' +
-              '"quantity": 1, ' +
-              '"sku": "' + gdFluxoItens.Cells[0, I] + '", ' +
-              '"unit_price": ' + StringReplace(gdFluxoItens.Cells[2, I], '.', '', []) + '}';
+            with infoAdicionais.New do
+            begin
+              nome := 'item_' + IntToStr(I);
+              sl.Add('ean=' + gdFluxoItens.Cells[0, I]);
+              sl.Add('item_title=' + gdFluxoItens.Cells[1, I]);
+              sl.Add('quantity=1');
+              sl.Add('sku=' + gdFluxoItens.Cells[0, I]);
+              sl.Add('unit_price=' + gdFluxoItens.Cells[2, I]);
+              valor := sl.Text;
+            end;
           end;
+        finally
+          sl.Free;
+        end;
       end;
 
       valor.original := fFluxoDados.Total;
@@ -3794,6 +3809,9 @@ begin
     edCieloClientSecret.Text := Ini.ReadString('Cielo', 'ClientSecret', '');
 
     edMercadoPagoAccessToken.Text := Ini.ReadString('MercadoPago', 'AccessToken', '');
+
+    edGate2AllAuthenticationApi.Text := Ini.ReadString('Gate2All', 'AuthenticationApi', '');
+    edGate2AllAuthenticationKey.Text := Ini.ReadString('Gate2All', 'AuthenticationKey', '');
   finally
     Ini.Free;
   end;
@@ -3924,6 +3942,9 @@ begin
     Ini.WriteString('Cielo', 'ClientSecret', edCieloClientSecret.Text);
 
     Ini.WriteString('MercadoPago', 'AccessToken', edMercadoPagoAccessToken.Text);
+
+    Ini.WriteString('Gate2All', 'AuthenticationApi', edGate2AllAuthenticationApi.Text);
+    Ini.WriteString('Gate2All', 'AuthenticationKey', edGate2AllAuthenticationKey.Text);
   finally
      Ini.Free;
   end;
@@ -4200,6 +4221,7 @@ begin
     12: ACBrPixCD1.PSP := ACBrPSPMatera1;
     13: ACBrPixCD1.PSP := ACBrPSPCielo1;
     14: ACBrPixCD1.PSP := ACBrPSPMercadoPago1;
+    15: ACBrPixCD1.PSP := ACBrPSPGate2All1;
   else
     raise Exception.Create('PSP configurado é inválido');
   end;
@@ -4311,6 +4333,9 @@ begin
   ACBrPSPCielo1.ClientSecret := edCieloClientSecret.Text;
 
   ACBrPSPMercadoPago1.AccessToken := edMercadoPagoAccessToken.Text;
+
+  ACBrPSPGate2All1.AuthenticationApi := edGate2AllAuthenticationApi.Text;
+  ACBrPSPGate2All1.AuthenticationKey := edGate2AllAuthenticationKey.Text;
 end;
 
 procedure TForm1.LimparQRCodeEstatico;

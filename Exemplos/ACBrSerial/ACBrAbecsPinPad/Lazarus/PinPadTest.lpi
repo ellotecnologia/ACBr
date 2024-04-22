@@ -155,7 +155,7 @@
     </CodeGeneration>
     <Linking>
       <Debugging>
-        <DebugInfoType Value="dsDwarf3"/>
+        <DebugInfoType Value="dsDwarf2Set"/>
         <UseHeaptrc Value="True"/>
         <TrashVariables Value="True"/>
         <UseExternalDbgSyms Value="True"/>
@@ -183,6 +183,12 @@
       </Item>
       <Item>
         <Name Value="ESynaSerError"/>
+      </Item>
+      <Item>
+        <Name Value="EACBrAbecsPinPadTimeout"/>
+      </Item>
+      <Item>
+        <Name Value="EACBrAbecsPinPadError"/>
       </Item>
     </Exceptions>
   </Debugging>

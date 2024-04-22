@@ -89,7 +89,7 @@ end;
 function TRetornoEnvio_Itau_API.LerRetorno(const ARetornoWS: TACBrBoletoRetornoWS): Boolean;
 var
   AJson: TJson;
-  AJSonRejeicao, AJSonObject, AJSonDadoBoleto: TJsonObject;
+  AJSonData, AJSonRejeicao, AJSonObject, AJSonDadoBoleto, AJSonDadoQrCode: TJsonObject;
   ARejeicao: TACBrBoletoRejeicao;
   AJSonResp,  AJSonRespDadosIndivBlt,  AJSonRespDadosIndivBltPagamento: TJsonArray;
   I, J: Integer;
@@ -140,11 +140,12 @@ begin
           end
           else
           begin
-
-            if AJson.Values['data'].IsEmpty then
-              AJSonDadoBoleto := AJSon.Values['dado_boleto'].AsObject
+            AJSonData := AJson.Values['data'].AsObject;
+            if AJson.IsJsonObject('data') then
+              AJSonDadoBoleto  := AJson.Values['data'].AsObject.Values['dado_boleto'].AsObject
             else
-              AJSonDadoBoleto  := AJson.Values['data'].AsObject.Values['dado_boleto'].AsObject;
+              AJSonDadoBoleto := AJSon.Values['dado_boleto'].AsObject;
+
 
             ARetornoWS.DadosRet.TituloRet.Carteira       := AJSonDadoBoleto.Values['codigo_carteira'].AsString;
             ARetornoWS.DadosRet.TituloRet.ValorDocumento := StrToFloatDef( AJSonDadoBoleto.Values['valor_total_titulo'].AsString, 0)/100;
@@ -201,6 +202,13 @@ begin
                 ARetornoWS.DadosRet.TituloRet.Informativo.Add( AJSonRespDadosIndivBlt[I].AsObject.Values['texto_informacao_cliente_beneficiario'].AsString );
                 ARetornoWS.DadosRet.TituloRet.Mensagem.Add(AJSonRespDadosIndivBlt[I].AsObject.Values['local_pagamento'].AsString);
               end;
+
+              AJSonDadoQrCode := AJSonData.Values['dados_qrcode'].AsObject;
+              ARetornoWS.DadosRet.TituloRet.EMV := AJSonDadoQrCode.Values['emv'].AsString;
+              ARetornoWS.DadosRet.TituloRet.TxId := AJSonDadoQrCode.Values['txid'].AsString;
+              ARetornoWS.DadosRet.TituloRet.UrlPix := AJSonDadoQrCode.Values['location'].AsString;
+              ARetornoWS.DadosRet.TituloRet.Url := AJSonDadoQrCode.Values['location'].AsString;
+
           end;
         end else
         if TipoOperacao = tpConsultaDetalhe then

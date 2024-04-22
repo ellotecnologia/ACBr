@@ -947,6 +947,9 @@ begin
       end
       else if NaoEstaVazio(ArquivoChavePrivada) then
         Http.Sock.SSL.PrivateKeyFile := ArquivoChavePrivada;
+
+      if NaoEstaVazio(SenhaPFX) then
+        Http.Sock.SSL.KeyPassword := SenhaPFX;
     end;
   end;
 end;
@@ -1925,10 +1928,13 @@ begin
   Result := fHttpSend.HTTPMethod(vMethod, vURL);  // HTTP call
   ResultCode := fHttpSend.ResultCode;
 
-  if NivelLog > 1 then
+  if (NivelLog > 1) then
     RegistrarLog('  ResultCode: '+IntToStr(ResultCode)+' - '+fHttpSend.ResultString);
   if (NivelLog > 3) then
+  begin
+    RegistrarLog('  Sock.LastError: '+IntToStr(fHttpSend.Sock.LastError));  
     RegistrarLog('  Resp.Headers:'+ sLineBreak + fHttpSend.Headers.Text);
+  end;
 
   if ContentIsCompressed(fHttpSend.Headers) then
   begin

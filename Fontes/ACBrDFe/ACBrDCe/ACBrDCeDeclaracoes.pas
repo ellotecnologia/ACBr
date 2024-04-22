@@ -3,7 +3,7 @@
 {  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
 {                                                                              }
-{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{ Direitos Autorais Reservados (c) 2024 Daniel Simoes de Almeida               }
 {                                                                              }
 { Colaboradores nesse arquivo: Italo Giurizzato Junior                         }
 {                                                                              }
@@ -44,8 +44,7 @@ uses
   ACBrDCeClass, 
 	ACBrDCeXmlReader,
 	ACBrDCeXmlWriter,
-	pcnConversao, 
-	pcnAuxiliar;
+	pcnConversao;
 
 type
 
@@ -180,7 +179,7 @@ uses
   ACBrUtil.Strings,
   ACBrUtil.XMLHTML,
   ACBrUtil.FilesIO,
-//  ACBrUtil.DateTime,
+  ACBrUtil.DateTime,
 	ACBrXmlBase,
   ACBrDCe,
 	ACBrDFeUtil,
@@ -1191,7 +1190,7 @@ begin
     FDCeW.Opcoes.NormatizarMunicipios  := Configuracoes.Arquivos.NormatizarMunicipios;
     FDCeW.Opcoes.PathArquivoMunicipios := Configuracoes.Arquivos.PathArquivoMunicipios;
 
-    pcnAuxiliar.TimeZoneConf.Assign( Configuracoes.WebServices.TimeZoneConf );
+    TimeZoneConf.Assign( Configuracoes.WebServices.TimeZoneConf );
   end;
 
   FDCeW.GerarXml;

@@ -39,13 +39,15 @@ interface
 uses
   Classes, SysUtils, dateutils,
   blcksock, synacode,
-  ACBrDFe, ACBrDFeWebService,
-//  ACBrDFeConversao,
   ACBrXmlBase,
+  ACBrDFe, ACBrDFeWebService,
+  ACBrDFeUtil,
+  ACBrDFeComum.Proc,
+//  ACBrDFeConversao,
   ACBrNFComNotasFiscais, ACBrNFComConfiguracoes,
-  ACBrNFComClass, ACBrNFComConversao, ACBrNFComProc, ACBrNFComRetConsSit,
+  ACBrNFComClass, ACBrNFComConversao,
+  ACBrNFComRetConsSit,
   ACBrNFComEnvEvento, ACBrNFComRetEnvEvento,
-  pcnAuxiliar,
   pcnConversao;
 
 type
@@ -162,6 +164,7 @@ type
     property NFComRetornoSincrono: TRetConsSitNFCom read FNFComRetornoSincrono;
   end;
 
+  (*
   { TNFComRetRecepcao }
 
   TNFComRetRecepcao = class(TNFComWebService)
@@ -216,7 +219,7 @@ type
 
 //    property NFComRetorno: TRetConsReciDFe read FNFComRetorno;
   end;
-
+  *)
   { TNFComConsulta }
 
   TNFComConsulta = class(TNFComWebService)
@@ -235,7 +238,7 @@ type
     FcUF: integer;
     FRetNFComDFe: string;
 
-    FprotNFCom: TProcNFCom;
+    FprotNFCom: TProcDFe;
     FprocEventoNFCom: TRetEventoNFComCollection;
 
     procedure SetNFComChave(const AValue: string);
@@ -266,7 +269,7 @@ type
     property cUF: integer read FcUF;
     property RetNFComDFe: string read FRetNFComDFe;
 
-    property protNFCom: TProcNFCom read FprotNFCom;
+    property protNFCom: TProcDFe read FprotNFCom;
     property procEventoNFCom: TRetEventoNFComCollection read FprocEventoNFCom;
   end;
 
@@ -341,7 +344,7 @@ type
     FACBrNFCom: TACBrDFe;
     FStatusServico: TNFComStatusServico;
     FEnviar: TNFComRecepcao;
-    FRetorno: TNFComRetRecepcao;
+//    FRetorno: TNFComRetRecepcao;
     FConsulta: TNFComConsulta;
     FEnvEvento: TNFComEnvEvento;
     FEnvioWebService: TNFComEnvioWebService;
@@ -355,7 +358,7 @@ type
     property StatusServico: TNFComStatusServico read FStatusServico
       write FStatusServico;
     property Enviar: TNFComRecepcao read FEnviar write FEnviar;
-    property Retorno: TNFComRetRecepcao read FRetorno write FRetorno;
+//    property Retorno: TNFComRetRecepcao read FRetorno write FRetorno;
     property Consulta: TNFComConsulta read FConsulta write FConsulta;
     property EnvEvento: TNFComEnvEvento read FEnvEvento write FEnvEvento;
     property EnvioWebService: TNFComEnvioWebService read FEnvioWebService
@@ -368,12 +371,12 @@ uses
   StrUtils, Math,
   ACBrUtil.Base, ACBrUtil.XMLHTML, ACBrUtil.Strings, ACBrUtil.DateTime,
   ACBrUtil.FilesIO,
-  ACBrCompress, ACBrNFCom, ACBrIntegrador,
+  ACBrCompress, ACBrIntegrador,
+  ACBrDFeComum.ConsStatServ,
+  ACBrDFeComum.RetConsStatServ,
+  ACBrNFCom,
   ACBrNFComConsts,
-  ACBrNFComConsSit,
-//  ACBrDFeConsts,
-  ACBrNFComConsStatServ, ACBrNFComRetConsStatServ,
-  pcnConsReciDFe;
+  ACBrNFComConsSit;
 
 { TNFComWebService }
 
@@ -495,7 +498,7 @@ begin
   ConsStatServ := TConsStatServ.Create(FPVersaoServico, NAME_SPACE_NFCom,
                                                                 'NFCom', False);
   try
-    ConsStatServ.TpAmb := TACBrTipoAmbiente(FPConfiguracoesNFCom.WebServices.Ambiente);
+    ConsStatServ.TpAmb := FPConfiguracoesNFCom.WebServices.Ambiente;
     ConsStatServ.CUF := FPConfiguracoesNFCom.WebServices.UFCodigo;
 
     FPDadosMsg := ConsStatServ.GerarXML;
@@ -516,7 +519,7 @@ begin
 
   NFComRetorno := TRetConsStatServ.Create('NFCom');
   try
-    NFComRetorno.XmlRetorno := ParseText(FPRetWS, True, False);
+    NFComRetorno.XmlRetorno := ParseText(FPRetWS);
     NFComRetorno.LerXml;
 
     Fversao := NFComRetorno.versao;
@@ -567,7 +570,7 @@ begin
                            'Retorno: %s' + LineBreak +
                            'Observação: %s' + LineBreak),
                    [Fversao, TipoAmbienteToStr(FtpAmb), FverAplic, IntToStr(FcStat),
-                    FxMotivo, CodigoParaUF(FcUF),
+                    FxMotivo, CodigoUFparaUF(FcUF),
                     IfThen(FdhRecbto = 0, '', FormatDateTimeBr(FdhRecbto)),
                     IntToStr(FTMed),
                     IfThen(FdhRetorno = 0, '', FormatDateTimeBr(FdhRetorno)),
@@ -638,12 +641,10 @@ begin
 end;
 
 procedure TNFComRecepcao.InicializarServico;
-var
-  ok: Boolean;
 begin
   // Tem NFCom ? Se SIM, use as informações do XML
   if FNotasFiscais.Count > 0 then
-    FVersaoDF := DblToVersaoNFCom(ok, FNotasFiscais.Items[0].NFCom.infNFCom.Versao)
+    FVersaoDF := DblToVersaoNFCom(FNotasFiscais.Items[0].NFCom.infNFCom.Versao)
   else
     FVersaoDF := FPConfiguracoesNFCom.Geral.VersaoDF;
 
@@ -735,7 +736,7 @@ function TNFComRecepcao.TratarResposta: Boolean;
 var
   I: integer;
   chNFCom, AXML, NomeXMLSalvo: string;
-  AProcNFCom: TProcNFCom;
+  AProcNFCom: TProcDFe;
   SalvarXML: Boolean;
 begin
   FPRetWS := SeparaDadosArray(['nfcomResultMsg'], FPRetornoWS );
@@ -753,7 +754,7 @@ begin
   else
     AXML := FPRetWS;
 
-  FNFComRetornoSincrono.XmlRetorno := ParseText(AXML, True, False);
+  FNFComRetornoSincrono.XmlRetorno := ParseText(AXML);
   FNFComRetornoSincrono.LerXml;
 
   Fversao := FNFComRetornoSincrono.versao;
@@ -809,12 +810,11 @@ begin
           NFCom.procNFCom.digVal := FNFComRetornoSincrono.protNFCom.digVal;
           NFCom.procNFCom.xMotivo := FNFComRetornoSincrono.protNFCom.xMotivo;
 
-          AProcNFCom := TProcNFCom.Create;
+          AProcNFCom := TProcDFe.Create(FPVersaoServico, NAME_SPACE_NFCom, 'NFCom');
           try
             // Processando em UTF8, para poder gravar arquivo corretamente //
-            AProcNFCom.XML_NFCom := RemoverDeclaracaoXML(XMLAssinado);
+            AProcNFCom.XML_DFe := RemoverDeclaracaoXML(XMLAssinado);
             AProcNFCom.XML_Prot := FNFComRetornoSincrono.XMLprotNFCom;
-            AProcNFCom.Versao := FPVersaoServico;
             XMLOriginal := AProcNFCom.GerarXML;
 
             if FPConfiguracoesNFCom.Arquivos.Salvar then
@@ -860,7 +860,7 @@ begin
                     FNFComRetornoSincrono.verAplic,
                     IntToStr(FNFComRetornoSincrono.protNFCom.cStat),
                     FNFComRetornoSincrono.protNFCom.xMotivo,
-                    CodigoParaUF(FNFComRetornoSincrono.cUF),
+                    CodigoUFparaUF(FNFComRetornoSincrono.cUF),
                     FormatDateTimeBr(FNFComRetornoSincrono.dhRecbto),
                     FNFComRetornoSincrono.chNFCom]);
 end;
@@ -880,6 +880,7 @@ begin
   end;
 end;
 
+(*
 { TNFComRetRecepcao }
 
 constructor TNFComRetRecepcao.Create(AOwner: TACBrDFe; ANotasFiscais: TNotasFiscais);
@@ -1083,7 +1084,7 @@ begin
 
   RemoverNameSpace;
   {
-  FNFComRetorno.Leitor.Arquivo := ParseText(FPRetWS, True, False);
+  FNFComRetorno.Leitor.Arquivo := ParseText(FPRetWS);
   FNFComRetorno.LerXML;
 
   Fversao := FNFComRetorno.versao;
@@ -1259,7 +1260,7 @@ function TNFComRetRecepcao.GerarPrefixoArquivo: string;
 begin
   Result := Recibo;
 end;
-
+*)
 { TNFComConsulta }
 
 constructor TNFComConsulta.Create(AOwner: TACBrDFe; ANotasFiscais: TNotasFiscais);
@@ -1307,7 +1308,7 @@ begin
   if Assigned(FprocEventoNFCom) then
     FprocEventoNFCom.Free;
 
-  FprotNFCom := TProcNFCom.Create;
+  FprotNFCom := TProcDFe.Create(FPVersaoServico, NAME_SPACE_NFCom, 'NFCom');
   FprocEventoNFCom := TRetEventoNFComCollection.Create;
 end;
 
@@ -1377,6 +1378,7 @@ var
   ConsSitNFCom: TConsSitNFCom;
 begin
   ConsSitNFCom := TConsSitNFCom.Create;
+
   try
     ConsSitNFCom.TpAmb := TACBrTipoAmbiente(FTpAmb);
     ConsSitNFCom.chNFCom := FNFComChave;
@@ -1435,7 +1437,7 @@ var
   NFComRetorno: TRetConsSitNFCom;
   SalvarXML, NFCancelada, Atualiza: Boolean;
   aEventos, sPathNFCom, NomeXMLSalvo: string;
-  AProcNFCom: TProcNFCom;
+  AProcNFCom: TProcDFe;
   I,
 //  J,
   Inicio, Fim: integer;
@@ -1450,7 +1452,7 @@ begin
 
     RemoverNameSpace;
 
-    NFComRetorno.XmlRetorno := ParseText(FPRetWS, True, False);
+    NFComRetorno.XmlRetorno := ParseText(FPRetWS);
     NFComRetorno.LerXML;
 
     NFCancelada := False;
@@ -1469,18 +1471,17 @@ begin
 
     // <protNFCom> - Retorno dos dados do ENVIO da NFCom-e
     // Considerá-los apenas se não existir nenhum evento de cancelamento (110111)
-    FprotNFCom.PathNFCom := NFComRetorno.protNFCom.PathNFCom;
-    FprotNFCom.PathRetConsReciNFCom := NFComRetorno.protNFCom.PathRetConsReciNFCom;
-    FprotNFCom.PathRetConsSitNFCom := NFComRetorno.protNFCom.PathRetConsSitNFCom;
+    FprotNFCom.PathDFe := NFComRetorno.protNFCom.PathNFCom;
+    FprotNFCom.PathRetConsReciDFe := NFComRetorno.protNFCom.PathRetConsReciNFCom;
+    FprotNFCom.PathRetConsSitDFe := NFComRetorno.protNFCom.PathRetConsSitNFCom;
     FprotNFCom.tpAmb := NFComRetorno.protNFCom.tpAmb;
     FprotNFCom.verAplic := NFComRetorno.protNFCom.verAplic;
-    FprotNFCom.chNFCom := NFComRetorno.protNFCom.chNFCom;
+    FprotNFCom.chDFe := NFComRetorno.protNFCom.chNFCom;
     FprotNFCom.dhRecbto := NFComRetorno.protNFCom.dhRecbto;
     FprotNFCom.nProt := NFComRetorno.protNFCom.nProt;
     FprotNFCom.digVal := NFComRetorno.protNFCom.digVal;
     FprotNFCom.cStat := NFComRetorno.protNFCom.cStat;
     FprotNFCom.xMotivo := NFComRetorno.protNFCom.xMotivo;
-    FprotNFCom.Versao := NFComRetorno.protNFCom.Versao;
 
     {(*}
     if Assigned(NFComRetorno.procEventoNFCom) and (NFComRetorno.procEventoNFCom.Count > 0) then
@@ -1653,14 +1654,10 @@ begin
                   NFCom.procNFCom.Versao := NFComRetorno.protNFCom.Versao;
 
                   // O código abaixo é bem mais rápido que "GerarXML" (acima)...
-                  AProcNFCom := TProcNFCom.Create;
+                  AProcNFCom := TProcDFe.Create(FPVersaoServico, NAME_SPACE_NFCom, 'NFCom');;
                   try
-                    AProcNFCom.XML_NFCom := RemoverDeclaracaoXML(XMLOriginal);
+                    AProcNFCom.XML_DFe := RemoverDeclaracaoXML(XMLOriginal);
                     AProcNFCom.XML_Prot := NFComRetorno.XMLprotNFCom;
-                    AProcNFCom.Versao := NFComRetorno.protNFCom.Versao;
-
-                    if AProcNFCom.Versao = '' then
-                      AProcNFCom.Versao := FPVersaoServico;
 
                     XMLOriginal := AProcNFCom.GerarXML;
                   finally
@@ -1769,7 +1766,7 @@ begin
                            'Protocolo: %s ' + LineBreak +
                            'Digest Value: %s ' + LineBreak),
                    [Fversao, FNFComChave, TipoAmbienteToStr(FtpAmb), FverAplic,
-                    IntToStr(FcStat), FXMotivo, CodigoParaUF(FcUF), FNFComChave,
+                    IntToStr(FcStat), FXMotivo, CodigoUFparaUF(FcUF), FNFComChave,
                     FormatDateTimeBr(FDhRecbto), FProtocolo, FprotNFCom.digVal]);
   {*)}
 end;
@@ -1927,6 +1924,8 @@ begin
                           Trim(RetornarConteudoEntre(AXMLEvento, '<evCancNFCom>', '</evCancNFCom>')) +
                         '</evCancNFCom>';
         end;
+    else
+      AXMLEvento := '';
     end;
 
     AXMLEvento := '<' + ENCODING_UTF8 + '>' + AXMLEvento;
@@ -1972,7 +1971,7 @@ begin
 
   RemoverNameSpace;
 
-  EventoRetorno.XmlRetorno := ParseText(FPRetWS, True, False);
+  EventoRetorno.XmlRetorno := ParseText(FPRetWS);
   EventoRetorno.LerXml;
 
   FcStat := EventoRetorno.retInfEvento.cStat;
@@ -2036,7 +2035,7 @@ begin
               end;
 
               { Converte de UTF8 para a String nativa e Decodificar caracteres HTML Entity }
-              Texto := ParseText(Texto, True, False);
+              Texto := ParseText(Texto);
             end;
 
             // Se o evento for rejeitado a propriedade XML conterá uma string vazia

@@ -51,10 +51,10 @@ type
   private
     function GetDadosUsuario: string;
   public
-    function Recepcionar(ACabecalho, AMSG: String): string; override;
-    function ConsultarLote(ACabecalho, AMSG: String): string; override;
-    function ConsultarNFSe(ACabecalho, AMSG: String): string; override;
-    function Cancelar(ACabecalho, AMSG: String): string; override;
+    function Recepcionar(const ACabecalho, AMSG: String): string; override;
+    function ConsultarLote(const ACabecalho, AMSG: String): string; override;
+    function ConsultarNFSe(const ACabecalho, AMSG: String): string; override;
+    function Cancelar(const ACabecalho, AMSG: String): string; override;
 
     function TratarXmlRetornado(const aXML: string): string; override;
 
@@ -115,13 +115,12 @@ begin
     Autenticacao.RequerCertificado := False;
     Autenticacao.RequerLogin := True;
 
-    with ServicosDisponibilizados do
-    begin
-      EnviarLoteAssincrono := True;
-      ConsultarLote := True;
-      ConsultarNfse := True;
-      CancelarNfse := True;
-    end;
+    ServicosDisponibilizados.EnviarLoteAssincrono := True;
+    ServicosDisponibilizados.ConsultarLote := True;
+    ServicosDisponibilizados.ConsultarNfse := True;
+    ServicosDisponibilizados.CancelarNfse := True;
+
+    Particularidades.PermiteMaisDeUmServico := True;
   end;
 
   ConfigMsgDados.UsarNumLoteConsLote := True;
@@ -185,7 +184,7 @@ begin
   begin
     AErro := Response.Erros.New;
     AErro.Codigo := '';
-    AErro.Descricao := ACBrStr(ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('ERRO'), tcStr));
+    AErro.Descricao := ObterConteudoTag(ANodeArray[I].Childrens.FindAnyNs('ERRO'), tcStr);
     AErro.Correcao := '';
   end;
 end;
@@ -607,7 +606,7 @@ begin
   end;
 end;
 
-function TACBrNFSeXWebserviceAssessorPublico.Recepcionar(ACabecalho,
+function TACBrNFSeXWebserviceAssessorPublico.Recepcionar(const ACabecalho,
   AMSG: String): string;
 var
   Request: string;
@@ -623,7 +622,7 @@ begin
   Result := Executar('nfseaction/ANFSE.Execute', Request, [], ['xmlns:nfse="nfse"']);
 end;
 
-function TACBrNFSeXWebserviceAssessorPublico.ConsultarLote(ACabecalho,
+function TACBrNFSeXWebserviceAssessorPublico.ConsultarLote(const ACabecalho,
   AMSG: String): string;
 var
   Request: string;
@@ -639,7 +638,7 @@ begin
   Result := Executar('nfseaction/ANFSE.Execute', Request, [], ['xmlns:nfse="nfse"']);
 end;
 
-function TACBrNFSeXWebserviceAssessorPublico.ConsultarNFSe(ACabecalho,
+function TACBrNFSeXWebserviceAssessorPublico.ConsultarNFSe(const ACabecalho,
   AMSG: String): string;
 var
   Request: string;
@@ -655,7 +654,7 @@ begin
   Result := Executar('nfseaction/ANFSE.Execute', Request, [], ['xmlns:nfse="nfse"']);
 end;
 
-function TACBrNFSeXWebserviceAssessorPublico.Cancelar(ACabecalho, AMSG: String): string;
+function TACBrNFSeXWebserviceAssessorPublico.Cancelar(const ACabecalho, AMSG: String): string;
 var
   Request: string;
 begin
@@ -675,7 +674,7 @@ function TACBrNFSeXWebserviceAssessorPublico.TratarXmlRetornado(
 begin
   Result := inherited TratarXmlRetornado(aXML);
 
-  Result := ParseText(AnsiString(Result), True, {$IfDef FPC}True{$Else}False{$EndIf});
+  Result := ParseText(Result);
   Result := RemoverDeclaracaoXML(Result);
   Result := RemoverCaracteresDesnecessarios(Result);
 end;

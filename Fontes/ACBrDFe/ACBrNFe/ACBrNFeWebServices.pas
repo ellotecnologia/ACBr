@@ -40,8 +40,13 @@ interface
 uses
   Classes, SysUtils, dateutils,
   ACBrDFe, ACBrDFeWebService,
+  ACBrDFeUtil,
   blcksock, synacode,
-  pcnNFe, pcnRetConsReciDFe, pcnRetConsCad, pcnAuxiliar, pcnConversao, pcnConsts,
+  pcnNFe, pcnRetConsReciDFe,
+  ACBrDFeComum.RetConsCad,
+  pcnConversao,
+  ACBrDFeConsts,
+  pcnNFeConsts,
   pcnConversaoNFe, pcnProcNFe, pcnEnvEventoNFe, pcnRetEnvEventoNFe, pcnRetConsSitNFe, 
   pcnAdmCSCNFCe, pcnRetAdmCSCNFCe, pcnDistDFeInt, pcnRetDistDFeInt, pcnRetEnvNFe,
   ACBrNFeNotasFiscais, ACBrNFeConfiguracoes;
@@ -624,9 +629,12 @@ uses
   ACBrUtil.Base, ACBrUtil.Strings, ACBrUtil.DateTime, ACBrUtil.XMLHTML,
   ACBrUtil.FilesIO,
   ACBrCompress, ACBrNFe, ACBrConsts,
-  pcnGerador, pcnConsStatServ, pcnRetConsStatServ,
+  pcnGerador,
+  ACBrDFeComum.ConsCad,
+  ACBrDFeComum.ConsStatServ,
+  ACBrDFeComum.RetConsStatServ,
   pcnConsSitNFe, pcnInutNFe, pcnRetInutNFe, pcnConsReciDFe,
-  pcnConsCad, pcnLeitor, ACBrIntegrador;
+  pcnLeitor, ACBrIntegrador;
 
 { TNFeWebService }
 
@@ -829,12 +837,7 @@ begin
     ConsStatServ.TpAmb := FPConfiguracoesNFe.WebServices.Ambiente;
     ConsStatServ.CUF := FPConfiguracoesNFe.WebServices.UFCodigo;
 
-//    ConsStatServ.Versao := FPVersaoServico;
-    AjustarOpcoes( ConsStatServ.Gerador.Opcoes );
-    ConsStatServ.GerarXML;
-
-    // Atribuindo o XML para propriedade interna //
-    FPDadosMsg := ConsStatServ.Gerador.ArquivoFormatoXML;
+    FPDadosMsg := ConsStatServ.GerarXML;
   finally
     ConsStatServ.Free;
   end;
@@ -852,11 +855,11 @@ begin
 
   NFeRetorno := TRetConsStatServ.Create('');
   try
-    NFeRetorno.Leitor.Arquivo := ParseText(FPRetWS);
+    NFeRetorno.XmlRetorno := ParseText(FPRetWS);
     NFeRetorno.LerXml;
 
     Fversao := NFeRetorno.versao;
-    FtpAmb := NFeRetorno.tpAmb;
+    FtpAmb := TpcnTipoAmbiente(NFeRetorno.tpAmb);
     FverAplic := NFeRetorno.verAplic;
     FcStat := NFeRetorno.cStat;
     FxMotivo := NFeRetorno.xMotivo;
@@ -902,7 +905,7 @@ begin
                            'Retorno: %s' + LineBreak +
                            'Observação: %s' + LineBreak),
                    [Fversao, TpAmbToStr(FtpAmb), FverAplic, IntToStr(FcStat),
-                    FxMotivo, CodigoParaUF(FcUF),
+                    FxMotivo, CodigoUFparaUF(FcUF),
                     IfThen(FdhRecbto = 0, '', FormatDateTimeBr(FdhRecbto)),
                     IntToStr(FTMed),
                     IfThen(FdhRetorno = 0, '', FormatDateTimeBr(FdhRetorno)),
@@ -1175,7 +1178,8 @@ begin
     else
       AXML := FPRetWS;
 
-    FNFeRetornoSincrono.Leitor.Arquivo := ParseText(AXML);
+    //A função UTF8ToNativeString deve ser removida quando for refatorado para usar ACBrXMLDocument
+    FNFeRetornoSincrono.Leitor.Arquivo := UTF8ToNativeString(ParseText(AXML));
     FNFeRetornoSincrono.LerXml;
 
     Fversao := FNFeRetornoSincrono.versao;
@@ -1278,7 +1282,8 @@ begin
   end
   else
   begin
-    FNFeRetorno.Leitor.Arquivo := ParseText(FPRetWS);
+    //A função UTF8ToNativeString deve ser removida quando for refatorado para usar ACBrXMLDocument
+    FNFeRetorno.Leitor.Arquivo := UTF8ToNativeString(ParseText(FPRetWS));
     FNFeRetorno.LerXml;
 
     Fversao := FNFeRetorno.versao;
@@ -1313,7 +1318,7 @@ begin
                       FNFeRetornoSincrono.verAplic,
                       IntToStr(FNFeRetornoSincrono.protNFe.cStat),
                       FNFeRetornoSincrono.protNFe.xMotivo,
-                      CodigoParaUF(FNFeRetornoSincrono.cUF),
+                      CodigoUFparaUF(FNFeRetornoSincrono.cUF),
                       FormatDateTimeBr(FNFeRetornoSincrono.dhRecbto),
                       FNFeRetornoSincrono.chNfe])
   else
@@ -1331,7 +1336,7 @@ begin
                       FNFeRetorno.verAplic,
                       IntToStr(FNFeRetorno.cStat),
                       FNFeRetorno.xMotivo,
-                      CodigoParaUF(FNFeRetorno.cUF),
+                      CodigoUFparaUF(FNFeRetorno.cUF),
                       FNFeRetorno.infRec.nRec,
                       IfThen(FNFeRetorno.InfRec.dhRecbto = 0, '',
                              FormatDateTimeBr(FNFeRetorno.InfRec.dhRecbto)),
@@ -1592,7 +1597,8 @@ begin
 
   VerificarSemResposta;
 
-  FNFeRetorno.Leitor.Arquivo := ParseText(FPRetWS);
+  //A função UTF8ToNativeString deve ser removida quando for refatorado para usar ACBrXMLDocument
+  FNFeRetorno.Leitor.Arquivo := UTF8ToNativeString(ParseText(FPRetWS));
   FNFeRetorno.LerXML;
 
   Fversao := FNFeRetorno.versao;
@@ -1762,7 +1768,7 @@ begin
                    [FNFeRetorno.versao, TpAmbToStr(FNFeRetorno.tpAmb),
                     FNFeRetorno.verAplic, FNFeRetorno.nRec,
                     IntToStr(FNFeRetorno.cStat), FNFeRetorno.xMotivo,
-                    CodigoParaUF(FNFeRetorno.cUF), IntToStr(FNFeRetorno.cMsg),
+                    CodigoUFparaUF(FNFeRetorno.cUF), IntToStr(FNFeRetorno.cMsg),
                     FNFeRetorno.xMsg]);
   {*)}
 end;
@@ -1947,7 +1953,8 @@ begin
 
   VerificarSemResposta;
 
-  FNFeRetorno.Leitor.Arquivo := ParseText(FPRetWS);
+  //A função UTF8ToNativeString deve ser removida quando for refatorado para usar ACBrXMLDocument
+  FNFeRetorno.Leitor.Arquivo := UTF8ToNativeString(ParseText(FPRetWS));
   FNFeRetorno.LerXML;
 
   Fversao := FNFeRetorno.versao;
@@ -1977,7 +1984,7 @@ begin
                    FNFeRetorno.verAplic, FNFeRetorno.nRec,
                    IntToStr(FNFeRetorno.cStat),
                    FNFeRetorno.xMotivo,
-                   CodigoParaUF(FNFeRetorno.cUF)]);
+                   CodigoUFparaUF(FNFeRetorno.cUF)]);
   {*)}
 end;
 
@@ -2202,7 +2209,8 @@ begin
 
     VerificarSemResposta;
 
-    NFeRetorno.Leitor.Arquivo := ParseText(FPRetWS);
+    //A função UTF8ToNativeString deve ser removida quando for refatorado para usar ACBrXMLDocument
+    NFeRetorno.Leitor.Arquivo := UTF8ToNativeString(ParseText(FPRetWS));
     NFeRetorno.LerXML;
 
     NFCancelada := False;
@@ -2554,7 +2562,7 @@ begin
                            'Protocolo: %s ' + LineBreak +
                            'Digest Value: %s ' + LineBreak),
                    [Fversao, FNFeChave, TpAmbToStr(FTpAmb), FverAplic,
-                    IntToStr(FcStat), FXMotivo, CodigoParaUF(FcUF), FNFeChave,
+                    IntToStr(FcStat), FXMotivo, CodigoUFparaUF(FcUF), FNFeChave,
                     FormatDateTimeBr(FDhRecbto), FProtocolo, FprotNFe.digVal]);
   {*)}
 end;
@@ -2727,7 +2735,8 @@ begin
 
     VerificarSemResposta;
 
-    NFeRetorno.Leitor.Arquivo := ParseText(FPRetWS);
+    //A função UTF8ToNativeString deve ser removida quando for refatorado para usar ACBrXMLDocument
+    NFeRetorno.Leitor.Arquivo := UTF8ToNativeString(ParseText(FPRetWS));
     NFeRetorno.LerXml;
 
     Fversao := NFeRetorno.versao;
@@ -2773,7 +2782,7 @@ begin
                            'UF: %s ' + LineBreak +
                            'Recebimento: %s ' + LineBreak),
                    [Fversao, TpAmbToStr(FTpAmb), FverAplic, IntToStr(FcStat),
-                    FxMotivo, CodigoParaUF(FcUF),
+                    FxMotivo, CodigoUFparaUF(FcUF),
                     IfThen(FdhRecbto = 0, '', FormatDateTimeBr(FdhRecbto))]);
   {*)}
 end;
@@ -2921,15 +2930,12 @@ begin
     ConCadNFe.IE := FIE;
     ConCadNFe.CNPJ := FCNPJ;
     ConCadNFe.CPF := FCPF;
-    ConCadNFe.Versao :=  '2.00';
+    ConCadNFe.Versao := FPVersaoServico;
 
-    AjustarOpcoes( ConCadNFe.Gerador.Opcoes );
-    ConCadNFe.GerarXML;
-
-    FPDadosMsg := ConCadNFe.Gerador.ArquivoFormatoXML;
+    FPDadosMsg := ConCadNFe.GerarXML;
 
     if (FPConfiguracoesNFe.Geral.VersaoDF >= ve400) and
-      (UpperCase(FUF) = 'MT') then
+       (UpperCase(FUF) = 'MT') then
     begin
       FPDadosMsg := '<nfeDadosMsg>' + FPDadosMsg + '</nfeDadosMsg>';
     end;
@@ -2941,13 +2947,15 @@ end;
 
 function TNFeConsultaCadastro.TratarResposta: Boolean;
 begin
-  FPRetWS := SeparaDadosArray(['consultaCadastro2Result',
+  FPRetWS := SeparaDadosArray(['consultaCadastroResult',
+                               'consultaCadastro2Result',
                                'nfeResultMsg',
                                'consultaCadastro4Result'],FPRetornoWS );
 
   VerificarSemResposta;
 
-  FRetConsCad.Leitor.Arquivo := ParseText(FPRetWS);
+  FRetConsCad.XmlRetorno := FPRetWS; //ParseText(FPRetWS); removido o parser por conta do ACBrDocumentXML que
+                                     //não esta conseguindo ler & precisa ser &amp;
   FRetConsCad.LerXml;
 
   Fversao := FRetConsCad.versao;
@@ -2972,14 +2980,14 @@ begin
                            'Consulta: %s ' + sLineBreak),
                    [FRetConsCad.versao, FRetConsCad.verAplic,
                    IntToStr(FRetConsCad.cStat), FRetConsCad.xMotivo,
-                   CodigoParaUF(FRetConsCad.cUF),
+                   CodigoUFparaUF(FRetConsCad.cUF),
                    FormatDateTimeBr(FRetConsCad.dhCons)]);
   {*)}
 end;
 
 function TNFeConsultaCadastro.GerarUFSoap: String;
 begin
-  Result := '<cUF>' + IntToStr(UFparaCodigo(FUF)) + '</cUF>';
+  Result := '<cUF>' + IntToStr(UFparaCodigoUF(FUF)) + '</cUF>';
 end;
 
 procedure TNFeConsultaCadastro.InicializarServico;
@@ -3419,7 +3427,8 @@ begin
 
   VerificarSemResposta;
 
-  EventoRetorno.Leitor.Arquivo := ParseText(FPRetWS);
+  //A função UTF8ToNativeString deve ser removida quando for refatorado para usar ACBrXMLDocument
+  EventoRetorno.Leitor.Arquivo := UTF8ToNativeString(ParseText(FPRetWS));
   EventoRetorno.LerXml;
 
   FcStat := EventoRetorno.cStat;
@@ -3599,7 +3608,8 @@ begin
 
   VerificarSemResposta;
 
-  FretAdmCSCNFCe.Leitor.Arquivo := ParseText(FPRetWS);
+  //A função UTF8ToNativeString deve ser removida quando for refatorado para usar ACBrXMLDocument
+  FretAdmCSCNFCe.Leitor.Arquivo := UTF8ToNativeString(ParseText(FPRetWS));
   FretAdmCSCNFCe.LerXml;
 
   FPMsg := FretAdmCSCNFCe.xMotivo;
@@ -3728,7 +3738,8 @@ begin
   VerificarSemResposta;
 
   // Processando em UTF8, para poder gravar arquivo corretamente //
-  FretDistDFeInt.Leitor.Arquivo := FPRetWS;
+  //A função UTF8ToNativeString deve ser removida quando for refatorado para usar ACBrXMLDocument
+  FretDistDFeInt.Leitor.Arquivo := UTF8ToNativeString(ParseText(FPRetWS));
   FretDistDFeInt.LerXml;
 
   for I := 0 to FretDistDFeInt.docZip.Count - 1 do
@@ -3755,11 +3766,12 @@ begin
                       '-procEventoNFe.xml';
       end;
 
-      if NaoEstaVazio(NomeArq) then
-        FlistaArqs.Add( FNomeArq );
-
       aPath := GerarPathDistribuicao(FretDistDFeInt.docZip.Items[I]);
-      FretDistDFeInt.docZip.Items[I].NomeArq := aPath + FNomeArq;
+
+      if NaoEstaVazio(NomeArq) then
+        FlistaArqs.Add(aPath + PathDelim + FNomeArq);
+
+      FretDistDFeInt.docZip.Items[I].NomeArq := aPath + PathDelim + FNomeArq;
 
       if (FPConfiguracoesNFe.Arquivos.Salvar) and NaoEstaVazio(NomeArq) then
       begin
@@ -3775,12 +3787,13 @@ begin
 
   { Processsa novamente, chamando ParseTXT, para converter de UTF8 para a String
     nativa e Decodificar caracteres HTML Entity }
+  {
   FretDistDFeInt.Free;   // Limpando a lista
   FretDistDFeInt := TRetDistDFeInt.Create('NFe');
 
   FretDistDFeInt.Leitor.Arquivo := ParseText(FPRetWS);
   FretDistDFeInt.LerXml;
-
+  }
   FPMsg := FretDistDFeInt.xMotivo;
   Result := (FretDistDFeInt.CStat = 137) or (FretDistDFeInt.CStat = 138);
 end;

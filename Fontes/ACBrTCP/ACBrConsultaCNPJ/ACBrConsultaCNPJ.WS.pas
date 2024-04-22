@@ -5,7 +5,7 @@
 {                                                                              }
 { Direitos Autorais Reservados (c) 2023 Daniel Simoes de Almeida               }
 {                                                                              }
-{ Colaboradores nesse arquivo:                                                 }
+{ Colaboradores nesse arquivo: Victor H Gonzales - Pandaaa                     }
 {                                                                              }
 {  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
@@ -35,7 +35,10 @@ unit ACBrConsultaCNPJ.WS;
 
 interface
 uses
-  ACBrJSON, SysUtils, ACBrValidador, httpsend,
+  ACBrJSON,
+  SysUtils,
+  ACBrValidador,
+  httpsend,
   Classes;
 type
   TParams =
@@ -78,26 +81,38 @@ type
     FResposta : TACBrConsultaCNPJWSResposta;
     FHeaderParamsList : Array of TParams;
     FDefasagemMaxima : Integer;
-  private
+    FProxyHost: String;
+    FProxyPort: String;
+    FProxyUser: String;
+    FProxyPass: String;
+    private
     FHTTPSend: THTTPSend;
+    FResultString : String;
     public
-      constructor Create(const ACNPJ : string; AUsuario : string = ''; ASenha: string = ''; ADefasagemMaxima : Integer = 0);
+      constructor Create(const ACNPJ : string; const AUsuario : string = ''; const ASenha: string = ''; const ADefasagemMaxima : Integer = 0);
       destructor Destroy; override;
       function Executar : boolean; virtual;
-      function SendHttp(const AMethod : string; AURL : String; out LRetorno : String):Integer;
-      function AddHeaderParam(AParamName, AParamValue : String) : TACBrConsultaCNPJWS;
-      function ClearHeaderParams() : TACBrConsultaCNPJWS;
+      function SendHttp(const AMethod : string; const AURL : String; out LRetorno : String):Integer;
+      function AddHeaderParam(const AParamName, AParamValue : String) : TACBrConsultaCNPJWS;
+      procedure ClearHeaderParams;
+
+      property ProxyHost: String read FProxyHost;
+      property ProxyPort: String read FProxyPort;
+      property ProxyUser: String read FProxyUser;
+      property ProxyPass: String read FProxyPass;
+      property ResultString: String read FResultString;
+
   end;
 implementation
 
 uses
   blcksock,
-  synautil;
+  synautil,
+  ACBrUtil.XMLHTML;
 
 { TACBrConsultaCNPJWS }
 
-function TACBrConsultaCNPJWS.AddHeaderParam(AParamName,
-  AParamValue: String): TACBrConsultaCNPJWS;
+function TACBrConsultaCNPJWS.AddHeaderParam(const AParamName, AParamValue: String): TACBrConsultaCNPJWS;
 begin
   Result := Self;
   SetLength(FHeaderParamsList,Length(FHeaderParamsList)+1);
@@ -105,14 +120,14 @@ begin
   FHeaderParamsList[Length(FHeaderParamsList)-1].prValue := AParamValue;
 end;
 
-function TACBrConsultaCNPJWS.ClearHeaderParams: TACBrConsultaCNPJWS;
+procedure TACBrConsultaCNPJWS.ClearHeaderParams;
 begin
   SetLength(FHeaderParamsList,0);
 end;
 
-constructor TACBrConsultaCNPJWS.Create(const ACNPJ : string; AUsuario : string = ''; ASenha: string = ''; ADefasagemMaxima : Integer = 0);
+constructor TACBrConsultaCNPJWS.Create(const ACNPJ : string; const AUsuario : string = ''; const ASenha: string = ''; const ADefasagemMaxima : Integer = 0);
 begin
-  FCNPJ     :=  ACNPJ;
+  FCNPJ     := ACNPJ;
   FUsuario  := AUsuario;
   FSenha    := ASenha;
   FResposta := TACBrConsultaCNPJWSResposta.Create;
@@ -136,7 +151,7 @@ begin
     raise EACBrConsultaCNPJWSException.Create(LErro);
 end;
 
-function TACBrConsultaCNPJWS.SendHttp(const AMethod: string; AURL: String; out LRetorno: String): Integer;
+function TACBrConsultaCNPJWS.SendHttp(const AMethod: string; const AURL: String; out LRetorno: String): Integer;
 var
   LStream : TStringStream;
   LHeaders : TStringList;
@@ -145,8 +160,14 @@ begin
   FHTTPSend := THTTPSend.Create;
   LStream  := TStringStream.Create('');
   try
-    FHTTPSend.OutputStream := LStream;
     FHTTPSend.Clear;
+
+    FHTTPSend.ProxyHost := ProxyHost;
+    FHTTPSend.ProxyPort := ProxyPort;
+    FHTTPSend.ProxyUser := ProxyUser;
+    FHTTPSend.ProxyPass := ProxyPass;
+    FHTTPSend.OutputStream := LStream;
+
     FHTTPSend.Headers.Clear;
     FHTTPSend.Headers.Add('Accept: application/json');
 
@@ -168,6 +189,10 @@ begin
     LRetorno := ReadStrFromStream(LStream, LStream.Size);
 
     Result := FHTTPSend.ResultCode;
+    FResultString := ParseText( FHTTPSend.ResultString );
+    if (Result >= 300) then
+      FResultString := FResultString +' '+ FHTTPSend.Sock.LastErrorDesc;
+
   finally
     LStream.Free;
     FHTTPSend.Free;
