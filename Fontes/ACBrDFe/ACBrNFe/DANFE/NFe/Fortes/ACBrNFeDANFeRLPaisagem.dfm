@@ -1,35 +1,29 @@
 inherited frlDANFeRLPaisagem: TfrlDANFeRLPaisagem
   Left = 204
   Top = 207
+  Width = 1149
+  Height = 787
   Caption = 'frlDANFeRLPaisagem'
-  ClientHeight = 749
-  ClientWidth = 1116
-  StyleElements = [seFont, seClient, seBorder]
-  ExplicitWidth = 1132
-  ExplicitHeight = 788
+  PixelsPerInch = 96
   TextHeight = 13
   inherited RLNFe: TRLReport
     Left = -8
     Top = -20
     Width = 1123
     Height = 794
+    Background.Arrange = baDistributed
+    Background.Height = 96
+    Background.Width = 175
     Margins.LeftMargin = 7.000000000000000000
     Margins.TopMargin = 7.000000000000000000
     Margins.RightMargin = 7.000000000000000000
     Margins.BottomMargin = 7.000000000000000000
-    Background.Arrange = baDistributed
-    Background.Height = 96
-    Background.Width = 175
     PageSetup.Orientation = poLandscape
     PreviewOptions.FormStyle = fsStayOnTop
     PrintDialog = False
     Title = 'Danfe Paisagem'
     BeforePrint = RLNFeBeforePrint
     OnDataRecord = RLNFeDataRecord
-    ExplicitLeft = -8
-    ExplicitTop = -20
-    ExplicitWidth = 1123
-    ExplicitHeight = 794
     object rliMarcaDagua1: TRLImage
       Left = 450
       Top = 427
@@ -5139,10 +5133,10 @@ inherited frlDANFeRLPaisagem: TfrlDANFeRLPaisagem
         Top = 3
         Width = 132
         Height = 35
-        Margins.LeftMargin = 1.000000000000000000
-        Margins.RightMargin = 1.000000000000000000
         Alignment = taCenter
         BarcodeType = bcCode128C
+        Margins.LeftMargin = 1.000000000000000000
+        Margins.RightMargin = 1.000000000000000000
       end
       object rllChaveAcesso: TRLLabel
         Tag = 10
@@ -5210,7 +5204,7 @@ inherited frlDANFeRLPaisagem: TfrlDANFeRLPaisagem
         Tag = 10
         Left = 3
         Top = 107
-        Width = 94
+        Width = 95
         Height = 7
         Caption = 'NATUREZA DE OPERA'#199#195'O'
         Font.Charset = DEFAULT_CHARSET
@@ -5423,10 +5417,10 @@ inherited frlDANFeRLPaisagem: TfrlDANFeRLPaisagem
         Top = 70
         Width = 144
         Height = 33
-        Margins.LeftMargin = 1.000000000000000000
-        Margins.RightMargin = 1.000000000000000000
         Alignment = taCenter
         BarcodeType = bcCode128C
+        Margins.LeftMargin = 1.000000000000000000
+        Margins.RightMargin = 1.000000000000000000
       end
       object rllPageNumber: TRLSystemInfo
         Left = 572

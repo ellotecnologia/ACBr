@@ -1,31 +1,28 @@
 inherited frlDANFeRLRetrato: TfrlDANFeRLRetrato
   Left = 234
   Top = 0
+  Height = 741
   Caption = 'frlDANFeRLRetrato'
-  ClientHeight = 703
   Font.Height = -18
-  StyleElements = [seFont, seClient, seBorder]
-  ExplicitHeight = 742
+  PixelsPerInch = 96
   TextHeight = 24
   inherited RLNFe: TRLReport
     Left = 10
     Top = 10
-    Margins.LeftMargin = 7.000000000000000000
-    Margins.TopMargin = 7.000000000000000000
-    Margins.RightMargin = 7.000000000000000000
-    Margins.BottomMargin = 7.000000000000000000
     AdjustableMargins = True
     Background.Arrange = baDistributed
     Background.Height = 96
     Background.Width = 175
     Font.Height = -20
+    Margins.LeftMargin = 7.000000000000000000
+    Margins.TopMargin = 7.000000000000000000
+    Margins.RightMargin = 7.000000000000000000
+    Margins.BottomMargin = 7.000000000000000000
     PreviewOptions.FormStyle = fsStayOnTop
     PrintDialog = False
     Title = 'Danfe Retrato'
     BeforePrint = RLNFeBeforePrint
     OnDataRecord = RLNFeDataRecord
-    ExplicitLeft = 10
-    ExplicitTop = 10
     object rliMarcaDagua1: TRLImage
       Left = 241
       Top = 670
@@ -878,12 +875,12 @@ inherited frlDANFeRLRetrato: TfrlDANFeRLRetrato
         Top = 5
         Width = 298
         Height = 40
-        Margins.LeftMargin = 1.000000000000000000
-        Margins.RightMargin = 1.000000000000000000
         Alignment = taCenter
         Anchors = [fkLeft, fkTop]
         AutoSize = False
         BarcodeType = bcCode128C
+        Margins.LeftMargin = 1.000000000000000000
+        Margins.RightMargin = 1.000000000000000000
       end
       object rllChaveAcesso: TRLLabel
         Tag = 10
@@ -1185,10 +1182,10 @@ inherited frlDANFeRLRetrato: TfrlDANFeRLRetrato
         Top = 81
         Width = 144
         Height = 33
-        Margins.LeftMargin = 1.000000000000000000
-        Margins.RightMargin = 1.000000000000000000
         Alignment = taCenter
         BarcodeType = bcCode128C
+        Margins.LeftMargin = 1.000000000000000000
+        Margins.RightMargin = 1.000000000000000000
       end
       object rllPageNumber: TRLSystemInfo
         Left = 368
@@ -1274,7 +1271,7 @@ inherited frlDANFeRLRetrato: TfrlDANFeRLRetrato
         Tag = 10
         Left = 3
         Top = 23
-        Width = 126
+        Width = 124
         Height = 7
         Caption = 'INFORMA'#199#213'ES COMPLEMENTARES'
         Font.Charset = DEFAULT_CHARSET
@@ -5863,7 +5860,7 @@ inherited frlDANFeRLRetrato: TfrlDANFeRLRetrato
         Tag = 10
         Left = 3
         Top = 23
-        Width = 82
+        Width = 81
         Height = 7
         Caption = 'INSCRI'#199#195'O MUNICIPAL'
         Font.Charset = DEFAULT_CHARSET
@@ -6147,9 +6144,9 @@ inherited frlDANFeRLRetrato: TfrlDANFeRLRetrato
         Top = 31
         Width = 122
         Height = 38
+        BarcodeType = bcCode128C
         Margins.LeftMargin = 1.000000000000000000
         Margins.RightMargin = 1.000000000000000000
-        BarcodeType = bcCode128C
       end
       object rllBarraNFe: TRLLabel
         Left = 458

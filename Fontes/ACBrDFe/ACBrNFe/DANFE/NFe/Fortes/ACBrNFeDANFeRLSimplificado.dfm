@@ -1,15 +1,13 @@
 inherited frlDANFeRLSimplificado: TfrlDANFeRLSimplificado
   Left = 487
   Top = 95
+  Width = 1131
+  Height = 911
   Caption = 'DANFe - Simplificado'
-  ClientHeight = 856
-  ClientWidth = 1098
   Font.Height = -8
   Font.Name = 'Arial'
   Font.Style = [fsBold]
-  StyleElements = [seFont, seClient, seBorder]
-  ExplicitWidth = 1114
-  ExplicitHeight = 895
+  PixelsPerInch = 96
   TextHeight = 10
   inherited RLNFe: TRLReport
     Tag = 1
@@ -27,10 +25,6 @@ inherited frlDANFeRLSimplificado: TfrlDANFeRLSimplificado
     UnlimitedHeight = True
     BeforePrint = RLNFeBeforePrint
     OnDataRecord = RLNFeDataRecord
-    ExplicitLeft = 656
-    ExplicitTop = -527
-    ExplicitWidth = 340
-    ExplicitHeight = 1890
     object rlb01_Chave: TRLBand
       Left = 38
       Top = 38
@@ -135,11 +129,11 @@ inherited frlDANFeRLSimplificado: TfrlDANFeRLSimplificado
         Top = 23
         Width = 260
         Height = 34
-        Margins.LeftMargin = 1.000000000000000000
-        Margins.RightMargin = 1.000000000000000000
         Alignment = taCenter
         AutoSize = False
         BarcodeType = bcCode128C
+        Margins.LeftMargin = 1.000000000000000000
+        Margins.RightMargin = 1.000000000000000000
       end
     end
     object rlb02_Emitente: TRLBand
