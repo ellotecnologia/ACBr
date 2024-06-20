@@ -170,7 +170,7 @@ type
 
   TEndereco = class(TObject)
   private
-    FEnderecoInformado: string;
+    FEnderecoInformado: TnfseSimNaoOpc;
     FTipoLogradouro: string;
     FEndereco: string;
     FNumero: string;
@@ -183,8 +183,9 @@ type
     FxMunicipio: string;
     FCodigoPais: Integer;
     FxPais: string;
+    FPontoReferencia: string;
   public
-    property EnderecoInformado: string read FEnderecoInformado write FEnderecoInformado;
+    property EnderecoInformado: TnfseSimNaoOpc read FEnderecoInformado write FEnderecoInformado;
     property TipoLogradouro: string read FTipoLogradouro write FTipoLogradouro;
     property Endereco: string read FEndereco write FEndereco;
     property Numero: string read FNumero write FNumero;
@@ -197,6 +198,7 @@ type
     property xMunicipio: string read FxMunicipio write FxMunicipio;
     property CodigoPais: Integer read FCodigoPais write FCodigoPais;
     property xPais: string read FxPais write FxPais;
+    property PontoReferencia: string read FPontoReferencia write FPontoReferencia;
   end;
 
   TInfoPessoa = class(TObject)

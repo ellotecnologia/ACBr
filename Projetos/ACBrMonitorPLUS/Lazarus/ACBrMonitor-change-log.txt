@@ -44,6 +44,28 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+18/06/2024
+-- DoACBrBPeUnit/DoACBrCTeUnit/DoACBrNFeUnit --
+[*] Alteração os métodos de envio de e-mail de evento e inutilização.
+Por: Diego Folieni/Italo Giurizzato Junior/Elton Barbosa
+
+17/05/2024
+-- DoACBrNFSeUnit --
+[*] Altera a resposta do comando ImprimirPDFNFSe para devolver o caminho correto do PDF.
+Por: Diego Folieni
+
+14/05/24
+-- ACBrMonitor1.pas, DoCNPJUnit, ACBrMonitorConsts   --
+[*] TK-5422 - Retornar IE apos consulta CNPJ qdo retornado pelo provedor.
+https://www.projetoacbr.com.br/forum/topic/77714-usando-por-exemplo-o-cnpjconsultar52651232000103-a-resposta-n%C3%A3o-retorna-a-ie-em-nenhum-dos-provedores-inclusive-o-cwscnpjws
+Por: Victor Gonzales Pandaaa
+
+13/05/24
+-- DoETQUnitm, ACBrMonitorConsts   --
+[*] TK-5390 - Criado novo metodo ETQ_GerarStreamBase64
+https://www.projetoacbr.com.br/forum/topic/77507-implementa%C3%A7%C3%A3o-do-retorno-da-etiqueta-em-base64-na-acbrlibetq/
+Por: Daniel Morais Infocotidiano
+
 17/04/24
 -- DoACBrUnit.pas  --
 [*] #TK-5303 Adicionado as chamadas Descarregar e Carregar certificados no metodo SetCertificado

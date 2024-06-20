@@ -41,7 +41,6 @@ uses
   SysUtils,
   ACBrBoletoWS,
   pcnConversao,
-  pcnGerador,
   ACBrBoletoConversao,
   ACBrBoleto,
   ACBrBoletoWS.SOAP;
@@ -81,7 +80,7 @@ type
     procedure GerarPagamento;
 
 
-  public
+  public                                                                                                   
     constructor Create(ABoletoWS: TBoletoWS); override;
 
     function GerarRemessa: String; override;
@@ -97,6 +96,7 @@ const
   C_NAMESPACE_CONSULTA = 'xmlns:consultacobrancabancaria="http://caixa.gov.br/sibar/consulta_cobranca_bancaria/boleto"';
   C_NAMESPACE_BASE = 'xmlns:sib="http://caixa.gov.br/sibar"';
   C_SOAP_ATTRIBUTTES = 'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"';
+  C_TIPO_HIBRIDO = 'HIBRIDO';
   C_SISTEMA_ORIGEM  = 'SIGCB';
   C_USUARIO_SERVICO = 'SGCBS02P';
   C_MANUTENCAO_COBRANCA_BANCARIA = 'manutencaocobrancabancaria:';
@@ -143,7 +143,6 @@ procedure TBoletoW_Caixa.DefinirURL;
 begin
   FPURL := '';
   DefinirServicoEAction;
-  FPVersaoServico := Boleto.Configuracoes.WebService.VersaoDF;
 end;
 
 procedure TBoletoW_Caixa.DefinirServicoEAction;
@@ -172,6 +171,13 @@ procedure TBoletoW_Caixa.DefinirRootElement;
 var
   Prefixo, NameSpaceServico, NameSpaceBase: String;
 begin
+  if Boleto.Cedente.CedenteWS.IndicadorPix then
+    FPVersaoServico := '3.2'
+  else
+    FPVersaoServico := '3.0';
+
+  Boleto.Configuracoes.WebService.VersaoDF := FPVersaoServico;
+
   case Boleto.Configuracoes.WebService.Operacao of
     tpInclui,
     tpAltera,
@@ -385,6 +391,10 @@ begin
 
       Gerador.wGrupo('TITULO');
       Gerador.wCampo(tcStr, '#02', 'NOSSO_NUMERO    ', 17, 17, 1, '14' + ACBrUtil.Strings.PadLeft(NossoNumero, 15, '0'), DSC_NOSSO_NUMERO);
+
+      if Boleto.Cedente.CedenteWS.IndicadorPix then
+        Gerador.wCampo(tcStr, '#02.1', 'TIPO', 7, 7, 1, C_TIPO_HIBRIDO, DSC_TIPO_HIBRIDO);
+
       Gerador.wCampo(tcStr, '#03', 'NUMERO_DOCUMENTO', 11, 11, 1, NumeroDocumento, DSC_NUMERO_DOCUMENTO);
       Gerador.wCampo(tcDat, '#04', 'DATA_VENCIMENTO ', 10, 10, 1, Vencimento, DSC_DATA_VENCIMENTO);
       Gerador.wCampo(tcDe2, '#05', 'VALOR           ', 01, 15, 1, ValorDocumento, DSC_VALOR_DOCUMENTO);
@@ -413,7 +423,9 @@ begin
 
       GerarFicha_Compensacao;
       GerarRecibo_Pagador;
-      GerarPagamento;
+
+      if not Boleto.Cedente.CedenteWS.IndicadorPix then
+        GerarPagamento;
 
       Gerador.wGrupo('/TITULO');
     end;
@@ -557,7 +569,7 @@ begin
 
           Gerador.wGrupo('/DESCONTO');
 
-        if (ValorDesconto2 > 0) then
+        if ((ValorDesconto2 > 0) and (not Boleto.Cedente.CedenteWS.IndicadorPix)) then
         begin
            Gerador.wGrupo('DESCONTO');
           Gerador.wCampo(tcDat, '#33', 'DATA', 10, 10, 1, DataDesconto2, DSC_DATA_DESCONTO2);
@@ -661,7 +673,7 @@ end;
 function TBoletoW_Caixa.GerarRemessa: String;
 begin
   Result:=inherited GerarRemessa;
-
+  
 end;
 
 function TBoletoW_Caixa.Enviar: Boolean;

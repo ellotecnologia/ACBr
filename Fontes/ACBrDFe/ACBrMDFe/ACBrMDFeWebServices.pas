@@ -903,6 +903,7 @@ begin
     begin
       // Pega o numero do protocolo
       FProtocolo := FMDFeRetornoSincrono.protMDFe.nProt;
+      FdhRecbto := FMDFeRetornoSincrono.protMDFe.dhRecbto;
 
       for I := 0 to TACBrMDFe(FPDFeOwner).Manifestos.Count - 1 do
       begin
@@ -1094,7 +1095,6 @@ begin
   Fversao := '';
   FxMsg := '';
   FcMsg := 0;
-  FRecibo := '';
   FProtocolo := '';
   FChaveMDFe := '';
 
@@ -1606,6 +1606,9 @@ begin
 
   if Assigned(FprocEventoMDFe) then
     FprocEventoMDFe.Free;
+
+  if Assigned(FprocInfraSA) then
+    FprocInfraSA.Free;
 
   FprotMDFe       := TProcMDFe.Create;
   FprocEventoMDFe := TRetEventoMDFeCollection.Create;

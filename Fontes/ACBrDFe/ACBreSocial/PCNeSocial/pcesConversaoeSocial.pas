@@ -424,7 +424,7 @@ type
 
   tpTpRegTrab             = (trNenhum, trCLT, trEstatutario);
 
-  tpTpRegPrev             = (rpNenhum, rpRGPS, rpRPPS, rpRPPE);
+  tpTpRegPrev             = (rpNenhum, rpRGPS, rpRPPS, rpRPPE, rpSPSMFA);
 
   tpTpRegPrevFacultativo  = (rpfNenhum, rpfRGPS, rpfRPPS, rpfRPPE2);
 
@@ -2743,7 +2743,10 @@ begin
   strSearchValue := EmptyStr;
 
   try
-    intLastPos := PosLast('Id="',s);
+    if PosLast('<Signature ', s) > 0 then
+      intLastPos := PosLast('Id="', Copy(s, 1, PosLast('<Signature ', s)))
+    else
+      intLastPos := PosLast('Id="', s);
 
     if intLastPos > 0 then
     begin

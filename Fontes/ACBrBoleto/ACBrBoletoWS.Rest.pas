@@ -143,8 +143,10 @@ end;
 
 procedure TBoletoWSREST.DefinirCertificado;
 begin
-  BoletoWS.ArquivoCRT := Boleto.Configuracoes.WebService.ArquivoCRT;
-  BoletoWS.ArquivoKEY := Boleto.Configuracoes.WebService.ArquivoKEY;
+  BoletoWS.ArquivoCRT   := Boleto.Configuracoes.WebService.ArquivoCRT;
+  BoletoWS.ArquivoKEY   := Boleto.Configuracoes.WebService.ArquivoKEY;
+  BoletoWS.ChavePrivada := Boleto.Configuracoes.WebService.ChavePrivada;
+  BoletoWS.Certificado  := Boleto.Configuracoes.WebService.Certificado;
 
     // Adicionando o chave privada
   if NaoEstaVazio(BoletoWS.ChavePrivada) then
@@ -287,7 +289,7 @@ begin
   try
     httpsend.Document.Position := 0;
     if FPDadosMsg <> '' then
-      WriteStrToStream(httpsend.Document, AnsiString(FPDadosMsg));
+      WriteStrToStream(httpsend.Document, NativeStringToUTF8(FPDadosMsg));
 
     if Boleto.Configuracoes.Arquivos.LogNivel >= logSimples then
       BoletoWS.DoLog('URL: [' + MetodoHTTPToStr(FMetodoHTTP) + '] ' + FPURL);

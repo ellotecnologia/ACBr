@@ -44,6 +44,52 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+14/06/2024
+-- ACBrCTe.XmlHandler --
+[+] Nova Unit de Leitura do XML do conhecimento.
+-- ACBrCTe.ConsSit/ACBrCTe.EnvEvento/ACBrCTe.EventoClass --
+-- ACBrCTe.RetConsSit/ACBrCTe.RetEnvEvento --
+[+] Novas Units de Leitura e Escrita do XML de diversos serviços.
+    Observação: essas Units estão em fase de testes.
+  Por: Italo Giurizzato Junior
+
+15/05/2024
+-- pcteCTeR --
+[-] Correção para leitura correta do grupo obsFisco
+   Por: DigitalWay Informatica
+
+14/05/2024
+-- pcteCTeW --
+[-] Correção para identificar corretamente o modelo selecionado.
+   Por: Italo Giurizzato Junior
+
+09/05/2024
+-- pcteCTeW --
+[*] Correção para gerar a versão correta do Modal.
+   Por: Italo Giurizzato Junior
+
+08/05/2024
+-- ACBrCTeConhecimentos --
+[*] Reversão da alteração que visava o uso das configurações na geração do XML.
+   Por: Italo Giurizzato Junior
+-- pcteCTeW --
+[*] Comentado as linhas que usa os dados de configuração na geração do XML.
+   Por: Italo Giurizzato Junior
+
+26/04/2024
+-- pcteCTeW --
+[*] A SEFAZ-MT mudou a validação do campo xNome, agora segue o padrão.
+  Por: Fabricio Langer
+-- ACBrCTeConhecimentos/pcteCTe/pcteCTeR/pcteEventoCTe --
+[*] Remoção de variáveis definidas e não usadas e possível solução para
+    usar o valor definido no campo tpImp pelo desenvolvedor.
+  Por: Italo Giurizzato Junior
+
+22/04/2024
+-- ACBrCTeConhecimentos --
+[*] Alterado a forma de gerar o valor do campo versao da seção infCTe.
+  Por: Italo Giurizzato Junior
+
 05/04/2024
 -- Diversos --
 [*] Melhorias no código usando o FixInsight (ainda não ficou 100%).

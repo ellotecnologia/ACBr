@@ -332,6 +332,11 @@ begin
         Numero := INIRec.ReadString(sSecao, 'Numero', '');
         cNFSe := GerarCodigoDFe(StrToIntDef(Numero, 0));
         NumeroLote := INIRec.ReadString(sSecao, 'NumeroLote', '');
+        ModeloNFSe := INIRec.ReadString(sSecao, 'ModeloNFSe', '');
+        refNF := INIRec.ReadString(sSecao, 'refNF', '');
+        TipoEmissao := StrToTipoEmissao(Ok, INIRec.ReadString(sSecao, 'TipoEmissao', 'N'));
+        Canhoto := StrToCanhoto(Ok, INIRec.ReadString(sSecao, 'Canhoto', '0'));
+        EmpreitadaGlobal := StrToEmpreitadaGlobal(Ok, INIRec.ReadString(sSecao, 'EmpreitadaGlobal', '2'));
       end;
 
       sSecao := 'IdentificacaoRps';
@@ -350,7 +355,7 @@ begin
         StatusRps := FProvider.StrToStatusRPS(Ok, INIRec.ReadString(sSecao, 'Status', '1'));
         OutrasInformacoes := INIRec.ReadString(sSecao, 'OutrasInformacoes', '');
 
-        // Provedor ISSDSF e Siat
+        // Provedores: Infisc, ISSDSF e Siat
         SeriePrestacao := INIRec.ReadString(sSecao, 'SeriePrestacao', '');
 
         IdentificacaoRps.Numero := INIRec.ReadString(sSecao, 'Numero', '0');
@@ -450,11 +455,14 @@ begin
         Tomador.IdentificacaoTomador.CAEPF := INIRec.ReadString(sSecao, 'CAEPF', '');
 
         Tomador.RazaoSocial := INIRec.ReadString(sSecao, 'RazaoSocial', '');
+        Tomador.NomeFantasia := INIRec.ReadString(sSecao, 'NomeFantasia', '');
 
+        Tomador.Endereco.EnderecoInformado := FProvider.StrToSimNaoOpc(Ok, INIRec.ReadString(sSecao, 'EnderecoInformado', ''));
         Tomador.Endereco.TipoLogradouro := INIRec.ReadString(sSecao, 'TipoLogradouro', '');
         Tomador.Endereco.Endereco := INIRec.ReadString(sSecao, 'Logradouro', '');
         Tomador.Endereco.Numero := INIRec.ReadString(sSecao, 'Numero', '');
         Tomador.Endereco.Complemento := INIRec.ReadString(sSecao, 'Complemento', '');
+        Tomador.Endereco.PontoReferencia := INIRec.ReadString(sSecao, 'PontoReferencia', '');
         Tomador.Endereco.Bairro := INIRec.ReadString(sSecao, 'Bairro', '');
         Tomador.Endereco.CodigoMunicipio := INIRec.ReadString(sSecao, 'CodigoMunicipio', '');
         Tomador.Endereco.xMunicipio := INIRec.ReadString(sSecao, 'xMunicipio', '');
@@ -464,6 +472,7 @@ begin
         // Provedor Equiplano é obrigatório o pais e IE
         Tomador.Endereco.xPais := INIRec.ReadString(sSecao, 'xPais', '');
 
+        Tomador.Contato.DDD := INIRec.ReadString(sSecao, 'DDD', '');
         Tomador.Contato.Telefone := INIRec.ReadString(sSecao, 'Telefone', '');
         Tomador.Contato.Email := INIRec.ReadString(sSecao, 'Email', '');
 
@@ -887,6 +896,7 @@ begin
       sSecao:= 'IdentificacaoNFSe';
       INIRec.WriteString(sSecao, 'Numero', Numero);
       INIRec.WriteString(sSecao, 'NumeroLote', NumeroLote);
+      INIRec.WriteString(sSecao, 'StatusNFSe', StatusNFSeToStr(SituacaoNfse));
 
       //Adicionado para que a informação seja devolvida para quem usa a lib, não considerar na rotina de leitura.
       if CodigoVerificacao <> '' then
@@ -979,6 +989,8 @@ begin
       //Exigido pelo provedor Equiplano
       INIRec.WriteString(sSecao, 'InscricaoEstadual', Tomador.IdentificacaoTomador.InscricaoEstadual);
       INIRec.WriteString(sSecao, 'RazaoSocial', Tomador.RazaoSocial);
+
+      INIRec.WriteString(sSecao, 'EnderecoInformado', FProvider.SimNaoOpcToStr(Tomador.Endereco.EnderecoInformado));
       INIRec.WriteString(sSecao, 'TipoLogradouro', Tomador.Endereco.TipoLogradouro);
       INIRec.WriteString(sSecao, 'Logradouro', Tomador.Endereco.Endereco);
       INIRec.WriteString(sSecao, 'Numero', Tomador.Endereco.Numero);

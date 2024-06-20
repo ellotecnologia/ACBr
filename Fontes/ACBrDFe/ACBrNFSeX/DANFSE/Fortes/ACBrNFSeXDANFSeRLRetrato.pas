@@ -161,7 +161,7 @@ type
     RLLabel52: TRLLabel;
     RLLabel53: TRLLabel;
     RLLabel54: TRLLabel;
-    RLLabel55: TRLLabel;
+    rllOpcaoSN: TRLLabel;
     RLLabel56: TRLLabel;
     RLDraw15: TRLDraw;
     RLDraw16: TRLDraw;
@@ -466,6 +466,9 @@ begin
       RLLabel56.Visible := False;
     end;
 
+    rllOpcaoSN.Visible := ACBrNFSe.Provider.ConfigGeral.ImprimirOptanteSN;
+    rllOpcaoSimples.Visible := ACBrNFSe.Provider.ConfigGeral.ImprimirOptanteSN;
+
     rllCodObra.Caption := ConstrucaoCivil.CodigoObra;
     rllCodART.Caption := ConstrucaoCivil.Art;
     MostrarObra := (rllCodObra.Caption <> '') or (rllCodART.Caption <> '');
@@ -476,8 +479,14 @@ begin
     rllCodigoArt.Visible := MostrarObra;
     rllCodART.Visible := MostrarObra;
 
-    rllValorTotal.Caption := 'VALOR TOTAL DA NOTA = R$ ' +
+    if Servico.Valores.ValorTaxaTurismo > 0 then
+      rllValorTotal.Caption := 'VALOR TOTAL DA NOTA + (Taxa Turismo ' +
+                               FormatFloat(',0.00', Servico.Valores.ValorTaxaTurismo) + ')' +
+                               ' = R$ ' + FormatFloat(',0.00', Servico.Valores.ValorTotalNotaFiscal)
+    else
+      rllValorTotal.Caption := 'VALOR TOTAL DA NOTA = R$ ' +
                              FormatFloat(',0.00', Servico.Valores.ValorTotalNotaFiscal);
+
     rlmCodServico.Lines.Clear;
 
     if (Servico.xItemListaServico = '') and (Servico.ItemServico.Count > 0) then

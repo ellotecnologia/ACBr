@@ -2758,10 +2758,12 @@ begin
   if fCodigoGeracao = AValue then
     Exit;
 
-  if Pos(AValue,ACBrBoleto.Banco.CodigosGeracaoAceitos) = 0 then
-     raise Exception.Create( ACBrStr('Código de Geração Inválido!') );
-
-  fCodigoGeracao := AValue;
+  if ((Length(AValue) = 3) and (ACBrBoleto.Cedente.ResponEmissao = tbBancoEmite)) or
+     (Pos(AValue,ACBrBoleto.Banco.CodigosGeracaoAceitos) > 0)
+  then
+    fCodigoGeracao := AValue
+  else
+    raise Exception.Create( ACBrStr('Código de Geração Inválido!') );
 end;
 
 procedure TACBrTitulo.SetDataProtesto(AValue: TDateTime);
@@ -3310,23 +3312,28 @@ begin
 end;
 
 function TACBrBoleto.GerarMensagemPadraoJuros(ATitulo: TACBrTitulo): String;
-var ATipoJuros,AJurosQuando : String;
+var LTipoJuros, LJurosQuando : String;
 begin
-  if (ATitulo.CodigoMoraJuros in [cjTaxaMensal, cjValorMensal]) or (ATitulo.CodigoMora = '2') or (ATitulo.CodigoMora = 'B') then
-    ATipoJuros := FloatToStr(ATitulo.ValorMoraJuros) + '% ao mês'
-  else
-    ATipoJuros := FormatFloatBr(ATitulo.ValorMoraJuros, 'R$ #,##0.00 por dia');
+  case ATitulo.CodigoMoraJuros of
+    cjTaxaMensal : LTipoJuros := FloatToStr(ATitulo.ValorMoraJuros) + '% ao mês';
+    cjTaxaDiaria : LTipoJuros := FloatToStr(ATitulo.ValorMoraJuros) + '% ao dia';
+    cjValorMensal: LTipoJuros := FormatFloatBr(ATitulo.ValorMoraJuros, 'R$ #,##0.00 por mês');
+    cjValorDia   : LTipoJuros := FormatFloatBr(ATitulo.ValorMoraJuros, 'R$ #,##0.00 por dia');
+  end;
+
+  if (ATitulo.CodigoMora = '2') or (ATitulo.CodigoMora = 'B') then
+    LTipoJuros := FloatToStr(ATitulo.ValorMoraJuros) + '% ao mês';
 
   if ATitulo.DataMoraJuros <> 0 then
   begin
     if ATitulo.Vencimento = ATitulo.DataMoraJuros then
-      AJurosQuando := 'após o vencimento'
+      LJurosQuando := 'após o vencimento'
     else
-      AJurosQuando := 'a partir de '+FormatDateTime('dd/mm/yyyy',ATitulo.DataMoraJuros);
+      LJurosQuando := 'a partir de '+FormatDateTime('dd/mm/yyyy',ATitulo.DataMoraJuros);
   end;(* else
-    AJurosQuando := ' por dia de atraso';*) //TK-4612
+    LJurosQuando := ' por dia de atraso';*) //TK-4612
 
-  Result := ACBrStr(Format('Cobrar juros de %s de atraso para pagamento %s.',[ATipoJuros,AJurosQuando]));
+  Result := ACBrStr(Format('Cobrar juros de %s de atraso para pagamento %s.',[LTipoJuros,LJurosQuando]));
 end;
 
 function TACBrBoleto.GerarMensagemPadraoMulta(ATitulo: TACBrTitulo): String;
@@ -3715,12 +3722,18 @@ begin
     Except
       on E:Exception do
       begin
-        if ( ( RemessaWS.RetornoBanco.CodRetorno = 0 ) and
-             ( Trim( RemessaWS.RetornoBanco.Msg ) = '' ) ) then
-          raise Exception.Create(ACBrStr('Erro: ' + E.Message))
-        else
-          raise Exception.Create(ACBrStr('Erro: ' + IntToStr(RemessaWS.RetornoBanco.CodRetorno) + sLineBreak +
+        if RemessaWS.RetornoBanco <> nil then
+        begin
+          if ( ( RemessaWS.RetornoBanco.CodRetorno = 0 ) and
+               ( Trim( RemessaWS.RetornoBanco.Msg ) = '' ) ) then
+            raise Exception.Create(ACBrStr('Erro: ' + E.Message))
+          else
+            raise Exception.Create(ACBrStr('Erro: ' + IntToStr(RemessaWS.RetornoBanco.CodRetorno) + sLineBreak +
                                  RemessaWS.RetornoBanco.Msg + sLineBreak));
+        end
+        else
+          raise Exception.Create(ACBrStr('Erro: ' + E.Message))
+
       end;
     end;
 
@@ -4075,6 +4088,7 @@ begin
             EspecieDoc          := IniBoletos.ReadString(Sessao,'Especie',EspecieDoc);
             Carteira            := trim(IniBoletos.ReadString(Sessao,'Carteira',''));
             NossoNumero         := IniBoletos.ReadString(Sessao,'NossoNumero','');
+            NossoNumeroCorrespondente  := IniBoletos.ReadString(Sessao,'NossoNumeroCorrespondente','');            
             ValorDocumento      := IniBoletos.ReadFloat(Sessao,'ValorDocumento',ValorDocumento);
             Sacado.NomeSacado   := IniBoletos.ReadString(Sessao,'Sacado.NomeSacado','');
             Sacado.CNPJCPF      := OnlyNumber(IniBoletos.ReadString(Sessao,'Sacado.CNPJCPF',''));
@@ -4283,6 +4297,8 @@ begin
        IniRetorno.WriteInteger(CBanco,'VersaoArquivo',Banco.LayoutVersaoArquivo);
        IniRetorno.WriteInteger(CBanco,'VersaoLote',Banco.LayoutVersaoLote);
        IniRetorno.WriteString(CBanco,'OrientacoesBanco',StringReplace( Banco.OrientacoesBanco.Text, sLineBreak, '|', [rfReplaceAll] ));
+       IniRetorno.WriteInteger(CBanco,'NumeroArquivo',NumeroArquivo);
+       IniRetorno.WriteString(CBanco,'NomeArqRetorno',NomeArqRetorno);
 
        IniRetorno.WriteString(CBanco,'LocalPagamento',Banco.LocalPagamento);
        IniRetorno.WriteInteger(CBanco,'CasasDecimaisMoraJuros',Banco.CasasDecimaisMoraJuros);
@@ -4329,6 +4345,7 @@ begin
            IniRetorno.WriteString(wSessao,'NumeroDocumento',ListadeBoletos[I].NumeroDocumento);
            IniRetorno.WriteString(wSessao,'DataProcessamento',DateToStr(ListadeBoletos[I].DataProcessamento));
            IniRetorno.WriteString(wSessao,'NossoNumero',ListadeBoletos[I].NossoNumero);
+           IniRetorno.WriteString(wSessao,'NossoNumeroCorrespondente',ListadeBoletos[I].NossoNumeroCorrespondente);
            IniRetorno.WriteString(wSessao,'Carteira',ListadeBoletos[I].Carteira);
            IniRetorno.WriteFloat(wSessao,'ValorDocumento',ListadeBoletos[I].ValorDocumento);
            IniRetorno.WriteString(wSessao,'DataOcorrencia',DateToStr(ListadeBoletos[I].DataOcorrencia));

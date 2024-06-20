@@ -44,6 +44,108 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+
+17/06/2024
+-- Diversos --
+[*] Alteração nos fontes para passar a utilizar as novas units: ACBrNFe.EnvEvento
+    e ACBrNFe.RetEnvEvento responsávels por gerar o pedido de Evento e a leitura
+    do retorno da SEFAZ no que se refere ao evento enviado.
+   Por: Italo Giurizzato Junior
+
+-- ACBrNFe.EnvEvento.pas/ACBrNFe.RetAdmCSC.pas/ACBrNFe.RetConsSit.pas/
+   ACBrNFe.RetEnvEvento.pas/ACBrNFe.RetInut.pas --
+[*] Remoção de Warnings e Hints.
+   Por: Italo Giurizzato Junior
+
+14/06/2024
+-- ACBrNFeWebServices --
+[*] Ajustes na classe TAdministrarCSCNFCe, inclusão da procedure InicializarServico.
+-- ACBrNFe.XmlWriter/ACBrNFeXmlWriter/pcnNFeW --
+[*] Substituida a unit pcnRetEnvEventoNFe pela nova ACBrNFe.RetEnvEvento.
+    Para o CSOSN 102, 103, 300, 400 e 900 a tag orig passa a ser opcional.
+   Por: Italo Giurizzato Junior
+
+11/06/2024
+-- ACBrNFeWebServices --
+[*] Substituida a unit pcnRetEnvEventoNFe pela nova ACBrNFe.RetEnvEvento.
+    Pois a nova unit ACBrNFe.RetConsSit a utiliza.
+   Por: Italo Giurizzato Junior
+
+10/06/2024
+-- ACBrNFeWebServices --
+[*] Alteração nos fontes para passar a utilizar as novas units: ACBrNFe.AdmCSC,
+    ACBrNFe.ConsSit, ACBrNFe.RetAdmCSC e ACBrNFe.RetConsSit responsávels por 
+    gerar o pedido de Administração do CSC e Consulta a situação e a leitura
+    do retorno da SEFAZ no que se refere aos serviços solicitados.
+   Por: Italo Giurizzato Junior
+
+03/06/2024
+-- Diversos --
+[*] Alteração nos fontes para passar a utilizar as novas units: ACBrNFe.Inut e 
+    ACBrNFe.RetInut responsávels por gerar o pedido de inutilização e a leitura
+    do retorno da SEFAZ no que se refere ao pedido de inutilização.
+   Por: Italo Giurizzato Junior
+
+31/05/2024
+-- Diversos --
+[*] Ajustes nas novas units a serem utilizadas pelo componente.
+   Por: Italo Giurizzato Junior
+
+16/05/2024
+-- ACBrNFeNotasFiscais --
+[*] Altera a conversao de dhCont para devolver data e hora na geração do INI
+  Por: Diego Folieni
+
+14/05/2024
+-- ACBrNFe.EnvEvento/pcnEnvEventoNFe --
+[*] Alinhando as mesmas correções feitas na unit atual na nova unit.
+   Por: Italo Giurizzato Junior
+
+09/05/2024
+-- Diversos --
+[*] Ajustes realizados com base nos testes unitários
+   Por: Italo Giurizzato Junior
+
+08/05/2024
+-- ACBrNFeNotasFiscais --
+[*] Reversão da alteração que visava o uso das configurações na geração do XML.
+   Por: Italo Giurizzato Junior
+-- ACBrNFeXmlWriter/pcnNFe/pcnNFeW.pas --
+[*] Comentado as linhas que usa os dados de configuração na geração do XML.
+   Por: Italo Giurizzato Junior
+
+30/04/2024
+-- Diversos --
+[+] Implementação dos eventos: Insucesso na Entrega da NF-e e Cancelamento do
+    Insucesso na Entrega da NF-e.
+  Por: Italo Giurizzato Junior
+
+29/04/2024
+-- ACBrNFeXmlWriter/pcnNFe/pcnNFeW.pas --
+[*] Ajustes para usar a configuração do tipo de ambiente e de emissão ao
+    gerar o XML.
+  Por: Italo Giurizzato Junior
+-- ACBrNFeNotasFiscais --
+[*] Adiciona leitura do informação IM para o grupo dest
+  Por: Diego Folieni
+
+27/04/2024
+-- ACBrNFe.XmlReader/pcnNFeW --
+[*] Adiciona propriedades faltantes visando corrigir problema de compilação.
+  Por: Diego Folieni 
+-- ACBrNFe.XmlReader/ACBrNFe.XmlWriter --
+[+] Novas Units de Leitura e Escrita do XML da nota.
+-- ACBrNFe.AdmCSC/ACBrNFe.ConsSit/ACBrNFe.EnvEvento/ACBrNFe.EventoClass --
+-- ACBrNFe.Inut/ACBrNFe.RetAdmCSC/ACBrNFe.RetConsSit/ACBrNFe.RetEnvEvento/ACBrNFe.RetInut --
+[+] Novas Units de Leitura e Escrita do XML de diversos serviços.
+    Observação: essas Units estão em fase de testes.
+  Por: Italo Giurizzato Junior
+
+22/04/2024
+-- ACBrDANFCeFortesFrA4,ACBrNFeDANFeEventoRL,ACBrNFeDANFeRLPaisagem,ACBrNFeDANFeRLRetrato --
+[*] TK-2944 ACBrNFCe/ACBrNFE - Convertido relatórios Delphi para Lazarus.
+  Por: Daniel de Morais InfoCotidiano
+
 17/04/2024
 -- Diversos --
 [*] Criado um novo tipo chamado TIndicadorEx que contem os valores:

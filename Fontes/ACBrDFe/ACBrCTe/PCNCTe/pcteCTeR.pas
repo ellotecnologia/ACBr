@@ -81,7 +81,7 @@ end;
 function TCTeR.LerXml: Boolean;
 var
   ok: Boolean;
-  i, j, i01, i02, i03, i04: Integer;
+  i01, i02, i03, i04: Integer;
   sCST, Aspas: String;
   // as variáveis abaixo são utilizadas para identificar as várias ocorrências
   // da tag qtdRat.
@@ -310,9 +310,9 @@ begin
     CTe.Compl.ObsFisco.Clear;
     while Leitor.rExtrai(2, 'ObsFisco', '', i01 + 1) <> '' do
     begin
-      CTe.Compl.obsCont.New;
-      CTe.Compl.obsCont[i01].xCampo := Leitor.rAtributo('xCampo');
-      CTe.Compl.obsCont[i01].xTexto := Leitor.rCampo(tcStr, 'xTexto');
+      CTe.Compl.ObsFisco.New;
+      CTe.Compl.ObsFisco[i01].xCampo := Leitor.rAtributo('xCampo');
+      CTe.Compl.ObsFisco[i01].xTexto := Leitor.rCampo(tcStr, 'xTexto');
       inc(i01);
     end;
   end;
@@ -1023,7 +1023,7 @@ begin
           pos1 := PosLast('</infUnidCarga>', sAux);
           pos2 := PosLast('<qtdRat>', sAux);
           pos3 := PosLast('</qtdRat>', sAux);
-          len  := pos3 - pos2;
+//          len  := pos3 - pos2;
 
 //          if (pos1 = 0) and (pos2 = 0) and (pos3 = 0) or (pos1 > pos3) then
 //            qtdRat_UnidTransp := 0.0;

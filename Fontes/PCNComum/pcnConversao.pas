@@ -105,7 +105,7 @@ type
                    cof73, cof74, cof75, cof98, cof99);
   TpcnIndicadorProcesso = (ipSEFAZ, ipJusticaFederal, ipJusticaEstadual,
                            ipSecexRFB, ipCONFAZ, ipOutros);
-  TpcnCRT = (crtSimplesNacional, crtSimplesExcessoReceita, crtRegimeNormal);
+  TpcnCRT = (crtSimplesNacional, crtSimplesExcessoReceita, crtRegimeNormal, crtMEI);
   TpcnIndicadorTotal = (itSomaTotalNFe, itNaoSomaTotalNFe );
 
   TpcnECFModRef = (ECFModRefVazio, ECFModRef2B,ECFModRef2C,ECFModRef2D);
@@ -146,7 +146,8 @@ type
                   teAtorInteressadoNFe, teComprEntregaCTe, teCancComprEntregaCTe,
                   teConfirmaServMDFe, teAlteracaoPagtoServMDFe,
                   teCancPrestDesacordo, teInsucessoEntregaCTe,
-                  teCancInsucessoEntregaCTe);
+                  teCancInsucessoEntregaCTe, teInsucessoEntregaNFe,
+                  teCancInsucessoEntregaNFe);
 
   TpcnIndicadorEmissor = (ieTodos, ieRaizCNPJDiferente);
   TpcnIndicadorContinuacao = (icNaoPossuiMaisDocumentos, icPossuiMaisDocumentos);
@@ -156,12 +157,17 @@ type
   TpcnDestinoOperacao = (doInterna, doInterestadual, doExterior);
   TpcnConsumidorFinal = (cfNao, cfConsumidorFinal);
   TpcnPresencaComprador = (pcNao, pcPresencial, pcInternet, pcTeleatendimento, pcEntregaDomicilio, pcPresencialForaEstabelecimento, pcOutros);
+  (*TpcnFormaPagamento = (fpDinheiro, fpCheque, fpCartaoCredito, fpCartaoDebito, fpCreditoLoja,
+                        fpValeAlimentacao, fpValeRefeicao, fpValePresente, fpValeCombustivel,
+                        fpDuplicataMercantil, fpBoletoBancario, fpDepositoBancario,
+                        fpPagamentoInstantaneo, fpTransfBancario, fpProgramaFidelidade,
+                        fpSemPagamento, fpRegimeEspecial, fpOutro);*) //antes da IT 2024.002 v1.00
   TpcnFormaPagamento = (fpDinheiro, fpCheque, fpCartaoCredito, fpCartaoDebito, fpCreditoLoja,
                         fpValeAlimentacao, fpValeRefeicao, fpValePresente, fpValeCombustivel,
                         fpDuplicataMercantil, fpBoletoBancario, fpDepositoBancario,
                         fpPagamentoInstantaneo, fpTransfBancario, fpProgramaFidelidade,
-                        fpSemPagamento, fpRegimeEspecial, fpOutro);
-
+                        fpSemPagamento, fpRegimeEspecial, fpOutro, fpPagamentoInstantaneoEstatico,
+                        fpCreditoEmLojaPorDevolucao, fpFalhaHardware);
   TpcnBandeiraCartao = (bcVisa, bcMasterCard, bcAmericanExpress, bcSorocred, bcDinersClub,
                         bcElo, bcHipercard, bcAura, bcCabal, bcAlelo, bcBanesCard,
                         bcCalCard, bcCredz, bcDiscover, bcGoodCard, bcGreenCard,
@@ -225,7 +231,7 @@ type
   end;
 
 const
-  TpcnTpEventoString : array[0..73] of String =('-99999', '110110', '110111',
+  TpcnTpEventoString : array[0..75] of String =('-99999', '110110', '110111',
                                                 '210200', '210210', '210220',
                                                 '210240', '110112', '110113',
                                                 '110114', '110160', '310620',
@@ -249,7 +255,8 @@ const
                                                 '310112', '110130', '110131',
                                                 '110150', '610130', '610131',
                                                 '110117', '110118', '610111',
-                                                '110190', '110191');
+                                                '110190', '110191', '110192',
+                                                '110193');
 
   DFeUF: array[0..26] of String =
   ('AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA',
@@ -1053,12 +1060,16 @@ end;
 // 49a - Código do Regime Tributário **************************************
 function CRTToStr(const t: TpcnCRT): string;
 begin
-  result := EnumeradoToStr(t, ['','1', '2', '3'], [crtRegimeNormal,crtSimplesNacional, crtSimplesExcessoReceita, crtRegimeNormal]);
+  result := EnumeradoToStr(t, ['','1', '2', '3', '4'],
+    [crtRegimeNormal, crtSimplesNacional, crtSimplesExcessoReceita,
+     crtRegimeNormal, crtMEI]);
 end;
 
 function StrToCRT(out ok: boolean; const s: string): TpcnCRT;
 begin
-  result := StrToEnumerado(ok, s, ['','1', '2', '3'],[crtRegimeNormal,crtSimplesNacional,crtSimplesExcessoReceita, crtRegimeNormal]);
+  result := StrToEnumerado(ok, s, ['','1', '2', '3', '4'],
+    [crtRegimeNormal, crtSimplesNacional, crtSimplesExcessoReceita,
+     crtRegimeNormal, crtMEI]);
 end;
 
 function CRTTocRegTrib(const t: TpcnCRT): TpcnRegTrib;
@@ -1302,14 +1313,15 @@ function FormaPagamentoToStr(const t: TpcnFormaPagamento): string;
 begin
   result := EnumeradoToStr(t, ['01', '02', '03', '04', '05', '10', '11', '12',
                                '13', '14', '15', '16', '17', '18', '19', '90',
-                               '98', '99'],
+                               '98', '99', '20', '21', '22'],
                               [fpDinheiro, fpCheque, fpCartaoCredito, fpCartaoDebito,
                                fpCreditoLoja, fpValeAlimentacao, fpValeRefeicao,
                                fpValePresente, fpValeCombustivel, fpDuplicataMercantil,
                                fpBoletoBancario, fpDepositoBancario,
                                fpPagamentoInstantaneo, fpTransfBancario,
                                fpProgramaFidelidade, fpSemPagamento, fpRegimeEspecial,
-                               fpOutro]);
+                               fpOutro, fpPagamentoInstantaneoEstatico,
+                               fpCreditoEmLojaPorDevolucao, fpFalhaHardware]);
 end;
 
 function FormaPagamentoToDescricao(const t: TpcnFormaPagamento): string; overload;
@@ -1323,20 +1335,22 @@ begin
     result := xPag
   else
     result := EnumeradoToStr(t,  ['Dinheiro', 'Cheque', 'Cartão de Crédito',
-                                'Cartão de Débito', 'Crédito Loja',
+                                'Cartão de Débito', 'Private Label',
                                 'Vale Alimentação', 'Vale Refeição', 'Vale Presente',
                                 'Vale Combustível', 'Duplicata Mercantil',
                                 'Boleto Bancário', 'Deposito Bancário',
-                                'Pagamento Instantâneo (PIX)', 'Transferência Bancária',
+                                'Pagamento Instantâneo (PIX) - Dinâmico', 'Transferência Bancária',
                                 'Programa Fidelidade', 'Sem Pagamento',
-                                'Regime Especial NFF', 'Outro'],
+                                'Regime Especial NFF', 'Outro', 'Pagamento Instantâneo (PIX) - Estático',
+                                'Crédito em Loja', 'Falha de hardware do sistema emissor'],
                               [fpDinheiro, fpCheque, fpCartaoCredito, fpCartaoDebito,
                                fpCreditoLoja, fpValeAlimentacao, fpValeRefeicao,
                                fpValePresente, fpValeCombustivel, fpDuplicataMercantil,
                                fpBoletoBancario, fpDepositoBancario,
                                fpPagamentoInstantaneo, fpTransfBancario,
                                fpProgramaFidelidade, fpSemPagamento, fpRegimeEspecial,
-                               fpOutro]);
+                               fpOutro, fpPagamentoInstantaneoEstatico,
+                               fpCreditoEmLojaPorDevolucao, fpFalhaHardware]);
 end;
 
 
@@ -1344,14 +1358,15 @@ function StrToFormaPagamento(out ok: boolean; const s: string): TpcnFormaPagamen
 begin
   result := StrToEnumerado(ok, s, ['01', '02', '03', '04', '05', '10', '11', '12',
                                    '13', '14', '15', '16', '17', '18', '19', '90',
-                                   '98', '99'],
+                                   '98', '99', '20', '21', '22'],
                               [fpDinheiro, fpCheque, fpCartaoCredito, fpCartaoDebito,
                                fpCreditoLoja, fpValeAlimentacao, fpValeRefeicao,
                                fpValePresente, fpValeCombustivel, fpDuplicataMercantil,
                                fpBoletoBancario, fpDepositoBancario,
                                fpPagamentoInstantaneo, fpTransfBancario,
                                fpProgramaFidelidade, fpSemPagamento, fpRegimeEspecial,
-                               fpOutro]);
+                               fpOutro,fpPagamentoInstantaneoEstatico,
+                               fpCreditoEmLojaPorDevolucao, fpFalhaHardware]);
 end;
 
 function BandeiraCartaoToDescStr(const t: TpcnBandeiraCartao): string;
@@ -1487,6 +1502,7 @@ end;
 
 function CodigoMPToDescricao(const t: TpcnCodigoMP ): string;
 begin
+
   result := EnumeradoToStr(t, ['Dinheiro', 'Cheque', 'Cartão de Crédito',
                                'Cartão de Débito', 'Crédito Loja', 'Vale Alimentação',
                                'Vale Refeição', 'Vale Presente', 'Vale Combustível',
@@ -1499,6 +1515,7 @@ begin
                                MPBoletoBancario, MPDepositoBancario,
                                MPPagamentoInstantaneo, MPTransfBancario,
                                MPProgramaFidelidade, MPSemPagamento, MPOutros]);
+
 end;
 
 // Tipo da Unidade de Transporte ***********************************************

@@ -47,6 +47,25 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+14/06/2024
+--- ACBrSchemasMatera --
+[*] Incluído novo status da conta: REJECTED
+    por: Elias César
+
+06/06/2024
+-- ACBrPIXCD --
+[*] Adicionada rotinas de redirecionamento de URL no método:
+
+23/05/2024
+-- ACBrPIXCD --
+[+] Inclusão do novo PSP Banrisul
+    por: Elias César Vieira
+
+14/05/2024
+-- ACBrSchemasMatera --
+[*] Inclusão de novo status no enumerado TMateraAccountStatus
+    por: MatheusHenrique9
+
 19/04/2024
 -- ACBrSchemasMatera --
 [*] Correção de problema ao converter String para tipo TMateraWithdrawType
@@ -69,7 +88,7 @@ Símbolo : Significado
 
 23/02/2024
 -- ACBrPIXPSPGate2All --
-[-] Correção na conversão do Valor do Pix para Gate2All, que conssidera o valor
+[-] Correção na conversão do Valor do Pix para Gate2All, que considera o valor
     inteiro, sem decimais
     (por: DSA)
 

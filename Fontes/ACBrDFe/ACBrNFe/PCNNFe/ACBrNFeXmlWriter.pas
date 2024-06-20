@@ -37,7 +37,7 @@ interface
 uses
   Classes, SysUtils,
   pcnNFe, pcnGerador, pcnConversao, pcnNFeConsts,
-  ACBrXmlDocument, ACBrXmlWriter, ACBrXmlBase;
+  ACBrXmlDocument, ACBrXmlWriter, ACBrXmlBase, pcnConversaoNFe;
 
 type
   TNFeXmlWriterOptions = class(TACBrXmlWriterOptions)
@@ -75,10 +75,13 @@ type
     Usar_tcDe4: boolean;
     FormatoValor4ou2: TACBrTipoCampo;
     FormatoValor10ou4: TACBrTipoCampo;
-    Versao: string;
     ChaveNFe: string;
     FIdCSRT: integer;
     FCSRT: string;
+    FVersaoDF: TpcnVersaoDF;
+    FModeloDF: TpcnModeloDF;
+    FtpAmb: TpcnTipoAmbiente;
+    FtpEmis: TpcnTipoEmissao;
 
     function GerarInfNFe: TACBrXmlNode;
     function GerarIde: TACBrXmlNode;
@@ -174,6 +177,10 @@ type
     property NFe: TNFe read FNFe write FNFe;
     property IdCSRT: integer read FIdCSRT write FIdCSRT;
     property CSRT: string read FCSRT write FCSRT;
+    property VersaoDF: TpcnVersaoDF read FVersaoDF write FVersaoDF;
+    property ModeloDF: TpcnModeloDF read FModeloDF write FModeloDF;
+    property tpAmb: TpcnTipoAmbiente read FtpAmb write FtpAmb;
+    property tpEmis: TpcnTipoEmissao read FtpEmis write FtpEmis;
 
   end;
 
@@ -183,7 +190,7 @@ uses
   variants, dateutils,
   StrUtils,
   Math,
-  pcnConversaoNFe, ACBrValidador,
+  ACBrValidador,
   ACBrDFeUtil,
   ACBrDFeConsts,
   ACBrUtil.Strings, ACBrUtil.Base, ACBrUtil.DateTime,
@@ -254,6 +261,15 @@ var
   xCNPJCPF: string;
   nfeNode, xmlNode: TACBrXmlNode;
 begin
+  {
+    Os campos abaixo tem que ser os mesmos da configuração
+  }
+{
+  NFe.infNFe.Versao := VersaoDFToDbl(VersaoDF);
+  NFe.Ide.modelo := StrToInt(ModeloDFToStr(ModeloDF));
+  NFe.Ide.tpAmb := tpAmb;
+  NFe.ide.tpEmis := tpEmis;
+}
   Result := False;
 
   ListaDeAlertas.Clear;
@@ -269,8 +285,6 @@ begin
     FormatoValor10ou4 := tcDe10
   else
     FormatoValor10ou4 := tcDe4;
-
-  Versao := Copy(NFe.infNFe.VersaoStr, 9, 4);
 
   xCNPJCPF := NFe.emit.CNPJCPF;
 
@@ -2439,15 +2453,23 @@ begin
           end;
         end;
       end;
-      crtSimplesNacional:
+      crtSimplesNacional, crtMEI:
       begin
         //Grupo do Simples Nacional
         sTagTemp := CSOSNTOStrTagPos(NFe.Det[i].Imposto.ICMS.CSOSN);
         xmlNode := Result.AddChild('ICMSSN' + sTagTemp);
-        xmlNode.AppendChild(AddNode(tcStr, 'N11', 'orig', 01, 01,
-          1, OrigTOStr(NFe.Det[i].Imposto.ICMS.orig), DSC_ORIG));
+
+        if NFe.Det[i].Imposto.ICMS.CSOSN in [csosn102, csosn103, csosn300,
+                                                       csosn400, csosn900] then
+          xmlNode.AppendChild(AddNode(tcStr, 'N11', 'orig', 01, 01, 0,
+                             OrigTOStr(NFe.Det[i].Imposto.ICMS.orig), DSC_ORIG))
+        else
+          xmlNode.AppendChild(AddNode(tcStr, 'N11', 'orig', 01, 01, 1,
+                            OrigTOStr(NFe.Det[i].Imposto.ICMS.orig), DSC_ORIG));
+
         xmlNode.AppendChild(AddNode(tcStr, 'N12a', 'CSOSN', 03, 03, 1,
-          CSOSNIcmsToStr(NFe.Det[i].Imposto.ICMS.CSOSN), DSC_CSOSN));
+                     CSOSNIcmsToStr(NFe.Det[i].Imposto.ICMS.CSOSN), DSC_CSOSN));
+
         case NFe.Det[i].Imposto.ICMS.CSOSN of
           csosn101:
           begin

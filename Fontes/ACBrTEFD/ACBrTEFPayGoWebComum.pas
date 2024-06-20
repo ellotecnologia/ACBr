@@ -1127,9 +1127,9 @@ begin
   fUltimoQRCode := '';
 
   {$IfDef DEBUG}
-   fIsDebug := True;
+   IsDebug := True;
   {$Else}
-   fIsDebug := False;
+   IsDebug := False;
   {$EndIf}
 
   fPathLib := '';
@@ -1824,7 +1824,6 @@ begin
 
   pszData := AllocMem(max(50, MaxLen));
   try
-    iRet := xPW_iPPAbort;
     iRet := xPW_iPPGetUserData(iMessageId, MinLen, MaxLen, TimeOutSec, pszData);
     GravarLog('  '+PWRETToString(iRet));
     case iRet of
@@ -2678,7 +2677,7 @@ begin
 
   PathNovo := '';
   PathAtual := GetPathPGWebLib;
-  if (PathAtual = '') then
+  if (PathAtual = '') or (not FileExists(PathAtual)) then
     Exit;
 
   if AValue then
@@ -2792,12 +2791,17 @@ end;
 function TACBrTEFPGWebAPI.LibFullName: String;
 begin
   if (PathLib <> '') then
+  begin
+    GravarLog(ACBrStr('LibFullName: Usando "PathLib" informado pela aplicação: ')+PathLib);
     Result := PathLib + CACBrTEFPGWebLib
+  end
   else
   begin
     Result := GetPathPGWebLib;
-    if (Result = '') then
-      Result := CACBrTEFPGWebLib;
+    if (Result = '') or (not FileExists(Result)) then
+      Result := CACBrTEFPGWebLib
+    else
+      GravarLog(ACBrStr('LibFullName: Usando Path da Váriável de Ambiente "'+GetVarPathPGWebLib+'": ')+Result);
   end;
 end;
 

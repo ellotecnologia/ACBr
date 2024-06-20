@@ -209,19 +209,17 @@ begin
   FCTe.Ide.verProc := 'ACBrCTe';
   FCTe.ide.indGlobalizado := tiNao;
   FCTe.infCTeNorm.infCteSub.indAlteraToma := tiNao;
-  {
+
   with TACBrCTe(TConhecimentos(Collection).ACBrCTe) do
   begin
     FCTe.Ide.modelo := StrToInt(ModeloCTeToStr(Configuracoes.Geral.ModeloDF));
     FCTe.infCTe.Versao := VersaoCTeToDbl(Configuracoes.Geral.VersaoDF);
-
     FCTe.Ide.tpAmb := Configuracoes.WebServices.Ambiente;
     FCTe.Ide.tpEmis := Configuracoes.Geral.FormaEmissao;
 
     if Assigned(DACTE) then
       FCTe.Ide.tpImp := DACTE.TipoDACTE;
   end;
-  }
 end;
 
 destructor Conhecimento.Destroy;
@@ -654,6 +652,7 @@ var
   sSecao: string;
   INIRec: TMemIniFile;
   IniCTe: TStringList;
+  Ok: Boolean;
 begin
   Result := '';
 
@@ -664,7 +663,9 @@ begin
   try
     with FCTe do
     begin
-      INIRec.WriteString('infCTe', 'versao', FormatFloat('0.00', infCTe.versao));
+//      INIRec.WriteString('infCTe', 'versao', FormatFloat('0.00', infCTe.versao));
+      INIRec.WriteString('infCTe', 'versao', VersaoCTeToStr(DblToVersaoCTe(Ok, infCTe.versao)));
+
       INIRec.WriteInteger('ide', 'cCT', Ide.cCT);
       INIRec.WriteInteger('ide', 'CFOP', Ide.CFOP);
       INIRec.WriteString('ide', 'natOp', Ide.natOp);
@@ -1586,15 +1587,14 @@ begin
     {
       Ao gerar o XML as tags e atributos tem que ser exatamente os da configuração
     }
+    {
     FCTeW.VersaoDF := Configuracoes.Geral.VersaoDF;
     FCTeW.ModeloDF := Configuracoes.Geral.ModeloDF;
     FCTeW.tpAmb := Configuracoes.WebServices.Ambiente;
     FCTeW.tpEmis := Configuracoes.Geral.FormaEmissao;
+    }
     FCTeW.idCSRT := Configuracoes.RespTec.IdCSRT;
     FCTeW.CSRT   := Configuracoes.RespTec.CSRT;
-
-    if Assigned(DACTE) then
-      FCTe.Ide.tpImp := DACTE.TipoDACTE;
   end;
 
   FCTeW.GerarXml;

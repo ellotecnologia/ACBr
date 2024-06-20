@@ -43,6 +43,14 @@ Símbolo : Significado
 [-]     : Correção de Bug (assim esperamos)
 
 
+08/05/2024
+-- ACBrNFComNotasFiscais --
+[*] Reversão da alteração que visava o uso das configurações na geração do XML.
+   Por: Italo Giurizzato Junior
+-- ACBrNFComXmlWriter --
+[*] Comentado as linhas que usa os dados de configuração na geração do XML.
+   Por: Italo Giurizzato Junior
+
 02/04/2024
 -- Diversos --
 [*] Melhorias no código usando o FixInsight (ainda não ficou 100%).

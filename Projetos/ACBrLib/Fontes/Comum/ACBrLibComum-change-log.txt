@@ -42,6 +42,31 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+20/05/2024
+-- ACBrLib.NFSe.csproj, ACBrLib.Core.csproj, ACBrLibHandle.cs --
+[*] Correção no Core do C# para não sobrescrever a variável PATH do usuário/sistema
+  Por: gostartlab
+
+16/05/2024
+-- ACBrLibHandle.cs --
+[*] Correção na localização das dependências distribuídas na estrutura dos pacotes nuget quando houver mais de um nuget na mesma aplicação
+  Por: Renato Rubinho
+
+13/05/2024
+-- ACBrLibHandle.cs --
+[*] Buscar dependências distribuídas na estrutura dos pacotes nuget e exibir na exceção o caminho previsto quando não for encontrado
+  Por: Renato Rubinho
+
+09/05/2024
+-- build.cake --
+[*] Adicionada informação no final dos scripts para identificar quando foram executados com sucesso
+  Por: Renato Rubinho
+
+30/04/2024
+-- ACBrLibHandle.cs --
+[*] TK-5375 - Compatibilização da LibraryPath da ACBrLib.Core com pacote self-contained
+  Por: gostartlab, Renato Rubinho
+
 03/04/2024
 -- Diversos --
 [+] Implementado método LIB_OpenSSLInfo

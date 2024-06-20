@@ -295,7 +295,7 @@ begin
   rllEntradaSaida.Caption := tpNFToStr(fpNFe.Ide.tpNF);
 
   if fpDANFe.FormatarNumeroDocumento then
-    ACBrStr('Número: ' + FormatFloat('000,000,000', fpNFe.Ide.nNF))
+    lblNumero.Caption := ACBrStr('Número: ' + FormatFloat('000,000,000', fpNFe.Ide.nNF))
   else
     lblNumero.Caption := ACBrStr('Número: ' + IntToStr(fpNFe.Ide.nNF));
 
@@ -611,7 +611,7 @@ begin
           rlmProdutoCST.Caption := OrigToStr(Imposto.ICMS.orig) + CSTICMSToStr(Imposto.ICMS.CST);
           rlCST.Caption:= 'Cst';
         end;
-      crtSimplesNacional:
+      crtSimplesNacional, crtMEI:
         begin
           rlmProdutoCST.Caption := OrigToStr(Imposto.ICMS.orig) + CSOSNIcmsToStr(Imposto.ICMS.CSOSN);
           rlCST.Caption:= 'Csosn/Cst';

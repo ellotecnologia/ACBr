@@ -254,11 +254,15 @@ begin
   {
     Os campos abaixo tem que ser os mesmos da configuração
   }
+{
   CTe.infCTe.Versao := VersaoCTeToDbl(VersaoDF);
   CTe.Ide.modelo := StrToInt(ModeloCTeToStr(ModeloDF));
   CTe.Ide.tpAmb := tpAmb;
   CTe.ide.tpEmis := tpEmis;
+}
+  ModeloDF :=  StrToModeloCTe(Ok, IntToStr(CTe.ide.modelo));
 
+  VersaoDF :=  DblToVersaoCTe(Ok, CTe.infCTe.Versao);
   VersaoStr := 'versao="' + FloatToString(CTe.infCTe.Versao, '.', '#0.00') + '"';
 
   FChaveCTe := GerarChaveAcesso(CTe.ide.cUF, CTe.ide.dhEmi, CTe.emit.CNPJ, CTe.ide.serie,
@@ -1003,7 +1007,8 @@ end;
 begin
   if (trim(CTe.Rem.CNPJCPF) <> '') or (trim(CTe.Rem.xNome) <> '') then
   begin
-    if (VersaoDF <= ve300) or (CTe.ide.cUF = 51) then
+//    if (VersaoDF <= ve300) or (CTe.ide.cUF = 51) then
+    if VersaoDF <= ve300 then
       xNome := xRazao3
     else
       xNome := xRazao4;
@@ -1087,7 +1092,8 @@ end;
 begin
   if (trim(CTe.Exped.CNPJCPF) <> '') or (trim(CTe.Exped.xNome) <> '') then
   begin
-    if (VersaoDF <= ve300) or (CTe.ide.cUF = 51) then
+//    if (VersaoDF <= ve300) or (CTe.ide.cUF = 51) then
+    if VersaoDF <= ve300 then
       xNome := xRazao3
     else
       xNome := xRazao4;
@@ -1169,7 +1175,8 @@ end;
 begin
   if (trim(CTe.Receb.CNPJCPF) <> '') or (trim(CTe.Receb.xNome) <> '') then
   begin
-    if (VersaoDF <= ve300) or (CTe.ide.cUF = 51) then
+//    if (VersaoDF <= ve300) or (CTe.ide.cUF = 51) then
+    if VersaoDF <= ve300 then
       xNome := xRazao3
     else
       xNome := xRazao4;
@@ -1251,7 +1258,8 @@ end;
 begin
   if (trim(CTe.Dest.CNPJCPF) <> '') or (trim(CTe.Dest.xNome) <> '') then
   begin
-    if (VersaoDF <= ve300) or (CTe.ide.cUF = 51) then
+//    if (VersaoDF <= ve300) or (CTe.ide.cUF = 51) then
+    if VersaoDF <= ve300 then
       xNome := xRazao3
     else
       xNome := xRazao4;

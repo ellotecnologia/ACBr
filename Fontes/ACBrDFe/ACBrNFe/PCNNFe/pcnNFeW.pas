@@ -61,7 +61,7 @@ interface
 uses
   SysUtils, Classes,
   pcnGerador, pcnNFe, pcnConversao, pcnNFeConsts,
-  ACBrValidador;
+  ACBrValidador, pcnConversaoNFe;
 
 type
 
@@ -82,6 +82,10 @@ type
     FChaveNFe: string;
     FIdCSRT: Integer;
     FCSRT: String;
+    FVersaoDF: TpcnVersaoDF;
+    FModeloDF: TpcnModeloDF;
+    FtpAmb: TpcnTipoAmbiente;
+    FtpEmis: TpcnTipoEmissao;
 
     procedure GerarInfNFe;
     procedure GerarIde;
@@ -170,6 +174,10 @@ type
     property Opcoes: TGeradorOpcoes read FOpcoes  write FOpcoes;
     property IdCSRT: Integer        read FIdCSRT  write FIdCSRT;
     property CSRT: String           read FCSRT    write FCSRT;
+    property VersaoDF: TpcnVersaoDF read FVersaoDF write FVersaoDF;
+    property ModeloDF: TpcnModeloDF read FModeloDF write FModeloDF;
+    property tpAmb: TpcnTipoAmbiente read FtpAmb write FtpAmb;
+    property tpEmis: TpcnTipoEmissao read FtpEmis write FtpEmis;
   end;
 
   TGeradorOpcoes = class(TPersistent)
@@ -205,7 +213,7 @@ uses
   Math,
   ACBrDFeUtil,
   ACBrDFeConsts,
-  pcnConversaoNFe, pcnLayoutTXT,
+  pcnLayoutTXT,
   ACBrUtil.Base, ACBrUtil.Strings,
   ACBrUtil.DateTime;
 
@@ -249,8 +257,21 @@ var
   xProtNFe : String;
   xCNPJCPF : string;
   qrCode: string;
+  VersaoStr: string;
 begin
   Gerador.ListaDeAlertas.Clear;
+
+  {
+    Os campos abaixo tem que ser os mesmos da configuração
+  }
+{
+  NFe.infNFe.Versao := VersaoDFToDbl(VersaoDF);
+  NFe.Ide.modelo := StrToInt(ModeloDFToStr(ModeloDF));
+  NFe.Ide.tpAmb := tpAmb;
+  NFe.ide.tpEmis := tpEmis;
+}
+  VersaoStr := 'versao="' + FloatToString(NFe.infNFe.Versao, '.', '#0.00') + '"';
+  FVersao := FloatToString(NFe.infNFe.Versao, '.', '#0.00');
 
   FUsar_tcDe4 := (NFe.infNFe.Versao >= 3.10);
 
@@ -263,8 +284,6 @@ begin
     FormatoValor10ou4 := tcDe10
   else
     FormatoValor10ou4 := tcDe4;
-
-  FVersao     := Copy(NFe.infNFe.VersaoStr, 9, 4);
 
   xCNPJCPF := NFe.emit.CNPJCPF;
 
@@ -292,10 +311,10 @@ begin
   {$EndIf}
 
   if NFe.procNFe.nProt <> '' then
-    Gerador.wGrupo('nfeProc ' + NFe.infNFe.VersaoStr + ' ' + NAME_SPACE, '');
+    Gerador.wGrupo('nfeProc ' + VersaoStr + ' ' + NAME_SPACE, '');
 
   Gerador.wGrupo('NFe ' + NAME_SPACE);
-  Gerador.wGrupo('infNFe ' + NFe.infNFe.VersaoStr + ' Id="' + NFe.infNFe.ID + '"');
+  Gerador.wGrupo('infNFe ' + VersaoStr + ' Id="' + NFe.infNFe.ID + '"');
   (**)GerarInfNFe;
   Gerador.wGrupo('/infNFe');
 
@@ -334,7 +353,7 @@ begin
   if NFe.procNFe.nProt <> '' then
    begin
      xProtNFe :=
-       (**)'<protNFe ' + NFe.infNFe.VersaoStr + '>' +
+       (**)'<protNFe ' + VersaoStr + '>' +
      (******)'<infProt>'+
      (*********)'<tpAmb>'+TpAmbToStr(NFe.procNFe.tpAmb)+'</tpAmb>'+
      (*********)'<verAplic>'+NFe.procNFe.verAplic+'</verAplic>'+
@@ -1967,13 +1986,20 @@ begin
               end;
               Gerador.wGrupo('/ICMS' + sTagTemp );
            end;
-        crtSimplesNacional :
+        crtSimplesNacional, crtMEI :
            begin
               //Grupo do Simples Nacional
               sTagTemp  := CSOSNTOStrTagPos(NFe.Det[i].Imposto.ICMS.CSOSN);
               Gerador.wGrupo('ICMSSN' + sTagTemp, 'N' + CSOSNToStrID(NFe.Det[i].Imposto.ICMS.CSOSN));
-              Gerador.wCampo(tcStr, 'N11' , 'orig ', 01, 01, 1, OrigTOStr(NFe.Det[i].Imposto.ICMS.orig), DSC_ORIG);
+
+              if NFe.Det[i].Imposto.ICMS.CSOSN in [csosn102, csosn103, csosn300,
+                                                   csosn400, csosn900] then
+                Gerador.wCampo(tcStr, 'N11' , 'orig ', 01, 01, 0, OrigTOStr(NFe.Det[i].Imposto.ICMS.orig), DSC_ORIG)
+              else
+                Gerador.wCampo(tcStr, 'N11' , 'orig ', 01, 01, 1, OrigTOStr(NFe.Det[i].Imposto.ICMS.orig), DSC_ORIG);
+
               Gerador.wCampo(tcStr, 'N12a', 'CSOSN', 03, 03, 1, CSOSNIcmsToStr(NFe.Det[i].Imposto.ICMS.CSOSN), DSC_CSOSN);
+
               case  NFe.Det[i].Imposto.ICMS.CSOSN of
                  csosn101 :
                     begin

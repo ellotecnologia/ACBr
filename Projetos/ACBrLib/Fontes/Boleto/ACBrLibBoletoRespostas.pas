@@ -75,6 +75,10 @@ type
     FNumeroCorrespondente : Integer;
     FVersaoArquivo : Integer;
     FVersaoLote : Integer;
+    FNumeroArquivo: Integer;
+    FNomeArqRetorno: String;
+    FDensidadeGravacao: String;
+    FCIP: String;
 
   public
     constructor Create(const ATipo: TACBrLibRespostaTipo; const AFormato: TACBrLibCodificacao); reintroduce;
@@ -87,6 +91,10 @@ type
     property NumeroCorrespondente : Integer read FNumeroCorrespondente write FNumeroCorrespondente;
     property VersaoArquivo : Integer read FVersaoArquivo write FVersaoArquivo;
     property VersaoLote : Integer read FVersaoLote write FVersaoLote;
+    property NumeroArquivo: Integer read FNumeroArquivo write FNumeroArquivo;
+    property NomeArqRetorno: String read FNomeArqRetorno write FNomeArqRetorno;
+    property DensidadeGravacao: String read FDensidadeGravacao write FDensidadeGravacao;
+    property CIP: String read FCIP write FCIP;
 
   end;
 
@@ -140,6 +148,7 @@ type
     FNumeroDocumento: String;
     FDataProcessamento: TDateTime;
     FNossoNumero: String;
+    FNossoNumeroCorrespondente:String;
     FCarteira: String;
     FValorDocumento: Currency;
     FDataOcorrencia: TDateTime;
@@ -178,6 +187,7 @@ type
     property NumeroDocumento: String read FNumeroDocumento write FNumeroDocumento;
     property DataProcessamento: TDateTime read FDataProcessamento write FDataProcessamento;
     property NossoNumero: String read FNossoNumero write FNossoNumero;
+    property NossoNumeroCorrespondente: String read FNossoNumeroCorrespondente write FNossoNumeroCorrespondente;
     property Carteira: String read FCarteira write FCarteira;
     property DataOcorrencia: TDateTime read FDataOcorrencia write FDataOcorrencia;
     property DataCredito: TDateTime read FDataCredito write FDataCredito;
@@ -305,6 +315,7 @@ type
     FAceite: TACBrAceiteTitulo;
     FDataProcessamento: TDateTime;
     FNossoNumero: String;
+    FNossoNumeroCorrespondente: String;
     FUsoBanco: String;
     FCarteira: String;
     FEspecieMod: String;
@@ -381,6 +392,7 @@ type
     property Aceite: TACBrAceiteTitulo read FAceite write FAceite ;
     property DataProcessamento: TDateTime read FDataProcessamento write FDataProcessamento ;
     property NossoNumero: String read FNossoNumero write FNossoNumero ;
+    property NossoNumeroCorrespondente: String read FNossoNumeroCorrespondente write FNossoNumeroCorrespondente;
     property UsoBanco: String read FUsoBanco write FUsoBanco ;
     property Carteira: String read FCarteira write FCarteira ;
     property EspecieMod: String read FEspecieMod write FEspecieMod ;
@@ -725,6 +737,8 @@ begin
       url_Pix:= DadosRet.TituloRet.UrlPix;
       Tx_ID:= DadosRet.TituloRet.TxId;
     end;
+    NossoNumeroCorrespondente:=DadosRet.TituloRet.NossoNumeroCorrespondente;
+
 end;
 
 { TRetornoWebHeader }
@@ -902,6 +916,7 @@ begin
     NumeroDocumento := ACBrBoleto.ListadeBoletos[FID].NumeroDocumento;
     DataProcessamento := ACBrBoleto.ListadeBoletos[FID].DataProcessamento;
     NossoNumero := ACBrBoleto.ListadeBoletos[FID].NossoNumero;
+    NossoNumeroCorrespondente:=ACBrBoleto.ListadeBoletos[FID].NossoNumeroCorrespondente;
     Carteira := ACBrBoleto.ListadeBoletos[FID].Carteira;
     ValorDocumento := ACBrBoleto.ListadeBoletos[FID].ValorDocumento;
     DataOcorrencia := ACBrBoleto.ListadeBoletos[FID].DataOcorrencia;
@@ -978,9 +993,11 @@ begin
     NumeroCorrespondente := ACBrBoleto.Banco.NumeroCorrespondente;
     VersaoArquivo := ACBrBoleto.Banco.LayoutVersaoArquivo;
     VersaoLote := ACBrBoleto.Banco.LayoutVersaoLote;
-
+    NumeroArquivo := ACBrBoleto.NumeroArquivo;
+    NomeArqRetorno := ACBrBoleto.NomeArqRetorno;
+    DensidadeGravacao := ACBrBoleto.Banco.DensidadeGravacao;
+    CIP := ACBrBoleto.Banco.CIP;
   end;
-
 end;
 
 { TRetornoDadosCedente }

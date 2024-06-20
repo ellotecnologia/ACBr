@@ -71,7 +71,8 @@ type
     function CriarServiceClient(const AMetodo: TMetodo): TACBrNFSeXWebservice; override;
 
     function GerarXMLNota(const AXmlRps: String; const Response: TNFSeWebserviceResponse): String;
-    procedure MontarXMLNFSe(const ANode: TACBrXmlNode; const Response: TNFSeWebserviceResponse);
+    procedure MontarXMLNFSe(const ANode: TACBrXmlNode;
+      const Response: TNFSeWebserviceResponse; AResumo: TNFSeResumoCollectionItem);
 
     function PrepararRpsParaLote(const aXml: string): string; override;
 
@@ -99,6 +100,9 @@ type
   public
     function SimNaoToStr(const t: TnfseSimNao): string; override;
     function StrToSimNao(out ok: boolean; const s: string): TnfseSimNao; override;
+
+    function SimNaoOpcToStr(const t: TnfseSimNaoOpc): string; override;
+    function StrToSimNaoOpc(out ok: boolean; const s: string): TnfseSimNaoOpc; override;
 
     function CondicaoPagToStr(const t: TnfseCondicaoPagamento): string; override;
     function StrToCondicaoPag(out ok: boolean; const s: string): TnfseCondicaoPagamento; override;
@@ -178,13 +182,21 @@ procedure TACBrNFSeProviderIPM.Configuracao;
 begin
   inherited Configuracao;
 
+  with ConfigAssinar do
+  begin
+    RpsGerarNFSe := ConfigGeral.Params.ParamTemValor('Assinar', 'AssRpsGerarNfse');
+    CancelarNFSe := ConfigGeral.Params.ParamTemValor('Assinar', 'AssCancelarNfse');
+  end;
+
   with ConfigGeral do
   begin
     ModoEnvio := meUnitario;
     ConsultaNFSe := False;
     DetalharServico := True;
     FormatoArqEnvioSoap := tfaTxt;
+    ImprimirOptanteSN := False;
 
+    Autenticacao.RequerCertificado := (ConfigAssinar.RpsGerarNFSe) or (ConfigAssinar.CancelarNFSe);
     Autenticacao.RequerLogin := True;
 
     ServicosDisponibilizados.EnviarUnitario := True;
@@ -195,12 +207,6 @@ begin
 
     Particularidades.PermiteTagOutrasInformacoes := True;
     Particularidades.PermiteMaisDeUmServico := True;
-  end;
-
-  with ConfigAssinar do
-  begin
-    RpsGerarNFSe := ConfigGeral.Params.ParamTemValor('Assinar', 'AssRpsGerarNfse');
-    CancelarNFSe := ConfigGeral.Params.ParamTemValor('Assinar', 'AssCancelarNfse');
   end;
 
   SetXmlNameSpace('');
@@ -291,7 +297,8 @@ begin
   end;
 end;
 
-procedure TACBrNFSeProviderIPM.MontarXMLNFSe(const ANode: TACBrXmlNode; const Response: TNFSeWebserviceResponse);
+procedure TACBrNFSeProviderIPM.MontarXMLNFSe(const ANode: TACBrXmlNode;
+  const Response: TNFSeWebserviceResponse; AResumo: TNFSeResumoCollectionItem);
 var
   AuxNode: TACBrXmlNode;
   NumRps, LXmlNota: String;
@@ -317,6 +324,8 @@ begin
       begin
         ANota.XmlNfse := LXmlNota;
         SalvarXmlNfse(ANota);
+
+        AResumo.NomeArq := ANota.NomeArq;
       end;
     end;
   end;
@@ -408,6 +417,19 @@ begin
   Result := StrToEnumerado(ok, s,
                            ['0', '1', 'N', 'S'],
                            [snNao, snSim, snNao, snSim]);
+end;
+
+function TACBrNFSeProviderIPM.SimNaoOpcToStr(const t: TnfseSimNaoOpc): string;
+begin
+  Result := EnumeradoToStr(t, ['0', '1', ''], [snoNao, snoSim, snoNenhum]);
+end;
+
+function TACBrNFSeProviderIPM.StrToSimNaoOpc(out ok: boolean;
+  const s: string): TnfseSimNaoOpc;
+begin
+  Result := StrToEnumerado(ok, s,
+                           ['0', '1', 'N', 'S', ''],
+                           [snoNao, snoSim, snoNao, snoSim, snoNenhum]);
 end;
 
 function TACBrNFSeProviderIPM.CondicaoPagToStr(
@@ -558,8 +580,7 @@ begin
         AResumo.Situacao := Response.Situacao;
         AResumo.DescSituacao := Response.DescSituacao;
 
-        MontarXMLNFSe(ANode, Response);
-
+        MontarXMLNFSe(ANode, Response, AResumo);
       end;
     except
       on E:Exception do
@@ -706,7 +727,7 @@ begin
         AResumo.Situacao := Response.Situacao;
         AResumo.DescSituacao := Response.DescSituacao;
 
-        MontarXMLNFSe(ANode, Response);
+        MontarXMLNFSe(ANode, Response, AResumo);
       end;
     except
       on E:Exception do
@@ -881,8 +902,7 @@ begin
         AResumo.Situacao := Response.Situacao;
         AResumo.DescSituacao := Response.DescSituacao;
 
-        MontarXMLNFSe(ANode, Response);
-
+        MontarXMLNFSe(ANode, Response, AResumo);
       end;
     except
       on E:Exception do
@@ -1076,8 +1096,7 @@ begin
         AResumo.Situacao := Response.Situacao;
         AResumo.DescSituacao := Response.DescSituacao;
 
-        MontarXMLNFSe(ANode, Response);
-
+        MontarXMLNFSe(ANode, Response, AResumo);
       end;
     except
       on E:Exception do
@@ -1337,8 +1356,7 @@ begin
         AResumo.Situacao := Response.Situacao;
         AResumo.DescSituacao := Response.DescSituacao;
 
-        MontarXMLNFSe(ANode, Response);
-
+        MontarXMLNFSe(ANode, Response, AResumo);
       end;
     except
       on E:Exception do
@@ -1364,17 +1382,34 @@ begin
   if i > 0 then
     Result := Copy(Retorno, 1, i -1) + '</retorno>'
   else
-    Result := Retorno;
+  begin
+//    Result := ConverteXMLtoUTF8(Retorno);
+//    Result := RemoverDeclaracaoXML(Result);
+//    Result := ConverteXMLtoNativeString(Retorno);
+
+    if Pos('<', Retorno) = 0 then
+      Result := '<retorno>' +
+                  '<mensagem>' +
+                    '<codigo>999</codigo>' +
+                    '<Mensagem>' + Retorno + '</Mensagem>' +
+                  '</mensagem>' +
+                '</retorno>'
+    else
+      Result := Retorno;
+  end;
 end;
 
 function TACBrNFSeXWebserviceIPM.TratarXmlRetornado(const aXML: string): string;
 var
   jDocument, JSonErro: TACBrJSONObject;
-  Codigo, Mensagem: string;
+  Codigo, Mensagem, Xml: string;
 begin
-  if (Pos('{"', aXML) > 0) and (Pos('":"', aXML) > 0) then
+  Xml := ConverteXMLtoUTF8(aXml);
+  Xml := RemoverDeclaracaoXML(Xml);
+
+  if (Pos('{"', Xml) > 0) and (Pos('":"', Xml) > 0) then
   begin
-    jDocument := TACBrJSONObject.Parse(aXML);
+    jDocument := TACBrJSONObject.Parse(Xml);
     JSonErro := jDocument.AsJSONObject['retorno'];
 
     if not Assigned(JSonErro) then Exit;
@@ -1394,9 +1429,20 @@ begin
   end
   else
   begin
-    Result := inherited TratarXmlRetornado(aXML);
+    Result := inherited TratarXmlRetornado(Xml);
 
     Result := AjustarRetorno(Result);
+
+    if not StringIsXML(Result) then
+    begin
+      Result := '<retorno>' +
+                  '<mensagem>' +
+                    '<codigo>' + '</codigo>' +
+                    '<Mensagem>' + Result + '</Mensagem>' +
+                    '<Correcao>' + '</Correcao>' +
+                  '</mensagem>' +
+                '</retorno>';
+    end;
 
     Result := ParseText(Result);
     Result := RemoverDeclaracaoXML(Result);
@@ -1467,18 +1513,32 @@ begin
   if i > 0 then
     Result := Copy(Retorno, 1, i -1) + '</retorno>'
   else
-    Result := Retorno;
+  begin
+//    Result := RemoverDeclaracaoXML(Retorno);
+    if Pos('<', Retorno) = 0 then
+      Result := '<retorno>' +
+                  '<mensagem>' +
+                    '<codigo>999</codigo>' +
+                    '<Mensagem>' + Retorno + '</Mensagem>' +
+                  '</mensagem>' +
+                '</retorno>'
+    else
+      Result := Retorno;
+  end;
 end;
 
 function TACBrNFSeXWebserviceIPM101.TratarXmlRetornado(
   const aXML: string): string;
 var
   jDocument, JSonErro: TACBrJSONObject;
-  Codigo, Mensagem: string;
+  Codigo, Mensagem, Xml: string;
 begin
-  if (Pos('{"', aXML) > 0) and (Pos('":"', aXML) > 0) then
+  Xml := ConverteXMLtoUTF8(aXml);
+  Xml := RemoverDeclaracaoXML(Xml);
+
+  if (Pos('{"', Xml) > 0) and (Pos('":"', Xml) > 0) then
   begin
-    jDocument := TACBrJSONObject.Parse(aXML);
+    jDocument := TACBrJSONObject.Parse(Xml);
     JSonErro := jDocument.AsJSONObject['retorno'];
 
     if not Assigned(JSonErro) then Exit;
@@ -1498,9 +1558,20 @@ begin
   end
   else
   begin
-    Result := inherited TratarXmlRetornado(aXML);
+    Result := inherited TratarXmlRetornado(Xml);
 
     Result := AjustarRetorno(Result);
+
+    if not StringIsXML(Result) then
+    begin
+      Result := '<retorno>' +
+                  '<mensagem>' +
+                    '<codigo>' + '</codigo>' +
+                    '<Mensagem>' + Result + '</Mensagem>' +
+                    '<Correcao>' + '</Correcao>' +
+                  '</mensagem>' +
+                '</retorno>';
+    end;
 
     Result := ParseText(Result);
     Result := RemoverDeclaracaoXML(Result);
@@ -1616,7 +1687,18 @@ begin
   if i > 0 then
     Result := Copy(Retorno, 1, i -1) + '</retorno>'
   else
-    Result := Retorno;
+  begin
+//    Result := ConverteXMLtoNativeString(Retorno);
+    if Pos('<', Retorno) = 0 then
+      Result := '<retorno>' +
+                  '<mensagem>' +
+                    '<codigo>999</codigo>' +
+                    '<Mensagem>' + Retorno + '</Mensagem>' +
+                  '</mensagem>' +
+                '</retorno>'
+    else
+      Result := Retorno;
+  end;
 end;
 
 function TACBrNFSeXWebserviceIPM204.Recepcionar(const ACabecalho,
@@ -1781,11 +1863,14 @@ function TACBrNFSeXWebserviceIPM204.TratarXmlRetornado(
   const aXML: string): string;
 var
   jDocument, JSonErro: TACBrJSONObject;
-  Codigo, Mensagem: string;
+  Codigo, Mensagem, Xml: string;
 begin
-  if (Pos('{"', aXML) > 0) and (Pos('":"', aXML) > 0) then
+  Xml := ConverteXMLtoUTF8(aXml);
+  Xml := RemoverDeclaracaoXML(Xml);
+
+  if (Pos('{"', Xml) > 0) and (Pos('":"', Xml) > 0) then
   begin
-    jDocument := TACBrJSONObject.Parse(aXML);
+    jDocument := TACBrJSONObject.Parse(Xml);
     JSonErro := jDocument.AsJSONObject['retorno'];
 
     if not Assigned(JSonErro) then Exit;
@@ -1805,7 +1890,7 @@ begin
   end
   else
   begin
-    Result := inherited TratarXmlRetornado(aXML);
+    Result := inherited TratarXmlRetornado(Xml);
 
     Result := AjustarRetorno(Result);
 
