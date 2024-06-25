@@ -5,7 +5,7 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls,
   Buttons, Spin, ComCtrls, Grids, ExtDlgs, ACBrAbecsPinPad, 
-  ACBrBase, ImgList, AppEvnts, ImageList;
+  ACBrBase, ImgList, AppEvnts; {ImageList;}
 
 const
   CSerialSection = 'Serial';
@@ -897,38 +897,38 @@ procedure TfrMain.btSendQRCodeClick(Sender: TObject);
 var
   ms: TMemoryStream;
   tini, tfim: TDateTime;
-  png: TPngImage;
+//  png: TPngImage;
   qrsize: Integer;
 begin
-  ms := TMemoryStream.Create;
-  png := TPngImage.Create;
-  try
-    qrsize := min( ACBrAbecsPinPad1.PinPadCapabilities.DisplayGraphicPixels.Cols,
-                   ACBrAbecsPinPad1.PinPadCapabilities.DisplayGraphicPixels.Rows) - 20;
-    png.Assign(imgQRCode.Picture.Bitmap);
-    png.Resize(qrsize, qrsize);
-    png.Canvas.StretchDraw(png.Canvas.ClipRect, imgQRCode.Picture.Bitmap);
-    //png.SaveToFile('c:\temp\qrcode.png');
-    png.SaveToStream(ms);
-    imgQRCode.Picture.Assign(png);
-    try
-      tini := Now;
-      mLog.Lines.Add('Start Loading '+edQRCodeImgName.Text);
-      mLog.Lines.BeginUpdate;
-      ACBrAbecsPinPad1.LoadMedia( edQRCodeImgName.Text, ms, mtPNG);
-    finally
-      mLog.Lines.EndUpdate;
-    end;
-
-    tfim := Now;
-    LoadMediaNames;
-    ACBrAbecsPinPad1.DSI(edQRCodeImgName.Text);
-    mLog.ScrollBy(0, mLog.Lines.Count);
-    mLog.Lines.Add('Done Loading '+edQRCodeImgName.Text+', '+FormatFloat('##0.000',SecondSpan(tini,tfim))+' seconds' );
-  finally
-    ms.Free;
-     png.Free;
-  end;
+//  ms := TMemoryStream.Create;
+//  png := TPngImage.Create;
+//  try
+//    qrsize := min( ACBrAbecsPinPad1.PinPadCapabilities.DisplayGraphicPixels.Cols,
+//                   ACBrAbecsPinPad1.PinPadCapabilities.DisplayGraphicPixels.Rows) - 20;
+//    png.Assign(imgQRCode.Picture.Bitmap);
+//    png.Resize(qrsize, qrsize);
+//    png.Canvas.StretchDraw(png.Canvas.ClipRect, imgQRCode.Picture.Bitmap);
+//    //png.SaveToFile('c:\temp\qrcode.png');
+//    png.SaveToStream(ms);
+//    imgQRCode.Picture.Assign(png);
+//    try
+//      tini := Now;
+//      mLog.Lines.Add('Start Loading '+edQRCodeImgName.Text);
+//      mLog.Lines.BeginUpdate;
+//      ACBrAbecsPinPad1.LoadMedia( edQRCodeImgName.Text, ms, mtPNG);
+//    finally
+//      mLog.Lines.EndUpdate;
+//    end;
+//
+//    tfim := Now;
+//    LoadMediaNames;
+//    ACBrAbecsPinPad1.DSI(edQRCodeImgName.Text);
+//    mLog.ScrollBy(0, mLog.Lines.Count);
+//    mLog.Lines.Add('Done Loading '+edQRCodeImgName.Text+', '+FormatFloat('##0.000',SecondSpan(tini,tfim))+' seconds' );
+//  finally
+//    ms.Free;
+//     png.Free;
+//  end;
 end;
 
 procedure TfrMain.btReadParmsClick(Sender: TObject);
