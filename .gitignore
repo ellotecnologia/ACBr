@@ -1,3 +1,12 @@
+*.~*
 *.dcu
 *.cfg
+*.res
+*.bpl
+*.dcp
+*.ddp
+*.dsk
+*.dsm
+*.ini
+*.exe
 Lib/*
