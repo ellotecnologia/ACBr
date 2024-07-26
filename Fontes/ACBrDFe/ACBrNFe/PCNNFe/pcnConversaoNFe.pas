@@ -80,7 +80,8 @@ type
                 schManifDestCiencia, schManifDestDesconhecimento,
                 schManifDestOperNaoRealizada, schCompEntrega, schCancCompEntrega,
                 schAtorInteressadoNFe, schInsucessoEntregaNFe,
-                schCancInsucessoEntregaNFe);
+                schCancInsucessoEntregaNFe, schConcFinanceira,
+                schCancConcFinanceira);
 
 const
   TSchemaNFeArrayStrings: array[TSchemaNFe] of string = ('Erro', 'Nfe',
@@ -91,12 +92,14 @@ const
     'CanPedProrrog1', 'CanPedProrrog2', 'ManifDestConfirmacao',
     'ManifDestCiencia', 'ManifDestDesconhecimento', 'ManifDestOperNaoRealizada',
     'CompEntrega', 'CancCompEntrega', 'AtorInteressadoNFe',
-    'InsucessoEntrega', 'CancInsucessoEntrega');
+    'InsucessoEntrega', 'CancInsucessoEntrega', 'ConcFinanceira',
+    'CancConcFinanceira');
 
   TEventoArrayStrings: array[TSchemaNFe] of string = ('', '', 'e110111', '',
     'e110110', '', '', 'e110140', '', '', '', '', '', '', '', '', '', '', '',
     'e110112', 'e111500', 'e111501', 'e111502', 'e111503', 'e210200', 'e210210',
-    'e210220', 'e210240', 'e110130', 'e110131', 'e110150', 'e110192', 'e110193');
+    'e210220', 'e210240', 'e110130', 'e110131', 'e110150', 'e110192', 'e110193',
+    'e110750', 'e110751');
 
 type
   TLayOut = (LayNfeRecepcao, LayNfeRetRecepcao, LayNfeCancelamento,
@@ -185,10 +188,10 @@ const
     '2', '3', '4', '9');
 
 type
-  TAutorizacao = (taNaoPermite, taPermite);
+  TAutorizacao = (taNaoPermite, taPermite, taNaoInformar);
 
 const
-  TAutorizacaoArrayStrings: array[TAutorizacao] of string = ('0', '1');
+  TAutorizacaoArrayStrings: array[TAutorizacao] of string = ('0', '1', '');
 
 type
   TindIntermed = (iiSemOperacao, iiOperacaoSemIntermediador,
@@ -314,7 +317,7 @@ begin
              '210240', '610600', '610614', '790700', '990900', '990910',
              '110180', '610554', '610510', '610615', '610610', '110130',
              '110131', '110150', '610130', '610131', '610601',
-             '110192', '110193'],
+             '110192', '110193', '610514', '610500'],
             [teNaoMapeado, teCCe, teCancelamento, teCancSubst, teEPECNFe,
              tePedProrrog1, tePedProrrog2, teCanPedProrrog1, teCanPedProrrog2,
              teManifDestConfirmacao, teManifDestCiencia,
@@ -325,7 +328,8 @@ begin
              teCancelamentoMDFeAutComCTe, teMDFeAutorizado,
              teComprEntregaNFe, teCancComprEntregaNFe, teAtorInteressadoNFe,
              teComprEntregaCTe, teCancComprEntregaCTe, teCTeCancelado,
-             teInsucessoEntregaNFe, teCancInsucessoEntregaNFe]);
+             teInsucessoEntregaNFe, teCancInsucessoEntregaNFe,
+             teRegPasNfeProMDFeCte, teRegistroPassagemNFe]);
 end;
 
 function LayOutToServico(const t: TLayOut): String;
@@ -765,22 +769,25 @@ begin
                                'e111500', 'e111501', 'e111502', 'e111503',
                                'e210200', 'e210210', 'e210220', 'e210240',
                                'e110130', 'e110131', 'e110150', 'e110192',
-                               'e110193'],
+                               'e110193', 'e110750', 'e110751'],
     [schEnvCCe, schcancNFe, schCancSubst, schEnvEPEC,
      schPedProrrog1, schPedProrrog2, schCanPedProrrog1, schCanPedProrrog2,
      schManifDestConfirmacao, schManifDestCiencia, schManifDestDesconhecimento,
      schManifDestOperNaoRealizada, schCompEntrega, schCancCompEntrega,
-     schAtorInteressadoNFe, schInsucessoEntregaNFe, schCancInsucessoEntregaNFe]);
+     schAtorInteressadoNFe, schInsucessoEntregaNFe, schCancInsucessoEntregaNFe,
+     schConcFinanceira, schCancConcFinanceira]);
 end;
 
 function AutorizacaoToStr(const t: TAutorizacao): string;
 begin
-  result := EnumeradoToStr(t, ['0', '1'], [taNaoPermite, taPermite]);
+  result := EnumeradoToStr(t, ['0', '1', ''],
+                              [taNaoPermite, taPermite, taNaoInformar]);
 end;
 
 function StrToAutorizacao(out ok: boolean; const s: string): TAutorizacao;
 begin
-  result := StrToEnumerado(ok, s, ['0', '1'], [taNaoPermite, taPermite]);
+  result := StrToEnumerado(ok, s, ['0', '1', ''],
+                                  [taNaoPermite, taPermite, taNaoInformar]);
 end;
 
 function IndIntermedToStr(const t: TindIntermed): string;

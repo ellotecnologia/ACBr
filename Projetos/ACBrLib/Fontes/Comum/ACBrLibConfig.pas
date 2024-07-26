@@ -65,7 +65,7 @@ type
     procedure GravarIni(const AIni: TCustomIniFile);
 
     property Nivel: TNivelLog read FNivel;
-    property Path: String read FPath;
+    property Path: String read FPath write SetPath;
   end;
 
   { TSistemaConfig }
@@ -111,6 +111,23 @@ type
     property Usuario: String read FUsuario;
     property Senha: String read GetSenha;
   end;
+
+  { TSocketConfig }
+
+  TSocketConfig = class
+  private
+    FArqLog: String;
+    FNivelLog: Byte;
+  public
+    constructor Create;
+    procedure DefinirValoresPadroes;
+    procedure LerIni(const AIni: TCustomIniFile);
+    procedure GravarIni(const AIni: TCustomIniFile);
+
+    property NivelLog: Byte read FNivelLog;
+    property ArqLog: String read FArqLog;
+  end;
+
 
   { TEmailConfig }
 
@@ -288,6 +305,7 @@ type
     FPosDeviceConfig: TDeviceConfig;
     FProxyInfo: TProxyConfig;
     FSistema: TSistemaConfig;
+    FSocket: TSocketConfig;
     FSoftwareHouse: TEmpresaConfig;
     FEmissor: TEmpresaConfig;
     FTipoResposta: TACBrLibRespostaTipo;
@@ -338,6 +356,7 @@ type
     property CodResposta: TACBrLibCodificacao read FCodificaoResposta;
     property Log: TLogConfig read FLog;
     property ProxyInfo: TProxyConfig read FProxyInfo;
+    property Socket: TSocketConfig read FSocket;
     property Email: TEmailConfig read FEmail;
     property PosPrinter: TPosPrinterConfig read FPosPrinter;
     property PosDeviceConfig: TDeviceConfig read FPosDeviceConfig;
@@ -423,6 +442,32 @@ begin
   AIni.WriteInteger(CSessaoProxy, CChavePorta, FPorta);
   AIni.WriteString(CSessaoProxy, CChaveUsuario, FUsuario);
   AIni.WriteString(CSessaoProxy, CChaveSenha, FSenha);
+end;
+
+{ TSocketConfig }
+
+constructor TSocketConfig.Create;
+begin
+  inherited Create;
+  DefinirValoresPadroes;
+end;
+
+procedure TSocketConfig.DefinirValoresPadroes;
+begin
+  FNivelLog := 0;
+  FArqLog := '';
+end;
+
+procedure TSocketConfig.LerIni(const AIni: TCustomIniFile);
+begin
+  FNivelLog := AIni.ReadInteger(CSessaoSocket, CChaveNivelLog, FNivelLog);
+  FArqLog := AIni.ReadString(CSessaoSocket, CChaveArqLog, FArqLog);
+end;
+
+procedure TSocketConfig.GravarIni(const AIni: TCustomIniFile);
+begin
+  AIni.WriteInteger(CSessaoSocket, CChaveNivelLog, FNivelLog);
+  AIni.WriteString(CSessaoSocket, CChaveArqLog, FArqLog);
 end;
 
 { TEmailConfig }
@@ -743,9 +788,10 @@ begin
   FLog := TLogConfig.Create;
   FSistema := TSistemaConfig.Create;
   FEmail := TEmailConfig.Create(FChaveCrypt);
-  FPosPrinter := TPosPrinterConfig.Create();
+  FPosPrinter := TPosPrinterConfig.Create;
   FPosDeviceConfig := TDeviceConfig.Create(CSessaoPosPrinterDevice);
   FProxyInfo := TProxyConfig.Create(FChaveCrypt);
+  FSocket := TSocketConfig.Create;
   FSoftwareHouse := TEmpresaConfig.Create(CSessaoSwHouse);
   FEmissor := TEmpresaConfig.Create(CSessaoEmissor);
 
@@ -772,6 +818,7 @@ begin
   FEmissor.Free;
   FSoftwareHouse.Free;
   FProxyInfo.Free;
+  FSocket.Free;
   FEmail.Free;
   FPosPrinter.Free;
   FPosDeviceConfig.Free;
@@ -800,7 +847,13 @@ var
   APath: String;
 begin
   if EstaVazio(FNomeArquivo) then
-    FNomeArquivo := ApplicationPath + CNomeArqConf;
+  begin
+    {$IfDef ANDROID}
+     raise EACBrLibException.Create(ErrDiretorioNaoExiste, SErrArquivoConfigSemPathNoInicializar);
+    {$Else}
+     FNomeArquivo := ApplicationPath + CNomeArqConf;
+    {$EndIf}
+  end;
 
   APath := ExtractFilePath(FNomeArquivo);
   if NaoEstaVazio(APath) then
@@ -809,7 +862,13 @@ begin
       raise EACBrLibException.Create(ErrDiretorioNaoExiste, Format(SErrDiretorioInvalido, [APath]));
   end
   else
-    FNomeArquivo := ApplicationPath + ExtractFileName(FNomeArquivo);
+  begin
+    {$IfDef ANDROID}
+     raise EACBrLibException.Create(ErrDiretorioNaoExiste, Format(SErrDiretorioNaoInformado, [FNomeArquivo]));
+    {$Else}
+     FNomeArquivo := ApplicationPath + ExtractFileName(FNomeArquivo);
+    {$EndIf}
+  end;
 
   if (not Gravando) and (not FileExists(FNomeArquivo)) then
     raise EACBrLibException.Create(ErrArquivoNaoExiste, Format(SErrArquivoNaoExiste, [FNomeArquivo]));
@@ -924,6 +983,7 @@ begin
   FPosPrinter.LerIni(FIni);
   FPosDeviceConfig.LerIni(FIni);
   FProxyInfo.LerIni(FIni);
+  FSocket.LerIni(FIni);
   FSoftwareHouse.LerIni(FIni);
   FEmissor.LerIni(FIni);
 end;
@@ -964,6 +1024,7 @@ begin
   FPosPrinter.GravarIni(FIni);
   FPosDeviceConfig.GravarIni(FIni);
   FProxyInfo.GravarIni(FIni);
+  FSocket.GravarIni(FIni);
   FSoftwareHouse.GravarIni(FIni);
   FEmissor.GravarIni(FIni);
 end;

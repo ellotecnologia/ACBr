@@ -272,6 +272,8 @@ type
     btnCNPJ: TButton;
     btnLeituraX509: TButton;
     btnInformacoes: TButton;
+    Label50: TLabel;
+    edtCidComProv: TEdit;
 
     procedure FormCreate(Sender: TObject);
     procedure btnSalvarConfigClick(Sender: TObject);
@@ -685,7 +687,7 @@ begin
   begin
     NotasFiscais.NumeroLote := NumLote;
 
-    // Provedor ISSDSF e ISSSaoPaulo
+    // Provedor ISSCampinas, ISSDSF e ISSSaoPaulo
     NotasFiscais.Transacao := True;
 
     with NotasFiscais.New.NFSe do
@@ -721,7 +723,7 @@ begin
       cNFSe := GerarCodigoDFe(StrToIntDef(Numero, 0));
       ModeloNFSe := '90';
 
-      // Para os provedores ISSDSF e Siat no campo SeriePrestacao devemos informar:
+      // Para os provedores ISSCampinas, ISSDSF e Siat no campo SeriePrestacao devemos informar:
       {
         Número do equipamento emissor do RPS ou série de prestação.
         Caso não utilize a série, preencha o campo com o valor ‘99’ que indica
@@ -731,7 +733,8 @@ begin
       }
       // Para o provedor ISSBarueri usar esse campo para informar a série da nota
       // a ser cancelada ou substituida.
-      if ACBrNFSeX1.Configuracoes.Geral.Provedor in [proISSDSF, proSiat] then
+      if ACBrNFSeX1.Configuracoes.Geral.Provedor in [proISSCampinas, proISSDSF,
+           proSiat] then
         SeriePrestacao := '99'
       else
         SeriePrestacao := '1';
@@ -742,7 +745,7 @@ begin
         proEquiplano:
           IdentificacaoRps.Serie := '1';
 
-        proISSDSF, proSiat:
+        proISSCampinas, proISSDSF, proSiat:
           IdentificacaoRps.Serie := 'NF';
       else
         IdentificacaoRps.Serie := '85';
@@ -825,7 +828,8 @@ begin
       if ACBrNFSeX1.Configuracoes.Geral.Provedor in [proAgili, proAssessorPublico,
            proCTA, proCTAConsult, proEquiplano, proFacundo, proFGMaiss, proEL,
            proGoverna, proInfisc, proIPM, proISSDSF, proPriMax, proRLZ, proSam,
-           proSimple, proSmarAPD, proWebFisco, proBauhaus, proeISS, proSoftPlan] then
+           proSimple, proSmarAPD, proWebFisco, proBauhaus, proeISS, proISSCampinas,
+           proSoftPlan] then
       begin
         Servico.Valores.ValorServicos := 0;
 
@@ -1020,7 +1024,7 @@ begin
       end;
 
       case ACBrNFSeX1.Configuracoes.Geral.Provedor of
-        proSiat, proISSDSF, proCTAConsult:
+        proSiat, proISSCampinas, proISSDSF, proCTAConsult:
           // código com 9 digitos
           Servico.CodigoCnae := '452000200';
       else
@@ -1041,7 +1045,7 @@ begin
       // Provedor SoftPlan
       Servico.CFPS := '9201';
 
-      // Provedor ISSDSF
+      // Provedor ISSCampinas e ISSDSF
       // (ttIsentaISS, ttNaoIncidencianoMunic, ttImune, ttExigibilidadeSusp,
       //  ttNaoTributavel, ttTributavel, ttTributavelFixo, ttTributavelSN,
       //  ttMEI);
@@ -1291,7 +1295,7 @@ begin
 
       // Provedores que permitem informar mais de 1 serviço:
       if ACBrNFSeX1.Configuracoes.Geral.Provedor in [proEloTech, profintelISS,
-          proSimplISS, proSystemPro] then
+          proSimplISS] then
       begin
         // Provedor Elotech
         Servico.Valores.RetidoPis := snNao;
@@ -1582,10 +1586,13 @@ var
   Cidades: TStringList;
   I: Integer;
   sNome, sCod, sUF: String;
+  CidComProv: Integer;
 begin
   IniCidades := TMemIniFile.Create('');
   try
+    CidComProv := 0;
     Cidades := TStringList.Create;
+
     try
       IniCidades.SetStrings(ACBrNFSeX1.Configuracoes.WebServices.Params);
       IniCidades.ReadSections(Cidades);
@@ -1601,6 +1608,9 @@ begin
           sUF   := IniCidades.ReadString(sCod, 'UF', '');
 
           cbCidades.Items.Add(Format('%s/%s/%s', [sNome, sCod, sUF]));
+
+          if IniCidades.ReadString(sCod, 'Provedor', '') <> '' then
+            Inc(CidComProv);
         end;
       end;
 
@@ -1608,6 +1618,7 @@ begin
       cbCidades.Sorted := false;
       cbCidades.Sorted := true;
       edtTotalCidades.Text := IntToStr(cbCidades.Items.Count);
+      edtCidComProv.Text := IntToStr(CidComProv);
     finally
       FreeAndNil(Cidades);
     end;
@@ -1667,7 +1678,7 @@ begin
       exit;
 
     if ACBrNFSeX1.Configuracoes.Geral.Provedor in [proiiBrasil, proWebFisco,
-      proSimple, proFGMaiss, proIPM, proPriMax, proSigISSWeb] then
+      proSimple, proFGMaiss, proInfisc, proIPM, proPriMax, proSigISSWeb] then
     begin
       SerNFSe := '1';
       if not (InputQuery(Titulo, 'Série da NFSe', SerNFSe)) then
@@ -1734,7 +1745,7 @@ begin
       proConam, proEquiplano, proFGMaiss, proGoverna, proIPM, proISSBarueri,
       proISSDSF, proISSLencois, proModernizacaoPublica, proPrescon, proPriMax, proPublica,
       proSiat, proSigISS, proSigep, proSimple, proSmarAPD, proSudoeste, proTecnos,
-      proWebFisco, proCenti, proCTA, proBauhaus, proSigISSWeb] then
+      proWebFisco, proCenti, proCTA, proBauhaus, proSigISSWeb, proISSCampinas] then
     begin
       Motivo := 'Motivo do Cancelamento';
       if not (InputQuery(Titulo, 'Motivo do Cancelamento', Motivo)) then
@@ -1750,7 +1761,8 @@ begin
 
     // Os Provedores da lista requerem que seja informado o código de verificação
     if ACBrNFSeX1.Configuracoes.Geral.Provedor in [proInfisc, proISSDSF, proSiappa,
-         proISSLencois, proGoverna, proSiat, proSigep, proElotech, proCenti] then
+         proISSLencois, proGoverna, proSiat, proSigep, proElotech, proCenti,
+         proISSCampinas] then
     begin
       CodVerif := '12345678';
       if not (InputQuery(Titulo, 'Código de Verificação ou Chave de Autenticação', CodVerif)) then
@@ -1962,7 +1974,7 @@ begin
   Lote := '';
   if ACBrNFSeX1.Configuracoes.Geral.Provedor in [proAssessorPublico, proElotech,
        proInfisc, proIPM, proISSDSF, proEquiplano, proeGoverneISS, proGeisWeb,
-       proSiat, proISSSaoPaulo] then
+       proSiat, proISSSaoPaulo, proISSCampinas] then
   begin
     if not (InputQuery('Consultar Lote', 'Número do Lote:', Lote)) then
       exit;
@@ -2057,7 +2069,7 @@ begin
     exit;
 
   NumLote := '1';
-  if ACBrNFSeX1.Configuracoes.Geral.Provedor in [proISSDSF, proSiat] then
+  if ACBrNFSeX1.Configuracoes.Geral.Provedor in [proISSDSF, proSiat, proISSCampinas] then
   begin
     if not(InputQuery(xTitulo, 'Numero do Lote:', NumLote)) then
       exit;
@@ -2105,7 +2117,7 @@ begin
       CNPJInter := CPFCNPJ_Inter;
       IMInter   := IM_Inter;
 
-      // Necessário para os provedores: proISSDSF, proSiat
+      // Necessário para os provedores: proISSCampinas, proISSDSF, proSiat
       NumeroLote := NumLote;
 
       // Necessário para os provedores que seguem a versão 2 do layout da ABRASF
@@ -2159,7 +2171,7 @@ begin
         exit;
     end;
 
-    if ACBrNFSeX1.Configuracoes.Geral.Provedor in [proISSDSF, proSiat] then
+    if ACBrNFSeX1.Configuracoes.Geral.Provedor in [proISSDSF, proSiat, proISSCampinas] then
     begin
       if not(InputQuery(xTitulo, 'Numero do Lote:', NumLote)) then
         exit;
@@ -2192,6 +2204,7 @@ begin
   end;
 
   case ACBrNFSeX1.Configuracoes.Geral.Provedor of
+    proISSCampinas,
     proISSDSF,
     proSiat:
       begin
@@ -2351,7 +2364,7 @@ begin
     exit;
 
   NumLote := '1';
-  if ACBrNFSeX1.Configuracoes.Geral.Provedor in [proISSDSF, proSiat] then
+  if ACBrNFSeX1.Configuracoes.Geral.Provedor in [proISSDSF, proSiat, proISSCampinas] then
   begin
     if not(InputQuery(xTitulo, 'Numero do Lote:', NumLote)) then
       exit;
@@ -2381,7 +2394,7 @@ begin
     exit;
 
   // Provedor ISSDSF e Siat
-  if ACBrNFSeX1.Configuracoes.Geral.Provedor in [proISSDSF, proSiat] then
+  if ACBrNFSeX1.Configuracoes.Geral.Provedor in [proISSDSF, proSiat, proISSCampinas] then
   begin
     // Utilizado como serie da prestação
     SerieRps := '99';
@@ -3692,7 +3705,8 @@ end;
 
 procedure TfrmACBrNFSe.btnSubsNFSeClick(Sender: TObject);
 var
-  vNumRPS, Codigo, Motivo, sNumNFSe, sSerieNFSe, NumLote, CodVerif: String;
+  vNumRPS, Codigo, Motivo, sNumNFSe, sSerieNFSe, NumLote, CodVerif,
+  sNumNFSeSub: String;
   CodCanc: Integer;
 begin
   vNumRPS := '';
@@ -3727,7 +3741,7 @@ begin
   if ACBrNFSeX1.Configuracoes.Geral.Provedor in [proAgili, proConam, proEquiplano,
     proGoverna, proIPM, proISSDSF, proISSLencois, proModernizacaoPublica,
     proPublica, proSiat, proSigISS, proSmarAPD, proWebFisco, proSudoeste,
-    proBauhaus] then
+    proBauhaus, proISSCampinas] then
   begin
     Motivo := 'Teste de Cancelamento';
     if not (InputQuery('Cancelar NFSe', 'Motivo de Cancelamento', Motivo)) then
@@ -3760,8 +3774,15 @@ begin
       exit;
   end;
 
+  if ACBrNFSeX1.Configuracoes.Geral.Provedor in [proBauhaus] then
+  begin
+    sNumNFSeSub := '1';
+    if not(InputQuery('Substituir NFSe', 'Numero da NFSe Substituta', sNumNFSeSub)) then
+      exit;
+  end;
+
   ACBrNFSeX1.SubstituirNFSe(sNumNFSe, sSerieNFSe, Codigo,
-                                        Motivo, NumLote, CodVerif);
+                                        Motivo, NumLote, CodVerif, sNumNFSeSub);
 
   ChecarResposta(tmSubstituirNFSe);
 end;
@@ -4332,6 +4353,7 @@ end;
 procedure TfrmACBrNFSe.ChecarResposta(aMetodo: TMetodo);
 var
   i: Integer;
+  Ambiente: string;
 
   procedure ListaDeErros(aErros: TNFSeEventoCollection);
   var
@@ -4414,6 +4436,13 @@ var
     end;
   end;
 begin
+  Ambiente := TpAmbToStr(ACBrNFSeX1.Configuracoes.WebServices.Ambiente);
+
+  if Ambiente = '1' then
+    Ambiente := Ambiente + ' - Produção'
+  else
+    Ambiente := Ambiente + ' - Homologação';
+
   memoLog.Clear;
   memoLog.Lines.Clear;
   memoLog.Update;
@@ -4427,7 +4456,7 @@ begin
   memoLog.Lines.Add('------------------------------');
 
   memoLog.Lines.Add('Requisição');
-  memoLog.Lines.Add('Ambiente : ' + TpAmbToStr(ACBrNFSeX1.Configuracoes.WebServices.Ambiente));
+  memoLog.Lines.Add('Ambiente : ' + Ambiente);
   memoLog.Lines.Add('Cidade   : ' + ACBrNFSeX1.Configuracoes.Geral.xMunicipio + '/' +
                                    ACBrNFSeX1.Configuracoes.Geral.xUF);
   memoLog.Lines.Add('Provedor : ' + ACBrNFSeX1.Configuracoes.Geral.xProvedor +
@@ -4464,6 +4493,7 @@ begin
           end;
 
           if ACBrNFSeX1.Configuracoes.Geral.ConsultaLoteAposEnvio and
+             (Emite.Erros.Count = 0) and
              ((Emite.Protocolo <> '') or (Emite.NumeroLote <> '')) then
           begin
             if ACBrNFSeX1.Provider.ConfigGeral.ConsultaSitLote then
@@ -4491,7 +4521,8 @@ begin
               end;
             end;
 
-            if ACBrNFSeX1.Provider.ConfigGeral.ConsultaLote then
+            if ACBrNFSeX1.Provider.ConfigGeral.ConsultaLote and
+               (ConsultaSituacao.Erros.Count = 0) then
             begin
               with ConsultaLoteRps do
               begin

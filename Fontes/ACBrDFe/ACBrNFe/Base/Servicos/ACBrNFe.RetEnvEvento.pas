@@ -366,10 +366,14 @@ begin
           versao := ObterConteudoTag(ANode.Attributes.Items['versao']);
 
           Ler_InfEvento(ANode.Childrens.FindAnyNs('evento').Childrens.FindAnyNs('infEvento'));
+          Ler_RetEvento(ANode);
         end;
 
         if ANode.LocalName = 'retEnvEvento' then
           Ler_RetEvento(ANode);
+
+        if ANode.LocalName = 'evento' then
+          Ler_InfEvento(ANode.Childrens.FindAnyNs('infEvento'));
 
         LerSignature(ANode.Childrens.Find('Signature'), signature);
       end;

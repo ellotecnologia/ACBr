@@ -42,6 +42,271 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+25/07/2024
+-- SigISSWeb.Provider --
+[*] Alteração visando tratar o XML retornado, pois o provedor esta retornando
+    os XML com codificação em ANSI em vez UTF-8.
+   Por: Italo Giurizzato Junior
+
+24/07/2024
+-- ACBrNFSeXDANFSeRLISSNet --
+[-] Corrigido a impressão do campo Responsável pela Retenção.
+   Por: Italo Giurizzato Junior
+-- Diversos --
+[+] Implementado a versão 2.03 da ABRASF para o provedor ISSCampinas.
+   Por: Daniel Afonso/Italo Giurizzato Junior
+
+23/07/2024
+-- Conam.GravarXml --
+[*] Alteração para que o valor de RetFonte seja "NAO" para quando IssRetido tenha
+    os valores stNormal e stDevidoForaMunicipioNaoRetido.
+   Por: Bruno
+-- ACBrNFSeXWebserviceBase --
+[*] Alterações na função: ConverteANSIparaUTF8, agora ela realiza a conversão sem
+    verficar se o XML esta ou não em UTF-8.
+   Por: Italo Giurizzato Junior
+
+22/07/2024
+-- PadraoNacional.LerXml.pas --
+[*] Ajustes quando o existir o conteudo da tag xTribNac ele utilizar o valor devolvido;
+   Ele estava pegando do TabServicos.ini
+   Por: Daniel Morais 
+
+19/07/2024
+-- Centi.LerXml/Centi.Provider --
+[*] Ajustes na leitura do XML da nota e acrescentado um override da função
+    StrToSimNao.
+   Por: Diego Reckziegel
+-- ACBrNFSeXServicos --
+[*] A cidade de Triunfo/ES mudou as URLs, o provedor continua o 
+    mesmo: Pronim.
+   Por: C4 Dev
+[+] Incluída a cidade de Itaguara/MG, o provedor é Betha versão 2.02
+   Por: João Antônio
+
+18/07/2024
+-- Diversos --
+[*] Alterações visando eliminar regras de negócios do gerador de relatório
+    Fast Report.
+   Por: Italo Giurizzato Junior
+-- TabServicos --
+[+] Incluído o serviço 16.02
+   Por: C Almeida 79
+-- ACBrNFSeXServicos --
+[+] Incluída a cidade de Campinapolis/MT, o provedor é Agili.
+[+] Incluída a cidade de Novo São Joaquim/MT, o provedor é Agili.
+[+] Incluída a cidade de Pontal do Araguaia/MT, o provedor é Fiorilli.
+   Por: Márcio Baroni
+-- ACBrNFSeXClass/SoftPlan.GravarXml/SoftPlan.LerXml/SoftPlan.Provider --
+[*] Alteração visando a leitura e impressão da descrição do CNAE.
+   Por: Italo Giurizzato Junior/Diego Folieni/Pandaa
+-- ACBrNFSeXServicos --
+[+] Incluída a cidade de Santo Antonio dos Lopes/MA, o provedor é CTAConsult.
+   Por: Diego Reckziegel
+[*] A cidade de São José do Rio Claro/MT trocou de provedor, agora é Coplan.
+   Por: Diego Reckziegel
+[*] A cidade de São Mateus/ES mudou para a versão 2.04, o provedor continua o 
+    mesmo: EL.
+   Por: Data Lider
+[*] A cidade de Socorro/SP trocou de provedor, agora é GovDigital.
+   Por: Daniel Afonso
+
+17/07/2024
+-- ACBrNFSeXServicos --
+[*] Incluído o Params: ParametroExtra para a cidade de São Bento do Sul/SC.
+   Por: C4 Dev
+
+15/07/2024
+-- Diversos --
+[*] Alterações em diversas units para uma possível solução para o provedor
+    SigISS.
+   Por: Italo Giurizzato Junior
+
+12/07/2024
+-- SigISS.Provider --
+[*] Ajustes na função: TratarXmlRetornado.
+   Por: Italo Giurizzato Junior
+-- ACBrNFSeX/ACBrNFSeXConsts --
+[*] Incluído um parâmetro opcional no método SubstituirNFSe para conter o 
+    numero da NFSe susbtituida que é usado pelo provedor Bauhaus.
+   Por: Italo Giurizzato Junior
+-- Bauhaus.Provider --
+[*] Implementado o método de Substituição de NFS-e.
+   Por: Italo Giurizzato Junior
+-- ACBrNFSeXServicos --
+[*] A cidade de Ceu Azul/PR trocou de provedor, agora é IPM versão 2.04
+   Por: Rafael Luís Acco
+
+11/07/2024
+-- ACBrNFSeXGravarXml_ABRASFv1/ACBrNFSeXGravarXml_ABRASFv2 --
+[*] Alteração visando tratar a quebra de linhas nos campos: OutrasInformacoes e
+    InformacoesComplementares da mesma forma que é feita no campo Discriminacao.
+   Por: Italo Giurizzato Junior
+-- ACBrNFSeXClass/ACBrNFSeXNotasFiscais/SigISSWeb.GravarXml/SigISSWeb.LerXml --
+[+] Incluído o campo xFormaPagamento para conter a descrição da forma de pagamento,
+    este canpo é utilizado pelo provedor SigISSWeb.
+   Por: Italo Giurizzato Junior
+-- ACBrNFSeXServicos --
+[+] Incluída a cidade de Joao Pinheiro/MG, o provedor é NFSeBrasil.
+   Por: João Antônio
+[+] Incluída a cidade de Santa Rosa do Sul/SC, o provedor é IPM.
+   Por: Mario Inacio
+[*] A cidade de Pocone/MT trocou de provedor, agora é Agili.
+   Por: Diego Reckziegel
+
+10/07/2024
+-- ACBrNFSeXNotasFiscais/ISSBarueri.GravarXml --
+[*] Alteração visando gerar corretamente informações sobre o local da prestação do
+    serviço.
+   Por: Italo Giurizzato Junior
+-- ACBrNFSeXProviderABRASFv2 --
+[*] Alteração visando o uso dos parâmetros de configuração: FpFormatoDataRecebimento,
+    FpFormatoDataEmissao e FpFormatoDataHora ao realizar a leitura do retorno do
+    WebService, pois tem provedor que não segue o que consta no manual da ABRASF.
+   Por: Italo Giurizzato Junior
+
+08/07/2024
+-- ACBrNFSeXServicos --
+[+] Incluída a cidade de Mato Castelhano/RS, o provedor é SystemPro
+   Por: BSSoft
+-- ACBrNFSeXClass/ACBrNFSeXLerXml_ABRASFv2 --
+[*] Criando um campo para conter o ID da confirmação do cancelamento.
+   Por: Italo Giurizzato Junior
+-- Diversos --
+[+] Implementado o provedor ISSCampinas, uma vez que a prefeitura comprou o sistema
+    do provedor ISSDSF e para garantir que não ocorra efeito colateral quando um dos
+    dois resolverem fazer alguma alteração.
+   Por: Italo Giurizzato Junior
+
+05/07/2024
+-- Diversos --
+[*] Refatorado a alteração anterior referente a ausencia do grupo <Tomador>
+   Por: Italo Giurizzato Junior
+-- Diversos --
+[*] Se o grupo <Tomador> não constar no XML o campo RazaoSocial do Tomador vai 
+    receber a mensagem: 'Tomador Não Identificado' 
+   Por: Italo Giurizzato Junior
+-- ACBrNFSeXServicos --
+[+] Incluída a cidade de Tres Barras do Parana/PR, o provedor é Pronim versão 2.03
+   Por: Alex Heinen
+[+] Incluída a cidade de Artur Nogueira/SP, o provedor é Prescon.
+   Por: Light System Software
+
+04/07/2024
+-- SystemPro.Provider/SystemPro.GravarXml --
+[*] Revertido algumas alterações que foram feitas.
+   Por: Italo Giurizzato Junior
+-- Infisc.Provider --
+[*] Adiciona configuração para que a CancPreencherSerieNfse na versão 2.03 para que 
+    consta no pedido de cancelamento a série da nota.
+   Por: Italo Giurizzato Junior
+-- ACBrNFSeXServicos --
+[*] A cidade de Arvoredo trocou de provedor, agora é IPM na versão 1.01
+   Por: Lilian
+
+03/07/2024
+-- Fiorilli.Provider --
+[*] Ajustes para converter o XML de retorno em UTF-8 se necessário.
+   Por: Italo Giurizzato Junior
+-- ACBrNFSeXServicos --
+[*] Incluído o Params NaoAssinar para a cidade de Aracoiaba da Serra/SP.
+   Por: Italo Giurizzato Junior
+[*] A cidade de Corupá/SC, trocou de provedor, agora é IPM.
+   Por: C4Dev
+[*] Alteração de versão da cidade de Picada Café/RS, o provedor continua o mesmo.
+   Por: DNA Automação
+[*] Alteração de versão da cidade de Palmas/PR, o provedor continua o mesmo.
+   Por: Alex Heinen
+
+02/07/2024
+-- ACBrNFSeXServicos --
+[*] Removido as portas das URLs da cidade de Cruzeiro/SP, o provedor continua o mesmo.
+   Por: Italo Giurizzato Junior/samdella
+[*] Alteração no Params da cidade de São José do Xingu/MT, o provedor continua o mesmo.
+   Por: billbarsch
+[*] Acrescentado a URL do Link para cidade de Florianopolis/SC, o provedor continua o mesmo.
+   Por: Diego Reckziegel
+[*] A cidade de Bento Venda Nova do Imigrante/ES mudou para versão 2.04, 
+    o provedor é o mesmo.
+  Por: Paulo V. Ferreira
+[*] Acrescentado o Params para cidade de Pomerode/SC, o provedor continua o mesmo.
+   Por: Astrogildo82
+
+28/06/2024
+-- ACBrNFSeXServicos --
+[+] Incluída a cidade de Mimoso do Sul/ES, provedor é EL.
+   Por: Heronim Antonio Marçal
+[*] A cidade de Bento Gonçalves/RS trocou de provedor, agora é ABase.
+  Por: Filipe Novaes - Alterdata/Felipe Mesturini/Sandro Felipe Adad/Tecnico ProM
+[+] Incluída a cidade de Palmares/PE, provedor é Tributus.
+   Por: Italo Giurizzato Junior
+
+27/06/2024
+-- ACBrNFSeXGravarXml --
+[*] Alteração na assinatura da função: ObterNomeArquivo. 
+   Por: Italo Giurizzato Junior
+
+26/06/2024
+-- ACBrNFSeXServicos --
+[*] Alteração na URL da cidade de Cachoeira do Sul/RS, provedor é o mesmo.
+  Por: Maiquel
+[+] Incluída a cidade de Pains/MG, provedor é GestaoISS.
+  Por: João Antônio
+[+] Incluída a cidade de São José das Palmeiras/RP, provedor é Equiplano.
+  Por: Jeann Lima
+[+] Incluída a cidade de Arinos/MG, provedor é Fiorilli.
+  Por: João Antônio
+-- Infisc.Provider --
+[*] Adiciona configuração para que a ConsultaNFSePorFaixa na versão 2.03 sempre gere NumInicial e NumFinal
+  Por: Diego Folieni
+
+25/06/2024
+-- ACBrNFSeXServicos --
+[*] Alteração na URL da cidade de Barra Velha/SC, provedor é o mesmo.
+  Por: Catrini
+[*] Alteração na URL da cidade de Morro Reuter/RS, provedor é o mesmo.
+  Por: DNA Automação
+-- ACBrNFSeXProviderBase/ACBrNFSeXProviderABRASFv1/ACBrNFSeXProviderABRASFv2 --
+[*] Alteração visando obter o valor correto para o campo Sucesso em diversas
+    situações dos diversos métodos do componente.
+  Por: SupraMAIS/Italo Giurizzato Junior
+
+24/06/2024
+-- IPM.Provider --
+[*] Alteração visando converter retornos no formato ANSI em UTF-8.
+  Por: Italo Giurizzato Junior
+-- ACBrNFSeXDANFSeRLISSNet --
+[*] Na impressão os campos Nome Fantasia e Razão Social estavam se sobrepondo.
+  Por: Wilson Andrade
+-- Equiplano.LerXml --
+[-] Correção, ao ler a tag vlDesconto estava buscando de um nó errado.
+  Por: Limber Software
+
+21/06/2024
+-- IPM.Provider --
+[*] Alteração na procedure MontarXmlNFSe visando montar o XML da nota mesmo
+    quando o provedor no retorno não consta o numero do RPS.
+  Por: Limber Software
+-- ACBrNFSeXServicos --
+[+] Incluída a cidade de Castelo/ES, provedor é o EL.
+  Por: Christian
+
+20/06/2024
+-- GovDigital.Provider --
+[*] Alteração visando a leitura correta do retorno da consulta por faixa de período.
+  Por: Italo Giurizzato Junior
+-- ACBrNFSeXDANFSeFR --
+[*] Alteração visando IE com mais de 15 digitos e a inclusão do campo ValorTotalNotaFiscal.
+  Por: Diego Reckziegel
+-- ACBrNFSeXServicos --
+[+] Incluída a cidade de Santana do Deserto/MG, provedor é o Futurize.
+  Por: ASL Software LTDA
+[*] Alteração nas URLs e versão da Cidade de Itanhanga/MT, o provedor continua o mesmo.
+  Por: Diego Reckziegel
+-- ACBrNFSeXNotasFiscais --
+[*] Adiciona CNO na rotina de leitura do INI
+  Por: Diego Folieni
+
 19/06/2024
 -- Siat.Provider --
 [*] Alterado a tag na lista de tags para obter o retorno do serviço: Recepcionar.

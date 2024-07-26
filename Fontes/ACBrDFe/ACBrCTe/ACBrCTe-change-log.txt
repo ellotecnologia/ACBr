@@ -44,6 +44,35 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+16/07/2024
+-- pcteConversaoCTe --
+[+] Incluído a função de conversão: tpMotivoToDesc (Motivo da não entrega).
+   Por: Italo Giurizzato Junior
+-- ACBrCTeDAEventoRLRetrato --
+[*] Revisado a impressão de todos os eventos.
+   Por: Italo Giurizzato Junior
+-- ACBrCTeServicos --
+[*] Alterado as URLs envio do evento EPEC de MG, o que tudo indica tem que
+    enviar o evento para a SEFAZ-MG e não para o SVC.
+   Por: Italo Giurizzato Junior
+
+16/07/2024
+-- pcteCTeR --
+[-] Correção para leitura correta do grupo infOutros no que se refere as 
+    Unidades de Transporte.
+   Por: Leandro Araújo
+
+11/07/2024
+-- ACBrCTeServicos --
+[*] Revisão nas URLs de todas UF de envio do evento EPEC que não 
+    utiliza o webservice de recepção  normal.
+   Por: Italo Giurizzato Junior
+
+27/06/2024
+-- ACBrCTe.EnvEvento.pas/ACBrCTe.RetConsSit/ACBrCTe.RetEnvEvento --
+[*] Correções nas novas Units.
+  Por: Italo Giurizzato Junior
+
 14/06/2024
 -- ACBrCTe.XmlHandler --
 [+] Nova Unit de Leitura do XML do conhecimento.

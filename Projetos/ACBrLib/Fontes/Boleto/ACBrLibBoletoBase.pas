@@ -75,8 +75,9 @@ type
     function SalvarPDFBoleto(eIndice: longint; const sResposta: PChar; var esTamanho: longint): longint;
     function GerarHTML: longint;
     function GerarRemessa(eDir: PChar; eNumArquivo: longInt; eNomeArq: PChar): longint;
-    function GerarRemessaStream(eDir: PChar; eNumArquivo: longInt; eNomeArq: PChar; const sResposta: PChar; var esTamanho: longint): longint;
+    function GerarRemessaStream(eNumArquivo: longInt; const sResposta: PChar; var esTamanho: longint): longint;
     function LerRetorno(eDir, eNomeArq: PChar): longint;
+    function LerRetornoStream(const ARetornoBase64: PChar; const sResposta: PChar; var esTamanho: longint): longInt;
     function ObterRetorno(eDir, eNomeArq: PChar; const sResposta: PChar; var esTamanho: longint): longint;
     function EnviarEmail(ePara, eAssunto, eMensagem, eCC: PChar): longint;
     function EnviarEmailBoleto(eIndice: longint; ePara, eAssunto, eMensagem, eCC: PChar): longint;
@@ -102,7 +103,7 @@ uses
   ACBrLibConsts, ACBrLibBoletoConsts, ACBrLibConfig, strutils, typinfo,
   ACBrUtil.Base, ACBrUtil.FilesIO, ACBrUtil.Strings,
   ACBrLibResposta, ACBrBoleto, ACBrLibBoletoConfig, ACBrMail,
-  ACBrLibBoletoRespostas, ACBrObjectSerializer;
+  ACBrLibBoletoRespostas, ACBrObjectSerializer, synacode;
   
 constructor TACBrLibBoleto.Create(ArqConfig: string; ChaveCrypt: ansistring);
 begin
@@ -533,20 +534,17 @@ begin
   end;
 end;
 
-function TACBrLibBoleto.GerarRemessaStream(eDir: PChar; eNumArquivo: longInt; eNomeArq: PChar; const sResposta: PChar; var esTamanho: longint): longint;
+function TACBrLibBoleto.GerarRemessaStream(eNumArquivo: longInt; const sResposta: PChar; var esTamanho: longint): longint;
 var
-  Dir, NomeArq: AnsiString;
   NumArquivo: Integer;
   AStream: TMemoryStream;
   Resposta: Ansistring;
 begin
   try
-    Dir := ConverterAnsiParaUTF8(eDir);
     NumArquivo:= StrToIntDef(IntToStr(eNumArquivo ), 0);
-    NomeArq:= ConverterAnsiParaUTF8(eNomeArq);
 
     if Config.Log.Nivel > logNormal then
-      GravarLog('Boleto_GerarRemessaStream(' + Dir + ', ' + IntToStr(NumArquivo) + ', ' + NomeArq + ' )', logCompleto, True)
+      GravarLog('Boleto_GerarRemessaStream(' + IntToStr(NumArquivo) + ' )', logCompleto, True)
     else
       GravarLog('Boleto_GerarRemessaStream', logNormal);
 
@@ -554,11 +552,6 @@ begin
     BoletoDM.Travar;
 
     try
-      if NaoEstaVazio( Dir ) then
-        BoletoDM.ACBrBoleto1.DirArqRemessa := Dir;
-      if NaoEstaVazio( NomeArq ) then
-        BoletoDM.ACBrBoleto1.NomeArqRemessa:= NomeArq;
-
       BoletoDM.ACBrBoleto1.GerarRemessaStream( NumArquivo, AStream );
       Resposta := StreamToBase64(AStream);
 
@@ -602,6 +595,40 @@ begin
       Result := SetRetorno(ErrOK);
     finally
       BoletoDM.Destravar;
+    end;
+  except
+    on E: EACBrLibException do
+      Result := SetRetorno(E.Erro, ConverterUTF8ParaAnsi(E.Message));
+
+    on E: Exception do
+      Result := SetRetorno(ErrExecutandoMetodo, ConverterUTF8ParaAnsi(E.Message));
+  end;
+end;
+
+function TACBrLibBoleto.LerRetornoStream(const ARetornoBase64: PChar; const sResposta: PChar; var esTamanho: longint): longInt;
+var
+  Stream: TStringStream;
+  Base64, Resposta : Ansistring;
+begin
+  try
+    GravarLog('Boleto_LerRetornoStream', logNormal);
+    Base64 := ACBrUTF8ToAnsi(DecodeBase64(ARetornoBase64));
+    Stream := TStringStream.Create(Base64);
+    try
+      BoletoDM.Travar;
+      try
+        BoletoDM.ACBrBoleto1.LerRetorno(Stream);
+
+        Resposta := ACBrUTF8ToAnsi(BoletoDM.ACBrBoleto1.GravarArqIni('','',False));
+        Resposta := EncodeBase64(Resposta);
+
+        MoverStringParaPChar (Resposta, sResposta, esTamanho);
+        Result := SetRetorno(ErrOK, Resposta);
+      finally
+        BoletoDM.Destravar;
+      end;
+    finally
+      Stream.Free;
     end;
   except
     on E: EACBrLibException do

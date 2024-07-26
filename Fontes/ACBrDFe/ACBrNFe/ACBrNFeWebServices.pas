@@ -864,7 +864,7 @@ begin
 
   NFeRetorno := TRetConsStatServ.Create('');
   try
-    NFeRetorno.XmlRetorno := ParseText(FPRetWS);
+    NFeRetorno.XmlRetorno := FPRetWS; // ParseText(FPRetWS);
     NFeRetorno.LerXml;
 
     Fversao := NFeRetorno.versao;
@@ -1187,7 +1187,7 @@ begin
     else
       AXML := FPRetWS;
 
-    FNFeRetornoSincrono.XmlRetorno := ParseText(AXML);
+    FNFeRetornoSincrono.XmlRetorno := AXML; // ParseText(AXML);
     FNFeRetornoSincrono.LerXml;
 
     Fversao := FNFeRetornoSincrono.versao;
@@ -2215,7 +2215,7 @@ begin
 
     VerificarSemResposta;
 
-    NFeRetorno.XmlRetorno := ParseText(FPRetWS);
+    NFeRetorno.XmlRetorno := FPRetWS; // ParseText(FPRetWS);
     NFeRetorno.LerXML;
 
     NFCancelada := False;
@@ -2738,7 +2738,7 @@ begin
 
     VerificarSemResposta;
 
-    NFeRetorno.XmlRetorno := ParseText(FPRetWS);
+    NFeRetorno.XmlRetorno := FPRetWS; // ParseText(FPRetWS);
     NFeRetorno.LerXml;
 
     Fversao := NFeRetorno.versao;
@@ -3342,6 +3342,38 @@ begin
             infEvento.detEvento.verAplic := FEvento.Evento[i].InfEvento.detEvento.verAplic;
             infEvento.detEvento.nProtEvento := FEvento.Evento[i].InfEvento.detEvento.nProtEvento;
           end;
+
+          teConcFinanceira:
+          begin
+            SchemaEventoNFe := schConcFinanceira;
+            infEvento.detEvento.verAplic := FEvento.Evento[i].InfEvento.detEvento.verAplic;
+
+            for j := 0 to FEvento.Evento.Items[i].InfEvento.detEvento.detPag.count - 1 do
+            begin
+              with infEvento.detEvento.detPag.New do
+              begin
+                indPag := FEvento.Evento[i].InfEvento.detEvento.detPag[j].indPag;
+                tPag := FEvento.Evento[i].InfEvento.detEvento.detPag[j].tPag;
+                xPag := FEvento.Evento[i].InfEvento.detEvento.detPag[j].xPag;
+                vPag := FEvento.Evento[i].InfEvento.detEvento.detPag[j].vPag;
+                dPag := FEvento.Evento[i].InfEvento.detEvento.detPag[j].dPag;
+                CNPJPag := FEvento.Evento[i].InfEvento.detEvento.detPag[j].CNPJPag;
+                UFPag := FEvento.Evento[i].InfEvento.detEvento.detPag[j].UFPag;
+                CNPJIF := FEvento.Evento[i].InfEvento.detEvento.detPag[j].CNPJIF;
+                tBand := FEvento.Evento[i].InfEvento.detEvento.detPag[j].tBand;
+                cAut := FEvento.Evento[i].InfEvento.detEvento.detPag[j].cAut;
+                CNPJReceb := FEvento.Evento[i].InfEvento.detEvento.detPag[j].CNPJReceb;
+                UFReceb := FEvento.Evento[i].InfEvento.detEvento.detPag[j].UFReceb;
+              end;
+            end;
+          end;
+
+          teCancConcFinanceira:
+          begin
+            SchemaEventoNFe := schCancConcFinanceira;
+            infEvento.detEvento.verAplic := FEvento.Evento[i].InfEvento.detEvento.verAplic;
+            infEvento.detEvento.nProtEvento := FEvento.Evento[i].InfEvento.detEvento.nProtEvento;
+          end;
         end;
       end;
     end;
@@ -3468,7 +3500,7 @@ begin
 
   VerificarSemResposta;
 
-  EventoRetorno.XmlRetorno := ParseText(FPRetWS);
+  EventoRetorno.XmlRetorno := FPRetWS; // ParseText(FPRetWS);
   EventoRetorno.LerXml;
 
   FcStat := EventoRetorno.cStat;
@@ -3644,7 +3676,7 @@ begin
 
   VerificarSemResposta;
 
-  FretAdmCSCNFCe.XmlRetorno := ParseText(FPRetWS);
+  FretAdmCSCNFCe.XmlRetorno := FPRetWS; // ParseText(FPRetWS);
   FretAdmCSCNFCe.LerXml;
 
   FPMsg := FretAdmCSCNFCe.xMotivo;

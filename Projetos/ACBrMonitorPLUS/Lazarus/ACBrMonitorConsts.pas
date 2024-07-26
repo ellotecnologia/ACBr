@@ -782,6 +782,7 @@ const
   CMetodoAcharPortasSeriais     = 'acharportasseriais';
   CMetodoAcharPortasUSB         = 'acharportasusb';
   CMetodoAcharPortasRAW         = 'acharportasraw';
+  CMetodoLerStatusImpressoraFormatado    = 'lerstatusimpressoraformatado';
 
   CExtensaoXML =                     '.xml';
 
@@ -915,7 +916,6 @@ const
   CKeyCEPProxy_User =                'Proxy_User';
   CKeyCEPProxy_Pass =                'Proxy_Pass';
   CKeyCEPIBGEAcentos =               'IBGEAcentos';
-  CKeyCEPIBGEUTF8 =                  'IBGEUTF8';
 
   CSecConsultaCNPJ =                 'ConsultaCNPJ';
   CKeyConsultaCNPJProvedor =         'Provedor';

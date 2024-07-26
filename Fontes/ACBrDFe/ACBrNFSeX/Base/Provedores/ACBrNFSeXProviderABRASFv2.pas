@@ -323,7 +323,7 @@ begin
 
     NumNFSe := ObterConteudoTag(Node.Childrens.FindAnyNs('Numero'), tcStr);
     CodVerif := ObterConteudoTag(Node.Childrens.FindAnyNs('CodigoVerificacao'), tcStr);
-    DataAut := ObterConteudoTag(Node.Childrens.FindAnyNs('DataEmissao'), tcDatHor);
+    DataAut := ObterConteudoTag(Node.Childrens.FindAnyNs('DataEmissao'), FpFormatoDataEmissao);
 
     Node2 := Node.Childrens.FindAnyNs('DeclaracaoPrestacaoServico');
 
@@ -700,7 +700,7 @@ begin
 
           NumNFSe := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('Numero'), tcStr);
           CodVerif := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('CodigoVerificacao'), tcStr);
-          DataAut := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('DataEmissao'), tcDatHor);
+          DataAut := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('DataEmissao'), FpFormatoDataEmissao);
 
           with Response do
           begin
@@ -748,8 +748,6 @@ begin
           AResumo.NomeArq := ANota.NomeArq;
         end;
       end;
-
-      Response.Sucesso := (Response.Erros.Count = 0);
     except
       on E:Exception do
       begin
@@ -927,8 +925,6 @@ begin
       end;
 
       ProcessarMensagemErros(ANode, Response);
-
-      Response.Sucesso := (Response.Erros.Count = 0);
 
       ANodeArray := ANode.Childrens.FindAllAnyNs('CompNfse');
 
@@ -1111,8 +1107,6 @@ begin
       Document.LoadFromXml(Response.ArquivoRetorno);
 
       ProcessarMensagemErros(Document.Root, Response);
-
-      Response.Sucesso := (Response.Erros.Count = 0);
 
       ANode := Document.Root.Childrens.FindAnyNs('ListaNfse');
 
@@ -1462,8 +1456,6 @@ begin
 
       ProcessarMensagemErros(ANode, Response);
 
-      Response.Sucesso := (Response.Erros.Count = 0);
-
       ANodeArray := ANode.Childrens.FindAllAnyNs('CompNfse');
 
       if not Assigned(ANodeArray) then
@@ -1739,8 +1731,6 @@ begin
 
       ProcessarMensagemErros(ANode, Response);
 
-      Response.Sucesso := (Response.Erros.Count = 0);
-
       ANodeArray := ANode.Childrens.FindAllAnyNs('CompNfse');
 
       if not Assigned(ANodeArray) then
@@ -2010,8 +2000,6 @@ begin
 
       ProcessarMensagemErros(ANode, Response);
 
-      Response.Sucesso := (Response.Erros.Count = 0);
-
       ANodeArray := ANode.Childrens.FindAllAnyNs('CompNfse');
 
       if not Assigned(ANodeArray) then
@@ -2274,8 +2262,6 @@ begin
       Document.LoadFromXml(Response.ArquivoRetorno);
 
       ProcessarMensagemErros(Document.Root, Response);
-
-      Response.Sucesso := (Response.Erros.Count = 0);
 
       ANode := Document.Root.Childrens.FindAnyNs('RetCancelamento');
 
@@ -2653,8 +2639,6 @@ begin
       end;
 
       ProcessarMensagemErros(ANode, Response);
-
-      Response.Sucesso := (Response.Erros.Count = 0);
 
       AuxNode := ANode.Childrens.FindAnyNs('NfseSubstituida');
 

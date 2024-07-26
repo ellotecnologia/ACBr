@@ -559,6 +559,7 @@ type
     FValorTributavel: Double;
 
     FDadosProfissionalParceiro: TDadosProfissionalParceiro;
+    FidCnae: string;
   public
     constructor Create;
     destructor Destroy; override;
@@ -635,6 +636,9 @@ type
 
     // Provedor Agili
     property DadosProfissionalParceiro: TDadosProfissionalParceiro read FDadosProfissionalParceiro write FDadosProfissionalParceiro;
+
+    // Provedor SoftPlan
+    property idCnae: string read FidCnae write FidCnae;
   end;
 
   TItemServicoCollection = class(TACBrObjectList)
@@ -818,6 +822,7 @@ type
     FValorTotalRecebido: Double;
     // Provedor ISSBarueri
     FPrestadoEmViasPublicas: Boolean;
+    FLocalPrestacao: TLocalPrestacao;
     // Provedor GeisWeb
     FTipoLancamento: TTipoLancamento;
     FCodigoNBS: string;
@@ -833,6 +838,7 @@ type
     FCFPS: string;
     FEndereco: TEndereco;
     FInfAdicional: string;
+    FxFormaPagamento: string;
 
     procedure SetItemServico(Value: TItemServicoCollection);
     procedure SetDeducao(const Value: TDeducaoCollection);
@@ -873,6 +879,7 @@ type
 
     // Provedor ISSBarueri
     property PrestadoEmViasPublicas: Boolean read FPrestadoEmViasPublicas write FPrestadoEmViasPublicas;
+    property LocalPrestacao: TLocalPrestacao read FLocalPrestacao write FLocalPrestacao;
     // Provedor GeisWeb
     property TipoLancamento: TTipoLancamento read FTipoLancamento write FTipoLancamento;
     // Provedor PadraoNacional
@@ -891,6 +898,7 @@ type
     property Endereco: TEndereco read FEndereco write FEndereco;
     // Provedor Megasoft
     property InfAdicional: string read FInfAdicional write FInfAdicional;
+    property xFormaPagamento: string read FxFormaPagamento write FxFormaPagamento;
   end;
 
   TDadosPessoa = class(TObject)
@@ -1153,6 +1161,7 @@ type
 
   TConfirmacaoCancelamento = class(TObject)
   private
+    FID: string;
     FInfID: TInfID;
     FPedido: TPedidoCancelamento;
     FSucesso: Boolean;
@@ -1161,6 +1170,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
+    property ID: string read FID write FID;
     property InfID: TInfID read FInfID write FInfID;
     property Pedido: TPedidoCancelamento read FPedido write FPedido;
     property Sucesso: Boolean read FSucesso write FSucesso;
@@ -1592,6 +1602,7 @@ begin
 
   FDescricao := '';
   FPrestadoEmViasPublicas := False;
+  FLocalPrestacao := lpMunicipio;
 
   FEndereco := TEndereco.Create;
 end;

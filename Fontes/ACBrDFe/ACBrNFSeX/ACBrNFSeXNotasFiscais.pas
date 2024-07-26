@@ -558,10 +558,15 @@ begin
         Servico.Endereco.Numero := INIRec.ReadString(sSecao, 'Numero', '');
         Servico.Endereco.xPais := INIRec.ReadString(sSecao, 'xPais', '');
         Servico.Endereco.UF := INIRec.ReadString(sSecao, 'UF', '');
+
+        // Provedor ISSBarueri
+        Servico.LocalPrestacao := StrToLocalPrestacao(Ok, INIRec.ReadString(sSecao, 'LocalPrestacao', '1'));
+        Servico.PrestadoEmViasPublicas := INIRec.ReadBool(sSecao, 'PrestadoEmViasPublicas', True);
+
+        // Provedor SigISSWeb
+        Servico.xFormaPagamento := INIRec.ReadString(sSecao, 'FormaPagamento', '');
       end;
 
-//      with Servico do
-//      begin
       i := 1;
       while true do
       begin
@@ -632,6 +637,7 @@ begin
         Item.SituacaoTributaria := INIRec.ReadInteger(sSecao, 'SituacaoTributaria', 0);
         Item.ValorISSRetido := StringToFloatDef(INIRec.ReadString(sSecao, 'ValorISSRetido', ''), 0);
         Item.ValorTributavel := StringToFloatDef(INIRec.ReadString(sSecao, 'ValorTributavel', ''), 0);
+        Item.CodCNO := INIRec.ReadString(sSecao, 'CodCNO', '');
 
         Inc(i);
       end;

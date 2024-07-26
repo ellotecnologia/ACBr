@@ -87,7 +87,6 @@ type
 
   protected
     procedure Ler_InfEventos(const ANode: TACBrXmlNode);
-//    procedure Ler_RetEvento(const ANode: TACBrXmlNode);
     procedure Ler_InfEvento(const ANode: TACBrXmlNode);
     procedure Ler_DetEvento(const ANode: TACBrXmlNode);
     procedure Ler_InfCorrecao(const ANode: TACBrXmlNode);
@@ -154,12 +153,14 @@ end;
 constructor TRetInfEventoCollectionItem.Create;
 begin
   inherited Create;
+
   FRetInfEvento := TRetInfEvento.Create;
 end;
 
 destructor TRetInfEventoCollectionItem.Destroy;
 begin
   FRetInfEvento.Free;
+
   inherited;
 end;
 
@@ -289,60 +290,91 @@ var
   ok: Boolean;
   ANodes: TACBrXmlNodeArray;
   i: Integer;
+  AuxNode: TACBrXmlNode;
 begin
   if not Assigned(ANode) then Exit;
 
   infEvento.VersaoEvento := ObterConteudoTag(ANode.Attributes.Items['versaoEvento']);
-  infEvento.DetEvento.descEvento := ObterConteudoTag(ANode.Childrens.FindAnyNs('descEvento'), tcStr);
-  infEvento.DetEvento.nProt := ObterConteudoTag(ANode.Childrens.FindAnyNs('nProt'), tcStr);
-  infEvento.DetEvento.xJust := ObterConteudoTag(ANode.Childrens.FindAnyNs('xJust'), tcStr);
-  infEvento.DetEvento.vICMS := ObterConteudoTag(ANode.Childrens.FindAnyNs('vICMS'), tcDe2);
-  infEvento.DetEvento.vICMSST := ObterConteudoTag(ANode.Childrens.FindAnyNs('vICMSST'), tcDe2);
-  infEvento.DetEvento.vTPrest := ObterConteudoTag(ANode.Childrens.FindAnyNs('vTPrest'), tcDe2);
-  infEvento.DetEvento.vCarga := ObterConteudoTag(ANode.Childrens.FindAnyNs('vCarga'), tcDe2);
-  infEvento.detEvento.toma := StrToTpTomador(ok, ObterConteudoTag(ANode.Childrens.FindAnyNs('toma'), tcStr));
-  infEvento.detEvento.UF := ObterConteudoTag(ANode.Childrens.FindAnyNs('UF'), tcStr);
-  infEvento.detEvento.CNPJCPF := ObterConteudoTagCNPJCPF(ANode);
-  infEvento.detEvento.IE := ObterConteudoTag(ANode.Childrens.FindAnyNs('IE'), tcStr);
-  infEvento.detEvento.modal := StrToTpModal(ok, ObterConteudoTag(ANode.Childrens.FindAnyNs('modal'), tcStr));
-  infEvento.DetEvento.UFIni := ObterConteudoTag(ANode.Childrens.FindAnyNs('UFIni'), tcStr);
-  infEvento.DetEvento.UFFim := ObterConteudoTag(ANode.Childrens.FindAnyNs('UFFim'), tcStr);
-  infEvento.DetEvento.xOBS := ObterConteudoTag(ANode.Childrens.FindAnyNs('xOBS'), tcStr);
-  // Comprovante de Entrega da CT-e e o Cancelamento do Comprovante
-  infEvento.detEvento.dhEntrega := ObterConteudoTag(ANode.Childrens.FindAnyNs('dhEntrega'), tcDatHor);
-  infEvento.detEvento.nDoc := ObterConteudoTag(ANode.Childrens.FindAnyNs('nDoc'), tcStr);
-  infEvento.detEvento.xNome := ObterConteudoTag(ANode.Childrens.FindAnyNs('xNome'), tcStr);
-  infEvento.detEvento.latitude := ObterConteudoTag(ANode.Childrens.FindAnyNs('latitude'), tcDe6);
-  infEvento.detEvento.longitude := ObterConteudoTag(ANode.Childrens.FindAnyNs('longitude'), tcDe6);
-  infEvento.detEvento.hashEntrega := ObterConteudoTag(ANode.Childrens.FindAnyNs('hashEntrega'), tcStr);
-  infEvento.detEvento.dhHashEntrega := ObterConteudoTag(ANode.Childrens.FindAnyNs('dhHashEntrega'), tcDatHor);
-  infEvento.detEvento.nProtCE := ObterConteudoTag(ANode.Childrens.FindAnyNs('nProtCE'), tcStr);
 
-  infEvento.detEvento.dhTentativaEntrega := ObterConteudoTag(ANode.Childrens.FindAnyNs('dhTentativaEntrega'), tcDatHor);
-  infEvento.detEvento.nTentativa := ObterConteudoTag(ANode.Childrens.FindAnyNs('nTentativa'), tcInt);
-  infEvento.detEvento.tpMotivo := StrTotpMotivo(ok, ObterConteudoTag(ANode.Childrens.FindAnyNs('tpMotivo'), tcStr));
-  infEvento.detEvento.xJustMotivo := ObterConteudoTag(ANode.Childrens.FindAnyNs('xJustMotivo'), tcStr);
-  infEvento.detEvento.hashTentativaEntrega := ObterConteudoTag(ANode.Childrens.FindAnyNs('hashTentativaEntrega'), tcStr);
-  infEvento.detEvento.dhHashTentativaEntrega := ObterConteudoTag(ANode.Childrens.FindAnyNs('dhHashTentativaEntrega'), tcDatHor);
+  case InfEvento.tpEvento of
+    teCCe: AuxNode := ANode.Childrens.FindAnyNs('evCCeCTe');
 
-  infEvento.detEvento.nProtIE := ObterConteudoTag(ANode.Childrens.FindAnyNs('nProtIE'), tcStr);
+    teCancelamento: AuxNode := ANode.Childrens.FindAnyNs('evCancCTe');
 
-  ANodes := ANode.Childrens.FindAll('infCorrecao');
-  for i := 0 to Length(ANodes) - 1 do
-  begin
-    Ler_InfCorrecao(ANodes[i]);
+    teEPEC: AuxNode := ANode.Childrens.FindAnyNs('evEPECCTe');
+
+    teMultiModal: AuxNode := ANode.Childrens.FindAnyNs('evRegMultimodal');
+
+    tePrestDesacordo: AuxNode := ANode.Childrens.FindAnyNs('evPrestDesacordo');
+
+    teCancPrestDesacordo: AuxNode := ANode.Childrens.FindAnyNs('evCancPrestDesacordo');
+
+    teGTV: AuxNode := ANode.Childrens.FindAnyNs('evGTV');
+
+    teComprEntrega: AuxNode := ANode.Childrens.FindAnyNs('evCECTe');
+
+    teCancComprEntrega: AuxNode := ANode.Childrens.FindAnyNs('evCancCECTe');
+
+    teInsucessoEntregaCTe: AuxNode := ANode.Childrens.FindAnyNs('evIECTe');
+
+    teCancInsucessoEntregaCTe: AuxNode := ANode.Childrens.FindAnyNs('evCancIECTe');
+  else
+    AuxNode := nil;
   end;
 
-  ANodes := ANode.Childrens.FindAll('infGTV');
-  for i := 0 to Length(ANodes) - 1 do
+  if AuxNode <> nil then
   begin
-    Ler_InfGTV(ANodes[i]);
-  end;
+    infEvento.DetEvento.descEvento := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('descEvento'), tcStr);
+    infEvento.DetEvento.nProt := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('nProt'), tcStr);
+    infEvento.DetEvento.xJust := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('xJust'), tcStr);
+    infEvento.DetEvento.vICMS := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('vICMS'), tcDe2);
+    infEvento.DetEvento.vICMSST := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('vICMSST'), tcDe2);
+    infEvento.DetEvento.vTPrest := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('vTPrest'), tcDe2);
+    infEvento.DetEvento.vCarga := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('vCarga'), tcDe2);
+    infEvento.detEvento.toma := StrToTpTomador(ok, ObterConteudoTag(AuxNode.Childrens.FindAnyNs('toma'), tcStr));
+    infEvento.detEvento.UF := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('UF'), tcStr);
+    infEvento.detEvento.CNPJCPF := ObterConteudoTagCNPJCPF(AuxNode);
+    infEvento.detEvento.IE := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('IE'), tcStr);
+    infEvento.detEvento.modal := StrToTpModal(ok, ObterConteudoTag(AuxNode.Childrens.FindAnyNs('modal'), tcStr));
+    infEvento.DetEvento.UFIni := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('UFIni'), tcStr);
+    infEvento.DetEvento.UFFim := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('UFFim'), tcStr);
+    infEvento.DetEvento.xOBS := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('xOBS'), tcStr);
+    // Comprovante de Entrega da CT-e e o Cancelamento do Comprovante
+    infEvento.detEvento.dhEntrega := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('dhEntrega'), tcDatHor);
+    infEvento.detEvento.nDoc := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('nDoc'), tcStr);
+    infEvento.detEvento.xNome := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('xNome'), tcStr);
+    infEvento.detEvento.latitude := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('latitude'), tcDe6);
+    infEvento.detEvento.longitude := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('longitude'), tcDe6);
+    infEvento.detEvento.hashEntrega := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('hashEntrega'), tcStr);
+    infEvento.detEvento.dhHashEntrega := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('dhHashEntrega'), tcDatHor);
+    infEvento.detEvento.nProtCE := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('nProtCE'), tcStr);
 
-  ANodes := ANode.Childrens.FindAll('infEntrega');
-  for i := 0 to Length(ANodes) - 1 do
-  begin
-    Ler_InfEntrega(ANodes[i]);
+    infEvento.detEvento.dhTentativaEntrega := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('dhTentativaEntrega'), tcDatHor);
+    infEvento.detEvento.nTentativa := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('nTentativa'), tcInt);
+    infEvento.detEvento.tpMotivo := StrTotpMotivo(ok, ObterConteudoTag(AuxNode.Childrens.FindAnyNs('tpMotivo'), tcStr));
+    infEvento.detEvento.xJustMotivo := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('xJustMotivo'), tcStr);
+    infEvento.detEvento.hashTentativaEntrega := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('hashTentativaEntrega'), tcStr);
+    infEvento.detEvento.dhHashTentativaEntrega := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('dhHashTentativaEntrega'), tcDatHor);
+
+    infEvento.detEvento.nProtIE := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('nProtIE'), tcStr);
+
+    ANodes := AuxNode.Childrens.FindAll('infCorrecao');
+    for i := 0 to Length(ANodes) - 1 do
+    begin
+      Ler_InfCorrecao(ANodes[i]);
+    end;
+
+    ANodes := AuxNode.Childrens.FindAll('infGTV');
+    for i := 0 to Length(ANodes) - 1 do
+    begin
+      Ler_InfGTV(ANodes[i]);
+    end;
+
+    ANodes := AuxNode.Childrens.FindAll('infEntrega');
+    for i := 0 to Length(ANodes) - 1 do
+    begin
+      Ler_InfEntrega(ANodes[i]);
+    end;
   end;
 end;
 
@@ -368,8 +400,6 @@ procedure TRetEventoCTe.Ler_InfEventos(const ANode: TACBrXmlNode);
 var
   Item: TRetInfEventoCollectionItem;
   ok: Boolean;
-  i: Integer;
-  ANodes: TACBrXmlNodeArray;
 begin
   if not Assigned(ANode) then Exit;
 
@@ -389,6 +419,7 @@ begin
   Item.RetInfEvento.tpEvento := StrToTpEventoCTe(ok, ObterConteudoTag(ANode.Childrens.FindAnyNs('tpEvento'), tcStr));
   Item.RetInfEvento.xEvento := ObterConteudoTag(ANode.Childrens.FindAnyNs('xEvento'), tcStr);
   Item.RetInfEvento.nSeqEvento := ObterConteudoTag(ANode.Childrens.FindAnyNs('nSeqEvento'), tcInt);
+  Item.RetInfEvento.CNPJDest := ObterConteudoTag(ANode.Childrens.FindAnyNs('CNPJDest'), tcStr);
   Item.RetInfEvento.dhRegEvento := ObterConteudoTag(ANode.Childrens.FindAnyNs('dhRegEvento'), tcDatHor);
   Item.RetInfEvento.nProt := ObterConteudoTag(ANode.Childrens.FindAnyNs('nProt'), tcStr);
 
@@ -396,30 +427,7 @@ begin
   cStat := Item.RetInfEvento.cStat;
   xMotivo := Item.RetInfEvento.xMotivo;
 end;
-{
-procedure TRetEventoCTe.Ler_RetEvento(const ANode: TACBrXmlNode);
-var
-  ok: Boolean;
-  ANodes: TACBrXmlNodeArray;
-  i: Integer;
-begin
-  if not Assigned(ANode) then Exit;
 
-  versao := ObterConteudoTag(ANode.Attributes.Items['versao']);
-  idLote := ObterConteudoTag(ANode.Childrens.FindAnyNs('idLote'), tcInt64);
-  tpAmb := StrToTpAmb(ok, ObterConteudoTag(ANode.Childrens.FindAnyNs('tpAmb'), tcStr));
-  verAplic := ObterConteudoTag(ANode.Childrens.FindAnyNs('verAplic'), tcStr);
-  cOrgao := ObterConteudoTag(ANode.Childrens.FindAnyNs('cOrgao'), tcInt);
-  cStat := ObterConteudoTag(ANode.Childrens.FindAnyNs('cStat'), tcInt);
-  xMotivo := ObterConteudoTag(ANode.Childrens.FindAnyNs('xMotivo'), tcStr);
-
-  ANodes := ANode.Childrens.FindAll('retEvento');
-  for i := 0 to Length(ANodes) - 1 do
-  begin
-    Ler_InfEventos(ANodes[i].Childrens.FindAnyNs('infEvento'));
-  end;
-end;
-}
 function TRetEventoCTe.LerXml: Boolean;
 var
   Document: TACBrXmlDocument;
@@ -443,15 +451,28 @@ begin
         begin
           versao := ObterConteudoTag(ANode.Attributes.Items['versao']);
 
-          AuxNode := ANode.Childrens.FindAnyNs('retEnvEvento');
+          AuxNode := ANode.Childrens.FindAnyNs('eventoCTe');
 
           if AuxNode = nil then
-            AuxNode := ANode.Childrens.FindAnyNs('retEventoCTe');
+            AuxNode := ANode.Childrens.FindAnyNs('evento');
 
-          if AuxNode = nil then
-            AuxNode := ANode.Childrens.FindAnyNs('retEvento');
+          Ler_InfEvento(AuxNode.Childrens.FindAnyNs('infEvento'));
 
-          ANodes := AuxNode.Childrens.FindAll('infEvento');
+          AuxNode := ANode.Childrens.FindAnyNs('retEventoCTe');
+
+          if AuxNode <> nil then
+          begin
+            ANodes := AuxNode.Childrens.FindAllAnyNs('infEvento');
+            for i := 0 to Length(ANodes) - 1 do
+            begin
+              Ler_InfEventos(ANodes[i]);
+            end;
+          end;
+        end;
+
+        if ANode.LocalName = 'retEventoCTe' then
+        begin
+          ANodes := ANode.Childrens.FindAllAnyNs('infEvento');
           for i := 0 to Length(ANodes) - 1 do
           begin
             Ler_InfEventos(ANodes[i]);
@@ -459,9 +480,9 @@ begin
         end;
 
         if (ANode.LocalName = 'eventoCTe') or (ANode.LocalName = 'evento') then
-          Ler_InfEvento(ANode);
+          Ler_InfEvento(ANode.Childrens.FindAnyNs('infEvento'));
 
-        LerSignature(ANode.Childrens.Find('Signature'), signature);
+        LerSignature(ANode.Childrens.FindAnyNs('Signature'), signature);
       end;
 
       Result := True;

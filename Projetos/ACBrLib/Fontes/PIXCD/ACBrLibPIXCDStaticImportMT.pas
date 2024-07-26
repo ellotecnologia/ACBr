@@ -120,6 +120,9 @@ const
  function PIXCD_ConsultarCobrancaImediata(const libHandle: TLibHandle; const ATxId: PChar; ARevisao: longint; const sResposta: PChar; var esTamanho: longint): longint;
    {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf}; external CACBrPIXCDLIBName;
 
+ function PIXCD_ConsultarCobrancasCob(const libHandle: TLibHandle; ADataInicio: TDateTime; ADataFim: TDateTime; ACpfCnpj: PChar; ALocationPresente: Boolean; AStatus: longint; PagAtual: longint; ItensPorPagina: longint; const sResposta: PChar; var esTamanho: longint): longint;
+   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf}; external CACBrPIXCDLIBName;
+
  function PIXCD_RevisarCobrancaImediata(const libHandle: TLibHandle; AInfCobRevisada: PChar; const ATxId: PChar; const sResposta: PChar; var esTamanho: longint): longint;
    {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf}; external CACBrPIXCDLIBName;
 
@@ -132,10 +135,56 @@ const
  function PIXCD_ConsultarCobranca(const libHandle: TLibHandle; const ATxId: PChar; ARevisao: longint; const sResposta: PChar; var esTamanho: longint): longint;
    {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf}; external CACBrPIXCDLIBName;
 
+ function PIXCD_ConsultarCobrancasCobV(const libHandle: TLibHandle; ADataInicio: TDateTime; ADataFim: TDateTime; ACpfCnpj: PChar; ALocationPresente: Boolean; AStatus: longint; PagAtual: longint; ItensPorPagina: longint; const sResposta: PChar; var esTamanho: longint): longint;
+   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf}; external CACBrPIXCDLIBName;
+
  function PIXCD_RevisarCobranca(const libHandle: TLibHandle; AInfCobVRevisada: PChar; const ATxId: PChar; const sResposta: PChar; var esTamanho: longint): longint;
    {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf}; external CACBrPIXCDLIBName;
 
  function PIXCD_CancelarCobranca(const libHandle: TLibHandle; ATxId: PChar; const sResposta: PChar; var esTamanho: longint): longint;
+   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf}; external CACBrPIXCDLIBName;
+
+ //Matera
+ function PIXCD_Matera_IncluirConta(const libHandle: TLibHandle; aInfIncluirConta: PChar; const sResposta: PChar; var esTamanho: longint): longint;
+   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf}; external CACBrPIXCDLIBName;
+
+ function PIXCD_Matera_ConsultarConta(const libHandle: TLibHandle; aAccountId: PChar; const sResposta: PChar; var esTamanho: longint): longint;
+   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf}; external CACBrPIXCDLIBName;
+
+ function PIXCD_Matera_InativarConta(const libHandle: TLibHandle; aAccountId: PChar; const sResposta: PChar; var esTamanho: longint): longint;
+   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf}; external CACBrPIXCDLIBName;
+
+ function PIXCD_Matera_IncluirChavePix(const libHandle: TLibHandle; aAccountId, aExternalID: PChar; const sResposta: PChar; var esTamanho: longint): longint;
+   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf}; external CACBrPIXCDLIBName;
+
+ function PIXCD_Matera_ConsultarChavePix(const libHandle: TLibHandle; aAccountId: PChar; const sResposta: PChar; var esTamanho: longint): longint;
+   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf}; external CACBrPIXCDLIBName;
+
+ function PIXCD_Matera_ExcluirChavePix(const libHandle: TLibHandle; aAccountId, aChavePIX: PChar; const sResposta: PChar; var esTamanho: longint): longint;
+   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf}; external CACBrPIXCDLIBName;
+
+ function PIXCD_Matera_GerarQRCode(const libHandle: TLibHandle; aInfQRCode: PChar; const sResposta: PChar; var esTamanho: longint): longint;
+   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf}; external CACBrPIXCDLIBName;
+
+ function PIXCD_Matera_ConsultarTransacao(const libHandle: TLibHandle; aAccountId, aTransactionID: PChar; const sResposta: PChar; var esTamanho: longint): longint;
+   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf}; external CACBrPIXCDLIBName;
+
+ function PIXCD_Matera_ConsultarSaldoEC(const libHandle: TLibHandle; aAccountId: PChar; const sResposta: PChar; var esTamanho: longint): longint;
+   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf}; external CACBrPIXCDLIBName;
+
+ function PIXCD_Matera_ConsultarExtratoEC(const libHandle: TLibHandle; aAccountId: PChar; aInicio: TDateTime; aFim: TDateTime; const sResposta: PChar; var esTamanho: longint): longint;
+   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf}; external CACBrPIXCDLIBName;
+
+ function PIXCD_Matera_ConsultarMotivosDevolucao(const libHandle: TLibHandle; const sResposta: PChar; var esTamanho: longint): longint;
+   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf}; external CACBrPIXCDLIBName;
+
+ function PIXCD_Matera_SolicitarDevolucao(const libHandle: TLibHandle; aInfSolicitarDevolucao: PChar; aAccountId, aTransactionID: PChar; const sResposta: PChar; var esTamanho: longint): longint;
+   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf}; external CACBrPIXCDLIBName;
+
+ function PIXCD_Matera_ConsultarAliasRetirada(const libHandle: TLibHandle; aAccountId, aAlias: PChar; const sResposta: PChar; var esTamanho: longint): longint;
+   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf}; external CACBrPIXCDLIBName;
+
+ function PIXCD_Matera_SolicitarRetirada(const libHandle: TLibHandle; aInfSolicitarRetirada: PChar; aAccountId: PChar; const sResposta: PChar; var esTamanho: longint): longint;
    {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf}; external CACBrPIXCDLIBName;
 
  {%endregion}

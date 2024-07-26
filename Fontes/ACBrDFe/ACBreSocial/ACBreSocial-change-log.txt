@@ -52,6 +52,26 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+23/07/2024
+-- pcesGerador --
+[*] TK-5761 - Correção ao ler xmls assinados para preencher a propriedade ID do evento.
+Por: Renato Rubinho
+
+11/07/2024
+-- pcesConversaoeSocial, pcesS2501, pcesS5003 --
+[*] Implementa as alterações da NT2024/04 Revisada.
+Por: Diego Folieni
+
+25/06/2024
+--- pcesS2500 ---
+[*] Corrigido critério para geração do grupo infoCompl do evento S2500
+Por: Andergoncalves
+
+24/06/2024
+--- Diversos ---
+[*] Implementado evento S2221 na versão 01_02_00
+Por: Renato Rubinho
+
 19/06/2024
 -- Frm_ACBreSocial --
 [*] Correção na geração do grupo Vinculo do evento S2206

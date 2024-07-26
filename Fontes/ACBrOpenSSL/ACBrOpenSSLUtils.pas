@@ -196,6 +196,7 @@ type
     procedure LoadPublicKeyFromString(const APublicKey: AnsiString);
     procedure LoadPublicKeyFromModulusAndExponent(const Modulus, Exponent: String);
     function ExtractModulusAndExponentFromPublicKey(out Modulus: String; out Exponent: String): Boolean;
+    function ExtractModulusAndExponentFromPrivateKey(out Modulus: String; out Exponent: String): Boolean;
     function GeneratePublicKeyFromPrivateKey: String;
 
     function CreateCertificateSignRequest(const CN_CommonName: String;
@@ -209,6 +210,8 @@ type
       L_Locality: String = ''; ST_StateOrProvinceName: String = '';
       C_CountryName: String = ''; EMAIL_EmailAddress: String = '';
       Algorithm: TACBrOpenSSLAlgorithm = algSHA512): String;
+
+    procedure CreatePFX(AStrem: TStream; const Senha: AnsiString; const FriendlyName: String);
 
     property PrivateKeyAsString: AnsiString read GetPrivateKeyAsString;
     property PublicKeyAsString: AnsiString read GetPublicKeyAsString;
@@ -1382,6 +1385,13 @@ begin
   Result := ExtractModulusAndExponentFromKey(fEVP_PublicKey, Modulus, Exponent);
 end;
 
+function TACBrOpenSSLUtils.ExtractModulusAndExponentFromPrivateKey(out
+  Modulus: String; out Exponent: String): Boolean;
+begin
+  CheckPrivateKeyIsLoaded;
+  Result := ExtractModulusAndExponentFromKey(fEVP_PrivateKey, Modulus, Exponent);
+end;
+
 function TACBrOpenSSLUtils.GeneratePublicKeyFromPrivateKey: String;
 begin
   CheckPrivateKeyIsLoaded;
@@ -1504,6 +1514,29 @@ begin
     end;
   finally
     X509Free(x);
+  end;
+end;
+
+procedure TACBrOpenSSLUtils.CreatePFX(AStrem: TStream; const Senha: AnsiString;
+  const FriendlyName: String);
+var
+  s: AnsiString;
+  pfx: SslPtr;
+  bio: PBIO;
+begin
+  CheckPrivateKeyIsLoaded;
+  CheckCertificateIsLoaded;
+
+  pfx := PKCS12create(Senha, FriendlyName, fEVP_PrivateKey, fCertX509, nil, 0, 0, 0, 0, 0);
+  bio := BioNew(BioSMem);
+  try
+    if (i2dPKCS12bio(bio, pfx) <> 1) then
+      raise EACBrOpenSSLException.Create('i2d_PKCS12_bio' + sLineBreak + GetLastOpenSSLError);
+    s := BioToStr(bio);
+    AStrem.Size := 0;
+    WriteStrToStream(AStrem, s);
+  finally
+    BioFreeAll(bio);
   end;
 end;
 

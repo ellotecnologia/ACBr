@@ -271,7 +271,7 @@ namespace ACBrLib.Boleto
             CheckResult(ret);
         }
 
-        public void GerarRemessaStream(string eDir, int eNumArquivo, string eNomeArq, Stream aStream) 
+        public void GerarRemessaStream(int eNumArquivo, Stream aStream) 
         {
             if (aStream == null) throw new ArgumentNullException(nameof(aStream));
 
@@ -279,7 +279,7 @@ namespace ACBrLib.Boleto
             var buffer = new StringBuilder(bufferLen);
 
             var method = GetMethod<Boleto_GerarRemessaStream>();
-            var ret = ExecuteMethod(() => method(eDir, eNumArquivo, eNomeArq, buffer, ref bufferLen));
+            var ret = ExecuteMethod(() => method(eNumArquivo, buffer, ref bufferLen));
 
             CheckResult(ret);
 
@@ -306,6 +306,19 @@ namespace ACBrLib.Boleto
             var ret = ExecuteMethod<int>(() => method(ToUTF8(eDir), ToUTF8(eNomeArq)));
 
             CheckResult(ret);
+        }
+
+        public string LerRetornoStream(string ARetornoBase64)
+        {
+            var bufferLen = BUFFER_LEN;
+            var buffer = new StringBuilder(bufferLen);
+
+            var method = GetMethod<Boleto_LerRetornoStream>();
+            var ret = ExecuteMethod(() => method(ToUTF8(ARetornoBase64), buffer, ref bufferLen));
+
+            CheckResult(ret);
+
+            return ProcessResult(buffer, bufferLen);
         }
 
         public void EnviarEmail(string ePara, string eAssunto, string eMensagem, string eCC)

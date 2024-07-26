@@ -1,6 +1,9 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Drawing.Printing;
 using System.IO;
+using System.Runtime.InteropServices.ComTypes;
+using System.Text;
 using System.Windows.Forms;
 using ACBrLib;
 using ACBrLib.Boleto;
@@ -480,17 +483,22 @@ namespace ACBrLibBoleto.Demo
 
         private async void btnGerarRemessaStream_Click(object sender, EventArgs e)
         {
-            var nomeArquivo = "RemessaStream.rem";
+            MemoryStream aStream = new MemoryStream();
+            boleto.GerarRemessaStream(1, aStream);
 
-            FileStream aStream = File.Create(nomeArquivo);
+            aStream.Position = 0;
+            string base64String = Convert.ToBase64String(aStream.ToArray());
 
-            var ret = "";
-            if (string.IsNullOrEmpty(txtDirRemessa.Text))
-                ret = Application.StartupPath;
-            else
-                ret = txtDirRemessa.Text;
-            boleto.GerarRemessaStream(ret, 1, txtNomeRemessa.Text, aStream);
-            rtbRespostas.AppendLine("Remessa Gerada.");
+            rtbRespostas.AppendLine("Remessa Gerada Base64:");
+            rtbRespostas.AppendLine(base64String);
+
+            byte[] convBase64 = Convert.FromBase64String(base64String);
+
+            // Converter o array de bytes para uma string comum (UTF-8)
+            string remessa = Encoding.UTF8.GetString(convBase64);
+
+            rtbRespostas.AppendLine("Remessa Gerada Texto:");
+            rtbRespostas.AppendLine(remessa);
         }
 
         private void BtnTotalTitulo_Click(object sender, EventArgs e)
@@ -561,6 +569,43 @@ namespace ACBrLibBoleto.Demo
             boleto.LerRetorno(txtDirRetorno.Text, txtNomeRetorno.Text);
             var ret = boleto.ObterRetorno(txtDirRetorno.Text, txtNomeRetorno.Text);
             rtbRespostas.AppendLine(ret.Retorno);
+        }
+
+        private void btnLerRetornoStream_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog
+            {
+                Filter = "Arquivos RET (*.ret)|*.ret|Todos os Arquivos (*.*)|*.*",
+                Title = "Selecione um arquivo de retorno"
+            };
+
+            if (ofd.ShowDialog() == DialogResult.OK)
+            {
+                string file = ofd.FileName;
+
+                try
+                {
+                    using (FileStream fileStream = new FileStream(file, FileMode.Open, FileAccess.Read))
+                    {
+                        using (StreamReader reader = new StreamReader(fileStream))
+                        {
+                            string retString = reader.ReadToEnd();
+                            byte[] retByte = Encoding.UTF8.GetBytes(retString);
+                            var retBase64 = System.Convert.ToBase64String(retByte);
+                            var ret = boleto.LerRetornoStream(retBase64);
+                            rtbRespostas.AppendLine(ret);
+                        }
+                    }
+                }
+                catch (Exception ex) 
+                {
+                    MessageBox.Show($"Ocorreu um erro ao ler o arquivo: {ex.Message}");
+                }
+            }  
+            else
+            {
+                MessageBox.Show("Nenhum arquivo foi selecionado.");
+            }
         }
 
         private void BtnListarOcorrencias_Click(object sender, EventArgs e)
@@ -787,5 +832,7 @@ namespace ACBrLibBoleto.Demo
                 rtbRespostas.AppendLine(ex.Message);
             }
         }
+
+        
     }
 }

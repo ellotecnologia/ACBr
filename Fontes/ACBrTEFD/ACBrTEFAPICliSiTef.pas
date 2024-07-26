@@ -126,7 +126,7 @@ type
     procedure AbortarTransacaoEmAndamento; override;
 
     procedure ExibirMensagemPinPad(const MsgPinPad: String); override;
-    function ObterDadoPinPad(TipoDado: TACBrTEFAPIDadoPinPad; TimeOut: SmallInt = 30000;
+    function ObterDadoPinPad(TipoDado: TACBrTEFAPIDadoPinPad; TimeOut: integer = 30000;
       MinLen: SmallInt = 0; MaxLen: SmallInt = 0): String; override;
 
     property TEFCliSiTefAPI: TACBrTEFCliSiTefAPI read fTEFCliSiTefAPI;
@@ -564,7 +564,8 @@ begin
              DefinicaoCampo.MascaraDeCaptura := EmptyStr;
 
              Validado := True;
-             TefAPI.QuandoPerguntarCampo(DefinicaoCampo, Resposta, Validado, Interromper);
+             if Resposta = '' then
+               TefAPI.QuandoPerguntarCampo(DefinicaoCampo, Resposta, Validado, Interromper);
 
              if Resposta = '-1' then
                Interromper := True
@@ -583,9 +584,9 @@ begin
              DefinicaoCampo.TamanhoMaximo := TamanhoMaximo;
              DefinicaoCampo.TamanhoMinimo := TamanhoMinimo;
 
-             Resposta := '';
              Validado := True;
-             TefAPI.QuandoPerguntarCampo(DefinicaoCampo, Resposta, Validado, Interromper);
+             if Resposta = '' then
+               TefAPI.QuandoPerguntarCampo(DefinicaoCampo, Resposta, Validado, Interromper);
 
              if Resposta = '-1' then
                Interromper := True
@@ -605,9 +606,10 @@ begin
              DefinicaoCampo.TamanhoMaximo := TamanhoMaximo;
              DefinicaoCampo.TamanhoMinimo := TamanhoMinimo;
 
-             Resposta := '';
              Validado := True;
-             TefAPI.QuandoPerguntarCampo(DefinicaoCampo, Resposta, Validado, Interromper);
+             if Resposta = '' then
+               TefAPI.QuandoPerguntarCampo(DefinicaoCampo, Resposta, Validado, Interromper);
+
              if Resposta = '-1' then
                Interromper := True
              else if Resposta = '-2' then
@@ -628,9 +630,10 @@ begin
              DefinicaoCampo.TamanhoMaximo := TamanhoMaximo;
              DefinicaoCampo.TamanhoMinimo := TamanhoMinimo;
 
-             Resposta := '';
              Validado := True;
-             TefAPI.QuandoPerguntarCampo(DefinicaoCampo, Resposta, Validado, Interromper);
+             if Resposta = '' then
+               TefAPI.QuandoPerguntarCampo(DefinicaoCampo, Resposta, Validado, Interromper);
+
              if Resposta = '-1' then
                Interromper := True
              else if Resposta = '-2' then
@@ -648,9 +651,10 @@ begin
              DefinicaoCampo.TamanhoMinimo := TamanhoMinimo;
              DefinicaoCampo.OcultarDadosDigitados := True;
 
-             Resposta := '';
              Validado := True;
-             TefAPI.QuandoPerguntarCampo(DefinicaoCampo, Resposta, Validado, Interromper);
+             if Resposta = '' then
+               TefAPI.QuandoPerguntarCampo(DefinicaoCampo, Resposta, Validado, Interromper);
+
              if Resposta = '-1' then
                Interromper := True
              else if Resposta = '-2' then
@@ -1054,7 +1058,7 @@ begin
 end;
 
 function TACBrTEFAPIClassCliSiTef.ObterDadoPinPad(
-  TipoDado: TACBrTEFAPIDadoPinPad; TimeOut: SmallInt; MinLen: SmallInt;
+  TipoDado: TACBrTEFAPIDadoPinPad; TimeOut: integer; MinLen: SmallInt;
   MaxLen: SmallInt): String;
 Var
   DadoPortador: String;

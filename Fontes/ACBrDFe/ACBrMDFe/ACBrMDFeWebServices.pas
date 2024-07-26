@@ -745,6 +745,11 @@ procedure TMDFeRecepcao.InicializarServico;
 var
   ok: Boolean;
 begin
+  {
+    A partir de 01/07/2024 todos os MDF-e devem ser enviados no modo síncrono.
+  }
+  Sincrono := True;
+
   if FManifestos.Count > 0 then    // Tem MDFe ? Se SIM, use as informações do XML
     FVersaoDF := DblToVersaoMDFe(ok, FManifestos.Items[0].MDFe.infMDFe.Versao)
   else
@@ -2253,12 +2258,6 @@ begin
             end;
           end;
 
-          teConfirmaServMDFe:
-          begin
-            SchemaEventoMDFe := schevConfirmaServMDFe;
-            infEvento.detEvento.nProt := FEvento.Evento[i].InfEvento.detEvento.nProt;
-          end;
-
           teAlteracaoPagtoServMDFe:
           begin
             SchemaEventoMDFe := schevAlteracaoPagtoServMDFe;
@@ -2302,6 +2301,12 @@ begin
             ItemInfPag.infBanc.CNPJIPEF   := FEvento.Evento[i].InfEvento.detEvento.infPag[0].infBanc.CNPJIPEF;
             ItemInfPag.infBanc.codBanco   := FEvento.Evento[i].InfEvento.detEvento.infPag[0].infBanc.codBanco;
             ItemInfPag.infBanc.codAgencia := FEvento.Evento[i].InfEvento.detEvento.infPag[0].infBanc.codAgencia;
+          end;
+
+          teConfirmaServMDFe:
+          begin
+            SchemaEventoMDFe := schevConfirmaServMDFe;
+            infEvento.detEvento.nProt := FEvento.Evento[i].InfEvento.detEvento.nProt;
           end;
         end;
       end;
@@ -2372,18 +2377,18 @@ begin
                         '</evPagtoOperMDFe>';
         end;
 
-      schevConfirmaServMDFe:
-        begin
-          AXMLEvento := '<evConfirmaServMDFe xmlns="' + ACBRMDFE_NAMESPACE + '">' +
-                          Trim(RetornarConteudoEntre(AXMLEvento, '<evConfirmaServMDFe>', '</evConfirmaServMDFe>')) +
-                        '</evConfirmaServMDFe>';
-        end;
-
       schevAlteracaoPagtoServMDFe:
         begin
           AXMLEvento := '<evAlteracaoPagtoServMDFe xmlns="' + ACBRMDFE_NAMESPACE + '">' +
                           Trim(RetornarConteudoEntre(AXMLEvento, '<evAlteracaoPagtoServMDFe>', '</evAlteracaoPagtoServMDFe>')) +
                         '</evAlteracaoPagtoServMDFe>';
+        end;
+
+      schevConfirmaServMDFe:
+        begin
+          AXMLEvento := '<evConfirmaServMDFe xmlns="' + ACBRMDFE_NAMESPACE + '">' +
+                          Trim(RetornarConteudoEntre(AXMLEvento, '<evConfirmaServMDFe>', '</evConfirmaServMDFe>')) +
+                        '</evConfirmaServMDFe>';
         end;
     else
       AXMLEvento := '';
@@ -2983,6 +2988,19 @@ begin
 end;
 
 function TWebServices.Envia(const ALote: String; ASincrono:  Boolean = False): Boolean;
+
+procedure AlimentaRetorno;
+begin
+  FRetorno.FtpAmb := FEnviar.TpAmb;
+  FRetorno.FverAplic := FEnviar.verAplic;
+  FRetorno.FcStat := FEnviar.cStat;
+  FRetorno.FxMotivo := FEnviar.xMotivo;
+  FRetorno.FcUF := FEnviar.cUF;
+  FRetorno.FPMsg := FEnviar.Msg;
+  FRetorno.Recibo := FEnviar.Recibo;
+  FRetorno.Protocolo := FEnviar.Protocolo;
+end;
+
 begin
   FEnviar.Clear;
   FRetorno.Clear;
@@ -2991,14 +3009,20 @@ begin
   FEnviar.Sincrono := ASincrono;
 
   if not Enviar.Executar then
-    Enviar.GerarException( Enviar.Msg );
+  begin
+    AlimentaRetorno;
+    Enviar.GerarException(Enviar.Msg);
+  end;
 
   if not ASincrono or ((FEnviar.Recibo <> '') and (FEnviar.cStat = 103)) then
   begin
     FRetorno.Recibo := FEnviar.Recibo;
     if not FRetorno.Executar then
-      FRetorno.GerarException( FRetorno.Msg );
+      FRetorno.GerarException(FRetorno.Msg);
   end;
+
+  if FEnviar.Sincrono then
+    AlimentaRetorno;
 
   Result := True;
 end;

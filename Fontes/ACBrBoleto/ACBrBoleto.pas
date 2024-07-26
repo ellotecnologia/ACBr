@@ -578,7 +578,7 @@ type
     fpQtdRegsLote: Integer;
     fpQtdRegsCobranca: Integer;
     fpVlrRegsCobranca: Double;
-
+    FDigitosSequencialArquivoRemessa : Integer;
     function GetLocalPagamento: String; virtual;
     function CalcularFatorVencimento(const DataVencimento: TDateTime): String; virtual;
     function CalcularDigitoCodigoBarras(const CodigoBarras: String): String; virtual;
@@ -1196,6 +1196,8 @@ type
     fInstrucao1        : String;
     fInstrucao2        : String;
     fInstrucao3        : String;
+    fInstrucao4        : String;
+    fInstrucao5        : String;
     fLocalPagamento    : String;
     fOcorrenciaOriginal: TACBrOcorrencia;
     fTipoDesconto      : TACBrTipoDesconto;
@@ -1348,6 +1350,8 @@ type
      property Instrucao1        : String      read fInstrucao1        write fInstrucao1;
      property Instrucao2        : String      read fInstrucao2        write fInstrucao2;
      property Instrucao3        : String      read fInstrucao3        write fInstrucao3;
+     property Instrucao4        : String      read fInstrucao4        write fInstrucao4;
+     property Instrucao5        : String      read fInstrucao5        write fInstrucao5;
      property Sacado            : TACBrSacado read fSacado            write fSacado;
      property Parcela           :Integer      read fParcela           write SetParcela default 1;
      property TotalParcelas     :Integer      read fTotalParcelas     write SetTotalParcelas default 1;
@@ -1441,8 +1445,15 @@ type
     Tipo     : TACBrTipoOcorrencia;
     Descricao: String;
   end;
+  
+  {TACBrTipoOcorrenciaRetorno}
+  TACBrOcorrenciaRetorno = Record
+    Tipo     : TACBrTipoOcorrencia;
+    Descricao: String;
+  end;
 
   TACBrOcorrenciasRemessa =  array of TACBrOcorrenciaRemessa;
+  TACBrOcorrenciasRetorno =  array of TACBrOcorrenciaRetorno;
 
   { TACBrBoleto }
   {$IFDEF RTL230_UP}
@@ -1535,6 +1546,7 @@ type
     function Enviar: Boolean;
 
     function GetOcorrenciasRemessa() : TACBrOcorrenciasRemessa;
+	function GetOcorrenciasRetorno() : TACBrOcorrenciasRetorno;
     function GetTipoCobranca(NumeroBanco: Integer; Carteira: String = ''): TACBrTipoCobranca;
     function LerArqIni(const AIniBoletos: String): Boolean;
     function LerConfiguracao(const AIniBoletos: String): Boolean;
@@ -2593,6 +2605,8 @@ begin
   fInstrucao1        := '';
   fInstrucao2        := '';
   fInstrucao3        := '';
+  fInstrucao4        := '';
+  fInstrucao5        := '';
   fMensagem          := TStringList.Create;
   fDetalhamento      := TStringList.Create;
   fInformativo       := TStringList.Create;
@@ -3314,15 +3328,23 @@ end;
 function TACBrBoleto.GerarMensagemPadraoJuros(ATitulo: TACBrTitulo): String;
 var LTipoJuros, LJurosQuando : String;
 begin
+  if (ATitulo.CodigoMora <> '') and
+     (ATitulo.CodigoMoraJuros = cjIsento) and
+     (ATitulo.ValorMoraJuros > 0) and
+     (not (ATitulo.CodigoMoraJuros in [cjValorMensal,cjValorDia])) then
+  begin
+    if (ATitulo.CodigoMora = '2') or (ATitulo.CodigoMora = 'B')  then
+      ATitulo.CodigoMoraJuros := cjTaxaMensal;
+    if ATitulo.CodigoMora = '1' then
+      ATitulo.CodigoMoraJuros := cjValorDia;
+  end;
+
   case ATitulo.CodigoMoraJuros of
     cjTaxaMensal : LTipoJuros := FloatToStr(ATitulo.ValorMoraJuros) + '% ao mês';
     cjTaxaDiaria : LTipoJuros := FloatToStr(ATitulo.ValorMoraJuros) + '% ao dia';
     cjValorMensal: LTipoJuros := FormatFloatBr(ATitulo.ValorMoraJuros, 'R$ #,##0.00 por mês');
     cjValorDia   : LTipoJuros := FormatFloatBr(ATitulo.ValorMoraJuros, 'R$ #,##0.00 por dia');
   end;
-
-  if (ATitulo.CodigoMora = '2') or (ATitulo.CodigoMora = 'B') then
-    LTipoJuros := FloatToStr(ATitulo.ValorMoraJuros) + '% ao mês';
 
   if ATitulo.DataMoraJuros <> 0 then
   begin
@@ -3761,6 +3783,25 @@ begin
   Result := LACBrOcorrenciasRemessa;
 end;
 
+function TACBrBoleto.GetOcorrenciasRetorno(): TACBrOcorrenciasRetorno;
+var I: Integer;
+  LACBrOcorrenciasRetorno : TACBrOcorrenciasRetorno;
+  LOcorrencia : String;
+begin
+  SetLength(LACBrOcorrenciasRetorno, 0);
+  for I := Ord(Low(TACBrTipoOcorrencia)) to Ord(High(TACBrTipoOcorrencia)) do
+  begin
+    LOcorrencia := GetEnumName(TypeInfo(TACBrTipoOcorrencia), I);
+    if Copy(LOcorrencia, 1, Length('toRetorno')) = 'toRetorno' then
+    begin
+      SetLength(LACBrOcorrenciasRetorno, Length(LACBrOcorrenciasRetorno) + 1);
+      LACBrOcorrenciasRetorno[High(LACBrOcorrenciasRetorno)].Tipo := TACBrTipoOcorrencia(I);
+      LACBrOcorrenciasRetorno[High(LACBrOcorrenciasRetorno)].descricao := cACBrTipoOcorrenciaDecricao[TACBrTipoOcorrencia(I)];
+    end;
+  end;
+  Result := LACBrOcorrenciasRetorno;
+end;
+
 function TACBrBoleto.GetTipoCobranca(NumeroBanco: Integer; Carteira: String = ''): TACBrTipoCobranca;
 begin
   case NumeroBanco of
@@ -4119,6 +4160,10 @@ begin
             SeuNumero           := IniBoletos.ReadString(Sessao,'SeuNumero',SeuNumero);
             PercentualMulta     := IniBoletos.ReadFloat(Sessao,'PercentualMulta',PercentualMulta);
             CodigoMora          := IniBoletos.ReadString(Sessao,'CodigoMora','1');
+
+            if (ValorMoraJuros > 0) and (CodigoMora = '0') then
+              CodigoMora := '1';
+
             CodigoMoraJuros     := TACBrCodigoJuros(IniBoletos.ReadInteger(Sessao,'CodigoMoraJuros', 2 ));
             CodigoGeracao       := IniBoletos.ReadString(Sessao,'CodigoGeracao','2');
             Competencia         := IniBoletos.ReadString(Sessao,'Competencia', Competencia);
@@ -4836,6 +4881,7 @@ begin
    fpQtdRegsLote            := 0;
    fpQtdRegsCobranca        := 0;
    fpVlrRegsCobranca        := 0;
+   FDigitosSequencialArquivoRemessa := 2;
    fpModulo                := TACBrCalcDigito.Create;
    fpOrientacoesBanco      := TStringList.Create;
 end;
@@ -5189,7 +5235,7 @@ begin
                 if (i = 0) then
                  begin
                    {Somente estas ocorrencias possuem motivos 00}
-                   if(CodOcorrencia in [02, 06, 09, 10, 12 ,13, 14, 15 ,17])then
+                   if(CodOcorrencia in [02, 06, 09, 10, 12, 13, 14, 15, 17, 33])then
                     begin
                       MotivoRejeicaoComando.Add(IfThen(copy(Linha,MotivoLinha,2) = '  ','00',copy(Linha,MotivoLinha,2)));
                       if VarIsNumeric(CodMotivo) then
@@ -5489,7 +5535,7 @@ end ;
 
 function TACBrBancoClass.GetLocalPagamento: String;
 begin
-  Result := Format(ACBrStr(CInstrucaoPagamento), [fpNome] );
+  Result := ACBrStr(Format(CInstrucaoPagamento, [fpNome]));
 end;
 
 function TACBrBancoClass.CalcularFatorVencimento(const DataVencimento: TDateTime): String;
@@ -5533,7 +5579,7 @@ begin
 
          repeat
             Inc( Sequencia );
-            NomeArq := NomeFixo + IntToStrZero( Sequencia, 2 ) + '.rem'
+            NomeArq := NomeFixo + IntToStrZero( Sequencia, FDigitosSequencialArquivoRemessa ) + '.rem'
          until not FileExists( NomeArq ) ;
 
          Result := NomeArq;

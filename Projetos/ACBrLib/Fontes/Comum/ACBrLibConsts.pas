@@ -74,6 +74,7 @@ const
   CChaveData = 'Data';
 
   CSessaoProxy = 'Proxy';
+  CSessaoSocket = 'Socket';
   CSessaoEmail = 'Email';
   CChaveEmailConta = 'Conta';
   CChaveEmailCodificacao = 'Codificacao';
@@ -97,6 +98,9 @@ const
   CChaveEmail = 'Email';
   CChaveTelefone = 'Telefone';
   CChaveResponsavel = 'Responsavel';
+
+  CChaveArqLog = 'ArqLog';
+  CChaveNivelLog = 'NivelLog';
 
   CChavePathLogo = 'PathLogo';
   CChavePathPDF = 'PathPDF';
@@ -133,7 +137,6 @@ const
   CChaveCasasDecimaisAliquota = 'CasasDecimais.Aliquota';
 
   CSessaoIntegrador = 'Integrador';
-  CChaveArqLog = 'ArqLog';
   CChavePastaInput = 'PastaInput';
   CChavePastaOutput = 'PastaOutput';
 
@@ -216,8 +219,10 @@ resourcestring
   SErrLibNaoCarregada = 'Biblioteca %s não pode ser carregada';
 
   SErrDiretorioInvalido = 'Diretório Invalido: %s';
+  SErrDiretorioNaoInformado = 'Diretório não Informado: %s';
   SErrConfSessaoNaoExiste = 'Sessão não [%s] existe no arquivo de configuração';
   SErrConfChaveNaoExiste = 'Chave [%s] não existe na Sessão [%s] no arquivo de configuração';
+  SErrArquivoConfigSemPathNoInicializar = 'Essa versão da ACBrLib requer que o Diretório seja informado em LIB_Inicializar';
 
   SErrArquivoNaoExiste = 'Arquivo % não encontrado';
   SErrIndex = 'Indice informado % não encontrado';
