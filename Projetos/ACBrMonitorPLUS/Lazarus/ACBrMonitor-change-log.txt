@@ -45,6 +45,16 @@ Símbolo : Significado
 [-]     : Correção de Bug (assim esperamos)
 
 
+29/07/2024
+-- DoBoletoUnit.pas  --
+[+] TK-5795 ajustado para calcular o nome do arquivo individual da lista de boletos antes de gerar o pdf para email.
+   Por: Daniel Morais InfoCotidiano
+
+26/07/2024
+-- DoSATUnit, ACBrMonitorConsts  --
+[+] Adiciona o método ObterIniCFe
+   Por: Diego Folieni
+
 24/07/2024
 -- ACBrMonitor1 --
 [*] Alteração para atualizar a cidade do cedente nos metodos de configuraçãoCedente

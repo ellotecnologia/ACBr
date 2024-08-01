@@ -44,6 +44,17 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+31/07/2024
+-- Diversos --
+[*] Ajustes para o envio correto dos eventos: ECONF e Cancelamento de 
+    Conciliação Financeira
+   Por: Italo Giurizzato Junior
+
+26/07/2024
+-- ACBrNFeDANFeEventoRLRetrato --
+[*] Revisado a impressão de todos os eventos.
+   Por: Italo Giurizzato Junior
+
 25/07/2024
 -- ACBrNFe.EnvEvento --
 [*] Ajuste visando sanar problema com a xCondUso acentuada no evento de Ator Interessado.

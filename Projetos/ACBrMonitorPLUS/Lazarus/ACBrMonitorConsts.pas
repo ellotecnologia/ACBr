@@ -144,6 +144,7 @@ const
   CMetodoEnviarEmailCFe =              'enviaremailcfe';
   CMetodoConsultarModeloSAT =          'consultarmodelosat';
   CMetodoConsultarUltimaSessaoFiscal=  'consultarultimasessaofiscal';
+  CMetodoObterIniCFe = 'obterinicfe';
 
   CMetodoECFachar =                                      'achar';
   CMetodoECFativar =                                     'ativar';
@@ -1113,6 +1114,7 @@ const
   CKeyDANFEExibirBandInforAdicProduto =    'ExibirBandInforAdicProduto';
   CKeyDANFELogoEmCima =                    'LogoEmCima';
   CKeyDANFEImprimeInscSuframa =            'ImprimeInscSuframa';
+  CKeyDANFEImprimeNNFFormatadoNFe =        'ImprimeNNFFormatadoNFe';
   CKeyDANFEExpandirDadosAdicionaisAuto =   'ExpandirDadosAdicionaisAuto';
   CKeyDANFEImprimeContinuacaoDadosAdicionaisPrimeiraPagina = 'ImprimeContinuacaoDadosAdicionaisPrimeiraPagina';
   CKeyDANFEImprimeDescAcrescItemNFe =      'ImprimeDescAcrescItemNFe';
@@ -1131,7 +1133,7 @@ const
   CKeyDANFCeTipoPagtoTipo =            'Tipo';
   CKeyDANFCeTipoPagtoBandeira =        'Bandeira';
   CKeyDANFCeTipoPagtoAutorizacao =     'Autorizacao';
-
+  CKeyDANFCeImprimeNNFFormatadoNFCe =  'ImprimeNNFFormatadoNFCe';
   CSecFonte =                          'FonteLinhaItem';
   CKeyFonteName =                      'Name';
   CKeyFonteColor =                     'Color';

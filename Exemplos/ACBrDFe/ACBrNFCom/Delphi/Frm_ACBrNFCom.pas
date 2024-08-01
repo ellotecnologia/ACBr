@@ -660,7 +660,7 @@ begin
   if OpenDialog1.Execute then
   begin
     ACBrNFCom1.NotasFiscais.Clear;
-    ACBrNFCom1.NotasFiscais.LoadFromFile(OpenDialog1.FileName);
+    ACBrNFCom1.NotasFiscais.LoadFromFile(OpenDialog1.FileName, False);
     ACBrNFCom1.Consultar;
 
     ShowMessage(ACBrNFCom1.WebServices.Consulta.Protocolo);
@@ -738,7 +738,7 @@ begin
   if OpenDialog1.Execute then
   begin
     ACBrNFCom1.NotasFiscais.Clear;
-    ACBrNFCom1.NotasFiscais.LoadFromFile(OpenDialog1.FileName);
+    ACBrNFCom1.NotasFiscais.LoadFromFile(OpenDialog1.FileName, False);
 
     idLote := '1';
     if not(InputQuery('WebServices Eventos: Cancelamento', 'Identificador de controle do Lote de envio do Evento', idLote)) then
@@ -862,7 +862,7 @@ begin
   if OpenDialog1.Execute then
   begin
     ACBrNFCom1.NotasFiscais.Clear;
-    ACBrNFCom1.NotasFiscais.LoadFromFile(OpenDialog1.FileName);
+    ACBrNFCom1.NotasFiscais.LoadFromFile(OpenDialog1.FileName, False);
     ACBrNFCom1.Consultar;
 
     LoadXML(ACBrNFCom1.WebServices.Consulta.RetWS, wbXmlRetorno);
@@ -943,7 +943,7 @@ begin
     Exit;
 
   ACBrNFCom1.NotasFiscais.Clear;
-  ACBrNFCom1.NotasFiscais.LoadFromFile(OpenDialog1.FileName);
+  ACBrNFCom1.NotasFiscais.LoadFromFile(OpenDialog1.FileName, False);
 
   CC := TStringList.Create;
   try
@@ -977,7 +977,7 @@ begin
   if OpenDialog1.Execute then
   begin
     ACBrNFCom1.NotasFiscais.Clear;
-    ACBrNFCom1.NotasFiscais.LoadFromFile(OpenDialog1.FileName);
+    ACBrNFCom1.NotasFiscais.LoadFromFile(OpenDialog1.FileName, False);
   end;
 
   OpenDialog1.Title := 'Selecione ao Evento';
@@ -1032,7 +1032,7 @@ begin
   ShowMessage('Arquivo gerado em: ' + ACBrNFCom1.NotasFiscais.Items[0].NomeArq);
   memoLog.Lines.Add('Arquivo gerado em: ' + ACBrNFCom1.NotasFiscais.Items[0].NomeArq);
 
-  ACBrNFCom1.NotasFiscais.LoadFromFile(ACBrNFCom1.NotasFiscais.Items[0].NomeArq);
+  ACBrNFCom1.NotasFiscais.LoadFromFile(ACBrNFCom1.NotasFiscais.Items[0].NomeArq, False);
   Xml := ACBrNFCom1.NotasFiscais.Items[0].XMLAssinado;
 
   LoadXML(Xml, wbXmlRetorno);
@@ -1051,7 +1051,7 @@ begin
   if OpenDialog1.Execute then
   begin
     ACBrNFCom1.NotasFiscais.Clear;
-    ACBrNFCom1.NotasFiscais.LoadFromFile(OpenDialog1.FileName,False);
+    ACBrNFCom1.NotasFiscais.LoadFromFile(OpenDialog1.FileName, False);
     ACBrNFCom1.NotasFiscais.Imprimir;
   end;
 end;
@@ -1067,7 +1067,7 @@ begin
   if OpenDialog1.Execute then
   begin
     ACBrNFCom1.NotasFiscais.Clear;
-    ACBrNFCom1.NotasFiscais.LoadFromFile(OpenDialog1.FileName,False);
+    ACBrNFCom1.NotasFiscais.LoadFromFile(OpenDialog1.FileName, False);
     ACBrNFCom1.NotasFiscais.Imprimir;
   end;
 end;
@@ -1083,7 +1083,7 @@ begin
   if OpenDialog1.Execute then
   begin
     ACBrNFCom1.NotasFiscais.Clear;
-    ACBrNFCom1.NotasFiscais.LoadFromFile(OpenDialog1.FileName);
+    ACBrNFCom1.NotasFiscais.LoadFromFile(OpenDialog1.FileName, False);
   end;
 
   OpenDialog1.Title := 'Selecione o Evento';
@@ -1181,7 +1181,7 @@ begin
   if OpenDialog1.Execute then
   begin
     ACBrNFCom1.NotasFiscais.Clear;
-    ACBrNFCom1.NotasFiscais.LoadFromFile(OpenDialog1.FileName);
+    ACBrNFCom1.NotasFiscais.LoadFromFile(OpenDialog1.FileName, False);
     pgRespostas.ActivePageIndex := 0;
     memoLog.Lines.Add('');
     memoLog.Lines.Add('');
@@ -1216,7 +1216,7 @@ begin
   if OpenDialog1.Execute then
   begin
     ACBrNFCom1.NotasFiscais.Clear;
-    ACBrNFCom1.NotasFiscais.LoadFromFile(OpenDialog1.FileName);
+    ACBrNFCom1.NotasFiscais.LoadFromFile(OpenDialog1.FileName, False);
     Inicio := Now;
     Ok := ACBrNFCom1.NotasFiscais.ValidarRegrasdeNegocios(Msg);
     Tempo := FormatDateTime('hh:nn:ss:zzz', Now - Inicio);
