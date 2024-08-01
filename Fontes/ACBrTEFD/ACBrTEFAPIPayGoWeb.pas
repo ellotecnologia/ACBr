@@ -198,6 +198,7 @@ begin
     IpStr := copy(IpStr, 1, p-1);
   end;
 
+  fTEFPayGoAPI.PathLib := Self.PathDLL;
   fTEFPayGoAPI.DiretorioTrabalho := ADir;
   fTEFPayGoAPI.EnderecoIP := IpStr;
   fTEFPayGoAPI.PortaTCP := PortaStr;
