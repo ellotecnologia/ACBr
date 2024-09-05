@@ -363,7 +363,7 @@ begin
     if (not (codigo in [0, 1])) and (Mensagem <> '') then
       TefAPI.QuandoExibirMensagem(Mensagem, telaoperador, 30000);
 
-    Result := TACBrTEFElginUtils.stringify(root);
+    Result := AnsiString(Root.ToJSON);
     Exit;
   end;
 
