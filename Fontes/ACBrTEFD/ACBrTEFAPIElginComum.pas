@@ -259,6 +259,7 @@ var
   oJSON: TACBRJsonObject;
   lStr: string;
   sucessoInt: Integer;
+  InformacoesInternas: TStringList;
 
   function JsonKey(key: string): string;
   begin
@@ -342,8 +343,36 @@ var
         ImagemComprovante2aVia.Count);
   end;
 
+  { As informações internas inseridas pelo ACBr não estão no formato Json, portanto, se não
+    forem removidas, não será possível fazer o parse do Json. }
+  procedure RemoveInformacoesInternas;
+  var Linha: Integer;
+  begin
+    Linha := AACBrTEFResp.Conteudo.AchaLinha(899, 1);
+    if Linha >= 0 then begin
+      AACBrTEFResp.ProcessarTipoInterno(AACBrTEFResp.Conteudo.LeLinha(899, 1));
+      InformacoesInternas.Add(AACBrTEFResp.Conteudo.Conteudo[Linha]);
+      AACBrTEFResp.Conteudo.Conteudo.Delete(Linha);
+    end;
+
+    Linha := AACBrTEFResp.Conteudo.AchaLinha(899, 100);
+    if Linha >= 0 then begin
+      AACBrTEFResp.ProcessarTipoInterno(AACBrTEFResp.Conteudo.LeLinha(899, 100));
+      InformacoesInternas.Add(AACBrTEFResp.Conteudo.Conteudo[Linha]);
+      AACBrTEFResp.Conteudo.Conteudo.Delete(Linha);
+    end;
+  end;
+
+  procedure RetornaInformacoesInternas;
+  begin
+    AACBrTEFResp.Conteudo.Conteudo.AddStrings(InformacoesInternas);
+  end;
+
 begin
   {Tratar respostas }
+  InformacoesInternas := TStringList.Create;
+  RemoveInformacoesInternas;
+
   oJSON := TACBrTEFElginUtils.jsonify(AACBrTEFResp.Conteudo.Conteudo.Text);
   if Assigned(oJSON) = False then
     exit;
@@ -401,6 +430,9 @@ begin
   AACBrTEFResp.Rede := JsonKey('tef.nomeProvedor');
   AACBrTEFResp.NumeroLoteTransacao := JsonKeyint('tef.transacao_codigo_vespague');
   AACBrTEFREsp.ModalidadePagto := JsonKey('tef.transacao_codigo_vespague');
+
+  RetornaInformacoesInternas;
+  InformacoesInternas.Free;
 end;
 
 { TACBrTEFElginAPI }
