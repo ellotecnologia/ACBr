@@ -99,7 +99,7 @@ type
     function ObterDadoPinPad(TipoDado: TACBrTEFAPIDadoPinPad; TimeOut: integer = 30000;
       MinLen: SmallInt = 0; MaxLen: SmallInt = 0): String; override;
 
-//  procedure ResolverTransacaoPendente(AStatus: TACBrTEFStatusTransacao = tefstsSucessoManual); override;
+  procedure ResolverTransacaoPendente(AStatus: TACBrTEFStatusTransacao = tefstsSucessoManual); override;
 //  procedure ExibirMensagemPinPad(const MsgPinPad: String); override;
     property ConfirmaColeta: boolean read fConfirmaColeta;
   end;
@@ -848,6 +848,15 @@ begin
   finally
     FreeAndNil(vJson);
   end;
+end;
+
+procedure TACBrTEFAPIClassElgin.ResolverTransacaoPendente(AStatus: TACBrTEFStatusTransacao);
+begin
+   with fpACBrTEFAPI.UltimaRespostaTEF do begin
+      if Finalizacao <> '' then begin
+         FinalizarTransacao(Rede, NSU, Finalizacao, AStatus);
+      end;
+   end;
 end;
 
 end.
