@@ -759,7 +759,10 @@ begin
     begin
       fpACBrTEFAPI.GravarLog('TRANSAÇÃO OK, INICIANDO CONFIRMAÇÃO...');
       fSequencial := TACBrTEFElginUtils.getSequencial(Resposta);
+
       Resposta := ConfirmarOperacao;
+      fpACBrTEFAPI.RespostasTEF.AtualizarTransacaoComTerceiraPerna(RespElginTef);
+      
       //retorno     := TACBrTEFElginUtils.getRetorno(Resposta);
       Result := True;
     end;
