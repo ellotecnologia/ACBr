@@ -43,6 +43,53 @@ Símbolo : Significado
 [-]     : Correção de Bug (assim esperamos)
 
 
+12/09/2024
+-- ACBrMDFeWebServices --
+[*] Ajustes na montagem do XML *-ProcEventoMDFe.xml
+   Por: Italo Giurizzato Junior
+
+10/09/2024
+-- ACBrMDFe.XmlWriter --
+[-] Correção visando não gerar o grupo <valePed> quando este não for informado.
+  Por: Italo Giurizzato Junior
+
+06/09/2024
+-- ACBrMDFe/ACBrMDFeWebServices/ACBrMDFeDAMDFeClass/ACBrMDFeDAMDFEFR --
+-- ACBrMDFeDAEventoRL/ACBrMDFeDAMDFeRLClass --
+[+] Implementado o Imprimir Evento PDF por Stream.
+  Por: Antonio Carlos/Juliomar Marchetti/Italo Giurizzato Junior
+-- ACBrMDFe.ConsNaoEnc/ACBrMDFe.ConsSit/ACBrMDFe.EnvEvento --
+-- ACBrMDFe.EventoClass/ACBrMDFe.RetConsNaoEnc/ACBrMDFe.RetConsSit --
+-- ACBrMDFe.RetEnvEvento --
+[+] Implementado as novas units para os serviços de Consulta MDF-e não Encerrados,
+    Consulta a Situação e envio de eventos, bem como as units que fazem as leituras
+    dos retornos.
+  Por: Italo Giurizzato Junior
+
+14/08/2024
+-- ACBrMDFe.XmlWriter --
+[+] Escrito a nova unit responsável pela geração do XML do MDF-e.
+-- ACBrMDFeManifestos --
+[*] Alteração visando o desenvolvedor optar por qual unit deseja usar para a 
+    geração do XML mediante a diretiva de compilação: USE_ACBr_XMLDOCUMENT.
+-- ACBrMDFe.XmlReader/pmdfeMDFe/pmdfeMDFeR/pmdfeMDFeW --
+[*] Alteração visando a leitura das novas tags para atender a NT 2024/002 que
+    trata sobre o CT-e Simplificado.
+  Por: Italo Giurizzato Junior
+
+05/08/2024
+-- ACBrMDFe.XmlReader --
+[*] Correção para ler a string do QR-Code.
+  Por: Italo Giurizzato Junior
+
+02/08/2024
+-- ACBrMDFe.XmlReader --
+[+] Escrito a nova unit responsável pela leitura do XML do MDF-e.
+-- ACBrMDFeManifestos --
+[*] Alteração visando o desenvolvedor optar por qual unit deseja usar para a 
+    leitura do XML mediante a diretiva de compilação: USE_ACBr_XMLDOCUMENT.
+  Por: Italo Giurizzato Junior
+
 10/07/2024
 -- Diversos --
 [*] Ajustes para a impressão de todos os tipos de eventos do MDF-e.

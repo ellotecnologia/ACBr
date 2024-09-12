@@ -3,7 +3,7 @@
 {  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
 {                                                                              }
-{ Direitos Autorais Reservados (c) 2021 Daniel Simoes de Almeida               }
+{ Direitos Autorais Reservados (c) 2024 Daniel Simoes de Almeida               }
 {                                                                              }
 { Colaboradores nesse arquivo:                                                 }
 {                                                                              }
@@ -37,9 +37,13 @@ unit ACBrTEFAPICliSiTef;
 interface
 
 uses
-  Classes, SysUtils,
+  Classes,
+  SysUtils,
   ACBrBase,
-  ACBrTEFComum, ACBrTEFAPI, ACBrTEFAPIComum, ACBrTEFCliSiTefComum;
+  ACBrTEFComum,
+  ACBrTEFAPI,
+  ACBrTEFAPIComum,
+  ACBrTEFCliSiTefComum;
 
 const
   CSUBDIRETORIO_PAYGOWEB = 'PGWeb';
@@ -105,7 +109,8 @@ type
       CartoesAceitos: TACBrTEFTiposCartao = [];
       Financiamento: TACBrTEFModalidadeFinanciamento = tefmfNaoDefinido;
       Parcelas: Byte = 0;
-      DataPreDatado: TDateTime = 0): Boolean; override;
+      DataPreDatado: TDateTime = 0;
+      DadosAdicionais: String = ''): Boolean; override;
 
     function EfetuarAdministrativa(OperacaoAdm: TACBrTEFOperacao = tefopAdministrativo): Boolean; overload; override;
     function EfetuarAdministrativa(const CodOperacaoAdm: string = ''): Boolean; overload; override;
@@ -155,7 +160,9 @@ type
 implementation
 
 uses
-  math, StrUtils, TypInfo,
+  Math,
+  StrUtils,
+  TypInfo,
   ACBrUtil.Strings,
   ACBrUtil.Base;
 
@@ -274,6 +281,8 @@ begin
 
   fpACBrTEFAPI.GravarLog( '   Inicializado CliSiTEF' );
   inherited;
+  ExecutarTransacaoSiTef(130,0);
+
 end;
 
 procedure TACBrTEFAPIClassCliSiTef.DesInicializar;
@@ -365,6 +374,9 @@ var
   TefAPI: TACBrTEFAPI;
   RespCliSiTef: TACBrTEFRespCliSiTef;
 
+//  LRespostaTEFPendente: TACBrTEFResp;
+//  LDataHoraStr:string;
+
   function AjustarMensagemTela(AMensagem : String): String;
   begin
     Result := StringReplace( ACBrStr(AMensagem), '@', sLineBreak, [rfReplaceAll] );
@@ -438,12 +450,50 @@ begin
                 RespCliSiTef.GravaInformacao(TipoCampo, 'True'); //Selecionou Credito;
               29:
                 RespCliSiTef.GravaInformacao(TipoCampo, 'True'); //Cartão Digitado;
-              56,57,58:
+              56, 57, 58:
                 fReimpressao := True;
               107:
                 EhCarteiraDigital := True;
               110:
                 fCancelamento:= True;
+
+//              160://cupom fiscal
+//              begin
+//                LRespostaTEFPendente := TACBrTEFResp.Create;
+//                LRespostaTEFPendente.Conteudo.GravaInformacao(899,100,'CRT');
+//                LRespostaTEFPendente.Conteudo.GravaInformacao(025,000,'True');
+//                LRespostaTEFPendente.Confirmar := true;
+//                LRespostaTEFPendente.Conteudo.GravaInformacao(899,101, Mensagem);
+//              end;
+//              161://identificar pagamento
+//              begin
+////                LRespostaTEFPendente.Conteudo.GravaInformacao(899,101, Mensagem);
+//              end;
+//              163://data documento //yyyymmdd
+//              begin
+//                LDataHoraStr := Mensagem;
+//              end;
+//              164://hora   //hhmmss
+//              begin
+//                LDataHoraStr := LDataHoraStr + Mensagem;
+//                LRespostaTEFPendente.Conteudo.GravaInformacao(105,000,LDataHoraStr);
+//              end;
+//              210://numero total pendencias
+//              begin
+//                fpACBrTEFAPI.GravarLog( '*** Numero de transações Pendentes '+ Mensagem) ;
+//              end;
+//              211://tipo de pagamento credito debito etc
+//              begin
+//                LRespostaTEFPendente.Conteudo.GravaInformacao(899,102, Mensagem);
+//              end;
+//              1319: /// valor da transacao
+//              begin
+//                LRespostaTEFPendente.Conteudo.GravaInformacao(899,103,Mensagem);
+//                fpACBrTEFAPI.RespostasTEF.AdicionarRespostaTEF(LRespostaTEFPendente);
+//
+//                LRespostaTEFPendente.free;
+//              end;
+
             end;
           end;
 
@@ -889,11 +939,10 @@ begin
   Result := ExecutarTransacaoSiTef(Op, 0);
 end;
 
-function TACBrTEFAPIClassCliSiTef.EfetuarPagamento(
-  ValorPagto: Currency;
+function TACBrTEFAPIClassCliSiTef.EfetuarPagamento(ValorPagto: Currency;
   Modalidade: TACBrTEFModalidadePagamento; CartoesAceitos: TACBrTEFTiposCartao;
   Financiamento: TACBrTEFModalidadeFinanciamento; Parcelas: Byte;
-  DataPreDatado: TDateTime): Boolean;
+  DataPreDatado: TDateTime; DadosAdicionais: String): Boolean;
 var
   Op, i: Integer;
   SL: TStringList;
@@ -934,7 +983,7 @@ begin
       fParamAdicConfig.Add('{DevolveStringQRCode=1}');
   end;
 
-  Restricoes := '';
+  Restricoes := DadosAdicionais;
   if (pos('[', fParamAdicFuncao.Text) = 0) then   // Não especificou Restrições de Menu ?
   begin
     if (Op <> 1) then       // Débito
@@ -961,7 +1010,6 @@ begin
       Restricoes := Restricoes + CSITEF_RestricoesAVista + ';';
       Restricoes := Restricoes + CSITEF_RestricoesParcelaAministradora + ';';
     end;
-
 
     SL := TStringList.Create;
     try
@@ -1064,7 +1112,6 @@ Var
   DadoPortador: String;
   Ok: Boolean;
 begin
-  // https://dev.softwareexpress.com.br/en/docs/clisitef-leitura-de-campo-aberto-no-pinpad/
   DadoPortador := DadoPinPadToOperacao(TipoDado);
   if (DadoPortador = '') then
   begin
@@ -1078,7 +1125,7 @@ begin
   fRespostasPorTipo.ValueInfo[2967] := DadoPortador;
   fRespostasPorTipo.ValueInfo[2968] := IntToStr(MinLen);
   fRespostasPorTipo.ValueInfo[2969] := IntToStr(MaxLen);
-  fRespostasPorTipo.ValueInfo[2970] := IntToStr(TimeOut);
+  fRespostasPorTipo.ValueInfo[2970] := IntToStr(trunc(TimeOut/100));
 
   Ok := ExecutarTransacaoSiTef(CSITEF_OP_DadosPinPadAberto, 0);
   if Ok then

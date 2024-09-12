@@ -60,8 +60,8 @@ interface
 
 uses
   SysUtils, Classes,
-  pcnGerador, pcnNFe, pcnConversao, pcnNFeConsts,
-  ACBrValidador, pcnConversaoNFe;
+  pcnGerador, pcnNFe, pcnConversao, pcnConversaoNFe, pcnNFeConsts,
+  ACBrValidador;
 
 type
 
@@ -225,7 +225,7 @@ begin
   FNFe                                 := AOwner;
   FGerador                             := TGerador.Create;
   FGerador.FIgnorarTagNivel            := '|?xml version|NFe xmlns|infNFe versao|obsCont|obsFisco|';
-  FGerador.Opcoes.QuebraLinha          := ';';
+  FGerador.Opcoes.QuebraLinha          := '|';
   FOpcoes                              := TGeradorOpcoes.Create;
   FOpcoes.FGerarTXTSimultaneamente     := False;
   FOpcoes.FGerarTagIPIparaNaoTributado := True;
@@ -2945,7 +2945,7 @@ begin
       Gerador.wCampo(tcStr, 'Z11', 'nProc  ', 01, 60, 1, NFe.InfAdic.procRef[i].nProc, DSC_NPROC);
       Gerador.wCampo(tcStr, 'Z12', 'indProc', 01, 01, 1, indProcToStr(NFe.InfAdic.procRef[i].indProc), DSC_INDPROC);
 
-      if NFe.InfAdic.procRef[i].indProc = ipSEFAZ then
+      if NFe.InfAdic.procRef[i].tpAto <> taNenhum then
         Gerador.wCampo(tcStr, 'Z13', 'tpAto', 02, 02, 0, tpAtoToStr(NFe.InfAdic.procRef[i].tpAto), DSC_TPATO);
 
       Gerador.wGrupo('/procRef');

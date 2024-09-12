@@ -3,7 +3,7 @@
 {  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
 {                                                                              }
-{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{ Direitos Autorais Reservados (c) 2024 Daniel Simoes de Almeida               }
 {                                                                              }
 { Colaboradores nesse arquivo: José M. S. Junior                               }
 {                                                                              }
@@ -38,8 +38,10 @@ unit ACBrLibBoletoConfig;
 interface
 
 uses
-  Classes, SysUtils, IniFiles, ACBrUtil.FilesIO,
-  ACBrBoleto, ACBrBoletoConversao, ACBrLibConfig, ACBrLibComum, pcnConversao, ACBrDFeConfiguracoes, ACBrPIXBase;
+  Classes, SysUtils, IniFiles,
+  ACBrBoleto, ACBrBoletoConversao, pcnConversao, ACBrDFeConfiguracoes, ACBrPIXBase,
+  ACBrUtil.FilesIO,
+  ACBrLibConfig, ACBrLibComum;
 
 type
 
@@ -344,8 +346,10 @@ type
 implementation
 
 uses
-  typinfo, strutils, synacode, blcksock, ACBrLibBoletoConsts, ACBrUtil.Strings,
-  ACBrConsts, ACBrLibConsts, ACBrLibBoletoBase;
+  typinfo, strutils,
+  synacode, blcksock,
+  ACBrUtil.Strings, ACBrConsts,
+  ACBrLibConsts, ACBrLibBoletoConsts, ACBrLibBoletoBase;
 
 { TBoletoConfigWS }
 
@@ -735,7 +739,7 @@ begin
   AIni.WriteString(CSessaoBoletoBancoConfig, CChaveLocalPagamento, LocalPagamento);
   AIni.WriteInteger(CSessaoBoletoBancoConfig, CChaveNumero, Numero );
   AIni.WriteInteger(CSessaoBoletoBancoConfig, CChaveNumeroCorrespondente, NumeroCorrespondente );
- // AIni.WriteString(CSessaoBoletoBancoConfig, CChaveOrientacaoBanco, OrientacaoBanco );
+  AIni.WriteString(CSessaoBoletoBancoConfig, CChaveOrientacaoBanco, StringReplace(OrientacaoBanco,sLineBreak,'|',[rfReplaceAll]));
   AIni.WriteInteger(CSessaoBoletoBancoConfig, CChaveTipoCobranca, integer(TipoCobranca) );
   AIni.WriteInteger(CSessaoBoletoBancoConfig, CChaveCasasDecimaisMoraJuros, CasasDecimaisMoraJuros);
   //AIni.WriteString(CSessaoBoletoBancoConfig, CChaveDensidadeGravacao, DensidadeGravacao);

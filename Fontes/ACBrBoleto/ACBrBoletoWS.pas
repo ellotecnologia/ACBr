@@ -230,16 +230,22 @@ uses
   ACBrBoletoRet_Santander_API,
   ACBrBoletoW_Inter_API,
   ACBrBoletoRet_Inter_API,
-  ACBrBoletoW_Bancoob,
-  ACBrBoletoRet_Bancoob,
+  ACBrBoletoW_Sicoob,
+  ACBrBoletoRet_Sicoob,
   ACBrBoletoW_Itau_API,
   ACBrBoletoRet_Itau_API,
   ACBrBoletoW_Safra,
   ACBrBoletoRet_Safra,
-  ACBrBoletoW_Bancoob_APIV3,
-  ACBrBoletoRet_Bancoob_APIV3;
-  //ACBrBoletoW_C6,
-  //ACBrBoletoRet_C6;
+  ACBrBoletoW_Sicoob_V3,
+  ACBrBoletoRet_Sicoob_V3,
+  ACBrBoletoW_C6,
+  ACBrBoletoRet_C6,
+  ACBrBoletoW_Cresol,
+  ACBrBoletoRet_Cresol,
+  ACBrBoletoW_Bradesco,
+  ACBrBoletoRet_Bradesco,
+  ACBrBoletoW_Banrisul,
+  ACBrBoletoRet_Banrisul;
 
   { TRetornoEnvioClass }
 
@@ -407,17 +413,18 @@ begin
         FBoletoWSClass := TBoletoW_Inter_API.Create(Self);
         FRetornoBanco  := TRetornoEnvio_Inter_API.Create(FBoleto);
       end;
-    cobBancoob:
+    cobBancoob,
+    cobBancoSicoob:
       begin
         if (LVersaoDF = 'V3') or (LVersaoDFInt = 3) then
         begin
-          FBoletoWSClass := TBoletoW_Bancoob_APIV3.Create(Self);
-          FRetornoBanco  := TRetornoEnvio_Bancoob_APIV3.Create(FBoleto);
+          FBoletoWSClass := TBoletoW_Sicoob_V3.Create(Self);
+          FRetornoBanco  := TRetornoEnvio_Sicoob_V3.Create(FBoleto);
         end
         else
         begin
-          FBoletoWSClass := TBoletoW_Bancoob.Create(Self);
-          FRetornoBanco  := TRetornoEnvio_Bancoob.Create(FBoleto);
+          FBoletoWSClass := TBoletoW_Sicoob.Create(Self);
+          FRetornoBanco  := TRetornoEnvio_Sicoob.Create(FBoleto);
         end
       end;
     cobBancoSafra:
@@ -425,11 +432,26 @@ begin
         FBoletoWSClass := TBoletoW_Safra.Create(Self);
         FRetornoBanco  := TRetornoEnvio_Safra.Create(FBoleto);
       end;
-     (*cobBancoC6:
+     cobBancoC6:
       begin
         FBoletoWSClass := TBoletoW_C6.Create(Self);
         FRetornoBanco  := TRetornoEnvio_C6.Create(FBoleto);
-      end;*)
+      end;
+    cobBancoCresol :
+      begin
+        FBoletoWSClass := TBoletoW_Cresol.Create(Self);
+        FRetornoBanco  := TRetornoEnvio_Cresol.Create(FBoleto);
+      end;
+    //cobBradesco :
+      //begin
+        //FBoletoWSClass := TBoletoW_Bradesco.Create(Self);
+        //FRetornoBanco  := TRetornoEnvio_Bradesco.Create(FBoleto);
+      //end;
+    cobBanrisul :
+      begin
+        FBoletoWSClass := TBoletoW_Banrisul.Create(Self);
+        FRetornoBanco  := TRetornoEnvio_Banrisul.Create(FBoleto);
+      end;
     else
       FBoletoWSClass := TBoletoWSClass.Create(Self);
       FRetornoBanco  := TRetornoEnvioClass.Create(FBoleto);

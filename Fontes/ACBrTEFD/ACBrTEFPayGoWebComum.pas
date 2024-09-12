@@ -482,7 +482,8 @@ type
      pgvDDMMAA = 5,
      pgvDuplaDigitacao = 6,
      pgvSenhaLojista = 100,
-     pgvSenhaTecnica = 101);
+     pgvSenhaTecnica = 101,
+     pgvQuantidadeParcelas = 102);
 
   TACBrTEFPGWebAPITipoBarras =
     (pgbDigitado = 1,
@@ -1125,12 +1126,7 @@ begin
   fUsouPinPad := False;
   fTempoTarefasAutomaticas := '';
   fUltimoQRCode := '';
-
-  {$IfDef DEBUG}
-   IsDebug := True;
-  {$Else}
-   IsDebug := False;
-  {$EndIf}
+  fIsDebug := False;
 
   fPathLib := '';
   fSoftwareHouse := '';
@@ -2521,6 +2517,10 @@ begin
       Result.OcultarDadosDigitados := True;
       if (Result.Titulo = '') then
         Result.Titulo := ACBrStr('INFORME A SENHA TÉCNICA');
+    end;
+    PWINFO_INSTALLMENTS:
+    begin
+      Result.ValidacaoDado := pgvQuantidadeParcelas;
     end;
   end;
 end;

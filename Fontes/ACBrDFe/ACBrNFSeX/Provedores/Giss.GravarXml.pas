@@ -65,10 +65,12 @@ begin
 
   FormatoAliq := tcDe2;
 
-  NrOcorrCodigoPaisServico := -1;
+  NrOcorrCodigoPaisServico := 0;
   NrOcorrCodigoPaisTomador := -1;
 
   TagTomador := 'TomadorServico';
+
+  PrefixoPadrao := 'ns4';
 end;
 
 end.

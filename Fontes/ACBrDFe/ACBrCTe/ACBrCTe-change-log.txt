@@ -44,6 +44,27 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+20/08/2024
+[*] Remoção das units: pcteConsSitCTe, pcteEnvEventoCTe, pcteEventoCTe,
+    pcteLayoutTXT, pcteModeloCTe, pcteRetConsSitCTe, pcteRetEnvEventoCTe.
+    Elas não são mais utilizadas, foram substituidas. 
+   Por: Italo Giurizzato Junior
+
+07/08/2024
+-- Diversos --
+[*] Alteração nos fontes para passar a utilizar as novas units: ACBrCTe.ConsSit,
+    ACBrCTe.RetConsSit, ACBrCTe.EventoClass, ACBrCTe.EnvEvento e ACBrCTe.RetEnvEvento 
+    responsávels por gerar o pedido de Consulta a Situação e Eventos e a leitura
+    do retorno da SEFAZ no que se refere a consulta e os eventos enviados.
+   Por: Italo Giurizzato Junior
+
+02/08/2024
+-- ACBrCTeConhecimentos --
+[*] Alterado o nome da nova unit responsável pela leitura do XML do CT-e.
+[*] Remoção da unit ACBrCTeXmlHandler que esta na pasta PCNCTe pois a mesma
+    agora se encontra na pasta Base.
+   Por: Italo Giurizzato Junior
+
 29/07/2024
 -- ACBrCTeConfiguracoes --
 [*] Alterado o valor padrão da propriedade de configuração VersaoDF para ve400.

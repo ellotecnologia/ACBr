@@ -42,6 +42,224 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+12/09/2024
+-- SigISS.Provider --
+[*] #TK-5854: Ajuste para que mensagem de retorno de sucesso seja interpretada como alerta e não erro.
+  Por: Diego Folieni / Italo Giurizzato Junior 
+
+-- ACBrNFSeXLerXml_ABRASFv2 --
+[*] Na versão 2 do layout da ABRASF não existe uma tag especifica para o ValorIssRetido,
+    logo se tem ISS Retido devemos zerar o valor do campo ValorIss.
+  Por: Italo Giurizzato Junior
+-- ACBrNFSeXServicos --
+[*] #TK-5951: A cidade de Brasilia/DF, trocou a URL de homologação, o provedor continua
+    o mesmo.
+  Por: Eduardo Flaeschen
+
+09/09/2024
+-- ACBrNFSeXDANFSeRLRetrato --
+[*] Ajuste para imprimir o valor do ISS por inteiro quando o provedor permite 
+    uma lista de itens.
+  Por: Italo Giurizzato Junior
+-- Fiorilli.Provider --
+[*] #TK-5934: Ajuste para não gerar 2 quebras de linha por conta do retorno: "&#xd;\s\n".
+  Por: Diego Reckziegel
+-- ACBrNFSeXServicos --
+[*] #TK-5831: A cidade de Jundiai/SP, trocou de provedor, agora é Giss versão 2.04
+  Por: Fred Smartfull/Diogo Foliene/Italo Giurizzato Junior
+[*] #TK-5935: A cidade de Agudos/SP, mudou a URL mas o provedor continua o mesmo.
+  Por: Paulo Henrique Panico
+[+] #TK-5936: Incluída a cidade de Itapecuru Mirim/MA, o provedor é SigCorp versão 2.04
+  Por: Anderson Grolli
+
+05/09/2024
+-- ACBrNFSeXServicos --
+[*] #TK-5922: A cidade de Sideropolis/SC, trocou de provedor, agora é Betha versão 1.00
+  Por: Diogo Loff
+[*] #TK-5923: A cidade de Corupa/SC, trocou para versão 1.01 o provedor continua o mesmo.
+  Por: Gabriel Bobello
+[+] #TK-5924: Incluída a cidade de Sao Francisco de Paula/MG, o provedor é SH3.
+  Por: João Antônio
+[*] #TK-5925: A cidade de Leopoldina/MG, trocou de provedor, agora é Fiorilli.
+  Por: Maiquel
+
+02/09/2024
+-- AssessorPublico.GravarXml --
+[*] #TK-5914: Alterado de tcDe4 para tcDe2 ao gerar a tag QUANTIDADE.
+  Por: Verissimo
+-- ACBrNFSeXServicos --
+[*] #TK-5917: A cidade de Quilombo/SC, trocou de versão e URLs, o provedor continua o mesmo.
+  Por: Maiquel
+[*] #TK-5916: A cidade de São Joaquim da Barra/SP, trocou as URLs, o provedor continua o mesmo.
+  Por: Andre Nobre
+[*] #TK-5918: A cidade de Queimados/RJ, trocou de versão e URLs, o provedor continua o mesmo.
+  Por: Everson Clei
+
+29/08/2024
+-- Equiplano.Provider --
+[*] #TK-5889: Incluído no TratarXmlRetornado a substituição do "&" por "&amp;"
+    para que a leitura de nomes do prestadores e tomadores sejam feitas corretamente
+    quando possuirem o caracter "&" no nome. 
+  Por: Italo Giurizzato Junior
+-- ACBrNFSeXDANFSeRLRetrato --
+[*] #TK-5856: Alteração no tamanho da banda rlbISSQN para evitar a impressão de
+    2 páginas.
+  Por: Natanael Sanches
+-- ACBrNFSeXServicos --
+[*] #TK-5909: Incluída a cidade de Nova Monte Verde/MT, o provedor é Agili.
+  Por: C4Dev
+[*] #TK-5908: Alterado a versão para 1.01 da cidade de Estrela/RS, o provedor é o mesmo.
+  Por: Daniel Ostoic
+[*] #TK-5910: Incluída a cidade de Aiuruoca/MG, o provedor é Futurize.
+  Por: Bill Barsch
+
+28/08/2024
+-- ACBrNFSeXServicos --
+[*] #TK-5905: A cidade de Silva Jardim/RJ trocou de provedor, agora é Pronim versão 2.03 
+  Por: Gabriel Bobello
+-- ISSIntel.GravarXml --
+[*] #TK-5904: Alterado a condição que determina se a Aliquota vai ser obrigatória ou
+    opcional.
+-- IPM.Provider --
+[*] #TK-5907: Para a versão 1.00 o parâmetro UseCertificateHTTP fica condicionado aos Params
+    Assinar informados no arquivo ACBrNFSeXServicos.ini
+  Por: Italo Giurizzato Junior
+-- Giss.GravarXML --
+[*] Altera as ocorrências do CodigoPais do grupo serviço para que seja opcional.
+  Por: Diego Folieni
+-- ACBrNFSeXProviderABRASFv2, SmarPD.Provider --
+[*] #TK-5895: Ajustes visando correta exibição do retorno das consultas de serviço tomado e prestado
+  Por: Diego Folieni
+
+26/08/2024
+-- IPM.LerXml --
+[*] Ajustes para a leitura correta do Total Liquido da Nota.
+  Por: Farnetani
+
+22/08/2024
+-- IPM.LerXml --
+[*] Ajustes para a leitura correta dos campos: MunicipioPrestacaoServico e
+    MunicipioIncidencia
+  Por: Italo Giurizzato Junior
+-- SigISS.Provider --
+[*] #TK-5869: Ajustes na leitura de mensagens de erro, para identificar 
+    corretamente os alertas.
+  Por: Italo Giurizzato Junior
+-- ACBrNFSeXServicos --
+[*] Alterado para versão 2.04 bem como a URL da cidade de Marechal Floriano/ES, 
+    o provedor é o mesmo.
+  Por: Italo Giurizzato Junior
+
+21/08/2024
+-- Giap.LerXml --
+[*] #TK-5886: Alteração visando obter a descrição do item de serviço.
+  Por: Microsys Sistemas
+-- ACBrNFSeXServicos --
+[*] #TK-5884: Alterado para versão 1.00 da cidade de Lontras/SC, o provedor é o mesmo.
+  Por: Adriano Wolff
+[*] #TK-5885: Alterado para versão 2.03 da cidade de Ijui/RS, o provedor é o mesmo.
+  Por: Maiquel
+
+19/08/2024
+-- ACBrNFSeXServicos --
+[+] #TK-5881: Incluída a cidade de Aguas Frias/SC, o provedor é Pronim versão 2.02
+  Por: Willian Delan
+[+] #TK-5880: Incluída a cidade de Ipameri/GO, o provedor é Prodata.
+  Por: João Antônio
+
+16/08/2024
+-- ISSRio.Provider
+[*] Ajustes no TratarRetornoEmitir para fazer a leitura correta do XML de retorno.
+  Por: Italo Giurizzato Junior
+-- ACBrNFSeXServicos --
+[*] #TK-5868: A cidade de Estrela/RS mudou a URL de produção o provedor continua o mesmo.
+  Por: Daniel Ostoic programador DNA
+[*] #TK-5847: A cidade de Massaranduba/SC mudou de versão e URLs o provedor continua o mesmo.
+-- IPM.GravarXml --
+[*] #TK-5847: Alteração visando aparecer o RPS no portal de homologação do provedor.
+  Por: Ramon Valentim da Silva
+-- ACBrNFSeXProviderABRASFv2/ISSCampinas.Provider/ISSGoiania.Provider/ISSVitoria.Provider
+[*] #TK-5864: Possível solução para a leitura correta das mensagens de erro.
+  Por: Italo Giurizzato Junior
+
+13/08/2024
+-- NFSeBrasil.Provider, Giap.Provider, GeisWeb.Provider --
+[*] #TK-5090: Ajustes visando corrigir erro de conversão na leitura das respostas.
+  Por: Diego Folieni
+
+12/08/2024
+-- Betha.Provider --
+[*] #TK-5850: Alteração visando corrigir erro de assinatura ao realizar mais de um cancelamento em sequência.
+  Por: Diego Folieni
+-- Giss.Provider --
+[*] Mais alterações para deixar o provedor funcional
+  Por: Italo Giurizzato Junior
+
+09/08/2024
+-- ISSCampinas.Provider --
+[*] TK-5844: Corrige o namespace dos métodos RecepcionarLoteRPSSincrono e ConsultarNFSeFaixa.
+  Por: Diego Folieni
+-- ACBrNFSeXServicos -
+[*] Adiciona o parâmetro versão para a cidade de São Pedro da Aldeia
+  Por: Diego Folieni
+
+08/08/2024
+-- Giss.GravarXml/Giss.Provider --
+[*] Diversas alterações para deixar o provedor funcional - TK-5831
+  Por: Italo Giurizzato Junior/Diego Folieni
+-- EloTech.Provider --
+[*] Alteração nas funções de conversão da propriedade RegimeEspecialTributacao - TK-5832
+  Por: Ramon Valentim
+-- ACBrNFSeXServicos --
+[*] Incluída as URLs de homologação da cidade de Sete Lagoas/MT, o provedor é Libre.
+   Por: Arimateia Jr
+[+] Incluída a cidade de Agua Azul do Norte/PA, o provedor é Fiorilli - TK-5829.
+   Por: Joemil
+[*] Alterado as URLs da cidade de Mirassol D Oeste/MT, o provedor é mesmo - TK-5839.
+   Por: Diego Reckziegel
+
+07/08/2024
+-- ISSSaoPaulo.Provider --
+[*] #TK-5774 - Alteração para que conte corretamente a quantidade de notas no retorno da ConsultarNFSeServicoTomadoPorTomador
+  Por: Diego Folieni 
+-- ACBrNFSeXServicos --
+[+] Incluída a cidade de Chapadao do Sul/MS, o provedor é Fiorilli - TK-5820.
+[+] Incluída a cidade de Ubirata/PR, o provedor é Pronim - TK-5819.
+   Por: eazschornack, Higor, Júlio Cavalcanti 
+
+06/08/2024
+-- ACBrNFSeXServicos --
+[+] Incluída a cidade de Faxinalzinho/RS, o provedor é DataSmart- TK-5838.
+   Por: Willian Delan
+
+05/08/2024
+-- ISSFortaleza.Provider --
+[*] O provedor esta retornando o XML no formato ANSI, feita a alteração visando
+    converter o XML para o formato UTF-8.
+   Por: Italo Giurizzato Junior
+-- ACBrNFSeXGravarXml_ABRASFv1 --
+[*] Alteração visando tomadores do exterior.
+   Por: Alexandre Felippeto Henzen
+-- ACBrNFSeXServicos --
+[*] Alterado o link de impressão da cidade de Jaú/SP.
+   Por: Ronaldo Negreiros Danieli
+[*] Alterado para a versão 2.03 do layout para a cidade de Franca/SP.
+   Por: Cleber HHP
+
+01/08/2024
+-- ACBrNFSeXNotasFiscais --
+[*] Adiciona na leitura e na escrita do INI o campo ValorTotalNotaFiscal
+   Por: Diego Folieni
+-- EloTeck.Provider --
+[*] Reescrita as funções de conversão do Regime Especial de Tributação.
+   Por: Jaisson
+-- ACBrNFSeXServicos --
+[*] A cidade de Franca/SP, trocou de provedor, agora é SilTecnologia versão 2.04
+   Por: Cleber HHP
+[+] Incluída a cidade de Nova Brasilandia D Oeste/RO, o provedor é EloTech.
+   Por: Bill Barsch
+[+] Incluída a cidade de Humaita/AM, o provedor é CTAConsult.
+   Por: Destak
 
 29/07/2024
 -- ACBrNFSeXDANFSeFR --

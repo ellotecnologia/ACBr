@@ -37,14 +37,17 @@ unit ACBrTEFAPI;
 interface
 
 uses
-  Classes, SysUtils,
-  ACBrBase, ACBrTEFAPIComum;
+  Classes,
+  SysUtils,
+  ACBrBase,
+  ACBrTEFAPIComum;
 
 type
   TACBrTEFAPITipo = ( tefApiNenhum,
                       tefApiPayGoWeb,
                       tefApiCliSiTEF,
-                      tefApiElgin );
+                      tefApiElgin,
+                      tefStoneAutoTEF);
 
   TACBrTEFAPIExibicaoQRCode = ( qrapiNaoSuportado,
                                 qrapiAuto,
@@ -81,7 +84,8 @@ type
                                  valdDuplaDigitacao,
                                  valdSenhaGerente,
                                  valdSenhaLojista,
-                                 valdSenhaTecnica);
+                                 valdSenhaTecnica,
+                                 valdQuantidadeParcelas);
 
     TACBrTEFAPITipoBarras = ( tbQualquer,
                               tbDigitado,
@@ -230,7 +234,10 @@ implementation
 
 uses
   TypInfo,
-  ACBrTEFAPIPayGoWeb, ACBrTEFAPICliSiTef, ACBrTEFAPIElgin;
+  ACBrTEFAPIPayGoWeb,
+  ACBrTEFAPICliSiTef,
+  ACBrTEFAPIElgin,
+  ACBrTEFAPIStoneAutoTEF;
 
 { TACBrTEFAPIClass }
 
@@ -397,7 +404,8 @@ begin
   case AValue of
     tefApiPayGoWeb : fpTEFAPIClass := TACBrTEFAPIClassPayGoWeb.Create( Self );
     tefApiCliSiTEF : fpTEFAPIClass := TACBrTEFAPIClassCliSiTef.Create( Self );
-    tefApiElgin    : fpTEFAPIClass := TACBrTEFAPIClassElgin.Create( Self )
+    tefApiElgin    : fpTEFAPIClass := TACBrTEFAPIClassElgin.Create( Self );
+    tefStoneAutoTEF: fpTEFAPIClass := TACBrTEFAPIClassStoneAutoTEF.Create( Self )
   else
     fpTEFAPIClass := TACBrTEFAPIClass.Create( Self );
   end;

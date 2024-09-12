@@ -3,7 +3,7 @@
 {  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
 {                                                                              }
-{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{ Direitos Autorais Reservados (c) 2024 Daniel Simoes de Almeida               }
 {                                                                              }
 { Colaboradores nesse arquivo: Italo Jurisato Junior                           }
 {                                                                              }
@@ -32,12 +32,17 @@
 
 unit ACBrLibCEPDataModule;
 
+{$IfDef FPC}
 {$mode delphi}
+{$EndIf}
 
 interface
 
 uses
-  Classes, SysUtils, FileUtil, ACBrLibComum, ACBrLibConfig, syncobjs, ACBrCEP, ACBrUtil.FilesIO, ACBrBase;
+  Classes, SysUtils, syncobjs,
+  ACBrLibComum, ACBrLibConfig,
+  ACBrCEP,
+  ACBrUtil.FilesIO;
 
 type
 
@@ -108,6 +113,7 @@ begin
 
     NivelLog := pLibConfig.Socket.NivelLog;
     ArqLOG := pLibConfig.Socket.ArqLog;
+    TimeOut := pLibConfig.Socket.TimeOut;
 
     ProxyHost := pLibConfig.ProxyInfo.Servidor;
     ProxyPort := IntToStr(pLibConfig.ProxyInfo.Porta);

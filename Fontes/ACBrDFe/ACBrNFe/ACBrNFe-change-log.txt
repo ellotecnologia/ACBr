@@ -44,6 +44,64 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+12/09/2024
+-- ACBrNFeWebService --
+[*] #TK-5953: Ajuste visando retornar a data/hora do recebimento do documento.
+  Por: Italo Giurizzato Junior
+
+11/09/2024
+-- ACBrNFeWebService --
+[*] #TK-5933: Ajuste visando corrigir a forma como a string é devolvida na propriedade.
+  Por: Diego Folieni / Italo Giurizzato Junior / Victor H Gonzales - Pandaaa 
+
+10/09/2024
+-- ACBrNFe.XmlReader --
+[-] Correção na leitura do XML, não estava lendo corretamente o grupo <card>.
+  Por: Jeanny Paiva
+
+06/09/2024
+-- ACBrNFe.EnvEvento --
+[*] Remove linha que modificava config de RetirarAcentos para True independente da config definida.
+  Por: Diego Folieni
+
+05/09/2024
+-- ACBrNFeNotasFiscais --
+[*] #TK-5866-3: Adiciona correta config QuebraLinha no momento em que alimenta as configurações para o gerador do XML.
+   Por: Diego Folieni 
+
+04/09/2024
+-- ACBrNFe/ACBrNFeWebServices/ACBrNFe.RetConsSit --
+[*] Ajuste para considerar os cStat de denegação como rejeição.
+   Por: Italo Giurizzato Junior
+
+04/09/2024
+-- ACBrNFeNotasFiscais, ACBrNFeWebServices, ACBrNFeDAInutRLRetrato --
+[*] #TK-5866-3: Ajuste visando correto uso config de quebra de linha nas rotinas que substituem a quebra nativa pela config definida.
+  Por: Diego Folieni 
+
+02/09/2024
+-- pcnNFeW --
+[*] #TK-5866: Ajuste visando padronização do caractere de quebra de linha.
+   por: Diego Folieni
+
+15/08/2024
+-- ACBrNFeWebServices --
+[*] #TK-5833: Adiciona o preenchimento da propriedade que alimenta o XML na resposta da Lib.
+   Por: Diego Folieni
+
+12/08/2024
+-- ACBrNFeNotasFiscais --
+[*] Ajuste para considerar o valor do ICMS Mono Retenção no ValidarRegrasdeNegocio.
+   Por: Italo Giurizzato Junior
+
+02/08/2024
+-- ACBrNFeNotasFiscais --
+[*] Alterado o nome da nova unit responsável pela leitura do XML da NF-e/NFC-e.
+[*] Remoção das units: ACBrNFeXmlReader, ACBrNFeXmlWriter, pcnAdmCSCNFCe, 
+    pcnConsSitNFe, pcnEnvEventoNFe, pcnEventoNFe, pcnInutNFe, pcnRetAdmCSCNFCe, 
+    pcnRetConsSitNFe, pcnRetEnvEventoNFe, pcnRetInutNFe.
+   Por: Italo Giurizzato Junior
+
 31/07/2024
 -- Diversos --
 [*] Ajustes para o envio correto dos eventos: ECONF e Cancelamento de 

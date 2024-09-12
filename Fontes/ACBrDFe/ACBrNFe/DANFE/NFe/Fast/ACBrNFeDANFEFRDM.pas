@@ -1014,7 +1014,7 @@ begin
         FieldByName('ChaveNFe').AsString          := FNFe.infNFe.ID;
         FieldByName('cProd').AsString             := FDANFEClassOwner.ManterCodigo(Prod.cEAN,Prod.cProd);
         FieldByName('cEAN').AsString              := Prod.cEAN;
-        FieldByName('XProd').AsString             := StringReplace( Prod.xProd, ';', #13, [rfReplaceAll]);
+        FieldByName('XProd').AsString             := StringReplace( Prod.xProd, FDANFEClassOwner.CaractereQuebraDeLinha, #13, [rfReplaceAll]);
         FieldByName('VProd').AsString             := FDANFEClassOwner.ManterVprod(Prod.VProd , Prod.vDesc );
         FieldByName('vTotTrib').AsString          := FDANFEClassOwner.ManterdvTotTrib(Imposto.vTotTrib );
         FieldByName('infAdProd').AsString         := FDANFEClassOwner.ManterinfAdProd(FNFe, inItem);
@@ -1972,10 +1972,10 @@ begin
         begin
           CondicoesUso := InfEvento.detEvento.xCondUso;
           CondicoesUso := StringReplace(CondicoesUso, 'com: I', 'com:'+#13+' I', [rfReplaceAll]);
-          CondicoesUso := StringReplace(CondicoesUso, ';', ';' + #13, [rfReplaceAll]);
+          CondicoesUso := StringReplace(CondicoesUso, FDANFEClassOwner.CaractereQuebraDeLinha, FDANFEClassOwner.CaractereQuebraDeLinha + #13, [rfReplaceAll]);
 
           Correcao := StringReplace(InfEvento.detEvento.xCorrecao,
-            TACBrNFe(DANFEClassOwner.ACBrNFe).Configuracoes.WebServices.QuebradeLinha, #13,
+            FDANFEClassOwner.CaractereQuebraDeLinha, #13,
              [rfReplaceAll]);
 
           FieldByName('xCondUso').AsString  := CondicoesUso;
@@ -2144,6 +2144,9 @@ var
   LResetar : Boolean;
 begin
   SetDataSetsToFrxReport;
+  if (DANFEClassOwner.FIndexImpressaoEventosIndividual = 0) then
+    DANFEClassOwner.FIndexImpressaoEventosIndividual := 1;
+
   LResetar := not (DANFEClassOwner.FIndexImpressaoIndividual = -2)
                or (DANFEClassOwner.FIndexImpressaoEventosIndividual = 1);
   if NaoEstaVazio(Trim(FastFileEvento)) then
@@ -2218,7 +2221,7 @@ begin
     raise EACBrNFeDANFEFR.Create('Propriedade ACBrNFe não assinalada.');
 
   AjustaMargensReports;
-
+  DANFEClassOwner.FIndexImpressaoEventosIndividual := 0;
 end;
 
 function TACBrNFeFRClass.PrepareReportInutilizacao: Boolean;
@@ -2512,6 +2515,7 @@ begin
 
     if PrepareReportEvento(ANFE) then
     begin
+      DANFEClassOwner.FIndexImpressaoEventosIndividual := I;
       if (AStream <> nil) then
         frxPDFExport.Stream := AStream;
       frxPDFExport.Author        := DANFEClassOwner.Sistema;

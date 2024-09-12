@@ -1773,12 +1773,12 @@ var
 begin
   FPMsgOrig := AMSG;
 
-  Request := '<nfse:EnviarLoteRpsSincrono>';
+  Request := '<nfse:RecepcionarLoteRpsSincrono>';
   Request := Request + AMSG;
-  Request := Request + '</nfse:EnviarLoteRpsSincrono>';
+  Request := Request + '</nfse:RecepcionarLoteRpsSincrono>';
 
   Result := Executar('', Request,
-                     ['EnviarLoteRpsSincronoResponse', 'EnviarLoteRpsSincronoResposta'],
+                     ['EnviarLoteRpsSincronoResposta'],
                      ['xmlns:nfse="http://nfse.abrasf.org.br"']);
 end;
 
@@ -1837,9 +1837,9 @@ var
 begin
   FPMsgOrig := AMSG;
 
-  Request := '<nfse:ConsultarNfsePorFaixa>';
+  Request := '<nfse:ConsultarNfseFaixa>';
   Request := Request + AMSG;
-  Request := Request + '</nfse:ConsultarNfsePorFaixa>';
+  Request := Request + '</nfse:ConsultarNfseFaixa>';
 
   Result := Executar('', Request,
                      ['ConsultarNfseResponse', 'ConsultarNfseFaixaResposta'],
@@ -1918,6 +1918,7 @@ begin
 
   Result := inherited TratarXmlRetornado(Result);
 
+  Result := RemoverPrefixosDesnecessarios(Result);
 end;
 
 { TACBrNFSeProviderISSCampinas203 }

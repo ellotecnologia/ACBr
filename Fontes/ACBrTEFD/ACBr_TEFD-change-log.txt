@@ -46,6 +46,37 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+07/09/2024
+-- ACBrTEFAPI, ACBrTEFAPIStoneAutoTEF --
+[+] Adicionado novo modelo de TEF "tefStoneAutoTEF"
+    https://microtefdocs.stone.com.br/reference/o-que-%C3%A9-o-autotef
+
+-- ACBrTEFAPIComum, ACBrTEFAndroidElginIDH, ACBrTEFAndroidMSitef, ACBrTEFAndroidPayGo,
+   ACBrTEFAPICliSiTef, ACBrTEFAPIElgin, ACBrTEFAPIPayGoWeb --
+[*] Método 'EfetuarPagamento' modificado, para receber como último parâmetro
+    "DadosAdicionais: String = ''"
+    Isso permite a aplicação, informar Dados Adicionais a transação de Pagamento,
+    e qua não possam ser mapeados, pelos parâmetros já existentes
+(por: DSA)
+
+27/08/2024
+-- ACBrTEFPayGoWebComum --
+[*] TACBrTEFPGWebAPI.Create modificado para sempre criar propriedade "IsDebug"
+    como Falsa, pois em algumas IDEs, o modo Debug era ativo, mesmo em Release
+    (por: DSA)
+
+09/08/2024
+-- ACBrTEFAPI --
+[*] "TACBrTEFAPIValidacaoDado", adicionado enumerado, "valdQuantidadeParcelas"
+    Evento "QuandoPerguntarCampoAPI", permite indicar que a pergunta é
+    referente a um parcelamento
+
+-- ACBrTEFPayGoWebComum, ACBrTEFAPIPaygoWeb --
+[*] "TACBrTEFPGWebAPIValidacaoDado", adicionado enumerado "pgvQuantidadeParcelas = 102"
+[*] método "PW_GetDataToDefinicaoCampo" alterado para mapear PWINFO_INSTALLMENTS para
+    pgvQuantidadeParcelas
+(por: Guilherme Geraldo - GPlus)
+
 10/07/2024
 -- ACBrTEFAPI --
 [-] Ajueste em "ObterDadoPinPad", para permitir valores maiores

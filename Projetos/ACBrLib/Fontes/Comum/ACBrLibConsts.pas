@@ -3,7 +3,7 @@
 {  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
 {                                                                              }
-{ Direitos Autorais Reservados (c) 2020 Daniel Simoes de Almeida               }
+{ Direitos Autorais Reservados (c) 2024 Daniel Simoes de Almeida               }
 {                                                                              }
 { Colaboradores nesse arquivo: Rafael Teno Dias                                }
 {                                                                              }
@@ -229,6 +229,7 @@ resourcestring
 
   SErrRetornoHttpWebService = 'WebService %s, retorno http: %d';
   SErroDemoExpirado = 'O Demo da %s expirou';
+  SErrNaoDisponivelEmModoConsole = 'Recurso não disponível em modo CONSOLE';
 
 const
 {$I ACBrLibErros.inc}

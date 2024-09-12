@@ -76,7 +76,7 @@ type
     Usar_tcDe4: boolean;
     FormatoValor4ou2: TACBrTipoCampo;
     FormatoValor10ou4: TACBrTipoCampo;
-    Versao: string;
+//    Versao: string;
     ChaveNFe: string;
     FIdCSRT: integer;
     FCSRT: string;
@@ -1020,7 +1020,7 @@ const
 var
   ErroValidarGTIN: string;
   nodeArray: TACBrXmlNodeArray;
-  j, idx: integer;
+  j: integer;
 begin
   Result := FDocument.CreateElement('prod');
   Result.AppendChild(AddNode(tcStr, 'I02', 'cProd', 01, 60, 1,
@@ -3714,7 +3714,7 @@ begin
       Result[i].AppendChild(AddNode(tcStr, 'Z11', 'nProc', 01, 60, 1, NFe.InfAdic.procRef[i].nProc, DSC_NPROC));
       Result[i].AppendChild(AddNode(tcStr, 'Z12', 'indProc', 01, 01, 1, indProcToStr(NFe.InfAdic.procRef[i].indProc), DSC_INDPROC));
 
-      if nfe.InfAdic.procRef[i].indProc = ipSEFAZ then
+      if nfe.InfAdic.procRef[i].tpAto <> taNenhum then
         Result[i].AppendChild(AddNode(tcStr, 'Z13', 'tpAto', 02, 02, 0, tpAtoToStr(NFe.InfAdic.procRef[i].tpAto), DSC_TPATO));
     end;
   end;

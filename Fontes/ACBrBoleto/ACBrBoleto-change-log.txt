@@ -49,6 +49,78 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+09/09/2024
+-- ACBrBoletoW_Inter_API --
+[-] Ajustes dos parametros da consulta. IndicadorPix True Utiliza V3, False Utiliza V2 que são diferentes os filtros.
+	https://www.projetoacbr.com.br/forum/topic/79146-boleto-api-banco-inter-v3/
+	https://www.projetoacbr.com.br/forum/topic/79580-consultar-boleto-banco-inter-via-ws-pela-datamovimento-n%C3%A3o-retorna-os-baixados/
+  por Daniel de Morais
+  
+02/09/2024
+-- ACBrBoletoRet_Santander_API --
+[+] Ajustes retorno da API consulta. tratar valor pago 0 settlementCreditedValue 
+	https://www.projetoacbr.com.br/forum/topic/79420-retorno-de-baixa-banco-santander/
+  por Daniel de Morais
+
+30/08/2024
+-- ACBrBoletoW_C6.pas --
+[+] Ajustes da API conforme os testes do programa coalizão 
+  por Daniel de Morais
+  
+15/08/2024
+-- ACBrBoleto.pas ACBrBoletoWS.pas ACBrBoletoRet_Cresol.pas ACBrBoletoW_Cresol.pas--
+[+]TK-4538 / TK-4854 ACBrBoleto - API CRESOL Cobrança Boletos 
+  por Willian Delan
+  
+-- ACBrBoleto.pas --
+[+] Adicionado leitura a propriedades faltantes do Ini e gravação
+  por Victor H Gonzales - Pandaaa
+12/08/2024
+-- ACBrBancoBanrisul --
+[-]TK-5823-1 - Corrigido qdo CaracTitulo = descontado o envio JurosMora Seg P Posicao 118
+   https://www.projetoacbr.com.br/forum/topic/79033-banrisul-juros-de-mora/
+   Por Daniel Morais InfoCotidiano
+
+07/08/2024
+--ACBrBoleto--
+[*]TK-5749 ACBrBoleto - Multa Valor Fixo = true imprimir valor monetário, false imprimir percentual, removido cálculos (que forçava sempre monetário)
+  por tdpsistemas
+
+06/08/2024 
+-- ACBrBancoSicredi --
+[*]TK-5798 - Ajustado CNPJ para enviar zeros a esq. ou em branco.CNAB 400 Seg1 Pos 340 e CNAB 240 SEQ 18.3Q conforme manual
+   https://www.projetoacbr.com.br/forum/topic/78920-acbrlib-boleto-sicredi-homologa%C3%A7%C3%A3o-erro-no-via-remessa-de-arquivos-sicredi-do-mt-esta-exigindo-avalista-na-homologa%C3%A7%C3%A3o/#comment-511023
+   Por Daniel Morais InfoCotidiano
+
+-- ACBrBancoC6WS--
+[+]TK5510 - Adicionar Banco C6 - Webservices.
+  Por Victor H Gonzales - Pandaaa
+
+[-]TK-5764 ACBrBoleto CaixaWS - Retorno de Consulta. / Alteração na camada de SOAP do ACBrBoleto
+https://www.projetoacbr.com.br/forum/topic/78771-caixa-retorno-via-api-da-data-de-pagamento/
+  Por Victor H Gonzales
+
+[+]TK-5825 - ACBrBoleto - Enumerados de Bancos que trocam o Nome
+  Por  Victor H Gonzales - Pandaaa
+
+05/08/2024
+-- ACBrBancoC6 --
+[*]TK-5821 - Ajustado fpCodigosMoraAceitos para permitir 0 e 1 pois na conversao da classe basica CodigoMora quando nao informado passa ser 1 ocasionando erro raise.
+   https://www.projetoacbr.com.br/forum/topic/78988-problema-com-c%C3%B3digo-de-morajuros-ao-emitir-boletos-no-c6-bank/
+   Por Daniel Morais InfoCotidiano
+
+05/08/2024
+-- ACBrBancoBanrisul --
+[*]TK-5823 - Ajustado qdo versao layout arquivo 103 (Manual 10.3) o envio JurosMora Seg P Posicao 118
+   https://www.projetoacbr.com.br/forum/topic/79033-banrisul-juros-de-mora/
+   Por Daniel Morais InfoCotidiano
+
+01/08/2024
+-- ACBrBoletoRet_Itau_API --
+[*]TK-5799 - Ajustados algumas propriedades de retorno do boleto, mas alguns campos nao estao sendo devolvido em sandbox. 
+   https://www.projetoacbr.com.br/forum/topic/78971-relat%C3%B3rio-de-consulta-de-t%C3%ADtulos-api-ita%C3%BA-sem-informa%C3%A7%C3%B5es/
+   Por Daniel Morais InfoCotidiano
+
 30/07/2024
 -- ACBrBoletoW_Santander_API --
 [*]TK-5703 - Formatado do finePercentage qdo zero 0.00 que estava retornando erro.
