@@ -96,7 +96,7 @@ contains
   ACBrBancoC6 in '..\..\..\Fontes\ACBrBoleto\ACBrBancoC6.pas',
   ACBrBancoCaixa in '..\..\..\Fontes\ACBrBoleto\ACBrBancoCaixa.pas',
   ACBrBancoCaixaSICOB in '..\..\..\Fontes\ACBrBoleto\ACBrBancoCaixaSICOB.pas',
-  ACBrBancoCecred in '..\..\..\Fontes\ACBrBoleto\ACBrBancoCecred.pas',
+  ACBrBancoAilos in '..\..\..\Fontes\ACBrBoleto\ACBrBancoAilos.pas',
   ACBrBancoCitiBank in '..\..\..\Fontes\ACBrBoleto\ACBrBancoCitiBank.pas',
   ACBrBancoCredisis in '..\..\..\Fontes\ACBrBoleto\ACBrBancoCredisis.pas',
   ACBrBancoCresol in '..\..\..\Fontes\ACBrBoleto\ACBrBancoCresol.pas',
@@ -134,6 +134,6 @@ contains
   ACBrBoletoWS.Rest in '..\..\..\Fontes\ACBrBoleto\ACBrBoletoWS.Rest.pas',
   ACBrBoletoWS.SOAP in '..\..\..\Fontes\ACBrBoleto\ACBrBoletoWS.SOAP.pas',
   ACBrUniprime in '..\..\..\Fontes\ACBrBoleto\ACBrUniprime.pas',
-  ACBrUniprimeNortePR in '..\..\..\Fontes\ACBrBoleto\ACBrUniprimeNortePR.pas';
+  ACBrSisprime in '..\..\..\Fontes\ACBrBoleto\ACBrSisprime.pas';
 
 end.
