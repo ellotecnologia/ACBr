@@ -64,6 +64,7 @@ type
     function CancelarOperacao: String;
     function Coletar(root: TACBrJSONObject): String;
     function TratarRetornoOperacao(var Resposta: String): boolean;
+    function GetTefAPI: TACBrTEFAPI;
   protected
     procedure InicializarChamadaAPI(AMetodoOperacao: TACBrTEFAPIMetodo); override;
     procedure FinalizarChamadaAPI; override;
@@ -71,6 +72,8 @@ type
 
     function Iniciar(): String;
     function Finalizar(): String;
+
+    property TefAPI: TACBrTEFAPI read GetTefAPI;
   public
     constructor Create(AACBrTEFAPI: TACBrTEFAPIComum);
     destructor Destroy; override;
@@ -310,7 +313,6 @@ var
   pPayload: PAnsiChar;
   opcoes, elements: TStringList;
   i, iSelecionado: integer;
-  TEFAPI: TACBrTEFAPI;
   Validado, Cancelado: boolean;
   DefinicaoCampo: TACBrTEFAPIDefinicaoCampo;
   sRoot: String;
@@ -342,7 +344,6 @@ var
   end;
 
 begin
-  TefAPI := TACBrTEFAPI(fpACBrTEFAPI);
   Validado := False;
   Cancelado := False;
 
@@ -764,7 +765,7 @@ begin
 
       Resposta := ConfirmarOperacao;
       fpACBrTEFAPI.RespostasTEF.AtualizarTransacaoComTerceiraPerna(RespElginTef);
-      
+
       //retorno     := TACBrTEFElginUtils.getRetorno(Resposta);
       Result := True;
     end;
@@ -776,8 +777,17 @@ begin
     end;
 
     2:
-      fpACBrTEFAPI.GravarLog('ERRO AO COLETAR DADOS');
-    else
+    begin
+      vJson := TACBrTEFElginUtils.jsonify(Resposta);
+      try
+        fpACBrTEFAPI.GravarLog('ERRO AO COLETAR DADOS');
+        TefAPI.QuandoExibirMensagem(TACBrTEFElginUtils.getStringValue(vJson, 'tef.mensagemResultado'), telaOperador, 0);
+      finally
+        vJson.Free;
+      end;
+    end;
+
+  else
       fpACBrTEFAPI.GravarLog('ERRO NA TRANSAÇÃO');
   end;
 end;
@@ -862,6 +872,11 @@ begin
          FinalizarTransacao(Rede, NSU, Finalizacao, AStatus);
       end;
    end;
+end;
+
+function TACBrTEFAPIClassElgin.GetTefAPI: TACBrTEFAPI;
+begin
+   Result := TACBrTEFAPI(fpACBrTEFAPI);
 end;
 
 end.
