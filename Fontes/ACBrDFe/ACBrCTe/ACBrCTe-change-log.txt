@@ -44,6 +44,22 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+25/09/2024
+-- Diversos --
+[*] #TK-5866-2: Ajuste visando padronização do caractere de quebra de linha.
+   Por: Diego Folieni
+
+19/09/2024
+-- ACBrCTeServicos --
+[+] Incluída as URLs de produção e homologação de recepção do CT-e Simplificado
+    SEFAZ-MT.
+   Por: Italo Giurizzato Junior
+
+17/09/2024
+-- Diversos --
+[*] #TK-5326 - Implementação do CT-e Simplificado.
+   Por: Italo Giurizzato Junior
+
 20/08/2024
 [*] Remoção das units: pcteConsSitCTe, pcteEnvEventoCTe, pcteEventoCTe,
     pcteLayoutTXT, pcteModeloCTe, pcteRetConsSitCTe, pcteRetEnvEventoCTe.

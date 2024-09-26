@@ -42,6 +42,91 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+
+25/09/2024
+-- Actcon.GravarXml/Adm.GravarXml/AEG.GravarXml/Asten.GravarXml --
+-- ISSCampinas.GravarXml --
+[*] Remoção de units declaradas em uses e não utilizadas.
+  Por: Italo Giurizzato Junior
+
+24/09/2024
+-- DSF.Provider --
+[*] #TK-6008: Ajustes na função TratarXmlRetornado.
+  Por: Leandro Coelho
+-- ACBrNFSeXServicos --
+[*] #TK-6005 - A cidade de Tres Rios/RJ trocou de provedor, agora é Primax.
+   Por: Guilherme Vaz
+[*] #TK-6006 - A cidade de Crissiumal/RS trocou de provedor, agora é Betha 2.02
+   Por: Farol TI
+-- Equiplano.LerXml --
+[*] #TK-5984: Mais ajustes para a leitura do XML da NFSe
+  Por: Ray Hildebrant
+
+23/09/2024
+-- ACBrNFSeXServicos --
+[+] #TK-6002 - Incluída a cidade de Pejucara/RS, o provedor é Pronim versão 2.03
+   Por: CG Suporte
+[+] #TK-5999 - Incluída a cidade de Salinas/MG, o provedor é NFSeBrasil.
+   Por: João Antônio
+[+] #TK-5998 - Incluída a cidade de Benevides/PA, o provedor é Desenvolve.
+   Por: Anderson Grolli
+[*] #TK-5989 - As URLs disponibilizadas do provedor Kalana na verdade são do 
+    ambiente de produção.
+  Por: Vanderlei Soares
+[+] Incluída a cidade de Formosa do Sul/SC, o provedor é Betha - TK-5970.
+   Por: C4Dev, Júlio Cavalcanti
+
+20/09/2024
+-- Equiplano.LerXml --
+[*] #TK-5984: Ajustes para a leitura do XML da NFSe
+  Por: Ray Hildebrant
+-- ACBrNFSeXServicos --
+[*] #TK-5982 - A cidade de Rio Largo/AL trocou de provedor, agora é Kalana.
+  Por: Vanderlei Soares
+-- Diversos --
+[*] #TK-5982 - Implementado o provedor Kalana (versão 1 do layout da ABRASF).
+  Por: Italo Giurizzato Junior
+[+] #TK-5986 - Incluida a cidade de Candido Sales/BA, o provedor é Saatri.
+  Por: João Antônio
+[*] #TK-5979 - A cidade de Sidrolandia/MS trocou de provedor, agora é Fiorilli.
+  Por: Raf Mattos
+
+19/09/2024
+-- ACBrNFSeXConversao --
+[*] Ajuste visando corrigir evitar erro de conversão quando Cidade vier vazia.
+  Por: Diego Folieni
+-- ACBrNFSeXServicos --
+[+] Incluída a URL de homologação do provedor Giss (GissOnline)
+  Por: Paula Zamboni de Campos da
+
+18/09/2024
+-- Giap.GravarXml --
+[*] #TK-5978: Possível solução para gerar a tag Aliquota com 4 casas decimais em função da cidade.
+  Por: Italo Giurizzato Junior 
+
+17/09/2024
+-- EL.Provider --
+[*] #TK-5966: Melhoria visando geração do arquivo XML quando retorno vier sem a tag <nfeRpsNotaFiscal>
+  Por: Diego Folieni / Italo Giurizzato Junior 
+-- fintelISS.GravarXml --
+[*] #TK-5972: Correção na geração do XML.
+  Por: Italo Giurizzato Junior
+
+16/09/2024
+-- ACBrNFSeXServicos --
+[+] #TK-5965: Incluída a cidade de Sao Jose do Inhacora/RS, o provedor é ABase versão 2.01
+  Por: Willian Delan
+-- ACBrNFSeXClass --
+[*] #TK-5964: Correção na variável private da propriedade TipoDeducao.
+  Por: Italo Giurizzato Junior
+-- NFSeBrasil.GravarXml/NFSeBrasil.LerXml --
+[*] #TK-5963: Ajustes para gerar e ler a tag Observacoes.
+    Para gerar a referida tag devemos alimentar o campo: OutrasInformacoes
+  Por: Italo Giurizzato Junior
+-- Sigep.Provider --
+[*] #TK-5961: Ajustes visando gerar o atributo versao com o valor 1.01
+  Por: C4Dev/Italo Giurizzato Junior
+
 13/09/2024
 -- ACBrNFSeXServicos --
 [*] #TK-5954: A cidade de Saquarema/RJ, trocou a URL de produção, o provedor continua

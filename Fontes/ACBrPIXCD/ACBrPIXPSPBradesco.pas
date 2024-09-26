@@ -64,9 +64,6 @@ type
   public
     constructor Create(aOwner: TComponent); override;
     procedure Autenticar; override;
-  published
-    property ClientID;
-    property ClientSecret;
   end;
 
 implementation
@@ -122,7 +119,7 @@ begin
     qp.Free;
   end;
   
-  Http.Protocol := '1.2';
+  Http.Protocol := '1.1';
   Http.UserName := ClientID;
   Http.Password := ClientSecret;
   BasicAutentication := 'Basic '+EncodeBase64(ClientID + ':' + ClientSecret);

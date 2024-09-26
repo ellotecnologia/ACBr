@@ -957,6 +957,8 @@ type
     FModalidadeCobrancao        : Integer;
     FCarteira                   : Integer;
     FCarteiraVariacao           : Integer;
+    FNumeroProtocolo            : Integer;
+    FIdentificador              : Integer;
     procedure SetContaCaucao(const Value: Integer);
     procedure SetCnpjCpfPagador(const Value: string);
     procedure SetDataVencimento(const Value: TACBrDataPeriodo);
@@ -984,6 +986,8 @@ type
     property modalidadeCobranca         : integer                      read FModalidadeCobrancao        write SetModalidadeCobranca;
     property carteira                   : Integer                      read FCarteira                   write SetCarteira;
     property carteiraVariacao           : Integer                      read FCarteiraVariacao           write FCarteiraVariacao;
+    property NumeroProtocolo            : Integer                      read FNumeroProtocolo            write FNumeroProtocolo;
+    property Identificador              : Integer                      read FIdentificador              write FIdentificador;
   end;
 
   { TACBrWebService }
@@ -2084,7 +2088,7 @@ Uses {$IFNDEF NOGUI}Forms,{$ENDIF}
      ACBrBancoSafraBradesco,
      ACBrBancoAilos,
      ACBrBancoBrasilSicoob,
-     ACBrUniprime,
+     ACBrBancoUniprime,
      ACBrBancoUnicredRS,
      ACBrBancoBanese,
      ACBrBancoCredisis,
@@ -2093,7 +2097,7 @@ Uses {$IFNDEF NOGUI}Forms,{$ENDIF}
      ACBrBancoCitiBank,
      ACBrBancoABCBrasil,
      ACBrBancoDaycoval,
-     ACBrSisprime,
+     ACBrBancoSisprime,
      ACBrBancoPine,
      ACBrBancoPineBradesco,
      ACBrBancoUnicredSC,
@@ -2203,6 +2207,8 @@ begin
   FIndiceContinuidade := 0;
   FModalidadeCobrancao:= 0;
   FCarteira:= 0;
+  FNumeroProtocolo := 0;
+  FIdentificador := 0;
 end;
 
 destructor TACBrBoletoWSFiltroConsulta.Destroy;
@@ -4307,6 +4313,9 @@ begin
       Configuracoes.WebService.Filtro.carteira := IniBoletos.ReadInteger(Sessao,'Carteira', 0 );
       Configuracoes.WebService.Filtro.carteiraVariacao := IniBoletos.ReadInteger(Sessao,'CarteiraVariacao', 0 );
       Configuracoes.WebService.Filtro.indiceContinuidade := IniBoletos.ReadInteger(Sessao,'IndiceContinuidade', 0 );
+      Configuracoes.WebService.Filtro.NumeroProtocolo := IniBoletos.ReadInteger(Sessao,'NumeroProtocolo', 0 );
+      Configuracoes.WebService.Filtro.Identificador   := IniBoletos.ReadInteger(Sessao,'Identificador', 0 );
+
 
       Result := True;
     end;
@@ -4711,7 +4720,7 @@ begin
      cobBancoCECRED,
      cobBancoAilos           : fBancoClass := TACBrBancoAilos.Create(Self);          {085}
      cobCrediSIS             : fBancoClass := TACBrBancoCrediSIS.Create(Self);       {097}
-     cobUniprime             : fBancoClass := TACBrUniprime.create(Self);            {099}
+     cobUniprime             : fBancoClass := TACBrBancoUniprime.create(Self);       {099}
      cobCaixaEconomica       : fBancoClass := TACBrCaixaEconomica.create(Self);      {104}
      cobCaixaSicob           : fBancoClass := TACBrCaixaEconomicaSICOB.create(Self); {104}
      cobBancoBocomBBM        : fBancoClass := TACBrBancoBocomBBM.create(Self);       {107}
@@ -4721,7 +4730,7 @@ begin
      cobBancoMercantil       : fBancoClass := TACBrBancoMercantil.create(Self);      {389}
      cobSicred               : fBancoClass := TACBrBancoSicredi.Create(Self);        {748}
      cobBancoob,
-     cobBancoSicoob          : fBancoClass := TACBrSicoob.create(Self);             {756}
+     cobBancoSicoob          : fBancoClass := TACBrBancoSicoob.create(Self);         {756}
      cobHSBC                 : fBancoClass := TACBrBancoHSBC.create(Self);           {399}
      cobBicBanco             : fBancoClass := TACBrBancoBic.create(Self);            {237}
      cobBradescoSICOOB       : fBancoClass := TAcbrBancoBradescoSICOOB.create(Self); {237}
@@ -4733,7 +4742,7 @@ begin
      cobBancoABCBrasil       : fBancoClass := TACBrBancoABCBrasil.Create(Self);      {246}
      cobDaycoval             : fBancoClass := TACBrBancoDaycoval.Create(Self);       {745}
      cobUniprimeNortePR,
-     cobBancoSisprime        : fBancoClass := TACBrSisprime.Create(Self);            {084}
+     cobBancoSisprime        : fBancoClass := TACBrBancoSisprime.Create(Self);       {084}
      cobBancoPine            : fBancoClass := TACBrBancoPine.create(Self);
      cobBancoPineBradesco    : fBancoClass := TACBrBancoPineBradesco.create(Self);   {643 + 237}
      cobUnicredSC            : fBancoClass := TACBrBancoUnicredSC.Create(Self);      {136 + 237}
