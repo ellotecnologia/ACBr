@@ -827,12 +827,8 @@ var
   iPos: integer;
   sValor: string;
 begin
-  sValor := CurrToStrF(AVAlor, ffCurrency, 2);
-  iPos := pos(sValor, ',');
-  if iPos > 0 then
-    sValor := PadRight(sValor, (length(sValor) - iPos), '0');
-
-  Result := sValor;
+  sValor := CurrToStrF(AVAlor, ffFixed, 2);
+  Result := StringReplace(sValor, ',', '', []);
 end;
 
 class function TACBrTEFElginUtils.FormataComprovante(const Comprovante: string
