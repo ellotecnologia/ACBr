@@ -183,6 +183,7 @@ procedure TACBrTEFAPIClassElgin.InicializarChamadaAPI(AMetodoOperacao: TACBrTEFA
 begin
   inherited;
   Iniciar();
+  fpACBrTEFAPI.ConfirmarTransacoesPendentes;
 end;
 
 function TACBrTEFAPIClassElgin.Iniciar: String;
