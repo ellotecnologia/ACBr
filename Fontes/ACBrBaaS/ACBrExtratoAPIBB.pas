@@ -85,7 +85,7 @@ type
     findicadorTipoLancamento: Integer;
     fnumeroContaContrapartida: String;
     fnumeroCpfCnpjContrapartida: Integer;
-    fnumeroDocumento: Integer;
+    fnumeroDocumento: Int64;
     fnumeroLote: Integer;
     ftextoDescricaoHistorico: String;
     ftextoDvContaContrapartida: String;
@@ -107,7 +107,7 @@ type
     property dataMovimento: TDateTime read fdataMovimento write fdataMovimento;
     property codigoAgenciaOrigem: Integer read fcodigoAgenciaOrigem write fcodigoAgenciaOrigem;
     property numeroLote: Integer read fnumeroLote write fnumeroLote;
-    property numeroDocumento: Integer read fnumeroDocumento write fnumeroDocumento;
+    property numeroDocumento: Int64 read fnumeroDocumento write fnumeroDocumento;
     property codigoHistorico: String read fcodigoHistorico write fcodigoHistorico;
     property textoDescricaoHistorico: String read ftextoDescricaoHistorico write ftextoDescricaoHistorico;
     property valorLancamento: Double read fvalorLancamento write fvalorLancamento;
@@ -562,6 +562,8 @@ begin
     begin
       with Lancamentos.New do
       begin
+        if NaoEstaZerado(flistaLancamento[i].numeroDocumento) then
+          NumeroDocumento := IntToStr(flistaLancamento[i].numeroDocumento);
         DataLancamento := flistaLancamento[i].dataLancamento;
         DataMovimento := flistaLancamento[i].dataMovimento;
         Valor := flistaLancamento[i].valorLancamento;

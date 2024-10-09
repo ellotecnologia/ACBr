@@ -43,6 +43,134 @@ Símbolo : Significado
 [-]     : Correção de Bug (assim esperamos)
 
 
+04/10/2024
+-- TcheInfo.GravarXml/Tecnos.GravarXml/Thema.GravarXml/Tinus.GravarXml --
+-- Tiplan.GravarXml/Tributus.GravarXml/VersaTecnologia.GravarXml --
+-- Virtual.GravarXml/WebFisco.GravarXml/WebISS.GravarXml --
+[*] Remoção de units declaradas em uses e não utilizadas.
+  Por: Italo Giurizzato Junior
+-- ACBrNFSeXServicos --
+[*] #TK-6053 - A cidade de Belford Roxo/RJ mudou a porta da URL de produção, 
+    o provedor continua o mesmo.
+   Por: Anderson Grolli
+[*] A cidade de Laranjal Paulista/SP mudou as URL, o provedor continua o mesmo.
+   Por: Junior NBJ
+
+03/10/2024
+-- NFEletronica.Provider --
+[+] Implementado os métodos de Consultas e Cancelamento, fica faltando agora
+    as rotinas que tratam dos retornos dos métodos.
+  Por: Italo Giurizzato Junior
+-- RLZ.GravarXml/Saatri.GravarXml/SafeWeb.GravarXml/SH3.GravarXml --
+-- Siam.GravarXml/SiapNet.GravarXml/Siappa.GravarXml/SiapSistemas.GravarXml --
+-- SigCorp.GravarXml/Sigep.GravarXml/SigISS.GravarXml/SigISSWeb.GravarXml --
+-- SilTecnologia.GravarXml/SimplISS.GravarXml/SisPMJP.GravarXml --
+-- Sistemas4R.GravarXml/SmarAPD.GravarXml/SoftPlan.GravarXml --
+-- SpeedGov.GravarXml/Sudoeste.GravarXml/SystemPro.GravarXml --
+[*] Remoção de units declaradas em uses e não utilizadas.
+  Por: Italo Giurizzato Junior
+-- ACBrNFSeXServicos --
+[*] A cidade de Sao Francisco do Sul/SC mudou a versão e as URL, o provedor continua
+    o mesmo.
+   Por: Alex Leiva
+[*] Incluído o novo provedor e a nova URL de produção para a cidade de Muriaé/MG,
+    mas essa alteração só deve ser efetivada a partir do dia 31/10/2024.
+   Por: Paulo R G Oliveira
+
+02/10/2024
+-- Lexsom.GravarXml/Link3.GravarXml/MegaSoft.GravarXml/Mitra.GravarXml --
+-- ModernizacaoPublica.GravarXml/NFEletronica.Provider/NFSeBrasil.GravarXml --
+-- NotaInteligente.GravarXml/PadraoNacional.GravarXml/Prescon.GravarJson --
+-- Prodata.GravarXml/Pronim.GravarXml/Publica.GravarXml --
+[*] Remoção de units declaradas em uses e não utilizadas.
+  Por: Italo Giurizzato Junior
+-- Diversos --
+[*] #TK-6045 - Alteração visando a possibilidade de não imprimir a data/hora de impressão
+    no DANFSE com base se o usuário foi informado ou não.
+  Por: Italo Giurizzato Junior
+-- ACBrNFSeXServicos --
+[*] Incluído o novo provedor e a nova URL de produção para a cidade de Umuarama/PR,
+    mas essa alteração só deve ser efetivada a partir do dia 31/10/2024.
+   Por: Italo Giurizzato Junior
+[+] Incluída a cidade de Recreio/MG, o provedor é ISSLegal.
+   Por: AltC Sistemas
+[+] Incluída a cidade de Franco da Rocha/SP, o provedor é SigCorp.
+-- SigCorp.Provider --
+[*] Alterações visando atender a cidade de Franco da Rocha, pois esta usa 
+    uma variação do webservice.
+   Por: Italo Giurizzato Junior
+[+] #TK-6039 - Incluída a cidade de Santana de Parnaiba/SP, o provedor é NFEletronica.
+   Por: Rodrigo Alvim
+-- Diversos --
+[+] Implementado o provedor NFEletronica que segue a versão 1 do layout da ABRASF.
+  Por: Italo Giurizzato Junior
+
+30/09/2024
+-- iiBrasil.GravarXml/Infisc.GravarXml/IPM.GravarXml/ISSBarueri.GravarXml --
+-- ISSCambe.GravarXml/ISSCampinas.GravarXml/ISSCuritiba.GravarXml/ISSDigital.GravarXml --
+-- ISSDSF.GravarXml/ISSe.GravarXml/ISSGoiania.GravarXml/ISSJoinville.GravarXml --
+-- ISSLencois.GravarXml/ISSNet.GravarXml/ISSPortoVelho.GravarXml/ISSRecife.GravarXml --
+-- ISSRio.GravarXml/ISSSalvador.GravarXml/ISSSaoPaulo.GravarXml --
+-- ISSSJP.GravarXml/ISSVitoria.GravarXml --
+[*] Remoção de units declaradas em uses e não utilizadas.
+  Por: Italo Giurizzato Junior
+-- ACBrNFSeXServicos --
+[*] #TK-6027 - A cidade de Itu/SP vai mudar para o provedor Giss.
+    A data prevista é 31/10/2024, já se enconta no arquivo INI a nova URL comentada.
+   Por: Carlos Júnior
+[+] #TK-6034 - Incluída a cidade de Carnaubal/CE, o provedor é SpeedGov.
+   Por: Luiz Vaz
+-- fintelISS.GravarXml/Fiorilli.GravarXml/Fisco.GravarXml/Futurize.GravarXml --
+-- GeisWeb.GravarXml/GestaoISS.GravarXml/Giap.GravarXml/Ginfes.GravarXml --
+-- Giss.GravarXml/GovDigital.GravarXml/Governa.GravarXml --
+[*] Remoção de units declaradas em uses e não utilizadas.
+  Por: Italo Giurizzato Junior
+
+27/09/2024
+-- Fiorilli.GravarXML --
+[*] #TK-6033: Altera o número de ocorrências do código país tomador para tornar opcional
+   Por: Matheus Faria
+-- ACBrNFSeXServicos --
+[+] #TK-6026 - Incluída a cidade de Guarani/MG, o provedor é Futurize.
+   Por: Everson Clei
+[+] #TK-6031 - Incluída a cidade de Turvo/PR, o provedor é Equiplano.
+   Por: Anderson Grolli
+[*] #TK-6032 - A cidade de Ituporanga/SC mudou a URL, o provedor continua o mesmo.
+   Por: Prime Software
+[*] #TK-6030 - A cidade de Xangri-Lá/RS mudou a URL, o provedor continua o mesmo.
+   Por: Igor AcertSoft
+
+26/09/2024
+-- ACBrNFSeXServicos --
+[+] #TK-6024 - Incluída a cidade de Arceburgo/MG, o provedor é SimplISS.
+[+] #TK-6024 - Incluída a cidade de Monte Santo de Minas/MG, o provedor é EL versão 2.04
+[+] #TK-6024 - Incluída a cidade de Munzambinho/MG, o provedor é eReceita versão 2.02
+[+] #TK-6024 - Incluída a cidade de Cajuru/SP, o provedor é Conam.
+[*] #TK-6024 - A cidade de São José do Rio Pardo/SP, trocou de provedor, agora é GovDigital.
+   Por: Henrique de Souza
+-- ACBrNFSeXGravarXml_ABRASFv2/EloTech.GravarXml/EloTech.LerXml --
+[*] Alterado para gerar as tags Quantidade e ValorUnitario com 5 casas decimais.
+  Por: Jaido Mini
+-- DeISS.GravarXml/Desenvolve.GravarXml/Digifred.GravarXml --
+-- eGoverneISS.GravarXml/eISS.GravarJson/EL.GravarXml --
+-- Equiplano.GravarXml/eReceita.GravarXml/Etherium.GravarXml --
+[*] Remoção de units declaradas em uses e não utilizadas.
+  Por: Italo Giurizzato Junior
+-- Bauhaus.GravarJson/Betha.GravarXml/BHISS.GravarXml/Centi.GravarXml --
+-- CIGA.GravarXml/Conam.GravarXml/Coplan.GravarXml/CTA.GravarXml --
+-- CTAConsult.GravarXml --
+[*] Remoção de units declaradas em uses e não utilizadas.
+  Por: Italo Giurizzato Junior
+-- GeisWeb.Provider --
+[*] #TK-6016 - Alterações visando a mudança das URLs do provedor GeisWeb.
+   Por: Italo Giurizzato Junior
+-- ACBrNFSeXServicos --
+[*] #TK-6016 - Alterado as URLs de todas as cidades atendidas pelo provedor
+    GeisWeb.
+   Por: ES System
+[+] #TK-6015 - Incluída a cidade de Corrego Fundo/MG, o provedor é NFSeBrasil.
+   Por: João Antônio
+
 25/09/2024
 -- Actcon.GravarXml/Adm.GravarXml/AEG.GravarXml/Asten.GravarXml --
 -- ISSCampinas.GravarXml --
