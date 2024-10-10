@@ -712,6 +712,8 @@ type
     function ValidarMMAA(const AString: String): Boolean;
     function ValidarDDMMAA(const AString: String): Boolean;
     function ValidarModulo10(const AString: String): Boolean;
+
+    procedure FinalizarPGWebLib;
   public
     constructor Create;
     destructor Destroy; override;
@@ -1162,7 +1164,7 @@ destructor TACBrTEFPGWebAPI.Destroy;
 begin
   //GravarLog('TACBrTEFPGWebAPI.Destroy');
   fOnGravarLog := nil;
-  DesInicializar;
+  FinalizarPGWebLib;
   fDadosTransacao.Free;
   fParametrosAdicionais.Free;
   fTimerOcioso.Enabled := False;
@@ -1251,8 +1253,6 @@ begin
     Exit;
 
   GravarLog('TACBrTEFPGWebAPI.DesInicializar');
-  if Assigned(xPW_End) then
-    xPW_End;
 
   UnLoadLibFunctions;
   SetPGWebLibPermiteAtualiza(fAtualizaPGWebLibAutomaticamente);
@@ -2962,6 +2962,21 @@ begin
   UnLoadLibrary( sLibName );
   fCarregada := False;
   ClearMethodPointers;
+end;
+
+procedure TACBrTEFPGWebAPI.FinalizarPGWebLib;
+begin
+  if not fInicializada then
+    Exit;
+
+  GravarLog('TACBrTEFPGWebAPI.FinalizarPGWebLib');
+  
+  if Assigned(xPW_End)
+  then xPW_End
+  else UnLoadLibFunctions;
+
+  SetPGWebLibPermiteAtualiza(fAtualizaPGWebLibAutomaticamente);
+  fInicializada := False;
 end;
 
 end.
