@@ -1251,8 +1251,6 @@ begin
     Exit;
 
   GravarLog('TACBrTEFPGWebAPI.DesInicializar');
-  if Assigned(xPW_End) then
-    xPW_End;
 
   UnLoadLibFunctions;
   SetPGWebLibPermiteAtualiza(fAtualizaPGWebLibAutomaticamente);
@@ -2957,9 +2955,12 @@ begin
     Exit;
 
   //GravarLog('TACBrTEFPGWebAPI.UnLoadDLLFunctions');
-
-  sLibName := LibFullName;
-  UnLoadLibrary( sLibName );
+  if Assigned(xPW_End) then
+    xPW_End
+  else begin
+     sLibName := LibFullName;
+     UnLoadLibrary( sLibName );
+  end;
   fCarregada := False;
   ClearMethodPointers;
 end;
