@@ -45,6 +45,35 @@ Símbolo : Significado
 [-]     : Correção de Bug (assim esperamos)
 
 
+29/10/2024
+-- ACBrCTe.XmlHandler --
+[-] #TK-6152: Correção, para a leitura de CT-e OS e também a tag Hora (previsão de entrega).
+   Por: Jeanny Paiva Lopes
+
+28/10/2024
+-- ACBrCTeDACTeRLRetrato/pcteConversaoCTe --
+[+] #TK-6143: Implementado em Fortes Report o DACTE para o CT-e Simplificado.
+   Por: Italo Giurizzato Junior
+
+24/10/2024
+-- pcteCTeW --
+[*] #TK-6144: Alteração visando gerar o grupo infCteSub quando for o CT-e Simplificado.
+   Por: C4Dev
+-- ACBrCTe.RetEnvEvento --
+[-] #TK-6159: Correção para a leitura do grupo Signature ao ler o XML completo do
+    Evento (*-procEventoCTe.xml)
+   Por: Italo Giurizzato Junior
+
+14/10/2024
+-- ACBrCTe.XmlHandler --
+[-] #TK-6088: Correção, não estava lendo a tag indIEToma.
+-- pcteCTeW --
+[*] #TK-6088: Acrescentado a condição para checar o conteúdo de xObs antes de gerar
+    ou não o grupo: compl
+   Por: dev Fortes
+[+] Incluído a leitura do grupo <total> e suas tags.
+   Por: Italo Giurizzato Junior
+
 09/10/2024
 -- ACBrCTe --
 [*] #TK-6050: Ajuste visando a correta geração do URL-QRCode quando emitido em contingência.

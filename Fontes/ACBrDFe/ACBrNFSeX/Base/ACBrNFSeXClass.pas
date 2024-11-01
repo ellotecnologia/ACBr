@@ -1069,6 +1069,7 @@ type
     FQtdParcela: Integer;
     FParcelas: TParcelasCollection;
     // Provedor NFEletronica
+    FDataCriacao: TDateTime;
     FDataVencimento: TDateTime;
     FInstrucaoPagamento: string;
     FCodigoVencimento: Integer;
@@ -1082,6 +1083,7 @@ type
     property QtdParcela: Integer read FQtdParcela write FQtdParcela;
     property Parcelas: TParcelasCollection read FParcelas write SetParcelas;
     // Provedor NFEletronica
+    property DataCriacao: TDateTime read FDataCriacao write FDataCriacao;
     property DataVencimento: TDateTime read FDataVencimento write FDataVencimento;
     property InstrucaoPagamento: string read FInstrucaoPagamento write FInstrucaoPagamento;
     property CodigoVencimento: Integer read FCodigoVencimento write FCodigoVencimento;
@@ -1422,6 +1424,7 @@ type
     FDescricaoCodigoTributacaoMunicipio: string;
     FEqptoRecibo: string;
     FVencimento: TDateTime;
+    FtpXML: TtpXML;
 
     procedure Setemail(const Value: TemailCollection);
     procedure SetInformacoesComplementares(const Value: string);
@@ -1545,6 +1548,9 @@ type
     // Provedor RLZ
     property Vencimento: TDateTime read FVencimento write FVencimento;
 
+    // Utilizado para detectar se os dados que se encontram nas classes foram
+    // lidos de um XML RPS ou NFS-e
+    property tpXML: TtpXML read FtpXML write FtpXML;
   end;
 
   TSubstituicaoNfse = class(TObject)
@@ -1683,6 +1689,8 @@ begin
   FIdentificacaoTomador := TIdentificacao.Create;
   FEndereco := TEndereco.Create;
   FContato := TContato.Create;
+
+  FTomadorExterior := snNao;
 end;
 
 destructor TDadosTomador.Destroy;

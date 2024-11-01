@@ -44,6 +44,34 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+21/10/2024
+-- pcnConversaoNFe --
+[+] acrescentado o enumerador: teRegistroPassagemMDFe.
+   Por: Italo Giurizzato Junior
+-- ACBrDFeDANFeReport --
+[*] Adiciona validação que verifica se propriedade tem valor diferente de nil antes de utilizar.
+   Por: Waldir Paim 
+
+17/10/2024
+-- ACBrNFe.XmlReader --
+[-] Realizado correções na leitura dos impostos: ICMS, PIS e COFINS.
+   Por: Italo Giurizzato Junior
+
+11/10/2024
+-- ACBrDFeDANFeReport, ACBrDFeDANFeFRDM --
+[*] #TK-6038: Ajustes visando a correta quebra de linhas nas observações quando for criada pelo componente.
+   Por: Diogo Loff 
+-- pcnNFeConsts --
+[+] #TK-5795: Adiciona as constantes que haviam sido criadas previamente em ACBrDFeConsts
+   Por: Diego Folieni
+-- Diversos --
+[+] #TK-5975: Adequa o componente ACBrNFe as modificações propostas pela NT2024/003
+   Por: Diego Folieni 
+[+] Implementado a propriedade de configuração: ExibeCampoDuplicata com o valor
+    padrão True que permite definir se o quadro referente as duplicatas vai ser
+    impresso ou não. 
+   Por: Italo Giurizzato Junior
+
 01/10/2024
 -- ACBrNFe.RetConsSit --
 [*] Ajustes necessários para utilizar a unit: ACBrDFeComum.Proc

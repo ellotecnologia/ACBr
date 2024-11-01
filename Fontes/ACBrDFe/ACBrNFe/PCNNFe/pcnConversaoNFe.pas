@@ -388,6 +388,12 @@ type
 const
   TtpMotivoArrayStrings: array[TtpMotivo] of string = ('1', '2', '3', '4');
 
+type
+  TtpGuia = (tpgNenhum, tpgGTA, tpgTTA, tpgDTA, tpgATV, tpgPTV, tpgGTV, tpgGuiaFlorestal);
+
+const
+  TtpGuiaArrayStrings: array[TtpGuia] of string = ('', '1', '2', '3', '4', '5', '6', '7');
+
 {
   Declaração das funções de conversão
 }
@@ -465,6 +471,9 @@ function StrTomotRedAdRem(out ok: boolean; const s: string): TmotRedAdRem;
 
 function tpMotivoToStr(const t: TtpMotivo): string;
 function StrTotpMotivo(out ok: boolean; const s: string): TtpMotivo;
+
+function TtpGuiaToStr(const t: TtpGuia): string;
+function StrToTtpGuia(const s: String): TtpGuia;
 
 implementation
 
@@ -1073,7 +1082,7 @@ begin
              '210240', '610600', '610614', '790700', '990900', '990910',
              '110180', '610554', '610510', '610615', '610610', '110130',
              '110131', '110150', '610130', '610131', '610601', '110192',
-             '110193', '610514', '610500', '110750', '110751'],
+             '110193', '610514', '610500', '110750', '110751', '510630'],
             [teNaoMapeado, teCCe, teCancelamento, teCancSubst, teEPECNFe,
              tePedProrrog1, tePedProrrog2, teCanPedProrrog1, teCanPedProrrog2,
              teManifDestConfirmacao, teManifDestCiencia,
@@ -1086,7 +1095,7 @@ begin
              teComprEntregaCTe, teCancComprEntregaCTe, teCTeCancelado,
              teInsucessoEntregaNFe, teCancInsucessoEntregaNFe,
              teRegPasNfeProMDFeCte, teRegistroPassagemNFe, teConcFinanceira,
-             teCancConcFinanceira]);
+             teCancConcFinanceira, teRegistroPassagemMDFe]);
 end;
 
 function LayOutToServico(const t: TLayOut): String;
@@ -1607,6 +1616,27 @@ function StrTotpMotivo(out ok: boolean; const s: string): TtpMotivo;
 begin
   result := StrToEnumerado(ok, s, ['1', '2', '3', '4'],
     [tmNaoEncontrado, tmRecusa, tmInexistente, tmOutro]);
+end;
+
+
+function TtpGuiaToStr(const t: TtpGuia): string;
+begin
+  Result := TtpGuiaArrayStrings[t];
+end;
+
+function StrToTtpGuia(const s: String): TtpGuia;
+var
+  idx: TtpGuia;
+begin
+  for idx:= Low(TtpGuiaArrayStrings) to High(TtpGuiaArrayStrings)do
+  begin
+    if(TtpGuiaArrayStrings[idx] = s)then
+    begin
+      Result := idx;
+      exit;
+    end;
+  end;
+  raise EACBrException.CreateFmt('Valor string inválido para TtpGuia: %s', [s]);
 end;
 
 initialization
