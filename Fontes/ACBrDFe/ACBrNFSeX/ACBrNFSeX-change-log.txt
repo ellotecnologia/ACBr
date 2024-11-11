@@ -43,6 +43,39 @@ Símbolo : Significado
 [-]     : Correção de Bug (assim esperamos)
 
 
+04/11/2024
+-- ISSBarueri.Provider --
+[*] #TK-6197: Ajustes na montagem do conteudo do grupo <Body> do serviço: 
+    ConsultaNFeRecebidaPeriodo
+   Por: Italo Giurizzato Junior
+[*] #TK-6195: Alterada a função que converte de string para data, estava ocorrendo
+    erro na conversão.
+   Por: Jéter Rabelo Ferreira
+-- Sintese.Provider --
+[*] #TK-6194: Ajustes para usar o SoapAction correto em função da cidade.
+   Por: João Antônio
+-- ACBrNFSeXServicos --
+[*] #TK-6194: Incluída a URL de SoapAction para a cidade de Bocaiuva/MG, o provedor
+    é o mesmo.
+   Por: João Antônio
+[*] #TK-6199: Alterado a URL de produção da cidade de Antonio Prado/RS, o provedor é
+    é o mesmo.
+   Por: Daniel Ostoic - DNA
+
+01/11/2024
+-- IPM.LerXML --
+[*] #TK-6175: Adiciona condicação para preencher ISSRetido quando houver valor.
+   Por: Diego Folieni
+-- ISSSaoPaulo.Provider --
+[*] #TK-6180: Implementado a consulta ConsultarNFSeServicoPrestado e revisado
+    a implementação do ConsultarNFSeServicoTomado.
+   Por: Italo Giurizzato Junior
+-- ACBrNFSeXServicos --
+[+] #TK-6192: Incluída a cidade de Lambari D Oeste/MT, o provedor é Fiorilli.
+   Por: Diego Reckziegel
+[+] #TK-6189: Incluída a cidade de Itapoa/SC, o provedor é IPM.
+   Por: C4Dev
+
 31/10/2024
 -- NFEletronica.Provider --
 [*] #TK-6191: Correção, para gerar o ConsultarLinkNFSe corretamente.
