@@ -1251,8 +1251,8 @@ begin
     Exit;
 
   GravarLog('TACBrTEFPGWebAPI.DesInicializar');
-  if Assigned(xPW_End) then
-    xPW_End;
+//  if Assigned(xPW_End) then
+//    xPW_End;
 
   UnLoadLibFunctions;
   SetPGWebLibPermiteAtualiza(fAtualizaPGWebLibAutomaticamente);
