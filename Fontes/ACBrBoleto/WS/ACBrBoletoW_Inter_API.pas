@@ -139,7 +139,7 @@ begin
     end;
 
 
-  if Boleto.Configuracoes.WebService.Ambiente = taProducao then
+  if Boleto.Configuracoes.WebService.Ambiente = tawsProducao then
    FPURL := IfThen(Boleto.Cedente.CedenteWS.IndicadorPix, C_URLPIX, C_URL)
   else
    FPURL := IfThen(Boleto.Cedente.CedenteWS.IndicadorPix, C_URL_HOMPIX, C_URL_HOM);
@@ -266,6 +266,7 @@ var
   LDocumento, LSituacaoAbertos, LSituacaoBaixados, LSituacaoVencidos, LSituacaoCancelados: String;
   LFiltroDataVencimento,LFiltroDataEmissao, LFiltroDataPagamento : string;
   LOrdenarDataEmissao, LOrdenarDataVencimento, LOrdenarDataSituacao : string;
+  LPaginacaoQuantidade, LPaginacaoAtual: string;
 begin
   if Assigned(Boleto.Configuracoes.WebService.Filtro) then
   begin
@@ -281,6 +282,8 @@ begin
       LOrdenarDataEmissao   := 'DATA_EMISSAO';
       LOrdenarDataVencimento:= 'DATA_VENCIMENTO';
       LOrdenarDataSituacao  := 'DATA_VENCIMENTO';
+      LPaginacaoQuantidade  := 'paginacao.itensPorPagina';
+      LPaginacaoAtual       := 'paginacao.paginaAtual';
     end
     else
     begin
@@ -294,6 +297,8 @@ begin
       LOrdenarDataEmissao   := 'DATASITUACAO';
       LOrdenarDataVencimento:= 'DATAVENCIMENTO';
       LOrdenarDataSituacao  := 'DATASITUACAO';
+      LPaginacaoQuantidade  := 'itensPorPagina';
+      LPaginacaoAtual       := 'paginaAtual';
     end;
 
     LDocumento := OnlyNumber
@@ -303,10 +308,10 @@ begin
     LConsulta.Delimiter := '&';
     try
 
-      LConsulta.Add( 'itensPorPagina=1000' );
+      LConsulta.Add( LPaginacaoQuantidade+'=1000' );
 
       if Boleto.Configuracoes.WebService.Filtro.indiceContinuidade > 0 then
-        LConsulta.Add('paginaAtual='+ FloatToStr(Boleto.Configuracoes.WebService.Filtro.indiceContinuidade));
+        LConsulta.Add(LPaginacaoAtual+'='+ FloatToStr(Boleto.Configuracoes.WebService.Filtro.indiceContinuidade));
 
       case Boleto.Configuracoes.WebService.Filtro.indicadorSituacao of
         isbBaixado:
@@ -340,8 +345,8 @@ begin
               LConsulta.Add( 'ordenarPor='+LOrdenarDataVencimento );
             end;
 
-            if Boleto.Configuracoes.WebService.Filtro.dataRegistro.DataInicio > 0
-            then
+            if Boleto.Configuracoes.WebService.Filtro.dataRegistro.DataInicio > 0 then
+            {por data de registro, devolve qq status, pois o boleto pode ter sido pago ou baixado}
             begin
               LConsulta.Add( 'filtrarDataPor='+LFiltroDataEmissao );
               LConsulta.Add('situacao='+LSituacaoAbertos);
@@ -387,7 +392,7 @@ end;
 
 function TBoletoW_Inter_API.ValidaAmbiente: Integer;
 begin
-  result := StrToIntDef(IfThen(Boleto.Configuracoes.WebService.Ambiente = taProducao, '1','2'), 2);
+  result := StrToIntDef(IfThen(Boleto.Configuracoes.WebService.Ambiente = tawsProducao, '1','2'), 2);
 end;
 
 procedure TBoletoW_Inter_API.RequisicaoJson;
@@ -650,7 +655,7 @@ begin
             if Boleto.Cedente.CedenteWS.IndicadorPix then
               begin
                 LJsonDesconto.AddPair('codigo','VALORFIXODATAINFORMADA');
-                LJsonDesconto.AddPair('valor',ATitulo.ValorDesconto);
+                LJsonDesconto.AddPair('taxa',ATitulo.ValorDesconto);
                 LJsonDesconto.AddPair('quantidadeDias',(ATitulo.Vencimento - ATitulo.DataDesconto));
               end
             else
@@ -818,12 +823,12 @@ begin
 
   if Assigned(OAuth) then
   begin
-    if OAuth.Ambiente = taHomologacao then
-      OAuth.URL := C_URL_OAUTH_HOM
+    if OAuth.Ambiente = tawsProducao then
+      OAuth.URL := C_URL_OAUTH_PROD
     else
-      OAuth.URL := C_URL_OAUTH_PROD;
+      OAuth.URL := C_URL_OAUTH_HOM;
 
-    OAuth.Payload := OAuth.Ambiente = taHomologacao;
+    OAuth.Payload := not (OAuth.Ambiente = tawsProducao);
   end;
 end;
 

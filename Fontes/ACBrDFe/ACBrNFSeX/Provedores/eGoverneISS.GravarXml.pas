@@ -80,8 +80,6 @@ var
 begin
   Configuracao;
 
-  Opcoes.QuebraLinha := FpAOwner.ConfigGeral.QuebradeLinha;
-
   ListaDeAlertas.Clear;
 
   FDocument.Clear();
@@ -163,7 +161,11 @@ begin
     NFSeNode.AppendChild(AddNode(tcStr, '#1', 'SimplesNacional', 4, 5, 1,
                                                                   'false', ''));
 
-  NFSeNode.AppendChild(AddNode(tcStr, '#1', 'SubstituicaoTributaria', 5, 5, 1,
+  if Nfse.Servico.Valores.IssRetido = stRetencao then
+    NFSeNode.AppendChild(AddNode(tcStr, '#1', 'SubstituicaoTributaria', 4, 5, 1,
+                                                                    'true', ''))
+  else
+    NFSeNode.AppendChild(AddNode(tcStr, '#1', 'SubstituicaoTributaria', 5, 5, 1,
                                                                   'false', ''));
 
   if NFSE.Tomador.IdentificacaoTomador.CpfCnpj <> '' then

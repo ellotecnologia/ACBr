@@ -464,7 +464,7 @@ begin
   begin
     Result := xConfigurarDadosPDV(textoPinpad, versaoAC, nomeEstabelecimento, loja, identificadorPontoCaptura);
 
-    log('ConfigurarDadosPDV :' + TACBrTEFELginUtils.jsonify(Result).ToJson);
+    log('ConfigurarDadosPDV :' + Result);
     log('--> textoPinpad :' + textoPinpad);
     log('--> versaoAC :' + versaoAC);
     log('--> nomeEstabelecimento :' + nomeEstabelecimento);
@@ -484,7 +484,7 @@ begin
   begin
     Result := xConfirmarCapturaPinPad(tipoCaptura, dadosCaptura);
 
-    log('ConfirmarCapturaPinPad: ' + TACBrTEFELginUtils.jsonify(Result).ToJson);
+    log('ConfirmarCapturaPinPad: ' + Result);
     log('--> tipoCaptura: ' + IntToStr(tipoCaptura));
     log('--> dadosCaptura: ' + dadosCaptura);
   end
@@ -560,8 +560,8 @@ begin
   begin
     Result := XIniciarOperacaoTEF(dadosCaptura);
 
-    log('IniciarOperacaoTEF : ' + TACBrTEFELginUtils.jsonify((Result)).ToJson);
-    log('--> dadosCaptura : ' + TACBrTEFELginUtils.jsonify(dadosCaptura).ToJson);
+    log('IniciarOperacaoTEF : ' + Result);
+    log('--> dadosCaptura : ' + dadosCaptura);
   end
   else
     Result := nil;
@@ -594,7 +594,7 @@ begin
   begin
     Result := xRealizarColetaPinPad(tipoColeta, confirmar);
 
-    log('RealizarColetaPinPad: ' + TACBrTEFELginUtils.jsonify((Result)).ToJson);
+    log('RealizarColetaPinPad: ' + Result);
     log('--> tipoColeta: ' + IntToStr(tipoColeta));
     log('--> confirmar: ' + BoolToStr(confirmar));
   end
@@ -857,7 +857,6 @@ class function TACBrTEFElginUtils.FormatNumber(const AStr: string;
 var
   dotPos: integer;
   cleanString: string;
-  num: double;
   len: integer;
 begin
   cleanString := RemoveNonNumericChars(AStr);
@@ -894,13 +893,19 @@ begin
 end;
 
 class function TACBrTEFElginUtils.getComprovante(const resp: string; via: string): string;
+var Json: TACBrJSONObject;
 begin
-  if via = 'loja' then
-    Result := getStringValue(jsonify(resp), 'tef.comprovanteDiferenciadoLoja')
-  else if via = 'cliente' then
-    Result := getStringValue(jsonify(resp), 'tef.comprovanteDiferenciadoPortador')
-  else
-    Result := '';
+  Json := jsonify(resp);
+  try
+     if via = 'loja' then
+       Result := getStringValue(Json, 'tef.comprovanteDiferenciadoLoja')
+     else if via = 'cliente' then
+       Result := getStringValue(Json, 'tef.comprovanteDiferenciadoPortador')
+     else
+       Result := '';
+  finally
+     Json.Free;
+  end;
 end;
 
 class function TACBrTEFElginUtils.getIntegerValue(json: TACBrJSONObject;
@@ -918,13 +923,25 @@ begin
 end;
 
 class function TACBrTEFElginUtils.getRetorno(const resp: string): string;
+var Json: TACBrJSONObject;
 begin
-  Result := getStringValue(jsonify(resp), 'tef.retorno');
+  Json := jsonify(resp);
+  try
+     Result := getStringValue(Json, 'tef.retorno');
+  finally
+     Json.Free;
+  end;
 end;
 
 class function TACBrTEFElginUtils.getSequencial(const resp: string): string;
+var Json: TACBrJSONObject;
 begin
-  Result := getStringValue(jsonify(resp), 'tef.sequencial');
+  Json := jsonify(resp);
+  try
+     Result := getStringValue(Json, 'tef.sequencial');
+  finally
+     Json.Free;
+  end;
 end;
 
 class function TACBrTEFElginUtils.getStringValue(json: TACBrJSONObject;

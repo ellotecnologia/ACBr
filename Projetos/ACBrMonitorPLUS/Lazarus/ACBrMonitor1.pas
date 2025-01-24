@@ -468,6 +468,7 @@ type
     chECFSinalGavetaInvertido: TCheckBox;
     cbNCMForcarDownload: TCheckBox;
     cbxImprimeInscSuframa: TCheckBox;
+    ChkBoletoUseCertificadoHTTP: TCheckBox;
     ckbExibirMunicipioDescarregamento: TCheckBox;
     ChkPix: TCheckBox;
     chgDescricaoPagamento: TCheckGroup;
@@ -519,6 +520,7 @@ type
     edEntTXT: TEdit;
     edIBGECodNome: TEdit;
     edConsultarGTIN: TEdit;
+    edtBoletoKeySoftwareHouse: TEdit;
     edtQuebraDeLinha: TEdit;
     edtConsCNPJ: TEdit;
     edtBolMargemInferior: TEdit;
@@ -693,6 +695,7 @@ type
     edtTimeoutWebServicesBoleto: TSpinEdit;
     edtToken: TEdit;
     edtURLPFX: TEdit;
+    edtBoletoCodigoFlash: TEdit;
     edUSUCNPJ: TEdit;
     edUSUEndereco: TEdit;
     edUSUIE: TEdit;
@@ -870,6 +873,8 @@ type
     Label285: TLabel;
     Label286: TLabel;
     Label287: TLabel;
+    Label288: TLabel;
+    Label289: TLabel;
     lblConsCNPJ: TLabel;
     lblConsCNPJProvedor: TLabel;
     lblConCNPJSenha: TLabel;
@@ -5770,6 +5775,7 @@ begin
     edtBOLNumero.Text                 := Numero;
     edtBOLBairro.Text                 := Bairro;
     edtBOLCEP.Text                    := CEP;
+    edtBoletoCodigoFlash.Text         := CodigoFlash;
 
     CarregarListaDeCidades(UFtoCUF(UF));
     cbxBOLUF.ItemIndex                := cbxBOLUF.Items.IndexOf(UF);
@@ -5796,7 +5802,6 @@ begin
     with Conta do
     begin
       cbxBOLEmissao.ItemIndex          := RespEmis;
-
       edtModalidade.Text               := Modalidade;
       edtConvenio.Text                 := Convenio;
       cbxBOLBanco.ItemIndex            := Banco;
@@ -5821,6 +5826,7 @@ begin
       edtPrefixRemessa.Text            := PrefixArqRemessa;
       edtVersaoArquivo.Text            := VersaoArquivo;
       edtVersaoLote.Text               := VersaoLote;
+      edtBoletoKeySoftwareHouse.Text   := KeySoftwareHouse;
     end;
 
     with Layout do
@@ -5890,6 +5896,7 @@ begin
        cbSSLTypeBoleto.ItemIndex := SSLType;
        edtBolArquivoKey.Text := ArquivoKEY;
        edtBolArquivoCRT.Text := ArquivoCRT;
+       ChkBoletoUseCertificadoHTTP.Checked := CertificadoHTTP;
      end;
 
   end;
@@ -6776,7 +6783,8 @@ begin
       LayoutRemessa := c240
     else
       LayoutRemessa := c400;
-
+    Banco.LayoutVersaoArquivo := StrToIntDef(edtVersaoArquivo.text,0);
+    KeySoftwareHouse:= edtBoletoKeySoftwareHouse.text;
     DirArqRemessa   := PathWithDelim(deBolDirRemessa.Text);
     DirArqRetorno   := PathWithDelim(deBolDirRetorno.Text);
     LeCedenteRetorno:= chkLerBeneficiarioRetorno.Checked;
@@ -6797,7 +6805,7 @@ begin
     Configuracoes.Arquivos.PathGravarRegistro := PathWithoutDelim(edtPathLogBoleto.Text);
     Configuracoes.Arquivos.NomeArquivoLog     := ExtractFileName(edtArquivoLogBoleto.Text);
 
-    Configuracoes.WebService.Ambiente := TpcnTipoAmbiente( rgTipoAmbBoleto.ItemIndex );
+    Configuracoes.WebService.Ambiente := TTipoAmbienteWS( rgTipoAmbBoleto.ItemIndex );
     Configuracoes.WebService.Operacao := TOperacao( cbOperacaoBoleto.ItemIndex );
     Configuracoes.WebService.VersaoDF := edtVersaoBoleto.Text;
     Configuracoes.WebService.SSLHttpLib := TSSLHttpLib( cbHttpLibBoleto.ItemIndex );
@@ -6805,6 +6813,8 @@ begin
     Configuracoes.WebService.SSLType := TSSLType( cbSSLTypeBoleto.ItemIndex );
     Configuracoes.WebService.ArquivoKEY:=edtBolArquivoKey.Text;
     Configuracoes.WebService.ArquivoCRT:=edtBolArquivoCRT.Text;
+    Configuracoes.WebService.UseCertificateHTTP:=ChkBoletoUseCertificadoHTTP.Checked;
+
 
   end;
 
@@ -7720,6 +7730,7 @@ begin
      Cidade             := cbxEmitCidade.Text ;
      CEP                := ifthen(TrimedCEP = '', '', edtBOLCEP.Text);
      Complemento        := edtBOLComplemento.Text;
+     CodigoFlash        := edtBoletoCodigoFlash.Text;
      UF                 := cbxBOLUF.Text;
 
      with Conta do
@@ -7775,6 +7786,7 @@ begin
        PrefixArqRemessa         := edtPrefixRemessa.Text;
        VersaoArquivo            := edtVersaoArquivo.Text;
        VersaoLote               := edtVersaoLote.Text;
+       KeySoftwareHouse         := edtBoletoKeySoftwareHouse.Text;
      end;
 
      with Email do
@@ -7816,6 +7828,7 @@ begin
        SSLType := cbSSLTypeBoleto.ItemIndex;
        ArquivoKEY:=edtBolArquivoKey.Text;
        ArquivoCRT:=edtBolArquivoCRT.Text;
+       CertificadoHTTP:=ChkBoletoUseCertificadoHTTP.Checked;
      end;
 
    end;

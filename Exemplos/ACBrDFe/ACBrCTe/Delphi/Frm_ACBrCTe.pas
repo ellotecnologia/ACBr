@@ -349,7 +349,7 @@ uses
   ACBrUtil.FilesIO,
   ACBrUtil.DateTime,
   ACBrUtil.XMLHTML,
-  pcnAuxiliar, pcteCTe, pcnConversao, pcteConversaoCTe, pcnRetConsReciDFe,
+  pcnAuxiliar, ACBrCTe.Classes, pcnConversao, pcteConversaoCTe, pcnRetConsReciDFe,
   ACBrDFeConfiguracoes, ACBrDFeSSL, ACBrDFeOpenSSL, ACBrDFeUtil,
   ACBrCTeConhecimentos, ACBrCTeConfiguracoes,
   Frm_Status, Frm_SelecionarCertificado;
@@ -878,7 +878,6 @@ begin
     infCarga.xOutCat     := 'Pacotes';
     infCarga.vCargaAverb := 5000;
 
-    // UnidMed = (uM3,uKG, uTON, uUNIDADE, uLITROS);
     // tpMed usar os valores abaixo
     {
       00-Cubagem da NF-e
@@ -1484,10 +1483,26 @@ begin
         qCarga := 10;
       end;
 
-      {Informações dos Documentos}
+      {Informações dos Documentos - NF-e}
       with infDoc.infNFe.New do
         // chave da NFe emitida pelo remente da carga
-        chave := '33190100127817000125650080000000581000384589';
+        chave := '33190100127817000125550080000000581000384589';
+
+      (*
+         Usado para informar os dados do documento que não seja uma NF-e
+
+      {Informações dos Documentos - Outros}
+      with infDoc.infOutros.New do
+      begin
+        // tdDeclaracao, tdDutoviario, tdCFeSAT, tdNFCe, tdOutros
+        tpDoc := tdOutros;
+        descOutros := 'Carta Remessa de Mercadoria';
+        nDoc := '1234';
+        dEmi := StrToDate('10/12/2024');
+        vDocFisc := 100;
+        dPrev := StrToDate('20/12/2024');
+      end;
+      *)
 
       // o bloco de código abaixo devemos utilizar para informar documentos
       // anteriores emitidos por outras transportadoras que chamamos de
@@ -2319,6 +2334,13 @@ begin
   MemoResp.Lines.Text   := ACBrCTe1.WebServices.Consulta.RetWS;
   memoRespWS.Lines.Text := ACBrCTe1.WebServices.Consulta.RetornoWS;
 
+  MemoDados.Lines.Add('');
+  MemoDados.Lines.Add('Consulta Pela Chave');
+  MemoDados.Lines.Add('versao: ' + ACBrCTe1.WebServices.Consulta.versao);
+  MemoDados.Lines.Add('verAplic: ' + ACBrCTe1.WebServices.Consulta.verAplic);
+  MemoDados.Lines.Add('cStat: ' + IntToStr(ACBrCTe1.WebServices.Consulta.cStat));
+  MemoDados.Lines.Add('xMotivo: ' + ACBrCTe1.WebServices.Consulta.xMotivo);
+
   LoadXML(ACBrCTe1.WebServices.Consulta.RetWS, WBResposta);
 end;
 
@@ -2819,7 +2841,7 @@ end;
 
 procedure TfrmACBrCTe.btnGerarXMLClick(Sender: TObject);
 var
-  vAux: String;
+  vAux, Inicio, Fim: String;
 begin
   if not(InputQuery('WebServices Enviar', 'Numero do Conhecimento', vAux)) then
     exit;
@@ -2828,7 +2850,10 @@ begin
 
   AlimentarComponente(vAux);
 
+  Inicio := TimeToStr(Now);
   ACBrCTe1.Conhecimentos.Assinar;
+  Fim := TimeToStr(Now);
+  ShowMessage('Inicio: ' + Inicio + #13 + 'Fim: ' + Fim);
   ACBrCTe1.Conhecimentos.GravarXML();
 
   memoLog.Lines.Add('Arquivo gerado em: ' + ACBrCTe1.Conhecimentos[0].NomeArq);
@@ -3101,8 +3126,6 @@ begin
 end;
 
 procedure TfrmACBrCTe.btnLerArqINIClick(Sender: TObject);
-var
-  vNumLote: string;
 begin
   OpenDialog1.Title := 'Selecione o Arquivo INI';
   OpenDialog1.DefaultExt := '*.ini';
@@ -3317,6 +3340,8 @@ begin
 end;
 
 procedure TfrmACBrCTe.btnValidarXMLClick(Sender: TObject);
+var
+  Inicio, Fim: string;
 begin
   OpenDialog1.Title := 'Selecione a CTe';
   OpenDialog1.DefaultExt := '*-CTe.XML';
@@ -3331,7 +3356,10 @@ begin
   if OpenDialog1.Execute then
   begin
     ACBrCTe1.Conhecimentos.Clear;
+    Inicio := TimeToStr(Now);
     ACBrCTe1.Conhecimentos.LoadFromFile(OpenDialog1.FileName);
+    Fim := TimeToStr(Now);
+    ShowMessage('Inicio: ' + Inicio + #13 + 'Fim: ' + Fim);
 
     try
       ACBrCTe1.Conhecimentos.Validar;

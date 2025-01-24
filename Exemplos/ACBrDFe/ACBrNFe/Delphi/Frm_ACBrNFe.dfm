@@ -2124,6 +2124,8 @@ object frmACBrNFe: TfrmACBrNFe
     CasasDecimais.Aliquota = 2
     CasasDecimais.MaskAliquota = ',0.00'
     ACBrNFe = ACBrNFe1
+    ExibeInforAdicProduto = infNenhum
+    ImprimeDetalhamentoEspecifico = False
     ExibeResumoCanhoto = False
     ExibeCampoFatura = False
     Left = 427
@@ -2218,12 +2220,6 @@ object frmACBrNFe: TfrmACBrNFe
     Title = 'Selecione a NFe'
     Left = 427
     Top = 351
-  end
-  object ACBrIntegrador1: TACBrIntegrador
-    PastaInput = 'C:\Integrador\Input\'
-    PastaOutput = 'C:\Integrador\Output\'
-    Left = 334
-    Top = 350
   end
   object ACBrNFeDANFCeFortesA41: TACBrNFeDANFCeFortesA4
     Sistema = 'Projeto ACBr - www.projetoacbr.com.br'
