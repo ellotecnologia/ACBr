@@ -253,7 +253,7 @@ end;
 procedure TACBrTEFAPIClassElgin.AbortarTransacaoEmAndamento;
 begin
   fCancelarColeta := '9';
-  CancelarOperacao;
+//  CancelarOperacao;
 end;
 
 function TACBrTEFAPIClassElgin.CancelarOperacao: String;
@@ -433,6 +433,15 @@ begin
     end
     else if Trim(coletaMensagem) <> '' then
     begin
+      // O bloco do código abaixo está repetido várias vezes nessa rotina.
+      // Como o intuito não é fazer uma refatoração mas, sim, uma correção, também irei repetir aqui.
+      // se houve cancelamento, adiciona a chave com cancelamento para avisar a dll
+      if (fCancelarColeta <> '') then
+      begin
+        JsonColeta.AddPair('automacao_coleta_retorno', fCancelarColeta);
+        fCancelarColeta := '';
+      end;
+
       if (UpperCase(copy(coletaMensagem, 1, 6)) = 'QRCODE') then
       begin
         TefAPI.GravarLog('Mensagem Operador: QRcode');
