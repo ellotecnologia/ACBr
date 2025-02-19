@@ -115,6 +115,33 @@ uses
   TypInfo, StrUtils, DateUtils,
   ACBrUtil.Strings;
 
+type
+
+{ Chaves da resposta }
+TDadosResposta = record
+  Codigo: Integer;
+  Mensagem: String;
+  ColetaRetorno: String; // In/Out; out: 0 = continuar coleta, 9 = cancelar coleta    :=
+  ColetaSequencial: String; // In/Out
+  MensagemResultado: String; // In/[Out] Título coleta ou mensagem ao operador, dependo do contexto
+  ColetaTipo: String; // In
+  ColetaOpcao: String; // In
+  ColetaMascara: String;
+  //coletaPalavraChave := TACBrTEFElginUtils.getStringValue(root, 'tef.automacao_coleta_palavra_chave');
+end;
+
+function ExtraiRespostaElgin(RespostaJson: TACBrJSONObject): TDadosResposta;
+begin
+   Result.Codigo            := TACBrTEFElginUtils.getIntegerValue(RespostaJson, 'codigo');
+   Result.Mensagem          := TACBrTEFElginUtils.getStringValue(RespostaJson, 'mensagem');
+   Result.ColetaRetorno     := TACBrTEFElginUtils.getStringValue(RespostaJson, 'tef.automacao_coleta_retorno');
+   Result.ColetaSequencial  := TACBrTEFElginUtils.getStringValue(RespostaJson, 'tef.automacao_coleta_sequencial');
+   Result.MensagemResultado := TACBrTEFElginUtils.getStringValue(RespostaJson, 'tef.mensagemResultado');
+   Result.ColetaTipo        := TACBrTEFElginUtils.getStringValue(RespostaJson, 'tef.automacao_coleta_tipo');
+   Result.ColetaOpcao       := TACBrTEFElginUtils.getStringValue(RespostaJson, 'tef.automacao_coleta_opcao');
+   Result.ColetaMascara     := TACBrTEFElginUtils.getStringValue(RespostaJson, 'tef.automacao_coleta_mascara');
+end;
+
   { TACBrTEFAPIClassElgin }
 
 constructor TACBrTEFAPIClassElgin.Create(AACBrTEFAPI: TACBrTEFAPIComum);
@@ -301,33 +328,28 @@ end;
 
 function TACBrTEFAPIClassElgin.Coletar(root: TACBrJSONObject): String;
 var
-  // chaves utilizadas na coleta
-  codigo: integer;
-  mensagem, coletaRetorno,      // In/Out; out: 0 = continuar coleta, 9 = cancelar coleta
-  coletaSequencial,   // In/Out
-  coletaMensagem,     // In/[Out]
-  coletaTipo,         // In
-  coletaOpcao,        // In
-  coletaMascara, coletaInformacao: String;   // Out
-  vJson: TACBrJSONObject;
-  resp, retorno: String;
-  pPayload: PAnsiChar;
+  coletaInformacao: String;   // Out
+  JsonColeta, JsonRetornoColeta: TACBrJSONObject;
+  RetornoColeta: String;
+  retorno: String;
+  PayLoadColeta: PAnsiChar;
   opcoes, elements: TStringList;
   i, iSelecionado: integer;
   Validado, Cancelado: boolean;
   DefinicaoCampo: TACBrTEFAPIDefinicaoCampo;
-  sRoot: String;
+  Resposta: TDadosResposta;
+  QRCodePresente: Boolean;
 
   procedure _DefinirCampos;
   begin
     FillChar(DefinicaoCampo, SizeOf(DefinicaoCampo), 0);
     with DefinicaoCampo do
     begin
-      TituloPergunta := coletaMensagem;
-      MascaraDeCaptura := coletaMascara;
+      TituloPergunta := Resposta.MensagemResultado;
+      MascaraDeCaptura := Resposta.ColetaMascara;
       OcultarDadosDigitados := MatchText(UpperCase(TituloPergunta), ['SENHA']);
 
-      case AnsiindexStr(coletaTipo, ELGIN_COLETA_TIPO) of
+      case AnsiindexStr(Resposta.ColetaTipo, ELGIN_COLETA_TIPO) of
         0:
         begin
           TipoDeEntrada := tedTodos;
@@ -349,153 +371,123 @@ begin
   Cancelado := False;
 
   // extrai os dados da resposta / coleta
-  sRoot := root.ToJson;
-  codigo := TACBrTEFElginUtils.getIntegerValue(root, 'codigo');
-  mensagem := TACBrTEFElginUtils.getStringValue(root, 'mensagem');
-  coletaRetorno := TACBrTEFElginUtils.getStringValue(root, 'tef.automacao_coleta_retorno');
-  coletaSequencial := TACBrTEFElginUtils.getStringValue(root, 'tef.automacao_coleta_sequencial');
-  coletaMensagem := TACBrTEFElginUtils.getStringValue(root, 'tef.mensagemResultado');
-  coletaTipo := TACBrTEFElginUtils.getStringValue(root, 'tef.automacao_coleta_tipo');
-  coletaOpcao := TACBrTEFElginUtils.getStringValue(root, 'tef.automacao_coleta_opcao');
-  coletaMascara := TACBrTEFElginUtils.getStringValue(root, 'tef.automacao_coleta_mascara');
-  //coletaPalavraChave := TACBrTEFElginUtils.getStringValue(root, 'tef.automacao_coleta_palavra_chave');
+  fpACBrTEFAPI.GravarLog('Respota: ' + AnsiString(Root.ToJson));
+  Resposta := ExtraiRespostaElgin(Root);
+  QRCodePresente := UpperCase(copy(Resposta.MensagemResultado, 1, 6)) = 'QRCODE';
 
-  TefAPI.Gravarlog(UpperCase(coletaMensagem));
   // em caso de erro, encerra coleta
-  if (coletaRetorno <> '0') and (UpperCase(copy(coletaMensagem, 1, 6)) <> 'QRCODE') then
+  if (Resposta.ColetaRetorno <> '0') and (not QRCodePresente) then
   begin
-    if (not (codigo in [0, 1])) and (Mensagem <> '') then
-      TefAPI.QuandoExibirMensagem(Mensagem, telaoperador, 30000);
+    if (not (Resposta.Codigo in [0, 1])) and (Resposta.Mensagem <> '') then
+      TefAPI.QuandoExibirMensagem(Resposta.Mensagem, telaoperador, 30000);
 
     Result := AnsiString(Root.ToJSON);
     Exit;
   end;
 
   // em caso de sucesso, monta o (novo) vJson e continua a coleta
-  vJson := TACBRJsonObject.Create;
+  JsonColeta := TACBRJsonObject.Create;
   try
-    vJson.AddPair('automacao_coleta_retorno', coletaRetorno);
-    vJson.AddPair('automacao_coleta_sequencial', coletaSequencial);
+    JsonColeta.AddPair('automacao_coleta_retorno', Resposta.ColetaRetorno);
+    JsonColeta.AddPair('automacao_coleta_sequencial', Resposta.ColetaSequencial);
 
-    if (coletaTipo <> '') and (coletaOpcao = '') then  // coleta dados do usuário
+    if (Resposta.ColetaTipo <> '') and (Resposta.ColetaOpcao = '') then  // coleta dados do usuário
     begin // valor inserido (texto)
       _DefinirCampos;
       TefAPI.Gravarlog('  tef.mensagemResultado: ' + DefinicaoCampo.TituloPergunta);
-      coletaInformacao := '';
       TefAPI.QuandoPerguntarCampo(DefinicaoCampo, coletaInformacao, Validado, Cancelado);
 
+      JsonColeta.AddPair('automacao_coleta_informacao', coletaInformacao);
+      
       if Cancelado then
         fCancelarColeta := '9';
-
-      // se houve cancelamento, adiciona a chave com cancelamento para avisar a dll
-      if (fCancelarColeta <> '') then
-      begin
-        //vJson.RemovePair('automacao_coleta_retorno');
-        vJson.AddPair('automacao_coleta_retorno', fCancelarColeta);
-        fCancelarColeta := '';
-      end;
-
-      vJson.AddPair('automacao_coleta_informacao', coletaInformacao);
     end
 
-    else if (coletaTipo <> '') and (coletaOpcao <> '') then
+    else if (Resposta.ColetaTipo <> '') and (Resposta.ColetaOpcao <> '') then
     begin // valor selecionado (lista)
       opcoes := TStringList.Create;
       elements := TStringList.Create;
       try
-        TACBrTEFElginUtils.Split(';', coletaOpcao, opcoes);
+        TACBrTEFElginUtils.Split(';', Resposta.ColetaOpcao, opcoes);
         for i := 0 to opcoes.Count - 1 do
         begin
-          elements.Add('[' + IntToStr(i) + ']' + UpperCase(opcoes[i]) + #13#10);
-          fpACBrTEFAPI.GravarLog('[' + IntToStr(i) + '] ' + UpperCase(opcoes[i]) + #13#10);
+          elements.Add('[' + IntToStr(i) + ']' + UpperCase(opcoes[i]) + sLineBreak);
+          fpACBrTEFAPI.GravarLog('[' + IntToStr(i) + '] ' + UpperCase(opcoes[i]) + sLineBreak);
         end;
 
         iSelecionado := -1;
-        TefAPI.QuandoPerguntarMenu(coletaMensagem, elements, iSelecionado);
-        TefAPI.GravarLog('  '+coletaMensagem +sLineBreak+ coletaOpcao);
+        TefAPI.QuandoPerguntarMenu(Resposta.MensagemResultado, elements, iSelecionado);
+
+        TefAPI.GravarLog('Coleta menu de seleção: ' + Resposta.MensagemResultado +sLineBreak+ Resposta.ColetaOpcao);
+
         if iSelecionado >= 0 then
           coletaInformacao := opcoes[iSelecionado]
         else
           fCancelarColeta := '9';
 
-        // se houve cancelamento, adiciona a chave com cancelamento para avisar a dll
-        if (fCancelarColeta <> '') then
-        begin
-          //vJson.RemovePair('automacao_coleta_retorno');
-          vJson.AddPair('automacao_coleta_retorno', fCancelarColeta);
-          fCancelarColeta := '';
-        end;
-        vJson.AddPair('automacao_coleta_informacao', coletaInformacao);
+        JsonColeta.AddPair('automacao_coleta_informacao', coletaInformacao);
       finally
         FreeAndNil(elements);
         FreeAndNil(opcoes);
       end;
     end
-    else if Trim(coletaMensagem) <> '' then
+    else if Trim(Resposta.MensagemResultado) <> '' then
     begin
-      // O bloco do código abaixo está repetido várias vezes nessa rotina.
-      // Como o intuito não é fazer uma refatoração mas, sim, uma correção, também irei repetir aqui.
-      // se houve cancelamento, adiciona a chave com cancelamento para avisar a dll
-      if (fCancelarColeta <> '') then
+      if QRCodePresente then
       begin
-        JsonColeta.AddPair('automacao_coleta_retorno', fCancelarColeta);
-        fCancelarColeta := '';
-      end;
-
-      if (UpperCase(copy(coletaMensagem, 1, 6)) = 'QRCODE') then
-      begin
-        TefAPI.GravarLog('Mensagem Operador: QRcode');
-        TefAPI.QuandoExibirQRCode(coletaMensagem);
+        TefAPI.GravarLog('Mensagem Operador: QRCode');
+        TefAPI.QuandoExibirQRCode(Resposta.MensagemResultado);
       end
       else
       begin
-        TefAPI.GravarLog('Mensagem Operador:' + coletaMensagem);
-        TefAPI.QuandoExibirMensagem(NativeStringToUTF8(coletaMensagem), telaoperador, -30000);
+        TefAPI.GravarLog('Mensagem Operador: ' + Resposta.MensagemResultado);
+        TefAPI.QuandoExibirMensagem(NativeStringToUTF8(Resposta.MensagemResultado), telaoperador, -30000);
       end;
     end;
 
+    // se houve cancelamento, adiciona a chave com cancelamento para avisar a dll
+    if (fCancelarColeta <> '') then
+    begin
+      JsonColeta.AddPair('automacao_coleta_retorno', fCancelarColeta);
+      fCancelarColeta := '';
+    end;
+
     // informa os dados coletados
-    pPayload := TACBrTEFElginUtils.stringify(vJson);
+    PayLoadColeta := TACBrTEFElginUtils.stringify(JsonColeta);
     case fpMetodoOperacao of
       tefmtdAdministrativa, tefmtdCancelamento:
-        resp := fTEFElginAPI.RealizarAdmTEF(0, pPayload, False);
+        RetornoColeta := fTEFElginAPI.RealizarAdmTEF(0, PayLoadColeta, False);
 
       tefmtdPagamento:
       begin
         if fModPagamento = tefmpCarteiraVirtual then
-          resp := fTEFElginAPI.RealizarPixTEF(pPayload, False)
+          RetornoColeta := fTEFElginAPI.RealizarPixTEF(PayLoadColeta, False)
         else
-          resp := fTEFElginAPI.RealizarPagamentoTEF(0, pPayload, False);
+          RetornoColeta := fTEFElginAPI.RealizarPagamentoTEF(0, PayLoadColeta, False);
       end;
     end;
   finally
-    FreeAndNil(vJson);
-    fpACBrTEFAPI.GravarLog('verifica fim da coleta');
-    fpACBrTEFAPI.GravarLog('sroot:' + sroot);
-    fpACBrTEFAPI.GravarLog('Payload:' + String(pPayload));
+    FreeAndNil(JsonColeta);
+    fpACBrTEFAPI.GravarLog('fim da coleta');
+    fpACBrTEFAPI.GravarLog('Payload da coleta: ' + PayLoadColeta);
 
-    codigo := TACBrTEFElginUtils.getIntegerValue(root, 'codigo');
-    mensagem := TACBrTEFElginUtils.getStringValue(root, 'mensagem');
-    coletaRetorno := TACBrTEFElginUtils.getStringValue(root, 'tef.automacao_coleta_retorno');
-    coletaMensagem := TACBrTEFElginUtils.getStringValue(root, 'tef.mensagemResultado');
+    if not (Resposta.Codigo in [0, 1])then
+      TefAPI.QuandoExibirMensagem(Resposta.Mensagem, telaoperador, 5000);
 
-    if not (codigo in [0, 1])then
-      TefAPI.QuandoExibirMensagem(Mensagem, telaoperador, 5000);
-
-    if not (StrToIntDef(coletaRetorno, 0) in [0, 1]) then
-      TefAPI.QuandoExibirMensagem(coletaMensagem, telaoperador, 5000);
+    if not (StrToIntDef(Resposta.ColetaRetorno, 0) in [0, 1]) then
+      TefAPI.QuandoExibirMensagem(Resposta.MensagemResultado, telaoperador, 5000);
   end;
 
-  vJson := TACBrTEFElginUtils.jsonify(resp);
+  JsonRetornoColeta := TACBrTEFElginUtils.jsonify(RetornoColeta);
   try
     // verifica fim da coleta
-    retorno := TACBrTEFElginUtils.getRetorno(resp);
+    retorno := TACBrTEFElginUtils.getRetorno(RetornoColeta);
     if (retorno <> '') then
-      Result := vJson.ToJSON
+      Result := RetornoColeta
     else
-      Result := Coletar(vJson);
+      Result := Coletar(JsonRetornoColeta);
   finally
-    FreeAndNil(vJson);
+    FreeAndNil(JsonRetornoColeta);
   end;
 end;
 
