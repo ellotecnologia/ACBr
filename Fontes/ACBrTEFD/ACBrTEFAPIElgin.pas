@@ -438,7 +438,7 @@ begin
       // se houve cancelamento, adiciona a chave com cancelamento para avisar a dll
       if (fCancelarColeta <> '') then
       begin
-        JsonColeta.AddPair('automacao_coleta_retorno', fCancelarColeta);
+        vJson.AddPair('automacao_coleta_retorno', fCancelarColeta);
         fCancelarColeta := '';
       end;
 
