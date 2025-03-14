@@ -271,7 +271,7 @@ var
     s: string;
   begin
     s := JsonKey(Key);
-    Result := ACBrUtil.DateTime.StringToDateTime(s, 'dd/mm/yyyy hh:mm:ss');
+    Result := ACBrUtil.DateTime.StringToDateTimeDef(s, Now, 'dd/mm/yyyy hh:mm:ss');
   end;
 
   function JsonKeyInt(key: string): integer;
