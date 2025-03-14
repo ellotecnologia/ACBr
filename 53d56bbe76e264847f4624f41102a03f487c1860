@@ -1,0 +1,4 @@
+Corrige problema ao tentar reimprimir comprovante da transação
+
+Segundo Bruno, ao tentar reimprimir o comprovante não existe a propriedade
+`tef.dataHoraTransacao`, ocasionando um erro ao tentar converter a string para um `TDateTime`.
