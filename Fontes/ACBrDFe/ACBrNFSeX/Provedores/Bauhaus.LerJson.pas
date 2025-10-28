@@ -39,7 +39,7 @@ interface
 uses
   SysUtils, Classes, StrUtils, IniFiles,
   ACBrUtil.Base, ACBrUtil.Strings,
-  ACBrXmlBase, ACBrXmlDocument, ACBrNFSeXClass,
+  ACBrXmlDocument, ACBrNFSeXClass,
   ACBrNFSeXConversao, ACBrNFSeXLerXml, ACBrJSON;
 
 type
@@ -649,6 +649,8 @@ begin
     Item.Descricao := StringReplace(sFim, FpAOwner.ConfigGeral.QuebradeLinha, sLineBreak, [rfReplaceAll]);
     Item.Quantidade := StringToFloatDef(AINIRec.ReadString(sSecao, 'Quantidade', ''), 0);
     Item.ValorUnitario := StringToFloatDef(AINIRec.ReadString(sSecao, 'ValorUnitario', ''), 0);
+
+    Inc(i);
   end;
 end;
 

@@ -497,16 +497,19 @@ begin
           Sleep(AguardarConsultaRet);
 
           qTentativas := 0;
-          Situacao := 0;
           Intervalo := max(IntervaloTentativas, 1000);
 
-          while (Situacao < 3) and (qTentativas < Tentativas) do
+          while True do
           begin
             FProvider.ConsultaSituacao;
 
             Situacao := StrToIntDef(FWebService.ConsultaSituacao.Situacao, 0);
             Inc(qTentativas);
-            sleep(Intervalo);
+
+            if (Situacao < 3) and (qTentativas < Tentativas) then
+              sleep(Intervalo)
+            else
+              break;
           end;
         end;
       end;
@@ -717,6 +720,8 @@ begin
     tpRetorno := aInfConsultaNFSe.tpRetorno;
     ChaveNFSe := aInfConsultaNFSe.ChaveNFSe;
     Pagina := aInfConsultaNFSe.Pagina;
+    NumeroRps := aInfConsultaNFSe.NumeroRps;
+    DataRecibo := aInfConsultaNFSe.DataRecibo;
   end;
 
   ConsultarNFSe;
@@ -1187,17 +1192,10 @@ begin
   if not Assigned(FProvider) then
     raise EACBrNFSeException.Create(ERR_SEM_PROVEDOR);
 
-  FWebService.ConsultaNFSe.Clear;
+  FWebService.ObterDANFSE.Clear;
+  FWebService.ObterDANFSE.ChaveNFSe := aChave;
 
-  with FWebService.ConsultaNFSe.InfConsultaNFSe do
-  begin
-    tpConsulta := tcPorChave;
-    tpRetorno := trPDF;
-
-    ChaveNFSe := aChave;
-  end;
-
-  ConsultarNFSe;
+  FProvider.ObterDANFSE;
 end;
 
 procedure TACBrNFSeX.EnviarEvento(aInfEvento: TInfEvento);

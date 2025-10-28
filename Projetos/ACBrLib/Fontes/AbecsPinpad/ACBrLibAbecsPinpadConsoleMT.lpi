@@ -20,7 +20,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="1"/>
       <RevisionNr Value="1"/>
-      <BuildNr Value="39"/>
+      <BuildNr Value="53"/>
       <Language Value="0416"/>
       <StringTable CompanyName="Projeto ACBr" FileDescription="ACBrAbecsPinpad - Biblioteca para comunicação com Pinpad" InternalName="ACBrLibAbecsPinpad" LegalCopyright="Projeto ACBr" LegalTrademarks="Projeto ACBr" ProductName="AbecsPinpad" ProductVersion="0.0.0.0"/>
     </VersionInfo>
@@ -195,7 +195,9 @@
 -dNOGUI
 -dMT
 -Xd
--XPaarch64-linux-android-"/>
+-XPaarch64-linux-android-
+-k-z&quot; common-page-size=16384&quot;
+-k-z&quot; max-page-size=16384&quot;"/>
           </Other>
         </CompilerOptions>
       </Item5>

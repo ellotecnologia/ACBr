@@ -37,7 +37,7 @@ unit ACBrBancoSicoob;
 interface
 
 uses
-  Classes, SysUtils, ACBrBoleto, ACBrBoletoConversao, ACBrUtil.Base;
+  Classes, SysUtils, ACBrBoleto, ACBrBoletoConversao, ACBrUtil.Base, Math;
 
 type
 
@@ -72,7 +72,7 @@ type
 
 implementation
 
-uses  StrUtils, Variants, math,
+uses  StrUtils, Variants,
       {$IFDEF COMPILER6_UP} DateUtils {$ELSE} ACBrD5, FileCtrl {$ENDIF},
       ACBrUtil.FilesIO, ACBrUtil.Strings, ACBrUtil.DateTime;
 
@@ -563,11 +563,8 @@ begin
             ValorDespesaCobranca := StrToFloatDef(Copy(Linha,199,15),0)/100;
 
             Carteira             := Copy(Linha,58,1);
-
+            LLayoutArquivo := fpLayoutVersaoArquivo;
             try
-
-              LLayoutArquivo := fpLayoutVersaoArquivo;
-
               if ACBrBoleto.LerNossoNumeroCompleto or (ACBrBoleto.Banco.LayoutVersaoArquivo = 810) then
               begin
                 fpLayoutVersaoArquivo   := 810;
@@ -581,7 +578,6 @@ begin
             finally
               fpLayoutVersaoArquivo := LLayoutArquivo;
             end;
-
 
             if (CodOcorrencia  = '06' ) or (CodOcorrencia  = '09' ) or
                (CodOcorrencia  = '17' ) then
@@ -847,7 +843,7 @@ var AEspecieTitulo, ATipoInscricao, ATipoOcorrencia, ATipoBoleto, ADataMoraJuros
     K: Integer;
     ACodProtesto: Char;
    DataProtestoNegativacao: string;
-   DiasProtestoNegativacao: string;
+   DiasProtestoNegativacao, LCarteira: string;
 begin
   if ( ACBrTitulo.NossoNumero <> IntToStrZero(0, length(ACBrTitulo.NossoNumero)) ) then
     NossoNum  := RemoveString('-', MontarCampoNossoNumero(ACBrTitulo))
@@ -1047,6 +1043,8 @@ begin
         strCarteiraEnvio := '2'
       else
         strCarteiraEnvio := '1';
+     {se a carteira for 9 ou 1, precisa sair seg P Posição 58 "1"}
+     LCarteira := ifthen(ACBrTitulo.Carteira='9','1', ACBrTitulo.Carteira) ;
 
       fpValorTotalDocs:= fpValorTotalDocs  + ValorDocumento;
       Result:= IntToStrZero(ACBrBanco.Numero, 3)                             + //1 a 3 - Código do banco
@@ -1073,7 +1071,7 @@ begin
                         Space(5);
 
                Result := Result                                           +
-                         PadRight(Carteira, 1)                            + // 58 a 58 carteira
+                         PadRight(LCarteira, 1)                            + // 58 a 58 carteira
                          '0'                                              + // 59 Forma de cadastramento no banco
                          ' '                                              + // 60 Brancos
                          ATipoBoleto                                      + // 61 Identificação da emissão do boleto

@@ -90,6 +90,9 @@ type
     FidNota: string;
     FidRps: string;
     FNomeArq: string;
+    FnSeqEvento: Integer;
+    FidEvento: string;
+    FtpEvento: TtpEvento;
   public
     property NumeroNota: string read FNumeroNota write FNumeroNota;
     property CodigoVerificacao: string read FCodigoVerificacao write FCodigoVerificacao;
@@ -108,6 +111,9 @@ type
     property idNota: string read FidNota write FidNota;
     property idRps: string read FidRps write FidRps;
     property NomeArq: string read FNomeArq write FNomeArq;
+    property nSeqEvento: Integer read FnSeqEvento write FnSeqEvento;
+    property idEvento: string read FidEvento write FidEvento;
+    property tpEvento: TtpEvento read FtpEvento write FtpEvento;
   end;
 
   TNFSeResumoCollection = class(TACBrObjectList)
@@ -222,6 +228,7 @@ type
     FtpEvento: TtpEvento;
     FnSeqEvento: Integer;
     FNumNotaSubstituidora: string;
+    FPathNome: string;
 
     FAlertas: TNFSeEventoCollection;
     FErros: TNFSeEventoCollection;
@@ -232,7 +239,6 @@ type
     FArquivoEnvio: string;
     FArquivoRetorno: string;
     FHtmlRetorno: string;
-    FPathNome: string;
 
     function GetXmlEnvio: string;
     procedure SetXmlEnvio(const Value: string);
@@ -343,6 +349,7 @@ type
     FCodigoVerificacao: string;
     FCancelamento: TNFSeCancelamento;
     FCNPJCPFTomador: string;
+    FInfConsultaNFSe: TInfConsultaNFSe;
   public
     constructor Create;
     destructor Destroy; override;
@@ -355,6 +362,7 @@ type
     property CodigoVerificacao: string read FCodigoVerificacao write FCodigoVerificacao;
     property Cancelamento: TNFSeCancelamento read FCancelamento write FCancelamento;
     property CNPJCPFTomador: string read FCNPJCPFTomador write FCNPJCPFTomador;
+    property InfConsultaNFSe: TInfConsultaNFSe read FInfConsultaNFSe write FInfConsultaNFSe;
   end;
 
   TNFSeConsultaNFSeResponse = class(TNFSeWebserviceResponse)
@@ -534,6 +542,22 @@ type
     property NroUltimoRps: Integer read FNroUltimoRps write FNroUltimoRps;
   end;
 
+  TNFSeObterDANFSEResponse = class(TNFSeWebServiceResponse)
+  private
+    FMetodo: TMetodo;
+    FChaveNFSe: string;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure Clear; override;
+
+    property Metodo: TMetodo read FMetodo write FMetodo;
+    property ChaveNFSe: string read FChaveNFSe write FChaveNFSe;
+  end;
+
+
+
 implementation
 
 uses
@@ -637,7 +661,6 @@ begin
   tpEvento := teCancelamento;
   nSeqEvento := 0;
   HtmlRetorno := '';
-  PathNome := '';
 
   if Assigned(FErros) then
   begin
@@ -879,6 +902,11 @@ begin
     FCancelamento.Free;
 
   FCancelamento := TNFSeCancelamento.Create;
+
+  if Assigned(FInfConsultaNFSe) then
+    FInfConsultaNFSe.Free;
+
+  FInfConsultaNFSe := TInfConsultaNFSe.Create;
 end;
 
 constructor TNFSeConsultaNFSeporRpsResponse.Create;
@@ -892,6 +920,9 @@ destructor TNFSeConsultaNFSeporRpsResponse.Destroy;
 begin
   if Assigned(FCancelamento) then
     FCancelamento.Free;
+
+  if Assigned(FInfConsultaNFSe) then
+    FInfConsultaNFSe.Free;
 
   inherited Destroy;
 end;
@@ -1097,6 +1128,7 @@ end;
 procedure TNFSeConsultaLinkNFSeResponse.Clear;
 begin
   inherited Clear;
+
   FMetodo := tmConsultarLinkNFSe;
 
   if Assigned(FInfConsultaLinkNFSe) then
@@ -1116,6 +1148,29 @@ destructor TNFSeConsultaLinkNFSeResponse.Destroy;
 begin
   if Assigned(FInfConsultaLinkNFSe) then
     FreeAndNil(FInfConsultaLinkNFSe);
+
+  inherited;
+end;
+
+{ TNFSeObterDANFSEResponse }
+
+procedure TNFSeObterDANFSEResponse.Clear;
+begin
+  inherited Clear;
+
+  FMetodo := tmObterDANFSE;
+  FChaveNFSe := '';
+end;
+
+constructor TNFSeObterDANFSEResponse.Create;
+begin
+  inherited Create;
+
+  Clear;
+end;
+
+destructor TNFSeObterDANFSEResponse.Destroy;
+begin
 
   inherited;
 end;

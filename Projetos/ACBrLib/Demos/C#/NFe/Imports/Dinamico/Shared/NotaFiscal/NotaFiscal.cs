@@ -41,6 +41,7 @@ namespace ACBrLib.NFe
             Cana = new CanaNFe();
             InfNFeSupl = new InfNFeSupl();
             InfRespTec = new InfRespTec();
+            Agropecuario = new Agropecuario();
 
             InfNFe.Versao = "4.00";
         }
@@ -103,6 +104,8 @@ namespace ACBrLib.NFe
         public InfNFeSupl InfNFeSupl { get; }
 
         public InfRespTec InfRespTec { get; }
+
+        public Agropecuario Agropecuario { get; }
 
         #endregion Properties
 
@@ -179,6 +182,9 @@ namespace ACBrLib.NFe
                 if (!string.IsNullOrEmpty(produto.Veiculo.chassi))
                     iniData.WriteToIni(produto.Veiculo, $"Veiculo{i + 1:000}");
 
+                for (var k = 0; k < produto.gCred.Count; k++)
+                    iniData.WriteToIni(produto.gCred[k], $"gCred{i + 1:000}{k + 1:0}");
+
                 if (produto.Combustivel.cProdANP > 0)
                 {
                     iniData.WriteToIni(produto.Combustivel, $"Combustivel{i + 1:000}");
@@ -232,7 +238,9 @@ namespace ACBrLib.NFe
 
                 if (produto.IBSCBS.CST != CSTIBSCBS.cstNenhum)
                 {
+                    //produto.IBSCBS.CST 
                     iniData.WriteToIni(produto.IBSCBS, $"IBSCBS{i + 1:000}");
+
                     if (produto.IBSCBS.gIBSCBS.vBC > 0)
                     {
                         iniData.WriteToIni(produto.IBSCBS.gIBSCBS, $"gIBSCBS{i + 1:000}");
@@ -252,31 +260,55 @@ namespace ACBrLib.NFe
                         {
                             iniData.WriteToIni(produto.IBSCBS.gIBSCBS.gCBSCredPres, $"gCBSCredPres{i + 1:000}");
                         }
-                    }else if (produto.IBSCBS.gIBSCBSMono.adRemIBS > 0)
+                    }
+                    else if (produto.IBSCBS.gIBSCBSMono.vTotCBSMonoItem > 0)
                     {
                         iniData.WriteToIni(produto.IBSCBS.gIBSCBSMono, $"gIBSCBSMono{i + 1:000}");
+
+                        if (produto.IBSCBS.gMonoPadrao.qBCMono >= 0)
+                        {
+                            iniData.WriteToIni(produto.IBSCBS.gMonoPadrao, $"gMonoPadrao{i + 1:000}");                          
+                        }
+                        if (produto.IBSCBS.gMonoReten.qBCMonoReten >= 0)
+                        {
+                            iniData.WriteToIni(produto.IBSCBS.gMonoReten, $"gMonoReten{i + 1:000}");
+                        }
+                        if (produto.IBSCBS.gMonoRet.qBCMonoRet >= 0)
+                        {
+                            iniData.WriteToIni(produto.IBSCBS.gMonoRet, $"gMonoRet{i + 1:000}");
+                        }
+                        if (produto.IBSCBS.gMonoDif.pDifIBS >= 0)
+                        {
+                            iniData.WriteToIni(produto.IBSCBS.gMonoDif, $"gMonoDif{i + 1:000}");
+                        }
                     }
-                    else
-                    {
-                        if (Identificacao.modelo == Core.NFe.ModeloNFe.moNFe &&
-                            produto.IBSCBS?.CST == CSTIBSCBS.cst800)
+                    else if (Identificacao.modelo == Core.NFe.ModeloNFe.moNFe &&
+                            produto.IBSCBS.gTransfCred.vIBS > 0)
                         {
                             iniData.WriteToIni(produto.IBSCBS.gTransfCred, $"gTransfCred{i + 1:000}");
                         }
-                    }
-
-                    if (Identificacao.modelo == Core.NFe.ModeloNFe.moNFe &&
+                    else if (Identificacao.modelo == Core.NFe.ModeloNFe.moNFe &&
                             produto.IBSCBS.gCredPresIBSZFM.tpCredPresIBSZFM != TipoCredPresIBSZFM.tcpNenhum)
                     {
                         iniData.WriteToIni(produto.IBSCBS.gCredPresIBSZFM, $"gCredPresIBSZFM{i + 1:000}");
                     }
-
-                    if (produto.IBSCBS.gIBSCBS.gTribCompraGov.pAliqIBSUF > 0)
+                    else if (produto.IBSCBS.gIBSCBS.gTribCompraGov.pAliqIBSUF > 0)
                     {
                         iniData.WriteToIni(produto.IBSCBS.gIBSCBS.gTribCompraGov, $"gTribCompraGov{i + 1:000}");
                     }
                 }
             }
+
+            if (Agropecuario.GuiaTransito.tpGuia != tpGuiaTransito.tpgNenhum || Agropecuario.Defensivo?.Count > 0)
+            {
+                iniData.WriteToIni(Agropecuario, "agropecuario");
+
+                for (var i = 0; i < Agropecuario.Defensivo.Count; i++)
+                    iniData.WriteToIni(Agropecuario.Defensivo[i], $"defensivo{i + 1:00}");
+
+                iniData.WriteToIni(Agropecuario.GuiaTransito, "guiaTransito");
+            }
+
 
             iniData.WriteToIni(Total, "Total");
             if (ISSQNtot.vBC.HasValue)
@@ -348,7 +380,7 @@ namespace ACBrLib.NFe
 
             if (!string.IsNullOrEmpty(InfRespTec.CNPJ))
                 iniData.WriteToIni(InfRespTec, "infRespTec");
-
+            
             return iniData;
         }
 
@@ -478,6 +510,17 @@ namespace ACBrLib.NFe
 
                     produto.Arma.Add(armaItem);
                 } while (armaItem != null);
+
+                k = 0;
+                CreditoPresumidoNFe creditoPresumidoNFe;
+                do
+                {
+                    k++;
+                    creditoPresumidoNFe = iniData.ReadFromIni<CreditoPresumidoNFe>($"gCred{i:000}{k:0}");
+                    if (creditoPresumidoNFe == null) continue;
+
+                    produto.gCred.Add(creditoPresumidoNFe);
+                } while (creditoPresumidoNFe != null);
 
                 iniData.ReadFromIni(produto.ImpostoDevol, $"impostoDevol{i:000}");
                 iniData.ReadFromIni(produto.Veiculo, $"Veiculo{i:000}");
@@ -654,6 +697,21 @@ namespace ACBrLib.NFe
             iniData.ReadFromIni(InfNFeSupl, "infNFeSupl");
 
             iniData.ReadFromIni(InfRespTec, "infRespTec");
+
+            iniData.ReadFromIni(Agropecuario, "agropecuario"); // validar  (remover)
+
+            i = 0;
+            Defensivo defensivo;
+            do
+            {
+                i++;
+                defensivo = iniData.ReadFromIni<Defensivo>($"defensivo{i:00}");
+                if (defensivo == null) continue;
+
+                Agropecuario.Defensivo.Add(defensivo);
+            } while (defensivo != null);
+
+            iniData.ReadFromIni(Agropecuario.GuiaTransito, "guiaTransito");
         }
 
         public static NotaFiscal Load(string conteudo) => ACBrIniFile.Parse(conteudo);

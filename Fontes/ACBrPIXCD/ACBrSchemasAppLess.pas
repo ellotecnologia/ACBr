@@ -300,8 +300,9 @@ type
   private
     famount: Double;
     fchannel: String;
-    fcustumerCPF: String;
-    fcustumerSocialName: String;
+    fcustomerCNPJ: String;
+    fcustomerCPF: String;
+    fcustomerSocialName: String;
     fexpiration: Integer;
     fexternalId: String;
     finstallments: Integer;
@@ -319,8 +320,9 @@ type
 
     property amount: Double read famount write famount;
     property externalId: String read fexternalId write fexternalId;
-    property custumerSocialName: String read fcustumerSocialName write fcustumerSocialName;
-    property customerCPF: String read fcustumerCPF write fcustumerCPF;
+    property customerSocialName: String read fcustomerSocialName write fcustomerSocialName;
+    property customerCPF: String read fcustomerCPF write fcustomerCPF;
+    property customerCNPJ: String read fcustomerCNPJ write fcustomerCNPJ;
     property typeOrder: String read ftypeOrder write ftypeOrder;
     property channel: String read Fchannel write fchannel;
     property installments: Integer read finstallments write finstallments;
@@ -342,8 +344,9 @@ type
   public
     property amount;
     property externalId;
-    property custumerSocialName;
+    property customerSocialName;
     property customerCPF;
+    property customerCNPJ;
   end;
 
   { TACBrAppLessCalendario }
@@ -1378,8 +1381,9 @@ begin
   aJson
     .AddPair('amount', famount)
     .AddPair('channel', fchannel, False)
-    .AddPair('custumerCPF', fcustumerCPF, False)
-    .AddPair('custumerSocialName', fcustumerSocialName, False)
+    .AddPair('customerCPF', fcustomerCPF, False)
+    .AddPair('customerCNPJ', fcustomerCNPJ, False)
+    .AddPair('customerSocialName', fcustomerSocialName, False)
     .AddPair('expiration', fexpiration, False)
     .AddPair('externalId', fexternalId)
     .AddPair('installments', finstallments, False)
@@ -1402,8 +1406,9 @@ begin
   aJson
     .Value('amount', famount)
     .Value('channel', fchannel)
-    .Value('custumerCPF', fcustumerCPF)
-    .Value('custumerSocialName', fcustumerSocialName)
+    .Value('customerCPF', fcustomerCPF)
+    .Value('customerCNPJ', fcustomerCNPJ)
+    .Value('customerSocialName', fcustomerSocialName)
     .Value('expiration', fexpiration)
     .Value('externalId', fexternalId)
     .Value('installments', finstallments)
@@ -1427,8 +1432,9 @@ procedure TACBrAppLessOrderClass.Clear;
 begin
   famount := 0;
   fchannel := EmptyStr;
-  fcustumerCPF := EmptyStr;
-  fcustumerSocialName := EmptyStr;
+  fcustomerCPF := EmptyStr;
+  fcustomerCNPJ := EmptyStr;
+  fcustomerSocialName := EmptyStr;
   fexpiration := 0;
   fexternalId := EmptyStr;
   finstallments := 0;
@@ -1447,8 +1453,9 @@ begin
   Result :=
     EstaZerado(famount) and
     EstaVazio(fchannel) and
-    EstaVazio(fcustumerCPF) and
-    EstaVazio(fcustumerSocialName) and
+    EstaVazio(fcustomerCPF) and
+    EstaVazio(fcustomerCNPJ) and
+    EstaVazio(fcustomerSocialName) and
     EstaZerado(fexpiration) and
     EstaVazio(fexternalId) and
     EstaZerado(finstallments) and
@@ -1467,8 +1474,9 @@ begin
 
   famount := Source.amount;
   fchannel := Source.channel;
-  fcustumerCPF := Source.customerCPF;
-  fcustumerSocialName := Source.custumerSocialName;
+  fcustomerCPF := Source.customerCPF;
+  fcustomerCNPJ := Source.customerCNPJ;
+  fcustomerSocialName := Source.customerSocialName;
   fexpiration := Source.expiration;
   fexternalId := Source.externalId;
   finstallments := Source.installments;

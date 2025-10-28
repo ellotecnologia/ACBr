@@ -36,6 +36,59 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+24/10/2025
+-- ACBrCalculadoraConsumo --
+[+] Inclusão do componente ACBrCalculadoraConsumo.
+    por: Elias Cesar
+
+24/10/2025
+-- ACBrSocket --
+[+] Inclusão de constante para envio de body padrão XML;
+
+-- ACBrAPIBase --
+[+] Inclusão de constante pra erro de parâmetro;
+[-] Remoção de variáveis não utilizadas
+
+22/10/2025
+-- ACBrSocket --
+[+] Inclusão do método SetHeaderValue.
+    por: Elias Cesar
+
+21/10/2025
+-- ACBrIMendes --
+[*] Ajustes referente à requests/responses da API.
+    por: Julio Cavalcanti e Elias Cesar
+
+21/10/2025
+-- ACBrSocket --
+[*] Alteração para não ocorrer vazamento de dados sensíveis através do log.
+    por: Elias Cesar
+
+20/10/2025
+-- ACBrSocket --
+[*] Ajuste para logar Certificado e Body apenas quando houver dados configurados.
+    por: Elias Cesar
+
+01/10/2025
+-- ACBrIMendes --
+[+] Adicionada implementação dos métodos que não existiam.
+    por: Elias Cesar
+
+15/09/2025
+-- ACBrAPIBase --
+[*] Ajuste para tratamento de elementos do tipo array que não possuem ArrayName(chave).
+    por: Elias Cesar
+
+30/08/2025
+-- ACBrCEP --
+[+]TK-7399 Inclusão do WS "CEP AwesomeAPI" no ACBrCEP
+  por : William F.L. | rev.: Alexandre de Paula
+  
+11/08/2025
+-- ACBr_TCP.dpk, ACBrTCP.lpk --
+[+] TK-7332 - ACBrConsultaCNPJ - Adicionando provedor MinhaReceita nos pacotes de instalação
+  Por: Renato Rubinho
+
 01/08/2025
 -- ACBrConsultaCNPJ --
 [+] TK-7373 - ACBrConsultaCNPJ - Criadas propriedades que faltavam do Mei e Simples. - https://www.projetoacbr.com.br/forum/topic/84281-consulta-de-cnpj-usando-o-componente-acbrnfe/?&_rid=62658#findComment-547398

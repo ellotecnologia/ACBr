@@ -42,6 +42,70 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+24/10/2025
+-- ACBrNFComXmlWriter --
+[*] #ACBr-8284: Ajuste para deixar os campos nContrato e dContratoIni como opcionais.
+   Por: JulioFrancis
+-- ACBrNFComServicos --
+[+] Adiciona as URLS para o estado do Mato Grosso
+  Por: Diego Folieni
+
+22/10/2025
+-- ACBrNFComXmlWriter --
+[*] #ACBr-7999: Ajuste na função que gera ou não o grupo IBSCBSTot para não gerar um
+    nó nulo.
+   Por: fabio.lobosque
+
+15/10/2025
+-- ACBrNFComXmlWriter --
+[*] Ajuste na geração do XML os grupos gFat e gFatCentral são mutuamente excludentes.
+   Por: Italo Giurizzato Junior
+
+11/10/2025
+-- Diversos --
+[*] Mais ajustes para a correta geração/leitura do arquivo XML e INI.
+   Por: Italo Giurizzato Junior
+
+09/10/2025
+-- ACBrNFComClass/ACBrNFComIniReader/ACBrNFComIniWriter/ACBrNFComXmlReader/ACBrNFComXmlWriter --
+[*] Incluido os campos cPais e xPais no endereço do destinatário.
+   Por: Italo Giurizzato Junior
+
+08/10/2025
+-- ACBrNFComXmlWriter --
+[*] Ajustes para gerar o grupo gIBSCBS em função dos CST permitidos.
+   Por: Italo Giurizzato Junior
+-- ACBrNFComIniReader --
+[*] Ajustes para não gerar o grupo gTribRegular de forma indevida.
+   Por: Italo Giurizzato Junior
+
+06/10/2025
+-- Diversos --
+[*] Ajustes diversos no componente visando a NT 2025/001 versão 1.10
+   Por: Italo Giurizzato Junior
+
+23/09/2025
+-- ACBrNFComXmlWriter --
+[*] Possível solução para geração dos campos vCredPres e vCredPresCondSus.
+   Por: Italo Giurizzato Junior
+
+22/09/2025
+-- ACBrNFComEnvEvento.pas --
+[-] Correção para compilar e instalar.
+   Por: Italo Giurizzato Junior
+-- Diversos --
+[*] Ajustes diversos no componente visando a Reforma Tributária.
+   Por: Italo Giurizzato Junior
+
+19/08/2025
+-- Diversos --
+[*] O campo cClassTrib deixa de ser enumerado e passa a ser string.
+   Por: Italo Giurizzato Junior
+
+15/08/2025
+-- ACBrNFComXmlWriter --
+[*] #TK-7508: Ajustes na formatação no conteúdo do atributo: nItemAnt.
+   Por: jfelipetdsoft
 
 28/07/2025
 -- ACBrNFComWebServices/ACBrNFComEnvEvento/ACBrNFComRetConsSit/ACBrNFComRetEnvEvento --

@@ -38,6 +38,26 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+17/10/2025
+-- pcnConversao --
+[*] Os tipos e funções agora estão definidos na unit ACBrDFe.Conversao
+   Por: Italo Giurizzato Junior
+
+23/09/2025
+-- pcnConversao --
+[+] #ACBR-8083 - Adicionado tratamento para o tipo tcDe1 na função rCampo() - https://www.projetoacbr.com.br/forum/topic/85907-erro-s5002-tag-qtdmesesrra/
+   Por: Renato Rubinho
+
+16/09/2025
+-- pcnConversao --
+[+] Acrescentado os enumeradores dos novos eventos.
+   Por: Italo Giurizzato Junior
+
+08/08/2025
+-- pcnRetDistDFeInt --
+[*] #TK-7484: Alteração visando a leitura do grupo itensAverbados.
+  Por: M & M INFORMATICA LTDA
+
 26/02/2025
 -- pcnLeitor --
 [*] #TK-6581: Altera uso da ReverterFiltroTextoXML pela DecodeHTMLEntities

@@ -20,7 +20,7 @@
       <MajorVersionNr Value="1"/>
       <MinorVersionNr Value="1"/>
       <RevisionNr Value="1"/>
-      <BuildNr Value="245"/>
+      <BuildNr Value="258"/>
       <Language Value="0416"/>
       <StringTable CompanyName="Projeto ACBr" FileDescription="ACBrSedex - Biblioteca para consulta de Sedex" InternalName="ACBrLibSedex" LegalCopyright="Projeto ACBr" LegalTrademarks="Projeto ACBr" ProductName="Sedex" ProductVersion="0.0.1.30"/>
     </VersionInfo>
@@ -194,7 +194,9 @@
 -dNOGUI
 -dMT
 -Xd
--XPaarch64-linux-android-"/>
+-XPaarch64-linux-android-
+-k-z&quot; common-page-size=16384&quot;
+-k-z&quot; max-page-size=16384&quot;"/>
           </Other>
         </CompilerOptions>
       </Item5>

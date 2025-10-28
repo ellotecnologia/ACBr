@@ -39,6 +39,7 @@ interface
 uses
   SysUtils, Classes, StrUtils,
   ACBrXmlBase,
+  ACBrDFe.Conversao,
   ACBrXmlDocument,
   ACBrNFSeXGravarXml,
   ACBrNFSeXGravarXml_ABRASFv2,
@@ -87,7 +88,8 @@ type
   TNFSeW_IPM204 = class(TNFSeW_ABRASFv2)
   protected
     procedure Configuracao; override;
-
+  public
+    function GerarXml: Boolean; override;
   end;
 
 implementation
@@ -166,13 +168,21 @@ begin
   xmlNode := GerarItens;
   NFSeNode.AppendChild(xmlNode);
 
+  // Reforma Tributária
+  if (NFSe.IBSCBS.dest.xNome <> '') or (NFSe.IBSCBS.imovel.cCIB <> '') or
+     (NFSe.IBSCBS.imovel.ender.CEP <> '') or
+     (NFSe.IBSCBS.imovel.ender.endExt.cEndPost <> '')
+     { or
+     (NFSe.IBSCBS.valores.trib.gIBSCBS.gIBSCredPres.pCredPresIBS > 0)} then
+  begin
+    xmlNode := GerarXMLIBSCBS(NFSe.IBSCBS);
+    NFSeNode.AppendChild(xmlNode);
+  end;
+
   xmlNode := GerarGenericos;
   NFSeNode.AppendChild(xmlNode);
 
-  // Removido a condição da versão para gerar o grupo Forma de Pagamento para
-  // a cidade de Panambi/RS
-//  if (NFSe.Status = srNormal) and (VersaoNFSe = ve101 ) then
-  if (NFSe.SituacaoNfse = snNormal) then
+  if (NFSe.SituacaoNfse = snNormal) and (VersaoNFSe = ve101 ) then
   begin
     xmlNode := GerarFormaPagamento;
     NFSeNode.AppendChild(xmlNode);
@@ -188,6 +198,12 @@ begin
   FpGerarID := False;
   FpNrOcorrTagsTomador := 1;
   FpNrOcorrCodigoAtividade := -1;
+
+  // Reforma Tributária
+  NrOcorrtpOper := -1;
+  NrOcorrindDest := -1;
+  GerarDest := False;
+  GerargReeRepRes := False;
 end;
 
 function TNFSeW_IPM.GerarFormaPagamento: TACBrXmlNode;
@@ -296,6 +312,7 @@ end;
 function TNFSeW_IPM.GerarLista: TACBrXmlNodeArray;
 var
   i: integer;
+  xDescr: string;
 begin
   Result := nil;
   SetLength(Result, NFSe.Servico.ItemServico.Count);
@@ -325,9 +342,16 @@ begin
     Result[i].AppendChild(AddNode(tcStr, '#', 'codigo_atividade', 1, 9, FpNrOcorrCodigoAtividade,
                        OnlyNumber(NFSe.Servico.ItemServico[I].CodigoCnae), ''));
 
+    if NFSe.Servico.ItemServico[I].Descricao = '' then
+      xDescr := NFSe.Servico.Discriminacao
+    else
+      xDescr := NFSe.Servico.ItemServico[I].Descricao;
+
+    xDescr := StringReplace(xDescr, Opcoes.QuebraLinha,
+                            FpAOwner.ConfigGeral.QuebradeLinha, [rfReplaceAll]);
+
     Result[i].AppendChild(AddNode(tcStr, '#', 'descritivo', 1, 1000, 1,
-      IfThen(NFSe.Servico.ItemServico[I].Descricao = '',
-       NFSe.Servico.Discriminacao, NFSe.Servico.ItemServico[I].Descricao), ''));
+                                                                   xDescr, ''));
 
     if NFSe.Servico.ItemServico[I].Aliquota = 0 then
       Result[i].AppendChild(AddNode(tcDe4, '#', 'aliquota_item_lista_servico', 1, 15, 1,
@@ -573,6 +597,66 @@ begin
   NrOcorrCodigoPaisTomador := -1;
 
   TagTomador := 'TomadorServico';
+
+  // Reforma Tributária
+  NrOcorrtpOper := -1;
+  NrOcorrindDest := -1;
+  GerarDest := False;
+  GerargReeRepRes := False;
+end;
+
+function TNFSeW_IPM204.GerarXml: Boolean;
+var
+  NFSeNode, xmlNode: TACBrXmlNode;
+begin
+  // Em conformidade com a versão 2 do layout da ABRASF não deve ser alterado
+
+  ListaDeAlertas.Clear;
+
+  case VersaoNFSe of
+    ve203:
+      begin
+        GerarTagNifTomador := True;
+        NrOcorrCodigoMunicInterm := 1;
+      end;
+    ve204:
+      begin
+        GerarTagNifTomador := True;
+        GerarEnderecoExterior := True;
+        NrOcorrCodigoMunicInterm := 1;
+      end;
+  else
+    begin
+      GerarTagNifTomador := False;
+      GerarEnderecoExterior := False;
+      NrOcorrCodigoMunicInterm := -1;
+    end;
+  end;
+
+  FDocument.Clear();
+
+  NFSeNode := CreateElement('Rps');
+
+  if GerarNSRps then
+    NFSeNode.SetNamespace(FpAOwner.ConfigMsgDados.XmlRps.xmlns, Self.PrefixoPadrao);
+
+  FDocument.Root := NFSeNode;
+
+  if FormatoDiscriminacao <> fdNenhum then
+    ConsolidarVariosItensServicosEmUmSo;
+
+  xmlNode := GerarInfDeclaracaoPrestacaoServico;
+  NFSeNode.AppendChild(xmlNode);
+
+  // Reforma Tributária
+  if (NFSe.IBSCBS.dest.xNome <> '') or (NFSe.IBSCBS.imovel.cCIB <> '') or
+     (NFSe.IBSCBS.imovel.ender.CEP <> '') or
+     (NFSe.IBSCBS.imovel.ender.endExt.cEndPost <> '')
+     { or
+     (NFSe.IBSCBS.valores.trib.gIBSCBS.gIBSCredPres.pCredPresIBS > 0)} then
+    NFSeNode.AppendChild(GerarXMLIBSCBS(NFSe.IBSCBS));
+
+  Result := True;
 end;
 
 end.

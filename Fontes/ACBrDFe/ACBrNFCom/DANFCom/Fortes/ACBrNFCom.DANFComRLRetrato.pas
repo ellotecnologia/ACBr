@@ -211,6 +211,8 @@ type
     rlbDivisao08: TRLBand;
     rlmAnatel: TRLMemo;
     RLDraw5: TRLDraw;
+    RLLabel20: TRLLabel;
+    imgQRCodePix: TRLImage;
 
     procedure rlbDivisao01BeforePrint(Sender: TObject; var PrintIt: Boolean);
     procedure rlbDivisao03DataRecord(Sender: TObject; RecNo, CopyNo: Integer;
@@ -242,7 +244,8 @@ uses
   ACBrImage,
   ACBrDelphiZXingQRCode,
   ACBrXmlBase,
-  ACBrDFeUtil, 
+  ACBrDFe.Conversao,
+  ACBrDFeUtil,
   ACBrDFeReportFortes,
   ACBrUtil.Base, 
   ACBrUtil.Strings, 
@@ -281,7 +284,7 @@ begin
     rlmEmitente.Lines.Add(sTemp);
 
     rlmEmitente.Lines.Add('CNPJ: ' + FormatarCNPJouCPF(CNPJ));
-    rlmEmitente.Lines.Add('INSCRIÇÃO ESTADUAL: ' + IE);
+    rlmEmitente.Lines.Add(ACBrStr('INSCRIÇÃO ESTADUAL: ') + IE);
     {
     sTemp := sTemp + ' - CEP:' + FormatarCEP(EnderEmit.CEP) + ' - ' +
       EnderEmit.XMun + ' - ' + EnderEmit.UF;
@@ -304,18 +307,23 @@ begin
     if idOutros = '' then
     begin
       rlmDestinatario.Lines.Add('CNPJ/CPF: ' + FormatarCNPJouCPF(CNPJCPF));
-      rlmDestinatario.Lines.Add('INSCRIÇÃO ESTADUAL: ' + IE);
+      rlmDestinatario.Lines.Add(ACBrStr('INSCRIÇÃO ESTADUAL: ') + IE);
     end
     else
       rlmDestinatario.Lines.Add('idOutros: ' + idOutros);
 
-    rlmDestinatario.Lines.Add('CÓDIGO CLIENTE: ' + fpNFCom.assinante.iCodAssinante);
+    rlmDestinatario.Lines.Add(ACBrStr('CÓDIGO CLIENTE: ') + fpNFCom.assinante.iCodAssinante);
     rlmDestinatario.Lines.Add('N. TELEFONE: ' + FormatarFone(EnderDest.Fone));
 
-    rlmDestinatario.Lines.Add('PERÍODO: ' + '');
+    sTemp := '';
+    if (fpNFCom.gFat.dPerUsoIni >0) and (fpNFCom.gFat.dPerUsoFim > 0) then
+      sTemp := Format('%s A %s',[DateToStr(fpNFCom.gFat.dPerUsoIni), DateToStr(fpNFCom.gFat.dPerUsoFim)]);
+
+    rlmDestinatario.Lines.Add(ACBrStr('PERÍODO: ') + sTemp);
   end;
 
   PintarQRCode(fpNFCom.infNFComSupl.qrCodNFCom, imgQRCode.Picture.Bitmap, qrUTF8NoBOM);
+  PintarQRCode(fpNFCom.gFat.gPIX.urlQRCodePIX, imgQRCodePix.Picture.Bitmap, qrUTF8BOM);
 
   rllNumNF1.Caption := ACBrStr('NOTA FISCAL FATURA No. ') +
                        FormatarNumeroDocumentoFiscal(IntToStr(fpNFCom.Ide.nNF));
@@ -383,10 +391,19 @@ begin
     end;
   end;
 
-  sTemp := FormatDateBr(fpNFCom.gFat.CompetFat);
-  sTemp := RightStr(sTemp, 4) + '/' + Copy(sTemp, 4, 2);
-  rllReferencia.Caption := sTemp;
-  rllVencimento.Caption := FormatDateBr(fpNFCom.gFat.dVencFat);
+  if (fpNFCom.gFat.CompetFat > 0) then
+  begin
+    sTemp := FormatDateBr(fpNFCom.gFat.CompetFat);
+    sTemp := Copy(sTemp, 4, 2) + '/' + RightStr(sTemp, 4);
+    rllReferencia.Caption := sTemp;
+  end
+  else
+    rllReferencia.Caption := '';
+
+  if (fpNFCom.gFat.dVencFat > 0) then
+    rllVencimento.Caption := FormatDateBr(fpNFCom.gFat.dVencFat)
+  else
+    rllVencimento.Caption := '';
   rllTotalPagar.Caption := 'R$ ' + FormatFloatBr(fpNFCom.Total.vNF);
 end;
 
@@ -416,12 +433,13 @@ begin
     rllValorFUST.Caption := FormatFloatBr(vFUST);
     rllValorFUNTTEL.Caption := FormatFloatBr(vFUNTTEL);
   end;
+  rlmDadosFisco.Lines.Text := StringReplace(fpNFCom.infAdic.infAdFisco, fpDANFCom.CaractereQuebraDeLinha, #13, [rfReplaceAll]);
 end;
 
 procedure TfrlDANFComRLRetrato.rlbDivisao05BeforePrint(Sender: TObject;
   var PrintIt: Boolean);
 begin
-  rlmDadosAdicionais.Lines.Text := fpNFCom.infAdic.infCpl;
+  rlmDadosAdicionais.Lines.Text := StringReplace(fpNFCom.infAdic.infCpl, fpDANFCom.CaractereQuebraDeLinha, #13, [rfReplaceAll]);
 end;
 
 procedure TfrlDANFComRLRetrato.rlbDivisao06BeforePrint(Sender: TObject;
@@ -430,26 +448,49 @@ var
   sTemp: string;
 begin
   rllIdentDebAut.Caption := fpNFCom.gFat.codDebAuto;
-  sTemp := FormatDateBr(fpNFCom.gFat.CompetFat);
-  sTemp := RightStr(sTemp, 4) + '/' + Copy(sTemp, 4, 2);
-  rllMesRef.Caption := sTemp;
-  rllVencimento2.Caption := FormatDateBr(fpNFCom.gFat.dVencFat);
-  rllTotPagar.Caption := 'R$ ' + FormatFloatBr(fpNFCom.Total.vNF);
+  if (fpNFCom.gFat.CompetFat > 0) then
+  begin
+    sTemp := FormatDateBr(fpNFCom.gFat.CompetFat);
+    sTemp := Copy(sTemp, 4, 2) + '/' + RightStr(sTemp, 4);
+    rllMesRef.Caption := sTemp;
+  end
+  else
+    rllMesRef.Caption := '';
 
-  rllNumFat.Caption := 'Número da Fatura: ' +
+  if (fpNFCom.gFat.dVencFat > 0) then
+    rllVencimento2.Caption := FormatDateBr(fpNFCom.gFat.dVencFat)
+  else
+    rllVencimento2.Caption := '';  
+
+  rllTotPagar.Caption := 'R$ ' + FormatFloatBr(fpNFCom.Total.vNF);
+  rllNumFat.Caption := ACBrStr('Número da Fatura: ') +
                        FormatarNumeroDocumentoFiscal(IntToStr(fpNFCom.Ide.nNF));
 
   if fpNFCom.gFat.codAgencia <> '' then
   begin
-    rllCodAgencia.Caption := 'Agência: ' + fpNFCom.gFat.codAgencia;
+    rllCodAgencia.Caption := ACBrStr('Agência: ') + fpNFCom.gFat.codAgencia;
     rllCodBanco.Caption := 'Banco: ' + fpNFCom.gFat.codBanco;
   end;
 
   sTemp := fpNFCom.gFat.codBarras;
-  rllLinhaDig.Caption := Copy(sTemp, 01, 12) + ' ' + Copy(sTemp, 13, 12) + ' ' +
-                         Copy(sTemp, 25, 12) + ' ' + Copy(sTemp, 37, 12);
-  rlbCodBarLinhaDig.Visible := True;
-  rlbCodBarLinhaDig.Caption := OnlyNumber(fpNFCom.gFat.codBarras);
+  if (sTemp <> '') and (StrToIntDef(OnlyNumber(sTemp), 0) > 0) then
+  begin
+    rllLinhaDig.Caption :=
+      Copy(sTemp, 01, 12) + ' ' +
+      Copy(sTemp, 13, 12) + ' ' +
+      Copy(sTemp, 25, 12) + ' ' +
+      Copy(sTemp, 37, 12);
+
+    rlbCodBarLinhaDig.Visible := True;
+    rlbCodBarLinhaDig.Caption := OnlyNumber(sTemp);
+  end
+  else
+  begin
+    // Se for "0" ou zeros, esconde os componentes
+    rlbCodBarLinhaDig.Visible := False;
+    rllLinhaDig.Caption := '';
+    rlbCodBarLinhaDig.Caption := '';
+  end;
 end;
 
 procedure TfrlDANFComRLRetrato.rlbDivisao07BeforePrint(Sender: TObject;
@@ -460,7 +501,7 @@ begin
 
   rllUsuario.Visible := NaoEstaVazio(fpDANFCom.Usuario);
   rllUsuario.Caption := ACBrStr('DATA / HORA DA IMPRESSÃO: ') + FormatDateTimeBr(Now) +
-    ' - ' + fpDANFCom.Usuario;
+    ' - ' + ACBrStr(fpDANFCom.Usuario);
 end;
 
 procedure TfrlDANFComRLRetrato.rlbDivisao08BeforePrint(Sender: TObject;
@@ -489,7 +530,7 @@ begin
   with fpNFCom.Det[FNumItem] do
   begin
     rlmDescricao.Lines.Text := Prod.xProd;
-    txtUnidade.Lines.Text := uMedToStr(Prod.uMed);
+    txtUnidade.Lines.Text := uMedToDescricao(Prod.uMed);
     txtQuantidade.Lines.Text := fpDANFCom.FormatarQuantidade(Prod.qFaturada);
     txtValorUnitario.Lines.Text := fpDANFCom.FormatarValorUnitario(Prod.vItem);
     txtValorTotal.Caption := FormatFloatBr(Prod.vProd);

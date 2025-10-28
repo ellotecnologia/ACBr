@@ -38,8 +38,11 @@ interface
 
 uses
   SysUtils, Classes, StrUtils, IniFiles,
-  ACBrXmlBase, ACBrXmlDocument,
-  ACBrNFSeXConversao, ACBrNFSeXLerXml;
+  ACBrXmlBase,
+  ACBrXmlDocument,
+  ACBrDFe.Conversao,
+  ACBrNFSeXConversao,
+  ACBrNFSeXLerXml;
 
 type
   { TNFSeR_AssessorPublico }
@@ -74,7 +77,6 @@ type
 implementation
 
 uses
-  ACBrDFe.Conversao,
   ACBrUtil.Base,
   ACBrUtil.XMLHTML,
   ACBrUtil.DateTime,
@@ -98,7 +100,7 @@ begin
   DataCancel := ObterConteudo(ANode.Childrens.FindAnyNs('DATACANCEL'), tcStr);
   HoraCancel := ObterConteudo(ANode.Childrens.FindAnyNs('HORACANCEL'), tcStr);
 
-  if OnlyNumber(HoraCancel) <> '' then
+  if (OnlyNumber(DataCancel) <> '') and (OnlyNumber(HoraCancel) <> '') then
     DataCancel := DataCancel + ' ' + HoraCancel;
 
   if OnlyNumber(DataCancel) <> '' then

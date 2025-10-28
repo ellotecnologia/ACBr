@@ -232,7 +232,10 @@ begin
             if Boleto.Cedente.CedenteWS.IndicadorPix then
             begin
               LConsultaList.Add('/'+Boleto.Cedente.Convenio + '.' + RemoveZerosEsquerda(LNossoNumero));
-              LConsultaList.Add('tipoConsulta=bankslip');  // 2 via
+              if Boleto.Configuracoes.WebService.Ambiente = tawsSandBox then
+                LConsultaList.Add('tipoConsulta=bankslips')  // 2 via
+              else
+                LConsultaList.Add('tipoConsulta=bankslip');  // 2 via
               LConsultaList.Delimiter := '?';
             end else
             begin
@@ -418,10 +421,24 @@ begin
        LEspecieDoc:= 'DUPLICATA_MERCANTIL'
     else if AnsiSameText(ATitulo.EspecieDoc, 'NP') then
        LEspecieDoc:= 'NOTA_PROMISSORIA'
-    else if AnsiSameText(ATitulo.EspecieDoc, 'NS') then
+    else if AnsiSameText(ATitulo.EspecieDoc, 'NS')
+      	 or AnsiSameText(ATitulo.EspecieDoc,'DS') then
        LEspecieDoc:= 'DUPLICATA_SERVICO'
-    else if AnsiSameText(ATitulo.EspecieDoc, 'REC') then
+    else if AnsiSameText(ATitulo.EspecieDoc, 'REC')
+      	 or AnsiSameText(ATitulo.EspecieDoc,'RC') then
        LEspecieDoc:= 'RECIBO'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'NR') then
+       LEspecieDoc:= 'NOTA_PROMISSORIA_RURAL'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'AP') then
+       LEspecieDoc:= 'APOLICE_SEGURO'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'BCC') then
+       LEspecieDoc:= 'BOLETO_CARTAO_CREDITO'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'BDA') then
+       LEspecieDoc:= 'BOLETO_DEPOSITO_APORTE'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'CH') then
+       LEspecieDoc:= 'CHEQUE'
+    else if AnsiSameText(ATitulo.EspecieDoc, 'ND') then
+       LEspecieDoc:= 'NOTA_PROMISSORIA_DIRETA'
     else
        LEspecieDoc:= 'OUTROS';
 

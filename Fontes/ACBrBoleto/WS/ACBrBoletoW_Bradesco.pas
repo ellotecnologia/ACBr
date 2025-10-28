@@ -103,6 +103,8 @@ type
     procedure AtribuirAbatimento(AJsonObject: TACBrJSONObject);
     procedure AtribuirDesconto(AJsonObject: TACBrJSONObject);
     function DateTimeToDateBradesco( const AValue:TDateTime ):String;
+    procedure GerarNegativacao(AJsonObject: TACBrJSONObject);
+    procedure GerarProtesto(AJsonObject: TACBrJSONObject);
   protected
     procedure DefinirURL; override;
     procedure DefinirContentType; override;
@@ -125,6 +127,13 @@ type
     procedure GerarJuros(AJsonObject: TACBrJSONObject);
     procedure GerarMulta(AJsonObject: TACBrJSONObject);
     procedure GerarDesconto(AJsonObject: TACBrJSONObject);
+
+    procedure GerarNegativacaoHibrido(AJsonObject: TACBrJSONObject);
+    procedure GerarProtestoHibrido(AJsonObject: TACBrJSONObject);
+
+    procedure GerarProtestoOuNegativacao(AJsonObject: TACBrJSONObject);
+
+
     procedure RegistraHibrido;
     procedure RegistraComum;
     procedure DefinirURLAmbiente(const AUseCert: Boolean);
@@ -156,14 +165,14 @@ const
   // Portal (com certificado)
   PATH_PIX_PORTAL         = '/boleto-hibrido/cobranca-registro/v1/gerarBoleto';
   PATH_COB_PORTAL         = '/boleto/cobranca-registro/v1/cobranca';
-  PATH_BAIXAR_PORTAL      = '/boleto/cobranca-registro/v1/titulo-baixar';
-  PATH_ALTVENC_PORTAL     = '/boleto/cobranca-registro/v1/alterar-titulo';
-  PATH_CONSULTA_PORTAL    = '/boleto/cobranca-registro/v1/titulo-consultar';
+  PATH_BAIXAR_PORTAL      = '/boleto/cobranca-baixa/v1/baixar';
+  PATH_ALTERAR_PORTAL     = '/boleto/cobranca-altera/v1/alterar';
+  PATH_CONSULTA_PORTAL    = '/boleto/cobranca-consulta/v1/consultar';
 
   // Legado (sem certificado)
   PATH_COB_LEGADO         = '/v1/boleto-hibrido/registrar-boleto';
   PATH_BAIXAR_LEGADO      = '/v1/boleto/titulo-baixar';
-  PATH_ALTVENC_LEGADO     = '/v1/boleto/alterar-titulo';
+  PATH_ALTERAR_LEGADO     = '/v1/boleto/alterar-titulo';
   PATH_CONSULTA_LEGADO    = '/v1/boleto/titulo-consultar';
 
 
@@ -242,9 +251,9 @@ begin
 
           ACBrBoleto.toRemessaAlterarVencimento:
             if LUseCert then
-              LPath := PATH_ALTVENC_PORTAL
+              LPath := PATH_ALTERAR_PORTAL
             else
-              LPath := PATH_ALTVENC_LEGADO;
+              LPath := PATH_ALTERAR_LEGADO;
         else
           raise Exception.Create('Tipo de ocorrência não suportado para alteração.');
         end;
@@ -454,14 +463,15 @@ begin
     begin
       OAuth.AuthorizationType := atJWT;
       OAuth.GrantType   := 'urn:ietf:params:oauth:grant-type:jwt-bearer';
+
+      LJSonObject := TACBrJSONObject.Create
+                     .AddPair('aud',OAuth.URL.GetURL)
+                     .AddPair('sub',Trim(Boleto.Cedente.CedenteWS.ClientID))
+                     .AddPair('iat',FUnixTime - 3600 )
+                     .AddPair('exp',FUnixTime + 3600)
+                     .AddPair('jti',FUnixTime * 1000)
+                     .AddPair('ver',LVersao);
       try
-        LJSonObject := TACBrJSONObject.Create
-                       .AddPair('aud',OAuth.URL.GetURL)
-                       .AddPair('sub',Trim(Boleto.Cedente.CedenteWS.ClientID))
-                       .AddPair('iat',FUnixTime - 3600 )
-                       .AddPair('exp',FUnixTime + 3600)
-                       .AddPair('jti',FUnixTime * 1000)
-                       .AddPair('ver',LVersao);
         OAuth.ParamsOAuth := LJSonObject.ToJSON;
       finally
         LJSonObject.Free;
@@ -529,9 +539,17 @@ begin
   LJsonObject := TACBrJSONObject.Create;
   LJsonCnpjCPF := TACBrJSONObject.Create;
   try
-    LJsonCnpjCPF.AddPair('cpfCnpj', Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 1, 8));
-    LJsonCnpjCPF.AddPair('filial', Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 9, 4));
-    LJsonCnpjCPF.AddPair('controle', Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 13, 2));
+    if Boleto.Cedente.TipoInscricao = pJuridica then
+    begin
+      LJsonCnpjCPF.AddPair('cpfCnpj', Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 1, 8));
+      LJsonCnpjCPF.AddPair('filial', Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 9, 4));
+      LJsonCnpjCPF.AddPair('controle', Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 13, 2));
+    end else
+    begin
+      LJsonCnpjCPF.AddPair('cpfCnpj', Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 1, 9));
+      LJsonCnpjCPF.AddPair('filial', '0');
+      LJsonCnpjCPF.AddPair('controle', Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 10, 2));
+    end;
     LJsonObject.AddPair('cpfCnpj', LJsonCnpjCPF);
     LJsonObject.AddPair('produto', RemoveZerosEsquerda(ATitulo.Carteira));
     LJsonObject.AddPair('negociacao', AgenciaContaFormatada(11));
@@ -559,11 +577,17 @@ var
 begin
   LJsonObject := TACBrJSONObject.Create;
   try
-    LJsonObject.AddPair('nuCPFCNPJ',    Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 1, 8));
-    LJsonObject.AddPair('filialCPFCNPJ',Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 9, 4));
-    LJsonObject.AddPair('ctrlCPFCNPJ', IfThen(Boleto.Cedente.TipoInscricao = pJuridica,
-                                        Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 13, 2),
-                                        Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 10, 2)));
+    if Boleto.Cedente.TipoInscricao = pJuridica then
+    begin
+      LJsonObject.AddPair('nuCPFCNPJ',    Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 1, 8));
+      LJsonObject.AddPair('filialCPFCNPJ',Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 9, 4));
+      LJsonObject.AddPair('ctrlCPFCNPJ',  Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 13, 2));
+    end else
+    begin
+      LJsonObject.AddPair('nuCPFCNPJ',    Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 1, 9));
+      LJsonObject.AddPair('filialCPFCNPJ', '0');
+      LJsonObject.AddPair('ctrlCPFCNPJ',  Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 10, 2));
+    end;
     LJsonObject.AddPair('idProduto', ATitulo.Carteira);
     LJsonObject.AddPair('nuNegociação', AgenciaContaFormatada(18));
     LJsonObject.AddPair('nuTítulo', OnlyNumber(ATitulo.NossoNumero));
@@ -594,6 +618,12 @@ begin
 
     GerarJuros(LJsonObject);
     GerarMulta(LJsonObject);
+
+    if Boleto.Configuracoes.WebService.UseCertificateHTTP then  // Portal Developers
+    begin
+      GerarProtestoOuNegativacao(LJsonObject)
+    end;
+
 
     GerarDesconto(LJsonObject);
 
@@ -640,11 +670,18 @@ begin
   try
     LJsonObject.AddPair('registrarTitulo', 1); //1 = Registrar o título 2 = Somente consistir dados do título
     LJsonObject.AddPair('codUsuario', 'APISERVIC');//FIXO.
-    LJsonObject.AddPair('nroCpfCnpjBenef', Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 1, 8));
-    LJsonObject.AddPair('filCpfCnpjBenef', Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 9, 4));
-    LJsonObject.AddPair('digCpfCnpjBenef', IfThen(Boleto.Cedente.TipoInscricao = pJuridica,
-                                           Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 13, 2),
-                                           Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 10, 2)));
+    if Boleto.Cedente.TipoInscricao = pJuridica then
+    begin
+      LJsonObject.AddPair('nroCpfCnpjBenef',    Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 1, 8));
+      LJsonObject.AddPair('filCpfCnpjBenef',Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 9, 4));
+      LJsonObject.AddPair('digCpfCnpjBenef',  Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 13, 2));
+    end else
+    begin
+      LJsonObject.AddPair('nroCpfCnpjBenef',    Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 1, 9));
+      LJsonObject.AddPair('filCpfCnpjBenef', '0');
+      LJsonObject.AddPair('digCpfCnpjBenef',  Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 10, 2));
+    end;
+
     LJsonObject.AddPair('tipoAcesso', 2);//FIXO.
     LJsonObject.AddPair('cpssoaJuridContr', 0);//FIXO.
     LJsonObject.AddPair('ctpoContrNegoc', 0);//FIXO.
@@ -657,9 +694,9 @@ begin
     //tipoRegistro: 1-Título 2-Título com Instrução de Protesto 3-Título com Instrução de Protesto Falimentar.
     LJsonObject.AddPair('tipoRegistro', 1);//NÃO Obrigatório;
     LJsonObject.AddPair('cprodtServcOper', 0);//FIXO.
-    if Boleto.Configuracoes.WebService.UseCertificateHTTP then //PORTAL DEVELOPERS
-      LJsonObject.AddPair('ctitloCobrCdent', OnlyNumber(ATitulo.NossoNumero)+ATitulo.ACBrBoleto.Banco.CalcularDigitoVerificador(ATitulo))
-    else
+//    if Boleto.Configuracoes.WebService.UseCertificateHTTP then //PORTAL DEVELOPERS
+//      LJsonObject.AddPair('ctitloCobrCdent', OnlyNumber(ATitulo.NossoNumero)+ATitulo.ACBrBoleto.Banco.CalcularDigitoVerificador(ATitulo))
+//    else
       LJsonObject.AddPair('ctitloCobrCdent', OnlyNumber(ATitulo.NossoNumero));//LEGADO
 
     //ctitloCliCdent: Identificador do título pelo beneficiário(Seu Número).
@@ -695,6 +732,13 @@ begin
     LJsonObject.AddPair('cindcdPgtoParcial', 'N');//FIXO.
     LJsonObject.AddPair('qtdePgtoParcial', 000);//FIXO.
     LJsonObject.AddPair('filler1', '');//FIXO.
+
+    if Boleto.Configuracoes.WebService.UseCertificateHTTP then  // Portal Developers
+    begin
+     GerarNegativacaoHibrido(LJsonObject);
+     GerarProtestoHibrido(LJsonObject)
+    end;
+
 
     GerarJuros(LJsonObject);
     GerarMulta(LJsonObject);
@@ -842,9 +886,18 @@ begin
   LJsonObject := TACBrJSONObject.Create;
   try
     LJsonCpfCnpj := TACBrJSONObject.Create;
-    LJsonCpfCnpj.AddPair('cpfCnpj', Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 1, 8));
-    LJsonCpfCnpj.AddPair('filial', Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 9, 4));
-    LJsonCpfCnpj.AddPair('controle', Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 13, 2));
+
+    if Boleto.Cedente.TipoInscricao = pJuridica then
+    begin
+      LJsonCpfCnpj.AddPair('cpfCnpj',    Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 1, 8));
+      LJsonCpfCnpj.AddPair('filial',Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 9, 4));
+      LJsonCpfCnpj.AddPair('controle',  Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 13, 2));
+    end else
+    begin
+      LJsonCpfCnpj.AddPair('cpfCnpj',    Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 1, 9));
+      LJsonCpfCnpj.AddPair('filial', '0');
+      LJsonCpfCnpj.AddPair('controle',  Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 10, 2));
+    end;
     LJsonObject.AddPair('cpfCnpj', LJsonCpfCnpj);
 
     LJsonObject.AddPair('produto', RemoveZerosEsquerda(ATitulo.Carteira));
@@ -1060,6 +1113,136 @@ begin
   end;
 end;
 
+procedure TBoletoW_Bradesco.GerarNegativacao(AJsonObject: TACBrJSONObject);
+begin
+
+end;
+
+procedure TBoletoW_Bradesco.GerarNegativacaoHibrido(AJsonObject: TACBrJSONObject);
+var
+  LTipoNegativacao: Integer;
+  LDiasNegativacao: Integer;
+begin
+  if not Assigned(ATitulo) or not Assigned(AJsonObject) then
+    Exit;
+
+  if ATitulo.DataNegativacao > 0  then
+  begin
+    //Código "3" para dias úteis ou "4" para dias corridos
+    if ATitulo.TipoDiasNegativacao = diUteis then
+    begin
+     LTipoNegativacao := 3;
+     LDiasNegativacao := WorkingDaysBetween(ATitulo.Vencimento, ATitulo.DataNegativacao);
+    end
+    else
+    begin
+     LTipoNegativacao := 4;
+     LDiasNegativacao := DaysBetween(ATitulo.Vencimento, ATitulo.DataNegativacao);
+    end;
+
+    if LDiasNegativacao < 5 then
+      raise Exception.Create('Erro quantidade de dias para negativação. (mínimo de 5 dias).');
+  end
+  else
+  begin
+    // qdo nao informado data de negativacao retornar zeros
+    LTipoNegativacao := 0;
+    LDiasNegativacao := 0;
+  end;
+  AJsonObject.AddPair('codNegativacao', LTipoNegativacao);
+  AJsonObject.AddPair('diasNegativacao', LDiasNegativacao);
+end;
+
+procedure TBoletoW_Bradesco.GerarProtesto(AJsonObject: TACBrJSONObject);
+begin
+
+end;
+
+procedure TBoletoW_Bradesco.GerarProtestoHibrido(AJsonObject: TACBrJSONObject);
+var
+  LTipoProtesto: Integer;
+  LDiasProtesto: Integer;
+begin
+  if not Assigned(ATitulo) or not Assigned(AJsonObject) then
+    Exit;
+
+  LTipoProtesto := 0;
+  LDiasProtesto := 0;
+
+  if ATitulo.DataProtesto > 0 then
+  begin
+    //Código "2" para dias úteis ou "1" para dias corridos
+    if ATitulo.TipoDiasProtesto = diUteis then
+      LTipoProtesto := 2
+    else
+      LTipoProtesto := 1;
+
+    // Data base para cálculo dos dias
+    LDiasProtesto := DaysBetween(ATitulo.Vencimento, ATitulo.DataProtesto);
+    if (LDiasProtesto < 5) and (LDiasProtesto <> 0) then
+      raise Exception.Create('Erro quantidade de dias para protesto. (mínimo de 5 dias).');
+  end;
+
+  AJsonObject.AddPair('ctpoProteTitlo', LTipoProtesto);
+  AJsonObject.AddPair('ctpoPrzProte', LDiasProtesto);
+end;
+
+procedure TBoletoW_Bradesco.GerarProtestoOuNegativacao(
+  AJsonObject: TACBrJSONObject);
+var
+ LProtestoAutomaticoNegativacao : string;
+ LDias : string;
+begin
+  // Utilizando quando não for hibrido
+
+  if not Assigned(ATitulo) or not Assigned(AJsonObject) then
+    Exit;
+
+//  01 - Dias Corridos para Protesto
+//  02 - Dias Úteis para Protesto
+//  03 - Dias Corridos para Negativação
+
+  case ATitulo.CodigoNegativacao of
+    cnProtestarCorrido:
+      begin
+        if ATitulo.DataProtesto = 0 then
+          raise Exception.Create('Data de protesto não foi informada');
+        LDias := inttostr(DaysBetween(ATitulo.Vencimento, ATitulo.DataProtesto));
+        LProtestoAutomaticoNegativacao := '01'; //01 - Dias Corridos para Protesto
+      end;
+    cnProtestarUteis:
+      begin
+        if ATitulo.DataProtesto = 0 then
+          raise Exception.Create('Data de protesto não foi informada');
+        LDias := inttostr(WorkingDaysBetween(ATitulo.Vencimento, ATitulo.DataProtesto));
+        LProtestoAutomaticoNegativacao := '02'; //  02 - Dias Úteis para Protesto
+      end;
+    cnNegativarUteis:
+      begin
+         LProtestoAutomaticoNegativacao := '00';
+         raise Exception.Create('Negativar não permite dias uteis');
+      end;
+    cnNegativar:
+      begin
+        if ATitulo.DataNegativacao = 0 then
+          raise Exception.Create('Data de negativação não foi informada');
+        LDias := inttostr(DaysBetween(ATitulo.Vencimento, ATitulo.DataNegativacao));
+        LProtestoAutomaticoNegativacao := '03'; //  03 - Dias Corridos para Negativação
+      end
+  else
+    // caso precise enviar zero como no hibrido. até a data atual nao precisa
+    LProtestoAutomaticoNegativacao := '00';
+    LDias := '00';
+  end;
+
+  if (LProtestoAutomaticoNegativacao <> '00') then
+  begin
+    AJsonObject.AddPair('tpProtestoAutomaticoNegativacao', LProtestoAutomaticoNegativacao);
+    AJsonObject.AddPair('prazoProtestoAutomaticoNegativacao', LDias);
+  end;
+
+end;
+
 constructor TBoletoW_Bradesco.Create(ABoletoWS: TBoletoWS; AACBrBoleto : TACBrBoleto);
 begin
   inherited Create(ABoletoWS);
@@ -1153,6 +1336,8 @@ begin
       1: TipoDesconto := Integer(ATitulo.TipoDesconto);
       2: TipoDesconto := Integer(ATitulo.TipoDesconto2);
       3: TipoDesconto := Integer(ATitulo.TipoDesconto3);
+      else
+        TipoDesconto := 0;
     end;
 
     AdicionarDescontoJSON(IntToStr(i), TipoDesconto);

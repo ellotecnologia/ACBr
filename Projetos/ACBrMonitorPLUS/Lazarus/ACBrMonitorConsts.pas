@@ -611,6 +611,8 @@ const
   CMetodoGerarPDFBoletoComSenha =    'gerarpdfboletocomsenha';
   CMetodoSetMotorBoletoRelatorio =   'setmotorboletorelatorio';
   CMetodoSetMargem  =                'setmargem';
+  CMetodoInformarToken =             'informartoken';
+  CMetodoGerarToken =                'gerartoken';
 
   CMetodoAtivar =               'ativar';
   CMetodoDesativar =            'desativar';
@@ -1460,8 +1462,7 @@ const
   CKeyNFSeEmailEmitente =                   'EmailEmitente';
   CKeyNFSeFoneEmitente =                    'FoneEmitente';
 
-
-
+  CSessaoRetorno =                          'Retorno';
 
 implementation
 

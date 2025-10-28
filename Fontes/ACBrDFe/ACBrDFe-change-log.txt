@@ -39,6 +39,33 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+17/10/2025
+-- ACBrDFe.Conversao/ACBrDFeConsts/ACBrXmlBase/ACBrXmlReader--
+[*] Migração dos tipos e funções de conversão para a unit ACBrDFe.Conversao
+   Por: Italo Giurizzato Junior
+
+02/10/2025
+-- ACBrDFe.Conversao --
+[*] Atualização dos CST do IBSCBS.
+   Por: Italo Giurizzato Junior
+
+11/09/2025
+-- ACBrXmlWriter --
+[*] Trocado a função OnlyNumber por OnlyAlphaNum ao gerar a tag CNPJ para contemplar
+    os novos CNPJ alfanumericos.
+   Por: Adonis/Italo Giurizzato Junior
+
+19/08/2025
+-- ACBrDFe.Conversao --
+[*] O campo cClassTrib deixa de ser enumerado e passa a ser string.
+   Por: Italo Giurizzato Junior
+
+15/08/2025
+-- ACBrXmlDocument --
+[*] TK-7506: Alterado a string de busca de "CDATA" para "<![CDATA[" na procedure SetContent,
+    para evitar realizar alterações quando encontrar nomes de empresa do tipo "TECDATA".
+   Por: leomcl
+
 04/08/2025
 -- ACBrDFe, ACBrDFeWebService --
 [+] Inclusão do evento OnTransmitted em TACBrDFe.

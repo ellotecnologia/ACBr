@@ -392,6 +392,11 @@ begin
   begin
     {transações}
     lStr := JsonKey('tef.resultadoTransacao');
+    if (lStr = '') then
+    begin
+      {administrativo}
+      lStr := JsonKey('tef.retorno');
+    end;
   end;
 
   sucessoInt := StrToIntDef(lStr, 9);
@@ -829,12 +834,8 @@ begin
 end;
 
 class function TACBrTEFElginUtils.FloatToJsonString(AValor: double): string;
-var
-  iPos: integer;
-  sValor: string;
 begin
-  sValor := CurrToStrF(AVAlor, ffFixed, 2);
-  Result := StringReplace(sValor, ',', '', []);
+  Result := StringReplace(FormatFloat('0.00', AValor), ',', '.', [rfReplaceAll]);
 end;
 
 class function TACBrTEFElginUtils.FormataComprovante(const Comprovante: string

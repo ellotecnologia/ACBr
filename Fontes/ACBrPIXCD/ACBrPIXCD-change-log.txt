@@ -47,6 +47,54 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+22/10/2025
+-- ACBrPIXPSPBradesco --
+[-] Correção do ResultCode (200 => 201) do Bradesco para POST /cob
+    por: Elias Cesar
+
+03/10/2025
+-- ACBrPIXCD --
+[-] Ajuste do parametro Validade para 'out' no momento de gerar o Token.
+    por: Julio Cavalcanti
+
+01/10/2025
+-- ACBrPixPSPBradesco --
+[+] Criada propriedade para definir as versões de URL do Bradesco.
+    por: Elias Cesar
+
+25/09/2025
+-- ACBrPIXCD --
+[*] Alteração do evento OnQuandoAlterarPSP para a classe ACBrPIXCD.
+    por: Elias Cesar
+
+24/09/2025
+-- ACBrPIXPSPItau --
+[*] Alteração para utilizar url v2 ao renovar o certificado.
+    por: João Adorivan
+
+18/09/2025
+-- ACBrPIXCD --
+[+] Inclusão dos eventos OnPrecisaAutenticar e OnQuandoAlterarPSP.
+    por: Elias Cesar
+
+19/08/2025
+-- ACBrSchemasAppLess --
+[-] Correção da propriedade customerSocialName.
+
+12/08/2025
+-- ACBrPIXPSPAppLess --
+[*] Alteração para preencher a propriedade correta ao informar um CNPJ na criação da cobrança.
+
+-- ACBrSchemasAppLess --
+[-] Correção da propriedade customerCPF;
+[+] Inclusão da propriedade customerCNPJ.
+    por: Julio Cavalcanti
+
+05/08/2025
+-- ACBrPIXPSPAppLess --
+[*] Alteração para disparar exception caso o PSP AppLess não esteja configurado em ambiente de produção.
+    por: Elias César
+
 31/07/2025
 -- ACBrPIXPSPAppLess --
 [*] Incluída validação do parâmetro E2Eid ao efetuar uma devolução com PSP AppLess.
