@@ -2504,10 +2504,11 @@ begin
 
               FRetNFeDFe := '';
 
-              if (NaoEstaVazio(SeparaDados(FPRetWS, 'procEventoNFe'))) then
+              Inicio := Pos('<procEventoNFe', FPRetWS);
+
+              if Inicio > 0 then
               begin
-                Inicio := Pos('<procEventoNFe', FPRetWS);
-                Fim    := Pos('</retConsSitNFe', FPRetWS) -1;
+                Fim := Pos('</retConsSitNFe', FPRetWS) -1;
 
                 aEventos := Copy(FPRetWS, Inicio, Fim - Inicio + 1);
                 VersaoEventos := RetornarConteudoEntre(aEventos, 'versao="', '"');
@@ -2517,9 +2518,9 @@ begin
                                '<procNFe versao="' + FVersao + '">' +
                                  SeparaDados(XMLOriginal, 'nfeProc') +
                                '</procNFe>' +
-                               '<procEventoNFe versao="' + VersaoEventos + '">' +
+//                               '<procEventoNFe versao="' + VersaoEventos + '">' +
                                  aEventos +
-                               '</procEventoNFe>' +
+//                               '</procEventoNFe>' +
                               '</NFeDFe>';
               end;
 
@@ -3146,6 +3147,17 @@ begin
           else
             UF := CUFtoUF(ExtrairUFChaveAcesso(FEvento.Evento.Items[0].InfEvento.chNFe));
         end;
+
+      teCancGenerico, tePagIntegLibCredPresAdq, teImporALCZFM,
+        tePerecPerdaRouboFurtoTranspContratFornec, teFornecNaoRealizPagAntec,
+        teSolicApropCredPres, teDestItemConsPessoal, tePerecPerdaRouboFurtoTranspContratAqu,
+        teAceiteDebitoApuracaoNotaCredito, teImobilizacaoItem, teSolicApropCredCombustivel,
+        teSolicApropCredBensServicos, teManifPedTransfCredIBSSucessao, teManifPedTransfCredCBSSucessao,
+        teAtualizacaoDataPrevisaoEntrega:
+        begin
+          FPLayout := LayNFeEvento;
+          UF := 'SVRS';
+        end;
     end;
   end;
 
@@ -3425,25 +3437,64 @@ begin
           tePagIntegLibCredPresAdq:
           begin
             SchemaEventoNFe := schPagIntegLibCredPresAdq;
+            //Único campo específico é o indQuitacao e a geração do XML já preenche ele com seu único valor válido.
+          end;
 
+          teAtualizacaoDataPrevisaoEntrega:
+          begin
+            SchemaEventoNFe := schAtualizacaoDataPrevisaoEntrega;
+            infEvento.detEvento.dPrevEntrega := FEvento.Evento[I].InfEvento.detEvento.dPrevEntrega;
           end;
 
           teImporALCZFM:
           begin
             SchemaEventoNFe := schImporALCZFM;
 
+            for J := 0 to FEvento.Evento[I].InfEvento.detEvento.gConsumoZFM.Count-1 do
+            begin
+              infEvento.detEvento.gConsumoZFM.New;
+              infEvento.detEvento.gConsumoZFM[J].nItem := FEvento.Evento[I].InfEvento.detEvento.gConsumoZFM[J].nItem;
+              infEvento.detEvento.gConsumoZFM[J].vIBS := FEvento.Evento[I].InfEvento.detEvento.gConsumoZFM[J].vIBS;
+              infEvento.detEvento.gConsumoZFM[J].vCBS := FEvento.Evento[I].InfEvento.detEvento.gConsumoZFM[J].vCBS;
+
+              infEvento.detEvento.gConsumoZFM[J].gControleEstoque.qtde := FEvento.Evento[I].InfEvento.detEvento.gConsumoZFM[J].gControleEstoque.qtde;
+              infEvento.detEvento.gConsumoZFM[J].gControleEstoque.unidade := FEvento.Evento[I].InfEvento.detEvento.gConsumoZFM[J].gControleEstoque.unidade;
+            end;
           end;
 
           tePerecPerdaRouboFurtoTranspContratFornec:
           begin
             SchemaEventoNFe := schPerecPerdaRouboFurtoTranspContratFornec;
 
+            for j := 0 to FEvento.Evento[I].InfEvento.detEvento.gPerecimentoForn.count - 1 do
+            begin
+              infEvento.detEvento.gPerecimentoForn.New;
+              infEvento.detEvento.gPerecimentoForn[j].nItem := FEvento.Evento[I].InfEvento.detEvento.gPerecimentoForn[j].nItem;
+              infEvento.detEvento.gPerecimentoForn[j].vIBS := FEvento.Evento[I].InfEvento.detEvento.gPerecimentoForn[j].vIBS;
+              infEvento.detEvento.gPerecimentoForn[j].vCBS := FEvento.Evento[I].InfEvento.detEvento.gPerecimentoForn[j].vCBS;
+
+              infEvento.detEvento.gPerecimentoForn[j].gControleEstoque.qPerecimento := FEvento.Evento[I].InfEvento.detEvento.gPerecimentoForn[j].gControleEstoque.qPerecimento;
+              infEvento.detEvento.gPerecimentoForn[j].gControleEstoque.uPerecimento := FEvento.Evento[I].InfEvento.detEvento.gPerecimentoForn[j].gControleEstoque.uPerecimento;
+
+              infEvento.detEvento.gPerecimentoForn[j].gControleEstoque.vIBS := FEvento.Evento[I].InfEvento.detEvento.gPerecimentoForn[j].gControleEstoque.vIBS;
+              infEvento.detEvento.gPerecimentoForn[j].gControleEstoque.vCBS := FEvento.Evento[I].InfEvento.detEvento.gPerecimentoForn[j].gControleEstoque.vCBS;
+            end;
           end;
 
           teFornecNaoRealizPagAntec:
           begin
             SchemaEventoNFe := schFornecNaoRealizPagAntec;
 
+            for j := 0 to FEvento.Evento[I].InfEvento.detEvento.gItemNaoFornecido.count - 1 do
+            begin
+              infEvento.detEvento.gItemNaoFornecido.New;
+              infEvento.detEvento.gItemNaoFornecido[j].nItem := FEvento.Evento[I].InfEvento.detEvento.gItemNaoFornecido.Items[j].nItem;
+              infEvento.detEvento.gItemNaoFornecido[j].vIBS := FEvento.Evento[I].InfEvento.detEvento.gItemNaoFornecido.Items[j].vIBS;
+              infEvento.detEvento.gItemNaoFornecido[j].vCBS := FEvento.Evento[I].InfEvento.detEvento.gItemNaoFornecido.Items[j].vCBS;
+
+              infEvento.detEvento.gItemNaoFornecido[j].gControleEstoque.qNaoFornecida := FEvento.Evento[I].InfEvento.detEvento.gItemNaoFornecido.Items[j].gControleEstoque.qNaoFornecida;
+              infEvento.detEvento.gItemNaoFornecido[j].gControleEstoque.uNaoFornecida := FEvento.Evento[I].InfEvento.detEvento.gItemNaoFornecido.Items[j].gControleEstoque.uNaoFornecida;
+            end;
           end;
 
           teSolicApropCredPres:
@@ -3512,6 +3563,7 @@ begin
           begin
             SchemaEventoNFe := schAceiteDebitoApuracaoNotaCredito;
 
+            InfEvento.detEvento.indAceitacao := FEvento.Evento[I].InfEvento.detEvento.indAceitacao;
           end;
 
           teImobilizacaoItem:
@@ -3565,16 +3617,15 @@ begin
             end;
           end;
 
-          teManifPedTransfCredIBSSucessao:
+          teManifPedTransfCredIBSSucessao,
+          teManifPedTransfCredCBSSucessao :
           begin
-            SchemaEventoNFe := schManifPedTransfCredIBSSucessao;
+            if InfEvento.tpEvento = teManifPedTransfCredIBSSucessao then
+              SchemaEventoNFe := schManifPedTransfCredIBSSucessao
+            else
+              SchemaEventoNFe := schManifPedTransfCredCBSSucessao;
 
-          end;
-
-          teManifPedTransfCredCBSSucessao:
-          begin
-            SchemaEventoNFe := schManifPedTransfCredCBSSucessao;
-
+            infEvento.detEvento.indAceitacao := FEvento.Evento[I].InfEvento.detEvento.indAceitacao;
           end;
         end;
       end;

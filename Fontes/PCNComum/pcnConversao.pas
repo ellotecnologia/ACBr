@@ -254,6 +254,7 @@ const
   // Reforma Tributária
   teCancGenerico = {$IFDEF SUPPORTS_SCOPEDENUMS}TACBrTipoEvento.{$ENDIF}teCancGenerico deprecated {$IfDef SUPPORTS_DEPRECATED_DETAILS} 'Use o tipo TACBrTipoEvento da Unit ACBrDFe.Conversao.pas' {$ENDIF};
   tePagIntegLibCredPresAdq = {$IFDEF SUPPORTS_SCOPEDENUMS}TACBrTipoEvento.{$ENDIF}tePagIntegLibCredPresAdq deprecated {$IfDef SUPPORTS_DEPRECATED_DETAILS} 'Use o tipo TACBrTipoEvento da Unit ACBrDFe.Conversao.pas' {$ENDIF};
+  teAtualizacaoDataPrevisaoEntrega = {$IFDEF SUPPORTS_SCOPEDENUMS}TACBrTipoEvento.{$ENDIF}teAtualizacaoDataPrevisaoEntrega deprecated {$IfDef SUPPORTS_DEPRECATED_DETAILS} 'Use o tipo TACBrTipoEvento da Unit ACBrDFe.Conversao.pas' {$ENDIF};
   teImporALCZFM = {$IFDEF SUPPORTS_SCOPEDENUMS}TACBrTipoEvento.{$ENDIF}teImporALCZFM deprecated {$IfDef SUPPORTS_DEPRECATED_DETAILS} 'Use o tipo TACBrTipoEvento da Unit ACBrDFe.Conversao.pas' {$ENDIF};
   tePerecPerdaRouboFurtoTranspContratFornec = {$IFDEF SUPPORTS_SCOPEDENUMS}TACBrTipoEvento.{$ENDIF}tePerecPerdaRouboFurtoTranspContratFornec deprecated {$IfDef SUPPORTS_DEPRECATED_DETAILS} 'Use o tipo TACBrTipoEvento da Unit ACBrDFe.Conversao.pas' {$ENDIF};
   teFornecNaoRealizPagAntec = {$IFDEF SUPPORTS_SCOPEDENUMS}TACBrTipoEvento.{$ENDIF}teFornecNaoRealizPagAntec deprecated {$IfDef SUPPORTS_DEPRECATED_DETAILS} 'Use o tipo TACBrTipoEvento da Unit ACBrDFe.Conversao.pas' {$ENDIF};
@@ -580,7 +581,7 @@ type
   end;
 
 const
-  TpcnTpEventoString : array[0..78] of String =('-99999', '110110', '110111',
+  TpcnTpEventoString : array[0..93] of String =('-99999', '110110', '110111',
                                                 '210200', '210210', '210220',
                                                 '210240', '110112', '110113',
                                                 '110114', '110160', '310620',
@@ -606,7 +607,12 @@ const
                                                 '110117', '110118', '610111',
                                                 '110190', '110191', '110192',
                                                 '110193', '110750', '110751',
-                                                '510630');
+                                                '510630', '110001', '112110',
+                                                '112120', '112130', '112140',
+                                                '211110', '211120', '211124',
+                                                '211128', '211130', '211140',
+                                                '211150', '212110', '212120',
+                                                '112150');
 
   DFeUF: array[0..26] of String =
   ('AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA',
@@ -1062,7 +1068,8 @@ begin
   // ID -> N12  - Outros
   result := EnumeradoToStr(t, ['', '00', '10', '20', '30', '40', '41', '45', '50', '51',
                                '60', '70', '80', '81', '90', '90', 'SN',
-                               '10', '90', '41', '60', '02', '15', '53', '61'],
+                               '10', '90', '41', '60',
+                               '02', '15', '53', '61'],
                               [cstVazio, cst00, cst10, cst20, cst30, cst40, cst41, cst45, cst50, cst51,
                               cst60, cst70, cst80, cst81, cst90, cstICMSOutraUF, cstICMSSN,
                               cstPart10, cstPart90, cstRep41, cstRep60,
@@ -1217,7 +1224,8 @@ begin
               'PerecPerdaRouboFurtoTranspContratAqu',
               'AceiteDebitoApuracaoNotaCredito', 'ImobilizacaoItem',
               'SolicApropCredCombustivel', 'SolicApropCredBensServicos',
-              'ManifPedTransfCredIBSSucessao', 'ManifPedTransfCredCBSSucessao'],
+              'ManifPedTransfCredIBSSucessao', 'ManifPedTransfCredCBSSucessao',
+              'AtualizacaoDataPrevisaoEntrega'],
              [teNaoMapeado, teCCe, teCancelamento, teManifDestConfirmacao, teManifDestCiencia,
               teManifDestDesconhecimento, teManifDestOperNaoRealizada,
               teEncerramento, teEPEC, teInclusaoCondutor, teMultiModal,
@@ -1246,7 +1254,8 @@ begin
               teDestItemConsPessoal, tePerecPerdaRouboFurtoTranspContratAqu,
               teAceiteDebitoApuracaoNotaCredito, teImobilizacaoItem,
               teSolicApropCredCombustivel, teSolicApropCredBensServicos,
-              teManifPedTransfCredIBSSucessao, teManifPedTransfCredCBSSucessao]);
+              teManifPedTransfCredIBSSucessao, teManifPedTransfCredCBSSucessao,
+              teAtualizacaoDataPrevisaoEntrega]);
 end;
 
 function StrToEnumerado2(out ok: boolean; const s: string;

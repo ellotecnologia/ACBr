@@ -524,12 +524,13 @@ begin
   if ((NFe.Ide.tpEmis in [teSCAN, teSVCAN, teSVCRS]) and (tpEmis = 1)) then  //B22-30
     AdicionaErro(
       '570-Rejeição: Tipo de Emissão 3, 6 ou 7 só é válido nas contingências SCAN/SVC');
-
+{
+  Não existe mais essa regra de validação
   GravaLog('Validar: 571-Tipo de Emissão SCAN');
   if ((NFe.Ide.tpEmis <> teSCAN) and (tpEmis = 6))
   then  //B22-40
     AdicionaErro('571-Rejeição: Tipo de Emissão informado diferente de 3 para contingência SCAN');
-
+}
   GravaLog('Validar: 713-Tipo de Emissão SCAN/SVCRS');
   if ((tpEmis in [6, 7]) and
     (not (NFe.Ide.tpEmis in [teSVCAN, teSVCRS]))) then  //B22-60
@@ -1283,7 +1284,7 @@ end;
 procedure TNFeValidarRegras.ValidarRegra703;
 begin
   GravaLog('Validar: 703-Data hora');
-  if (NFe.Ide.dEmi > FpAgora) then  //B09-10
+  if (NFe.Ide.dEmi > IncMinute(FpAgora, 5)) then  //B09-10
     AdicionaErro('703-Rejeição: Data-Hora de Emissão posterior ao horário de recebimento');
 end;
 

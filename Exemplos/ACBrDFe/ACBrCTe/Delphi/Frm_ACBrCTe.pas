@@ -1213,8 +1213,8 @@ begin
       Imp.IBSCBS.gIBSCBS.gTribCompraGov.vTribCBS := 50;
 
       // Estorno de Crédito
-      Imp.IBSCBS.gEstornoCred.vIBSEstCred := 10;
-      Imp.IBSCBS.gEstornoCred.vCBSEstCred := 10;
+      Imp.IBSCBS.gEstornoCred.vIBSEstCred := 0;
+      Imp.IBSCBS.gEstornoCred.vCBSEstCred := 0;
     end;
 
     {Informações sobre Total}
@@ -3862,7 +3862,6 @@ end;
 
 procedure TfrmACBrCTe.ConfigurarComponente;
 var
-  Ok: Boolean;
   PathMensal: string;
 begin
   ACBrCTe1.Configuracoes.Certificados.ArquivoPFX  := edtCaminho.Text;
@@ -3892,7 +3891,7 @@ begin
   with ACBrCTe1.Configuracoes.WebServices do
   begin
     UF         := cbUF.Text;
-    Ambiente   := StrToTipoAmbiente(Ok,IntToStr(rgTipoAmb.ItemIndex+1));
+    Ambiente   := StrToTipoAmbiente(IntToStr(rgTipoAmb.ItemIndex+1));
     Visualizar := cbxVisualizar.Checked;
     Salvar     := cbxSalvarSOAP.Checked;
 
@@ -3940,7 +3939,7 @@ begin
 
   if ACBrCTe1.DACTe <> nil then
   begin
-    ACBrCTe1.DACTe.TipoDACTe := StrToTpImp(OK, IntToStr(rgTipoDaCTe.ItemIndex + 1));
+    ACBrCTe1.DACTe.TipoDACTe := StrToTpImp(IntToStr(rgTipoDaCTe.ItemIndex + 1));
     ACBrCTe1.DACTe.Logo      := edtLogoMarca.Text;
 
     ACBrCTe1.DACTe.PathPDF      := PathMensal;

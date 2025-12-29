@@ -1900,6 +1900,8 @@ public class FrmMain extends javax.swing.JFrame {
     
     private void btnSalvarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSalvarActionPerformed
         final Loading loadingDialog = new Loading(this);
+        
+        btnSalvar.setEnabled(false);
         SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
             @Override
             protected Void doInBackground() throws Exception {
@@ -1909,15 +1911,17 @@ public class FrmMain extends javax.swing.JFrame {
             @Override
             protected void done() {
                 loadingDialog.stop();
+				btnSalvar.setEnabled(true);                
             }
         };
         worker.execute();
-        loadingDialog.start();
+        loadingDialog.start(this);        
     }//GEN-LAST:event_btnSalvarActionPerformed
 
     private void btnStatusServActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStatusServActionPerformed
         final Loading loadingDialog = new Loading(this);
 
+        btnStatusServ.setEnabled(false);
         SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
             @Override
             protected Void doInBackground() throws Exception {
@@ -1937,10 +1941,11 @@ public class FrmMain extends javax.swing.JFrame {
             @Override
             protected void done() {
                 loadingDialog.stop();
+                btnStatusServ.setEnabled(true);
             }
         };
 
-        loadingDialog.start();
+        loadingDialog.start(this);
         worker.execute();
     }//GEN-LAST:event_btnStatusServActionPerformed
 
@@ -2046,7 +2051,7 @@ public class FrmMain extends javax.swing.JFrame {
             lote = ""; chave = ""; cnpj = ""; justificativa = "";
         }
         
-        final String eLote = lote;
+        int eLote = Integer.parseInt(lote);
         final String eChave = chave;
         final String eCNPJ = cnpj;
         final String aJustificativa = justificativa;
@@ -2056,7 +2061,7 @@ public class FrmMain extends javax.swing.JFrame {
         SwingWorker<String, Void> worker = new SwingWorker<String, Void>() {
             @Override
             protected String doInBackground() throws Exception {
-                return acbrNFCom.cancelar(eChave, aJustificativa);
+                return acbrNFCom.cancelar(eChave, aJustificativa, eCNPJ, eLote);
             }
             @Override
             protected void done() {
@@ -2073,7 +2078,7 @@ public class FrmMain extends javax.swing.JFrame {
             }
         };
 
-        loadingDialog.start();
+        loadingDialog.start(this);
         worker.execute();
     }//GEN-LAST:event_btnCancelarNFComActionPerformed
 
@@ -2147,6 +2152,8 @@ public class FrmMain extends javax.swing.JFrame {
 
     private void btnCarregarConfiguracoesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCarregarConfiguracoesActionPerformed
         final Loading loadingDialog = new Loading(this);
+        
+        btnCarregarConfiguracoes.setEnabled(false);
         SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
             @Override
             protected Void doInBackground() throws Exception {
@@ -2156,10 +2163,11 @@ public class FrmMain extends javax.swing.JFrame {
             @Override
             protected void done() {
                 loadingDialog.stop();
+                btnCarregarConfiguracoes.setEnabled(true);
             }
         };
         worker.execute();
-        loadingDialog.start();
+        loadingDialog.start(this);
     }//GEN-LAST:event_btnCarregarConfiguracoesActionPerformed
 
     private void btnLogomarcaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLogomarcaActionPerformed
@@ -2318,7 +2326,7 @@ public class FrmMain extends javax.swing.JFrame {
             acbrNFCom.limparLista(); 
             acbrNFCom.carregarIni(chooser.getSelectedFile().getAbsolutePath());            
             
-            String ret = acbrNFCom.enviar(1, false, false);
+            String ret = acbrNFCom.enviar(1, false);
             rtbRespostas.append(ret);   
             
         } catch (Exception ex) {
@@ -2406,7 +2414,7 @@ public class FrmMain extends javax.swing.JFrame {
              String aLote = JOptionPane.showInputDialog("Digite o lote");
              int lote = Integer.parseInt(aLote);
              
-             String ret = acbrNFCom.enviar(lote, false, true);
+             String ret = acbrNFCom.enviar(lote, false);
              rtbRespostas.append(ret);
              
         } catch (Exception ex){
@@ -2452,6 +2460,8 @@ public class FrmMain extends javax.swing.JFrame {
 
     private void btnValidarRegraActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnValidarRegraActionPerformed
         final Loading loadingDialog = new Loading(this);
+        
+        btnValidarRegra.setEnabled(false);
         SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
             @Override
             protected Void doInBackground() throws Exception {
@@ -2466,10 +2476,11 @@ public class FrmMain extends javax.swing.JFrame {
             @Override
             protected void done() {
                 loadingDialog.stop();
+                btnValidarRegra.setEnabled(true);
             }
         };
         worker.execute();
-        loadingDialog.start();
+        loadingDialog.start(this);
         
     }//GEN-LAST:event_btnValidarRegraActionPerformed
 

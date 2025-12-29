@@ -218,6 +218,41 @@ type
     property Items[Index: Integer]: TgConsumoCollectionItem read GetItem write SetItem; default;
   end;
 
+  TgControleEstoqueZFM = class
+  private
+    Fqtde: Double;
+    Funidade: string;
+  public
+    property qtde: Double read Fqtde write Fqtde;
+    property unidade: string read Funidade write Funidade;
+  end;
+
+  TgConsumoZFMCollectionItem = class
+  private
+    FnItem: Integer;
+    FvIBS: Double;
+    FvCBS: Double;
+    FgControleEstoqueZFM: TgControleEstoqueZFM;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    property nItem: Integer read FnItem write FnItem;
+    property vIBS: Double read FvIBS write FvIBS;
+    property vCBS: Double read FvCBS write FvCBS;
+    property gControleEstoque: TgControleEstoqueZFM read FgControleEstoqueZFM;
+  end;
+
+  TgConsumoZFMCollection = class(TACBrObjectList)
+  private
+    function GetItem(Index: Integer): TgConsumoZFMCollectionItem;
+    procedure SetItem(Index: Integer; Value: TgConsumoZFMCollectionItem);
+  public
+    function Add: TgConsumoZFMCollectionItem; overload; deprecated {$IfDef SUPPORTS_DEPRECATED_DETAILS} 'Obsoleta: Use a função New'{$EndIf};
+    function New: TgConsumoZFMCollectionItem;
+    property Items[Index: Integer]: TgConsumoZFMCollectionItem read GetItem write SetItem; default;
+  end;
+
   //perecimento
   TgControleEstoquePerecimento = class
   private
@@ -348,6 +383,80 @@ type
     property Items[Index: Integer]: TgCreditoCollectionItem read GetItem write SetItem; default;
   end;
 
+  TgControleEstoquePerecimentoForn = class
+  private
+    FqPerecimento: Double;
+    FuPerecimento: string;
+    FvCBS: Double;
+    FvIBS: Double;
+  public
+    property qPerecimento: Double read FqPerecimento write FqPerecimento;
+    property uPerecimento: string read FuPerecimento write FuPerecimento;
+    property vIBS: Double read FvIBS write FvIBS;
+    property vCBS: Double read FvCBS write FvCBS;
+  end;
+
+  TgPerecimentoFornCollectionItem = class
+  private
+    FnItem: Integer;
+    FvIBS: Double;
+    FvCBS: Double;
+    FgControleEstoque: TgControleEstoquePerecimentoForn;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    property nItem: Integer read FnItem write FnItem;
+    property vIBS: Double read FvIBS write FvIBS;
+    property vCBS: Double read FvCBS write FvCBS;
+    property gControleEstoque: TgControleEstoquePerecimentoForn read FgControleEstoque;
+  end;
+
+  TgPerecimentoFornCollection = class(TACBrObjectList)
+  private
+    function GetItem(Index: Integer): TgPerecimentoFornCollectionItem;
+    procedure SetItem(Index: Integer; Value: TgPerecimentoFornCollectionItem);
+  public
+    function Add: TgPerecimentoFornCollectionItem; overload; deprecated {$IfDef SUPPORTS_DEPRECATED_DETAILS} 'Obsoleta: Use a função New'{$EndIf};
+    function New: TgPerecimentoFornCollectionItem;
+    property Items[Index: Integer]: TgPerecimentoFornCollectionItem read GetItem write SetItem; default;
+  end;
+
+  TgControleEstoqueItemNaoFornecido = class
+  private
+    FqNaoFornecida: Double;
+    FuNaoFornecida: String;
+  public
+    property qNaoFornecida: Double read FqNaoFornecida write FqNaoFornecida;
+    property uNaoFornecida: String read FuNaoFornecida write FuNaoFornecida;
+  end;
+
+  // Fornecimento nao realizado com pagamento antecipado
+  TgItemNaoFornecidoCollectionItem = class
+  private
+    FnItem: Integer;
+    FvIBS: Double;
+    FvCBS: Double;
+    FgControleEstoque: TgControleEstoqueItemNaoFornecido;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    property nItem: Integer read FnItem write FnItem;
+    property vIBS: Double read FvIBS write FvIBS;
+    property vCBS: Double read FvCBS write FvCBS;
+    property gControleEstoque: TgControleEstoqueItemNaoFornecido read FgControleEstoque;
+  end;
+
+  TgItemNaoFornecidoCollection = class(TACBrObjectList)
+  private
+    function GetItem(Index: Integer): TgItemNaoFornecidoCollectionItem;
+    procedure SetItem(Index: Integer; Value: TgItemNaoFornecidoCollectionItem);
+  public
+    function Add: TgItemNaoFornecidoCollectionItem; overload; deprecated {$IfDef SUPPORTS_DEPRECATED_DETAILS} 'Obsoleta: Use a fun~ao New'{$EndIf};
+    function New: TgItemNaoFornecidoCollectionItem;
+    property Items[Index: Integer]: TgItemNaoFornecidoCollectionItem read GetItem write SetItem; default;
+  end;
 
   TDetEvento = class
   private
@@ -397,6 +506,11 @@ type
     FgImobilizacao: TgImobilizacaoCollection;
     FgConsumoComb: TgConsumoCombCollection;
     FgCredito: TgCreditoCollection;
+    FIndAceitacao: TIndAceitacao;
+    FgConsumoZFM: TgConsumoZFMCollection;
+    FgPerecimentoForn: TgPerecimentoFornCollection;
+    FgItemNaoFornecido: TgItemNaoFornecidoCollection;
+    FdPrevEntrega: TDateTime;
 
     procedure setxCondUso(const Value: string);
     procedure SetitemPedido(const Value: TitemPedidoCollection);
@@ -408,6 +522,7 @@ type
     procedure SetgImobilizacao(const Value: TgImobilizacaoCollection);
     procedure SetgConsumoComb(const Value: TgConsumoCombCollection);
     procedure SetgCredito(const Value: TgCreditoCollection);
+    procedure SetIndAceitacao(const Value: TIndAceitacao);
   public
     constructor Create;
     destructor Destroy; override;
@@ -429,6 +544,7 @@ type
     property vNF: Currency          read FvNF         write FvNF;
     property vICMS: Currency        read FvICMS       write FvICMS;
     property vST: Currency          read FvST         write FvST;
+
 
     property itemPedido: TitemPedidoCollection read FitemPedido        write SetitemPedido;
     property idPedidoCancelado: string         read FidPedidoCancelado write FidPedidoCancelado;
@@ -453,14 +569,20 @@ type
     property dhHashTentativaEntrega: TDateTime read FdhHashTentativaEntrega write FdhHashTentativaEntrega;
     property UF: string read FUF write FUF;
     property detPag: TdetPagCollection read FdetPag write SetdetPag;
+
     // Reforma Tributária
     property tpEventoAut: string read FtpEventoAut write FtpEventoAut;
     property gCredPres: TgCredPresCollection read FgCredPres write SetgCredPres;
     property gConsumo: TgConsumoCollection read FgConsumo write SetgConsumo;
+    property gConsumoZFM: TgConsumoZFMCollection read FgConsumoZFM;
     property gPerecimento: TgPerecimentoCollection read FgPerecimento write SetgPerecimento;
+    property gPerecimentoForn: TgPerecimentoFornCollection read FgPerecimentoForn;
+    property gItemNaoFornecido: TgItemNaoFornecidoCollection read FgItemNaoFornecido;
     property gImobilizacao: TgImobilizacaoCollection read FgImobilizacao write SetgImobilizacao;
     property gConsumoComb: TgConsumoCombCollection read FgConsumoComb write SetgConsumoComb;
     property gCredito: TgCreditoCollection read FgCredito write SetgCredito;
+    property indAceitacao: TIndAceitacao read  FIndAceitacao write SetIndAceitacao;
+    property dPrevEntrega: TDateTime read FdPrevEntrega write FdPrevEntrega;
   end;
 
   TInfEvento = class
@@ -636,7 +758,7 @@ begin
     teConcFinanceira           : Result := 'ECONF';
     teCancConcFinanceira       : Result := ACBrStr('Cancelamento Conciliação Financeira');
     // Reforma Tributária
-    teCancGenerico             : Result := 'Evento de Cancelamento';
+    teCancGenerico             : Result := 'Cancelamento de Evento';
     tePagIntegLibCredPresAdq   : Result := ACBrStr('Informação de efetivo pagamento integral para liberar crédito presumido do adquirente');
     teImporALCZFM              : Result := ACBrStr('Importação em ALC/ZFM não convertida em isenção');
     tePerecPerdaRouboFurtoTranspContratFornec : Result := ACBrStr('Perecimento, perda, roubo ou furto durante o transporte contratado pelo fornecedor');
@@ -648,8 +770,9 @@ begin
     teImobilizacaoItem       : Result := ACBrStr('Imobilização de Item');
     teSolicApropCredCombustivel : Result := ACBrStr('Solicitação de Apropriação de Crédito de Combustível');
     teSolicApropCredBensServicos : Result := ACBrStr('Solicitação de Apropriação de Crédito para bens e serviços que dependem de atividade do adquirente');
-    teManifPedTransfCredIBSSucessao : Result := '';
-    teManifPedTransfCredCBSSucessao : Result := '';
+    teManifPedTransfCredIBSSucessao : Result := ACBrStr('Manifestação sobre Pedido de Transferência de Crédito de IBS em Operação de Sucessão');
+    teManifPedTransfCredCBSSucessao : Result := ACBrStr('Manifestação sobre Pedido de Transferência de Crédito de CBS em Operação de Sucessão');
+    teAtualizacaoDataPrevisaoEntrega : Result := ACBrStr('Atualização da Data de Previsão de Entrega');
   else
     Result := '';
   end;
@@ -723,8 +846,8 @@ begin
     teImobilizacaoItem       : Result := 'Imobilização de Item';
     teSolicApropCredCombustivel : Result := 'Solicitação de Apropriação de Crédito de Combustível';
     teSolicApropCredBensServicos : Result := 'Solicitação de Apropriação de Crédito para bens e serviços que dependem de atividade do adquirente';
-    teManifPedTransfCredIBSSucessao : Result := '';
-    teManifPedTransfCredCBSSucessao : Result := '';
+    teManifPedTransfCredIBSSucessao : Result := 'Manifestação sobre Pedido de Transferência de Crédito de IBS em Operação de Sucessão';
+    teManifPedTransfCredCBSSucessao : Result := 'Manifestação sobre Pedido de Transferência de Crédito de CBS em Operação de Sucessão';
   else
     Result := 'Não Definido';
   end;
@@ -746,6 +869,9 @@ begin
   FgImobilizacao := TgImobilizacaoCollection.Create;
   FgConsumoComb := TgConsumoCombCollection.Create;
   FgCredito := TgCreditoCollection.Create;
+  FgConsumoZFM := TgConsumoZFMCollection.Create;
+  FgPerecimentoForn := TgPerecimentoFornCollection.Create;
+  FgItemNaoFornecido := TgItemNaoFornecidoCollection.Create;
 end;
 
 destructor TDetEvento.Destroy;
@@ -760,6 +886,9 @@ begin
   FgImobilizacao.Free;
   FgConsumoComb.Free;
   FgCredito.Free;
+  FgConsumoZFM.Free;
+  FgPerecimentoForn.Free;
+  FgItemNaoFornecido.Free;
 
   inherited;
 end;
@@ -824,6 +953,11 @@ end;
 procedure TDetEvento.SetitemPedido(const Value: TitemPedidoCollection);
 begin
   FitemPedido := Value;
+end;
+
+procedure TDetEvento.SetIndAceitacao(const Value: TIndAceitacao);
+begin
+  FIndAceitacao := Value;
 end;
 
 { TRetchNFePendCollection }
@@ -1167,6 +1301,120 @@ procedure TgCreditoCollection.SetItem(Index: Integer;
   Value: TgCreditoCollectionItem);
 begin
  inherited Items[Index] := Value;
+end;
+
+{ TgConsumoZFMCollectionItem }
+
+constructor TgConsumoZFMCollectionItem.Create;
+begin
+  FgControleEstoqueZFM := TgControleEstoqueZFM.Create;
+end;
+
+destructor TgConsumoZFMCollectionItem.Destroy;
+begin
+  FgControleEstoqueZFM.Free;
+  inherited;
+end;
+
+{ TgConsumoZFMCollection }
+
+function TgConsumoZFMCollection.Add: TgConsumoZFMCollectionItem;
+begin
+  Result := Self.New;
+end;
+
+function TgConsumoZFMCollection.GetItem(
+  Index: Integer): TgConsumoZFMCollectionItem;
+begin
+  Result := TgConsumoZFMCollectionItem(inherited Items[Index]);
+end;
+
+function TgConsumoZFMCollection.New: TgConsumoZFMCollectionItem;
+begin
+  Result := TgConsumoZFMCollectionItem.Create;
+  Self.Add(Result);
+end;
+
+procedure TgConsumoZFMCollection.SetItem(Index: Integer;
+  Value: TgConsumoZFMCollectionItem);
+begin
+  inherited Items[Index] := Value;
+end;
+
+{ TgPerecimentoFornCollectionItem }
+
+constructor TgPerecimentoFornCollectionItem.Create;
+begin
+  FgControleEstoque := TgControleEstoquePerecimentoForn.Create;
+end;
+
+destructor TgPerecimentoFornCollectionItem.Destroy;
+begin
+  FgControleEstoque.Free;
+  inherited;
+end;
+
+{ TgPerecimentoFornCollection }
+
+function TgPerecimentoFornCollection.Add: TgPerecimentoFornCollectionItem;
+begin
+  Result := Self.New;
+end;
+
+function TgPerecimentoFornCollection.GetItem(
+  Index: Integer): TgPerecimentoFornCollectionItem;
+begin
+  Result := TgPerecimentoFornCollectionItem(inherited Items[Index]);
+end;
+
+function TgPerecimentoFornCollection.New: TgPerecimentoFornCollectionItem;
+begin
+  Result := TgPerecimentoFornCollectionItem.Create;
+  Self.Add(Result);
+end;
+
+procedure TgPerecimentoFornCollection.SetItem(Index: Integer;
+  Value: TgPerecimentoFornCollectionItem);
+begin
+  inherited Items[Index] := Value;
+end;
+
+{ TgItemNaoFornecidoCollectionItem }
+
+constructor TgItemNaoFornecidoCollectionItem.Create;
+begin
+  FgControleEstoque := TgControleEstoqueItemNaoFornecido.Create;
+end;
+
+destructor TgItemNaoFornecidoCollectionItem.Destroy;
+begin
+  FgControleEstoque.Free;
+  inherited;
+end;
+
+{ TgItemNaoFornecidoCollection }
+
+function TgItemNaoFornecidoCollection.Add: TgItemNaoFornecidoCollectionItem;
+begin
+  Result := Self.New;
+end;
+
+function TgItemNaoFornecidoCollection.GetItem(
+  Index: Integer): TgItemNaoFornecidoCollectionItem;
+begin
+  Result := TgItemNaoFornecidoCollectionItem(inherited Items[Index]);
+end;
+
+function TgItemNaoFornecidoCollection.New: TgItemNaoFornecidoCollectionItem;
+begin
+  Result := TgItemNaoFornecidoCollectionItem.Create;
+  Self.Add(Result);
+end;
+
+procedure TgItemNaoFornecidoCollection.SetItem(Index: Integer;
+  Value: TgItemNaoFornecidoCollectionItem);
+begin
+  inherited Items[Index] := Value;
 end;
 
 end.

@@ -476,7 +476,11 @@ function TACBrNFSeXProvider.GetSchemaPath: string;
 begin
   with TACBrNFSeX(FAOwner).Configuracoes do
   begin
-    Result := PathWithDelim(Arquivos.PathSchemas + Geral.xProvedor);
+    if Geral.APIPropria then
+      Result := PathWithDelim(Arquivos.PathSchemas + 'PadraoNacional')
+    else
+      Result := PathWithDelim(Arquivos.PathSchemas + Geral.xProvedor);
+
     Result := PathWithDelim(Result + VersaoNFSeToStr(Geral.Versao));
   end;
 end;
@@ -885,6 +889,7 @@ procedure TACBrNFSeXProvider.CarregarURL;
 var
   IniParams: TMemIniFile;
   Sessao: String;
+  APIPropria: Boolean;
 begin
   IniParams := TMemIniFile.Create('');
 
@@ -898,6 +903,9 @@ begin
     begin
       // Primeiro verifica as URLs definidas para a cidade
       Sessao := IntToStr(Configuracoes.Geral.CodigoMunicipio);
+//      APIPropria := IniParams.ReadString(Sessao, 'Params', '') = 'APIPropria:';
+      APIPropria := (Pos('APIPropria:', IniParams.ReadString(Sessao, 'Params', '')) > 0);
+
       ConfigWebServices.LoadUrlProducao(IniParams, Sessao);
       ConfigWebServices.LoadUrlHomologacao(IniParams, Sessao);
       ConfigWebServices.LoadLinkUrlProducao(IniParams, Sessao);
@@ -912,32 +920,65 @@ begin
       ConfigGeral.LoadParams(IniParams, Sessao);
 
       // Depois verifica as URLs definidas para o provedor
-      if (ConfigWebServices.Producao.Recepcionar = '') or
-         (Configuracoes.Geral.Provedor = proPadraoNacional) then
+      if not APIPropria then
       begin
-        Sessao := Configuracoes.Geral.xProvedor;
-        ConfigWebServices.LoadUrlProducao(IniParams, Sessao);
-      end;
+        if (ConfigWebServices.Producao.Recepcionar = '') or
+           (Configuracoes.Geral.Provedor = proPadraoNacional) then
+        begin
+          Sessao := Configuracoes.Geral.xProvedor;
+          ConfigWebServices.LoadUrlProducao(IniParams, Sessao);
+        end;
 
-      if (ConfigWebServices.Homologacao.Recepcionar = '') or
-         (Configuracoes.Geral.Provedor = proPadraoNacional) then
-      begin
-        Sessao := Configuracoes.Geral.xProvedor;
-        ConfigWebServices.LoadUrlHomologacao(IniParams, Sessao);
-      end;
+        if (ConfigWebServices.Homologacao.Recepcionar = '') or
+           (Configuracoes.Geral.Provedor = proPadraoNacional) then
+        begin
+          Sessao := Configuracoes.Geral.xProvedor;
+          ConfigWebServices.LoadUrlHomologacao(IniParams, Sessao);
+        end;
 
-      if (ConfigWebServices.Producao.LinkURL = '') or
-         (Configuracoes.Geral.Provedor = proPadraoNacional) then
-      begin
-        Sessao := Configuracoes.Geral.xProvedor;
-        ConfigWebServices.LoadlinkUrlProducao(IniParams, Sessao);
-      end;
+        if (ConfigWebServices.Producao.LinkURL = '') or
+           (Configuracoes.Geral.Provedor = proPadraoNacional) then
+        begin
+          Sessao := Configuracoes.Geral.xProvedor;
+          ConfigWebServices.LoadlinkUrlProducao(IniParams, Sessao);
+        end;
 
-      if (ConfigWebServices.Homologacao.LinkURL = '') or
-         (Configuracoes.Geral.Provedor = proPadraoNacional) then
+        if (ConfigWebServices.Homologacao.LinkURL = '') or
+           (Configuracoes.Geral.Provedor = proPadraoNacional) then
+        begin
+          Sessao := Configuracoes.Geral.xProvedor;
+          ConfigWebServices.LoadLinkUrlHomologacao(IniParams, Sessao);
+        end;
+      end
+      else
       begin
-        Sessao := Configuracoes.Geral.xProvedor;
-        ConfigWebServices.LoadLinkUrlHomologacao(IniParams, Sessao);
+        if (ConfigWebServices.Producao.Recepcionar = ''){ or
+           (Configuracoes.Geral.Provedor = proPadraoNacional)} then
+        begin
+          Sessao := Configuracoes.Geral.xProvedorOrigem;
+          ConfigWebServices.LoadUrlProducao(IniParams, Sessao);
+        end;
+
+        if (ConfigWebServices.Homologacao.Recepcionar = ''){ or
+           (Configuracoes.Geral.Provedor = proPadraoNacional)} then
+        begin
+          Sessao := Configuracoes.Geral.xProvedorOrigem;
+          ConfigWebServices.LoadUrlHomologacao(IniParams, Sessao);
+        end;
+
+        if (ConfigWebServices.Producao.LinkURL = '') or
+           (Configuracoes.Geral.Provedor = proPadraoNacional) then
+        begin
+          Sessao := Configuracoes.Geral.xProvedorOrigem;
+          ConfigWebServices.LoadlinkUrlProducao(IniParams, Sessao);
+        end;
+
+        if (ConfigWebServices.Homologacao.LinkURL = '') or
+           (Configuracoes.Geral.Provedor = proPadraoNacional) then
+        begin
+          Sessao := Configuracoes.Geral.xProvedorOrigem;
+          ConfigWebServices.LoadLinkUrlHomologacao(IniParams, Sessao);
+        end;
       end;
 
       if ConfigWebServices.Producao.XMLNameSpace = '' then
@@ -1483,6 +1524,7 @@ begin
 
       AWriter.CodMunEmit := Configuracoes.Geral.CodigoMunicipio;
       AWriter.CNPJPrefeitura := Configuracoes.Geral.CNPJPrefeitura;
+      AWriter.CNPJEmitente := Configuracoes.Geral.Emitente.Cnpj;
 
       AWriter.Usuario := Configuracoes.Geral.Emitente.WSUser;
       AWriter.Senha := Configuracoes.Geral.Emitente.WSSenha;
@@ -1704,6 +1746,7 @@ begin
     no121 : Result := '121 - ISS Fixo (Sociedade de Profissionais)';
     no201 : Result := '201 - ISS retido pelo tomador ou intermediário do serviço';
     no301 : Result := '301 - Operação imune, isenta ou não tributada';
+    no305 : Result := '305 - Imunidade Tributária';
     no501 : Result := '501 - ISS devido no município (Simples Nacional)';
     no511 : Result := '511 - Prestação de serviço no município - iss mensal sem retenção na fonte';
     no512 : Result := '512 - Prestação de serviço no município - iss mensal com retenção na fonte';

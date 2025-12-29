@@ -150,7 +150,8 @@ type
     cobBancoSulcredi,
     cobBancoCredisan,
     cobBancoSofisa,
-    cobBancoVortx
+    cobBancoVortx,
+    cobBancoAsaas
     );
 
   TACBrTitulo = class;
@@ -636,6 +637,11 @@ type
     function DefineSeuNumeroRetorno(const ALinha: String): String; virtual;         //Define o Seu Numero
     function DefinerCnpjCPFRetorno240(const ALinha: String): String; virtual;       //Define retorno rCnpjCPF
     function DefineNumeroDocumentoRetorno(const ALinha: String): String; virtual;   //Define o Numero Documento do Retorno
+    function DefinePosicaoAgenciaRetorno:Integer; virtual;                          //Define posição para leitura de Retorno campo: Agencia
+    function DefinePosicaoAgenciaDigitoRetorno:Integer; virtual;                    //Define posição para leitura de Retorno campo: Agencia DV
+    function DefinePosicaoContaRetorno:Integer; virtual;                            //Define posição para leitura de Retorno campo: Conta
+    function DefinePosicaoContaDigitoRetorno:Integer; virtual;                      //Define posição para leitura de Retorno campo: Conta DV
+
     procedure DefineRejeicaoComplementoRetorno(const ALinha: String; out ATitulo : TACBrTitulo); virtual;   //Define o Motivo da Rejeição ou Complemento no Retorno
     procedure DefineCanalLiquidacaoRetorno240(const ALinha: String; out ATitulo : TACBrTitulo); virtual;   //Define o Canal de Liquidacao Retorno CNAB 240
 
@@ -2159,7 +2165,8 @@ Uses {$IFNDEF NOGUI}Forms,{$ENDIF}
      ACBrBancoSulcredi,
      ACBrBancoCredisan,
      ACBrBancoSofisa,
-     ACBrBancoVortx;
+     ACBrBancoVortx,
+     ACBrBancoAsaas;
 
 {$IFNDEF FPC}
    {$R ACBrBoleto.dcr}
@@ -3102,9 +3109,9 @@ begin
    {$IFDEF COMPILER6_UP}
    fConfiguracoes.SetSubComponent(True);   // Ajustando como SubComponente para aparecer no ObjectInspector
    {$ENDIF}
-   FOnAntesAutenticar  := nil;
-   FOnDepoisAutenticar := nil;
-   fOnPrecisaAutenticar := nil;
+   FOnAntesAutenticar    := nil;
+   FOnDepoisAutenticar   := nil;
+   fOnPrecisaAutenticar  := nil;
    fOnQuandoAlterarBanco := nil;
 end;
 
@@ -3145,7 +3152,7 @@ end;
 procedure TACBrBoleto.SetBanco(AValue: TACBrBanco);
 begin
   if (fBanco = AValue) then Exit;
-  fBanco := AValue;
+    fBanco := AValue;
 end;
 
 procedure TACBrBoleto.SetMAIL(AValue: TACBrMail);
@@ -3700,6 +3707,7 @@ var
   LNomeArquivo: String;
   LCodigoBanco: String;
   LTamanhoLayout : Cardinal;
+  LCarteira : String;
 begin
   LListaRetorno := TStringList.Create;
   try
@@ -3765,8 +3773,14 @@ begin
     (IntToStrZero(Banco.NumeroCorrespondente, 3) <> LCodigoBanco) then
     begin
       if LeCedenteRetorno then
-        Banco.TipoCobranca := GetTipoCobranca(StrToIntDef(LCodigoBanco, 0))
-      else
+      begin
+        if (LCodigoBanco = '637') and (LListaRetorno.Count > 0) then
+          LCarteira := Copy(LListaRetorno.Strings[1], 83, 3)
+        else
+          LCarteira := '0';
+
+        Banco.TipoCobranca := GetTipoCobranca(StrToIntDef(LCodigoBanco, 0), LCarteira);
+      end else
         raise EACBrBoleto.Create(ACBrStr('Arquivo de retorno de banco diferente do Cedente'));
     end;
 
@@ -3967,6 +3981,7 @@ begin
     403: Result := cobBancoCora;
     422: Result := cobBancoSafra;
     457: Result := cobBancoUY3;
+    461: Result := cobBancoAsaas;
     604: Result := cobBancoIndustrialBrasil;
     633: Result := cobBancoRendimento;
     637: begin
@@ -4396,6 +4411,8 @@ begin
       Configuracoes.WebService.Filtro.indicadorSituacao := TACBrIndicadorSituacaoBoleto(StrToInt64Def(sFim,0));
       NaoPermiteFiltroWSNenhum;
 
+      Configuracoes.WebService.Filtro.boletoVencido := TACBrIndicadorBoletoVencido(StrToInt64Def(IniBoletos.ReadString(Sessao,'boletoVencido','0'),0));
+
       DtMovimento  := Trim(IniBoletos.ReadString(Sessao,'DataInicioMovimento','0'));
       DtVencimento := Trim(IniBoletos.ReadString(Sessao,'DataInicioVencimento','0'));
       DtRegistro   := Trim(IniBoletos.ReadString(Sessao,'DataInicioRegistro','0'));
@@ -4448,7 +4465,7 @@ var
 begin
   Result:= '';
   DirIniRetorno:= PathWithDelim(DirIniRetorno);
-
+  LStream := nil;
   //No Lazarus está persistindo em disco mesmo IniRetorno sendo TMemIniFile,
   //Comportamento diferente de Lazarus Vs Delphi
 {$IFDEF FPC}
@@ -4938,6 +4955,7 @@ begin
      cobBancoCredisan        : fBancoClass := TACBrBancoCredisan.create(Self);          {089}
      cobBancoSofisa          : fBancoClass := TACBRBancoSofisa.create(self);            {637}
      cobBancoVortx           : fBancoClass := TACBRBancoVortx.create(self);             {310}
+     cobBancoAsaas           : fBancoClass := TACBrBancoAsaas.Create(Self);             {461}
    else
      fBancoClass := TACBrBancoClass.create(Self);
    end;
@@ -5372,10 +5390,11 @@ begin
   rCedente   := trim(Copy(ARetorno[0],47,30));
 
   // A leitura deverá ser feita a partir da posição 26 devido ao fato de não existirem agências bancárias com mais de 4 (quatro) algarismos.
-  rAgencia := trim(Copy(ARetorno[1], 26, ACBrBanco.TamanhoAgencia));
-  rConta   := trim(Copy(ARetorno[1], 30, DefineTamanhoContaRemessa));
+  rAgencia := trim(Copy(ARetorno[1], DefinePosicaoAgenciaRetorno, ACBrBanco.TamanhoAgencia));
+  rConta   := trim(Copy(ARetorno[1], DefinePosicaoContaRetorno, DefineTamanhoContaRemessa));
 
-  rDigitoConta := Copy(ARetorno[1], 30 + DefineTamanhoContaRemessa ,1);
+  //rDigitoConta := Copy(ARetorno[1], 30 + DefineTamanhoContaRemessa ,1);
+  rDigitoConta := Copy(ARetorno[1], DefinePosicaoContaRetorno + DefineTamanhoContaRemessa ,1);
 
   ACBrBanco.ACBrBoleto.NumeroArquivo := StrToIntDef(Copy(ARetorno[0],109,5),0);
 
@@ -5602,14 +5621,14 @@ begin
        Cedente.Nome     := rCedente;
        Cedente.CNPJCPF  := rCNPJCPF;
        Cedente.Convenio := rConvenioCedente;
-       Cedente.Agencia       := trim(copy(ARetorno[0], 53, 5));
-       Cedente.AgenciaDigito := trim(copy(ARetorno[0], 58, 1));
+       Cedente.Agencia       := trim(copy(ARetorno[0], DefinePosicaoAgenciaRetorno, 5));
+       Cedente.AgenciaDigito := trim(copy(ARetorno[0], DefinePosicaoAgenciaDigitoRetorno, 1));
        if (ACodBeneficiario <> '') then
          Cedente.CodigoCedente := trim(copy(ARetorno[0], 59, 14))
        else
        begin
-         Cedente.Conta         := trim(copy(ARetorno[0], 59, 12));
-         Cedente.ContaDigito   := trim(copy(ARetorno[0], 71, 1));
+         Cedente.Conta         := trim(copy(ARetorno[0], DefinePosicaoContaRetorno, 12));
+         Cedente.ContaDigito   := trim(copy(ARetorno[0], DefinePosicaoContaDigitoRetorno, 1));
        end;
 
        if (StrToIntDef(copy(ARetorno[0], 18, 1), 0) = 1) then
@@ -6450,6 +6469,40 @@ end;
 function TACBrBancoClass.DefineTamanhoNossoNumeroRetorno: Integer;
 begin
   Result := TamanhoMaximoNossoNum;
+end;
+
+function TACBrBancoClass.DefinePosicaoAgenciaDigitoRetorno: Integer;
+begin
+  if ACBrBanco.ACBrBoleto.LayoutRemessa = c240 then
+    Result := 58
+  else
+  Raise EACBrBoleto.Create(ACBrStr('Método DefinePosicaoAgenciaDigiretorno ' +
+            ' não implementado CNAB400!'));
+end;
+
+function TACBrBancoClass.DefinePosicaoAgenciaRetorno: Integer;
+begin
+  if ACBrBanco.ACBrBoleto.LayoutRemessa = c240 then
+    Result := 53
+  else
+    Result := 26;
+end;
+
+function TACBrBancoClass.DefinePosicaoContaDigitoRetorno: Integer;
+begin
+  if ACBrBanco.ACBrBoleto.LayoutRemessa = c240 then
+    Result := 71
+  else
+    Raise EACBrBoleto.Create(ACBrStr('Método DefinePosicaoContaDigitoRetorno ' +
+            ' não implementado CNAB400!'));
+end;
+
+function TACBrBancoClass.DefinePosicaoContaRetorno: Integer;
+begin
+  if ACBrBanco.ACBrBoleto.LayoutRemessa = c240 then
+    Result := 59
+  else
+    Result := 30;
 end;
 
 function TACBrBancoClass.DefinePosicaoCarteiraRetorno: Integer;

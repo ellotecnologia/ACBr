@@ -48,6 +48,79 @@ Símbolo : Significado
 [+]     : Novo recurso
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
+
+15/12/2025
+-- ACBrBancoVortx --
+[*] ACBR-8584 - Correções na leitura do retorno https://www.projetoacbr.com.br/forum/topic/87229-acbr-8584-erro-ao-processar-retorno-banco-vortx
+   Por: Desenv. AT Info Sistemas
+-- ACBrBancoSicoob --
+[*] ACBR-8499 - Adicionados códigos de movimento e ocorrência que faltavam https://www.projetoacbr.com.br/forum/topic/87716-acbr-8499-altera%C3%A7%C3%B5es-no-arquivo-do-bancosicoob/
+   Por: Rafael.Smt
+
+03/12/2025
+-- ACBrBancoVortx --
+[*] ACBR-8383 - Correções na leitura do retorno https://www.projetoacbr.com.br/forum/topic/87229-erro-ao-processar-retorno-banco-vortx/
+   Por: Desenv. AT Info Sistemas / Renato Rubinho
+-- ACBrBancoSicoob --
+[*] ACBR-8335 - Adicionados códigos de movimento de remessa que faltavam https://www.projetoacbr.com.br/forum/topic/86969-sicoob-negativa%C3%A7%C3%A3o/
+   Por: Cleomar Pacheco / Renato Rubinho
+
+01/12/2025
+-- ACBrBancoVortx  --
+[*] Corrigido o metodo montarCampoLivreCodigoBarras e Impressao do cedente no boleto
+   ACBR-8479 https://www.projetoacbr.com.br/forum/topic/86975-problema-na-linha-digital-banco-vortx
+   https://www.projetoacbr.com.br/forum/topic/87799-ajustes-no-banco-vortx/
+   Por Daniel de Morais InfoCotidiano
+
+13/11/2025
+-- ACBrBoleto,ACBrBancoBradescoMoneyPlus  --
+[*] Criado metodo para definir posições agencia, agenciadv, conta e contadv nos retornos
+   TK-7463/ACBr-478 https://www.projetoacbr.com.br/forum/topic/84729-extra%C3%A7%C3%A3o-incorreta-de-ag%C3%AAncia-e-conta-no-retorno-cnab-400-do-banco-274-moneyplus-gera-erro-na-valida%C3%A7%C3%A3o/
+   Por Daniel Sonda, Daniel de Morais InfoCotidiano.
+
+11/11/2025
+-- ACBrBoletoRet_Inter_API.pas --
+[*] Ajustado DataBaixa qdo status igual a Recebido, Cancelado, Pago
+   ACBr-8212 https://www.projetoacbr.com.br/forum/profile/121385-jo%C3%A3o-vitor-bogo
+   Por João Vitor Bogo, Daniel Morais
+
+11/11/2025
+-- ACBrBancoCredisan.pas --
+[-] Ajustado ValorMoraMes e PercentualMulta conforme manual.
+   ACBr-8276 https://www.projetoacbr.com.br/forum/topic/86769-ajuste-gera%C3%A7%C3%A3o-arquivo-cnb400-credisan/
+   Por Dayvison Reis_12476, SAC Emilyonline
+
+11/11/2025
+-- ACBrBoleto.pas --
+[-] Adicionado a propriedade boletoVencido (filtro) na leitura do arquivo ini de consulta que não estava implementado.
+   ACBr-8371 https://www.projetoacbr.com.br/forum/topic/87196-erro-na-consulta-movimenta%C3%A7%C3%A3o-sicoob-api
+   Por Daniel de Morais
+
+10/11/2025
+-- ACBrBancoBrasil.pas --
+[*] Quando convenio for maior que 6, colocado a condição se TipoPagamento for igual tpNao_Aceita_Valor_Divergente, gera "N" posição 394
+   ACBr-8358 https://www.projetoacbr.com.br/forum/topic/87136-erro-na-remessa-do-boleto-banco-do-brasil-cnab400/#comment-565536
+   Por Daniel de Morais, Eric Bortoleto 
+
+03/11/2025
+-- ACBrBancoSicoob.pas --
+[*] Removido  a linha Cedente.CodigoCedente:= rConta+rDigitoConta quando lerCedenteRetorno, pois o codigo cedente não é este montado.
+   ACBr-8296 https://www.projetoacbr.com.br/forum/topic/86876-propriedade-tamanhoconta-banco-sicoob/?&_rid=1706#findComment-564244
+   Por EasySoft Sistemas
+
+29/10/2025
+-- ACBrBoletoRet_BancoBrasil_API --
+[-] Correção do nossoNumero API devolvendo dv entre convenio e nossonumero.
+   ACBr-8296 https://discord.com/channels/798697718800318484/800736352420364320/1432315134692294716
+   Por Ederson Selvati
+   
+29/10/2025
+-- ACBrBancoSicoob, ACBrBoletoW_Sicoob_V3.pas --
+[*] Se Informado CodTransmissao (NumeroContrato), vai ser alimentado com ele na LinhaDigitvel e Barras 
+   ACBr-8307 https://www.projetoacbr.com.br/forum/topic/86792-erro-c%C3%B3d-barrasdv-do-nosso-n%C3%BAmero-na-emiss%C3%A3o-via-sicoob-api-v3-para-carteira-9
+   https://svn.code.sf.net/p/acbr/code/tools/Bancos/Recebimento/756-Sicoob/Linha%20digitavel%20Carteira%209.pdf
+   Por Daniel de Morais InfoCotidiano 
+
 24/10/2025
 -- ACBrBancoSofisa --
 [*] Adicionado codigo ocorrencia retorno 01, entrada confirmada cip

@@ -60,7 +60,7 @@ type
     function LerCodigoPaisServico(const ANode: TACBrXmlNode): Integer; virtual;
     function LerCodigoPaisTomador(const ANode: TACBrXmlNode): Integer; virtual;
 
-    procedure LerInfNfse(const ANode: TACBrXmlNode);
+    procedure LerInfNfse(const ANode: TACBrXmlNode); virtual;
 
     procedure LerValoresNfse(const ANode: TACBrXmlNode);
 
@@ -71,7 +71,7 @@ type
 
     procedure LerOrgaoGerador(const ANode: TACBrXmlNode);
     procedure LerDeclaracaoPrestacaoServico(const ANode: TACBrXmlNode);
-    procedure LerInfDeclaracaoPrestacaoServico(const ANode: TACBrXmlNode);
+    procedure LerInfDeclaracaoPrestacaoServico(const ANode: TACBrXmlNode); virtual;
 
     procedure LerRps(const ANode: TACBrXmlNode);
     procedure LerIdentificacaoRps(const ANode: TACBrXmlNode);
@@ -93,7 +93,7 @@ type
     procedure LerIntermediarioServico(const ANode: TACBrXmlNode);
     procedure LerIdentificacaoIntermediario(const ANode: TACBrXmlNode);
 
-    procedure LerConstrucaoCivil(const ANode: TACBrXmlNode);
+    procedure LerConstrucaoCivil(const ANode: TACBrXmlNode); virtual;
 
     procedure LerNfseCancelamento(const ANode: TACBrXmlNode);
     procedure LerConfirmacao(const ANode: TACBrXmlNode);
@@ -585,6 +585,9 @@ begin
     LerServico(AuxNode);
     LerPrestador(AuxNode);
     LerTomadorServico(AuxNode);
+
+    NFSe.DataFatoGerador := ObterConteudo(AuxNode.Childrens.FindAnyNs('DataFatoGerador'), tcDat);
+
     LerIntermediarioServico(AuxNode);
     LerConstrucaoCivil(AuxNode);
 
@@ -943,6 +946,7 @@ begin
     begin
       xItemListaServico := ItemListaServicoDescricao(ItemListaServico);
       CodigoTributacaoMunicipio := ObterConteudo(ANodes[i].Childrens.FindAnyNs('CodigoTributacaoMunicipio'), tcStr);
+      CodigoServicoNacional := ObterConteudo(ANodes[i].Childrens.FindAnyNs('CodigoServicoNacional'), tcStr);
       CodigoNBS := ObterConteudo(ANodes[i].Childrens.FindAnyNs('CodigoNbs'), tcStr);
       CodigoMunicipio := ObterConteudo(ANodes[i].Childrens.FindAnyNs('CodigoMunicipio'), tcStr);
       CodigoPais := ObterConteudo(ANodes[i].Childrens.FindAnyNs('CodigoPais'), tcInt);
@@ -1021,6 +1025,7 @@ begin
       xItemListaServico         := ItemListaServicoDescricao(ItemListaServico);
       CodigoCnae                := ObterConteudo(AuxNode.Childrens.FindAnyNs('CodigoCnae'), tcStr);
       CodigoTributacaoMunicipio := ObterConteudo(AuxNode.Childrens.FindAnyNs('CodigoTributacaoMunicipio'), tcStr);
+      CodigoServicoNacional := ObterConteudo(AuxNode.Childrens.FindAnyNs('CodigoServicoNacional'), tcStr);
       CodigoNBS                 := ObterConteudo(AuxNode.Childrens.FindAnyNs('CodigoNbs'), tcStr);
       Discriminacao             := ObterConteudo(AuxNode.Childrens.FindAnyNs('Discriminacao'), tcStr);
       Discriminacao := StringReplace(Discriminacao, FpQuebradeLinha,
@@ -1102,6 +1107,9 @@ begin
   if AuxNode <> nil then
   begin
     NFSe.NfseSubstituidora := ObterConteudo(AuxNode.Childrens.FindAnyNs('NfseSubstituidora'), tcStr);
+
+    if NFSe.NfseSubstituidora <> '' then
+      NFSe.SituacaoNfse := snSubstituido;
   end;
 end;
 
@@ -1324,13 +1332,7 @@ begin
 
   if not Assigned(ANode) then Exit;
 
-  // O provedor Tecnos tem essa tag entre as tag CompNfse e Nfse.
-  AuxNode := ANode.Childrens.FindAnyNs('tcCompNfse');
-
-  if AuxNode = nil then
-    AuxNode := ANode;
-
-  AuxNode := AuxNode.Childrens.FindAnyNs('Nfse');
+  AuxNode := ANode.Childrens.FindAnyNs('Nfse');
 
   if AuxNode = nil then
     AuxNode := ANode;
@@ -1389,6 +1391,10 @@ begin
     LerINISecaoCondicaoPagamento(LINIRec);
     LerINISecaoOrgaoGerador(LINIRec);
     LerINISecaoParcelas(LINIRec);
+
+    // Ler os campos do arquivo INI referente a Reforma Tributária
+    LerINIIBSCBS(LINIRec, NFSe.IBSCBS);
+
     Result := True;
   finally
     LIniRec.Free;
@@ -1565,6 +1571,7 @@ begin
 
     NFSe.Tomador.AtualizaTomador := FpAOwner.StrToSimNao(Ok, AINIRec.ReadString(LSecao, 'AtualizaTomador', '1'));
     NFSe.Tomador.TomadorExterior := FpAOwner.StrToSimNao(Ok, AINIRec.ReadString(LSecao, 'TomadorExterior', '2'));
+    NFSe.Tomador.TomadorSubstitutoTributario := FpAOwner.StrToSimNao(Ok, AINIRec.ReadString(LSecao, 'TomadorSubstitutoTributario', '2'));
   end;
 end;
 
@@ -1615,6 +1622,7 @@ begin
     NFSe.Servico.xItemListaServico := AINIRec.ReadString(LSecao, 'xItemListaServico', '');
     NFSe.Servico.CodigoCnae := AINIRec.ReadString(LSecao, 'CodigoCnae', '');
     NFSe.Servico.CodigoTributacaoMunicipio := AINIRec.ReadString(LSecao, 'CodigoTributacaoMunicipio', '');
+    NFSe.Servico.CodigoServicoNacional := AINIRec.ReadString(LSecao, 'CodigoServicoNacional', '');
     NFSe.Servico.Discriminacao := ChangeLineBreak(AINIRec.ReadString(LSecao, 'Discriminacao', ''), FpAOwner.ConfigGeral.QuebradeLinha);
     NFSe.Servico.CodigoMunicipio := AINIRec.ReadString(LSecao, 'CodigoMunicipio', '');
     NFSe.Servico.CodigoNBS := AINIRec.ReadString(LSecao, 'CodigoNBS', '');

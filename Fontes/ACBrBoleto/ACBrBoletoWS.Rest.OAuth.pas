@@ -49,7 +49,7 @@ uses
 
 type
   EACBrBoletoWSOAuthException = class(Exception);
-  TpAuthorizationType = (atNoAuth, atBearer, atJWT);
+  TpAuthorizationType = (atNoAuth, atBearer, atJWT, atApiKey);
 
   TParams = record
     prName, PrValue: String;
@@ -224,7 +224,10 @@ begin
   FExpire          := 0;
   FErroComunicacao := '';
   try
-    LJson := TACBrJSONObject.Parse(UTF8ToNativeString(Trim(ARetorno)));
+    if ACBrUtil.FilesIO.StringIsJSON(ARetorno) then
+      LJson := TACBrJSONObject.Parse(UTF8ToNativeString(Trim(ARetorno)))
+    else
+      raise EACBrBoletoWSOAuthException.Create('Resposta do Webservices não é um JSON Válido');
 
     try
       if (FHTTPSend.ResultCode in [ 200 .. 205 ]) then
@@ -275,35 +278,37 @@ begin
   if not Assigned(FHTTPSend) then
     Raise EACBrBoletoWSOAuthException.Create(ClassName + Format(S_METODO_NAO_IMPLEMENTADO, [ C_DFESSL ]));
 
-  CarregaCertificados;
+  FHTTPSend.Clear;
 
+  CarregaCertificados;
   //Definido Valor para Timeout com a configuração da Classe
   FHTTPSend.Timeout := FACBrBoleto.Configuracoes.WebService.TimeOut;
 
   //Definindo Header da requisição OAuth
-  FHTTPSend.Headers.Clear;
+
   LHeaders := TStringList.Create;
   try
-    if Self.AuthorizationType = atBearer then
-      LHeaders.Add(C_AUTHORIZATION + ': ' + AAuthBase64);
-    if Self.AuthorizationType = atJWT then
-    begin
-      LJWTAuth := TACBrJWTAuth.Create(FHTTPSend.Sock.SSL.PrivateKey);
-      if not FACBrBoleto.Configuracoes.WebService.UseCertificateHTTP then
-      begin
-        FHTTPSend.Sock.SSL.PrivateKey      := '';
-        FHTTPSend.Sock.SSL.CertificateFile := '';
-        FHTTPSend.Sock.SSL.Certificate     := '';
-      end;
-      try
-        LParamsOAuth := FParamsOAuth;
-        FParamsOAuth := 'grant_type=' + FGrantType +'&'+
-                        'assertion=' + LJWTAuth.GenerateJWT(LParamsOAuth);
-      finally
-        LJWTAuth.Free;
-      end;
+    case Self.AuthorizationType of
+      atNoAuth: ;
+      atBearer: LHeaders.Add(C_AUTHORIZATION + ': ' + AAuthBase64);
+      atJWT:
+        begin
+          LJWTAuth := TACBrJWTAuth.Create(FHTTPSend.Sock.SSL.PrivateKey);
+          if not FACBrBoleto.Configuracoes.WebService.UseCertificateHTTP then
+          begin
+            FHTTPSend.Sock.SSL.PrivateKey      := '';
+            FHTTPSend.Sock.SSL.CertificateFile := '';
+            FHTTPSend.Sock.SSL.Certificate     := '';
+          end;
+          try
+            LParamsOAuth := FParamsOAuth;
+            FParamsOAuth := 'grant_type=' + FGrantType +'&'+
+                            'assertion=' + LJWTAuth.GenerateJWT(LParamsOAuth);
+          finally
+            LJWTAuth.Free;
+          end;
+        end;
     end;
-      //LHeaders.Add(C_CACHE_CONTROL + ': ' + C_NO_CACHE);
 
     for I := 0 to Length(FHeaderParamsList) - 1 do
       LHeaders.Add(FHeaderParamsList[ I ].prName + ': ' + FHeaderParamsList[ I ].PrValue);
@@ -360,7 +365,6 @@ begin
     DoLog('Body Resposta (payload):' + ReadStrFromStream(FHTTPSend.Document, FHTTPSend.Document.Size), logParanoico);
     if FErroComunicacao <> '' then
       Raise EACBrBoletoWSOAuthException.Create('Falha na Autenticação: ' + FErroComunicacao);
-   URL.Clear;
   end;
 end;
 
@@ -464,7 +468,7 @@ begin
     FArqLOG := AACBrBoleto.Configuracoes.Arquivos.NomeArquivoLog
   else
     FArqLOG := PathWithDelim(AACBrBoleto.Configuracoes.Arquivos.PathGravarRegistro) + ExtractFileName(AACBrBoleto.Configuracoes.Arquivos.NomeArquivoLog);
-
+  URL.Clear;
 end;
 
 destructor TOAuth.Destroy;

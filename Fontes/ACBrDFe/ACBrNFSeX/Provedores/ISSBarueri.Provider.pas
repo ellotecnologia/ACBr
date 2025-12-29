@@ -475,12 +475,13 @@ var
   Emitente: TEmitenteConfNFSe;
   Registro1, Registro9, AIdentificacaoRemessa: string;
   Nota: TNotaFiscal;
-  ValorServicos, ValorTotalRetencoes, Retencoes: Double;
+  ValorServicos, ValorTotalRetencoes: Double;
   I, TotalLinhas: Integer;
 begin
   Emitente := TACBrNFSeX(FAOwner).Configuracoes.Geral.Emitente;
   ValorServicos := 0;
   ValorTotalRetencoes := 0;
+  TotalLinhas := 0;
 
   for I := 0 to TACBrNFSeX(FAOwner).NotasFiscais.Count - 1 do
   begin
@@ -505,29 +506,36 @@ begin
       TotalLinhas := 1;
     end;
 
-    // Informação contida no REgistro 2
+    // Informação contida no Registro 2
     ValorServicos := ValorServicos +
                      Nota.NFSe.Servico.Valores.ValorServicos;
     Inc(TotalLinhas);
 
-    // Informações contidas no REgistro 3
-    Retencoes := Nota.NFSe.Servico.Valores.ValorIr +
-                 Nota.NFSe.Servico.Valores.ValorPis +
-                 Nota.NFSe.Servico.Valores.ValorCofins +
-                 Nota.NFSe.Servico.Valores.ValorCsll;
+    // Informações contidas no Registro 3
+    ValorTotalRetencoes := ValorTotalRetencoes +
+                           Nota.NFSe.Servico.Valores.ValorIr +
+                           Nota.NFSe.Servico.Valores.ValorPis +
+                           Nota.NFSe.Servico.Valores.ValorCofins +
+                           Nota.NFSe.Servico.Valores.ValorCsll;
 
-    if Retencoes > 0 then
-    begin
-      ValorTotalRetencoes := ValorTotalRetencoes + Retencoes;
+    if Nota.NFSe.Servico.Valores.ValorIr > 0 then
       Inc(TotalLinhas);
-    end;
+
+    if Nota.NFSe.Servico.Valores.ValorPis > 0 then
+      Inc(TotalLinhas);
+
+    if Nota.NFSe.Servico.Valores.ValorCofins > 0 then
+      Inc(TotalLinhas);
+
+    if Nota.NFSe.Servico.Valores.ValorCsll > 0 then
+      Inc(TotalLinhas);
   end;
 
   // Inclui no total de linhas o Registro 9
   Inc(TotalLinhas);
 
   Registro9 := '9' +
-        PadRight(IntToStr(TotalLinhas), 7, ' ') +
+        PadLeft(IntToStr(TotalLinhas), 7, '0') +
         PadLeft(FloatToStr(ValorServicos * 100), 15, '0') +
         PadLeft(FloatToStr(ValorTotalRetencoes * 100), 15, '0') + CRLF;
 

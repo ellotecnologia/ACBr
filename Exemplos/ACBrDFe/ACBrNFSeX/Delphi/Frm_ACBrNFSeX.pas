@@ -10,7 +10,11 @@ uses
   ACBrUtil.Base,
   ACBrUtil.DateTime, ACBrUtil.FilesIO,
   ACBrDFe, ACBrDFeReport, ACBrMail, ACBrNFSeX,
-  ACBrNFSeXConversao, ACBrNFSeXWebservicesResponse,
+  ACBrXmlBase,
+  ACBrDFe.Conversao,
+  pcnConversao,
+  ACBrNFSeXConversao,
+  ACBrNFSeXWebservicesResponse,
   ACBrNFSeXDANFSeClass, ACBrNFSeXDANFSeRLClass;
 
 type
@@ -276,6 +280,8 @@ type
     Label51: TLabel;
     cbFormatoDiscr: TComboBox;
     rgReformaTributaria: TRadioGroup;
+    btnConsultarDPSporNumeroPN: TButton;
+    btnLerXml: TButton;
 
     procedure FormCreate(Sender: TObject);
     procedure btnSalvarConfigClick(Sender: TObject);
@@ -369,6 +375,8 @@ type
     procedure btnLerINIPNClick(Sender: TObject);
     procedure btnGerarArqINIPNClick(Sender: TObject);
     procedure btnInformacoesClick(Sender: TObject);
+    procedure btnConsultarDPSporNumeroPNClick(Sender: TObject);
+    procedure btnLerXmlClick(Sender: TObject);
   private
     CidAC: Integer;
     CidAL: Integer;
@@ -456,14 +464,11 @@ implementation
 
 uses
   strutils, math, TypInfo, DateUtils, blcksock, FileCtrl, Grids, IniFiles, Printers,
-  ACBrXmlBase,
-  ACBrDFe.Conversao,
   ACBrOpenSSLUtils, OpenSSLExt,
   ACBrDFeConfiguracoes, ACBrDFeSSL,
   ACBrDFeUtil,
   ACBrNFSeXWebserviceBase,
-  Frm_Status, Frm_SelecionarCertificado,
-  pcnConversao;
+  Frm_Status, Frm_SelecionarCertificado;
 
 const
   SELDIRHELP = 1000;
@@ -570,7 +575,8 @@ begin
     Alimentar_Componente_layout_ABRASF(NumDFe, NumLote)
   else
   begin
-    if ACBrNFSeX1.Configuracoes.Geral.Provedor = proPadraoNacional then
+    if (ACBrNFSeX1.Configuracoes.Geral.Provedor = proPadraoNacional) or
+        ACBrNFSeX1.Configuracoes.Geral.APIPropria then
       Alimentar_Componente_layout_PadraoNacional(NumDFe, NumLote)
     else
       Alimentar_Componente_layout_Proprio(NumDFe, NumLote);
@@ -602,22 +608,53 @@ begin
       tpEmit := tePrestador;
 
       {
-        TnfseRegimeEspecialTributacao = (retNenhum, retMicroempresaMunicipal, retEstimativa,
-                                         retSociedadeProfissionais, retCooperativa,
-                                         retMicroempresarioIndividual, retMicroempresarioEmpresaPP,
-                                         retLucroReal, retLucroPresumido, retSimplesNacional,
-                                         retImune, retEmpresaIndividualRELI, retEmpresaPP,
-                                         retMicroEmpresario, retOutros, retMovimentoMensal,
-                                         retISSQNAutonomos, retISSQNSociedade,
-                                         retNotarioRegistrador,
-                                         retTribFaturamentoVariavel, retFixo,
-                                         retIsencao,retExigibSuspensaJudicial,
-                                         retExigibSuspensaAdm);
+        TnfseRegimeEspecialTributacao = (retNenhum, retCooperativa, retEstimativa,
+                         retMicroempresaMunicipal, retNotarioRegistrador,
+                         retISSQNAutonomos, retSociedadeProfissionais);
       }
-      RegimeEspecialTributacao := retNenhum;
+      RegimeEspecialTributacao := retNenhum; //retISSQNAutonomos;
 
       // TOptanteSN = (osnNaoOptante, osnOptanteMEI, osnOptanteMEEPP)
-      OptanteSN := osnOptanteMEI;
+      OptanteSN := osnOptanteMEI; //osnOptanteMEEPP;
+
+      if ACBrNFSeX1.Configuracoes.Geral.Provedor in [proCitta, proSilTecnologia] then
+      begin
+        {
+          Dados necessários para os provedores indicados acima pois eles
+          requerem que seja enviado o XML da NFS-e em vez do XML da DPS.
+        }
+        infNFSe.nNFSe := IdentificacaoRps.Numero;
+        infNFSe.nDFSe := IntToStr(GerarCodigoNFSe(StrToIntDef(IdentificacaoRps.Numero, 1), 9));
+        infNFSe.dhProc := Now;
+
+        // agPrefeitura, agSistemaNacional
+        infNFSe.ambGer := agPrefeitura;
+        // tePadraoNacional, teProprio
+        infNFSe.tpEmis := teProprio;
+
+        // Valores
+        infNFSe.Valores.BaseCalculo := 0;
+        infNFSe.Valores.Aliquota := 0;
+        infNFSe.Valores.ValorIss := 0;
+        infNFSe.Valores.vTotalRet := 0;
+        infNFSe.Valores.ValorLiquidoNfse := 100.35;
+
+        Emitente.IdentificacaoPrestador.CpfCnpj := edtEmitCNPJ.Text;
+        Emitente.IdentificacaoPrestador.InscricaoMunicipal := edtEmitIM.Text;
+        Emitente.RazaoSocial := edtEmitRazao.Text;
+
+        Emitente.Endereco.Endereco := edtEmitLogradouro.Text;
+        Emitente.Endereco.Numero := edtEmitNumero.Text;
+        Emitente.Endereco.Complemento := edtEmitComp.Text;
+        Emitente.Endereco.Bairro := edtEmitBairro.Text;
+        Emitente.Endereco.xMunicipio := edtEmitCidade.Text;
+        Emitente.Endereco.UF := edtEmitUF.Text;
+        Emitente.Endereco.CEP := edtEmitCEP.Text;
+        Emitente.Endereco.CodigoMunicipio := edtCodCidade.Text;
+
+        Emitente.Contato.Telefone := '1633445566';
+        Emitente.Contato.Email := 'nome@provedor.com';
+      end;
 
       {=========================================================================
         Dados do Serviço
@@ -625,7 +662,7 @@ begin
 
       Servico.ItemListaServico := '010601';
 
-      Servico.CodigoNBS := '010601000';
+      Servico.CodigoNBS := '115021000';
 
       Servico.Discriminacao := 'discriminacao I' +
         ACBrNFSeX1.Configuracoes.WebServices.QuebradeLinha +
@@ -635,7 +672,7 @@ begin
         ACBrNFSeX1.Configuracoes.WebServices.QuebradeLinha +
        'discriminacao IV';
 
-      Servico.CodigoTributacaoMunicipio := '';
+//      Servico.CodigoTributacaoMunicipio := '001';
 
       Servico.CodigoMunicipio := edtCodCidade.Text;
       Servico.CodigoPais := 1058; // Brasil
@@ -646,18 +683,19 @@ begin
 
       Servico.Valores.ValorServicos := 100.35;
       Servico.Valores.ValorDeducoes := 0.00;
+      Servico.Valores.Aliquota := 3;
 
       Servico.Valores.DescontoIncondicionado := 0.00;
       Servico.Valores.DescontoCondicionado := 0.00;
 
       Servico.Valores.tribMun.cPaisResult := 0;
       // TtribISSQN = (tiOperacaoTributavel, tiImunidade, tiExportacao, tiNaoIncidencia);
-      Servico.Valores.tribMun.tribISSQN := tiNaoIncidencia;
+      Servico.Valores.tribMun.tribISSQN := tiNaoIncidencia; //tiOperacaoTributavel;
       Servico.Valores.tribMun.tpImunidade := timNenhum;
       Servico.Valores.tribMun.tpRetISSQN := trNaoRetido;
       Servico.Valores.totTrib.indTotTrib := indNao;
 
-      if OptanteSN = osnOptanteMEEPP then
+      if OptanteSN = osnNaoOptante then
       begin
         Servico.Valores.totTrib.indTotTrib := indSim;
         Servico.Valores.totTrib.pTotTribSN := 2.01;
@@ -665,14 +703,15 @@ begin
 
       {
          Só devem ser informados se o Prestador não for Simples Nacional
-
+      }
+      {
       Servico.Valores.tribFed.CST := cst01;
       Servico.Valores.tribFed.vBCPisCofins := Servico.Valores.ValorServicos -
                                          Servico.Valores.ValorDeducoes -
                                          Servico.Valores.DescontoIncondicionado;
 
-      Servico.Valores.tribFed.pAliqPis := 1.65;
-      Servico.Valores.tribFed.pAliqCofins := 7.60;
+      Servico.Valores.tribFed.pAliqPis := 0; //1.65;
+      Servico.Valores.tribFed.pAliqCofins := 0; //7.60;
       Servico.Valores.tribFed.vPis := Servico.Valores.tribFed.vBCPisCofins *
                                       Servico.Valores.tribFed.pAliqPis / 100;
       Servico.Valores.tribFed.vCofins := Servico.Valores.tribFed.vBCPisCofins *
@@ -689,14 +728,15 @@ begin
         Dados do Prestador de Serviço
       =========================================================================}
       Prestador.IdentificacaoPrestador.CpfCnpj := edtEmitCNPJ.Text;
-      Prestador.IdentificacaoPrestador.InscricaoMunicipal := edtEmitIM.Text;
+//      Prestador.IdentificacaoPrestador.InscricaoMunicipal := edtEmitIM.Text;
+//      Prestador.IdentificacaoPrestador.CAEPF := '12345678901234';
 
       Prestador.cUF := UFparaCodigoUF(edtEmitUF.Text);
 
       Prestador.Endereco.CodigoMunicipio := edtCodCidade.Text;
 
-      Prestador.Contato.Telefone := '1633224455';
-      Prestador.Contato.Email := 'nome@provedor.com.br';
+      Prestador.Contato.Telefone := '1633445566';
+      Prestador.Contato.Email := 'nome@provedor.com';
 
       {=========================================================================
         Dados do Tomador de Serviço
@@ -705,26 +745,27 @@ begin
       Tomador.AtualizaTomador := snNao;
       Tomador.TomadorExterior := snNao;
 
-      Tomador.IdentificacaoTomador.CpfCnpj := '12345678901';
+      Tomador.IdentificacaoTomador.CpfCnpj := '12345678901234';
       Tomador.IdentificacaoTomador.InscricaoMunicipal := '';
       Tomador.IdentificacaoTomador.InscricaoEstadual := '';
+      Tomador.IdentificacaoTomador.CAEPF := '';
 
-      Tomador.RazaoSocial := 'INSCRICAO DE TESTE E TESTE';
+      Tomador.RazaoSocial := 'Nome do Tomador';
 
       Tomador.Endereco.TipoLogradouro := 'RUA';
-      Tomador.Endereco.Endereco := 'RUA PRINCIPAL';
-      Tomador.Endereco.Numero := '100';
-      Tomador.Endereco.Complemento := 'APTO 11';
+      Tomador.Endereco.Endereco := 'RUA CENTRAL';
+      Tomador.Endereco.Numero := '123';
+//      Tomador.Endereco.Complemento := 'APTO 11';
       Tomador.Endereco.TipoBairro := 'BAIRRO';
       Tomador.Endereco.Bairro := 'CENTRO';
       Tomador.Endereco.CodigoMunicipio := edtCodCidade.Text;
       Tomador.Endereco.xMunicipio := 'Cidade do Tomador';
       Tomador.Endereco.UF := edtEmitUF.Text;
       Tomador.Endereco.CodigoPais := 1058; // Brasil
-      Tomador.Endereco.CEP := '14800000';
+      Tomador.Endereco.CEP := '18000000';
       Tomador.Endereco.xPais := 'BRASIL';
 
-      Tomador.Contato.Telefone := '1622223333';
+      Tomador.Contato.Telefone := '1533445566';
       Tomador.Contato.Email := 'nome@provedor.com.br';
 
       {=========================================================================
@@ -747,8 +788,11 @@ begin
       begin
         IBSCBS.finNFSe := fnfsRegular;
         IBSCBS.indFinal := ifSim;
-        IBSCBS.cIndOp := '123456';
-        // togNenhum, togFornecimento, togRecebimentoPag
+        IBSCBS.cIndOp := '100301';
+
+        // togNenhum, togFornecimento, togRecebimentoPag,
+        // togFornecimentoRealizado, togRecebimentoPagPosterior,
+        // togFornecimentoRecebimento
         IBSCBS.tpOper := togNenhum;
 
         // Grupo de NFS-e referenciadas.
@@ -764,7 +808,7 @@ begin
         IBSCBS.tpEnteGov := tcgNenhum;
         // idTomadorAdquirenteDestinatarioIguais, idTomadorAdquirenteIguais,
         IBSCBS.indDest := idTomadorAdquirenteDestinatarioIguais;
-
+        (*
         IBSCBS.dest.CNPJCPF := '12345678901';
         IBSCBS.dest.Nif := '';
         IBSCBS.dest.cNaoNIF := tnnNaoInformado;
@@ -788,7 +832,8 @@ begin
         IBSCBS.imovel.ender.nro := '100';
         IBSCBS.imovel.ender.xCpl := '';
         IBSCBS.imovel.ender.xBairro := 'CENTRO';
-
+        *)
+        (*
         with IBSCBS.valores.gReeRepRes.documentos.New do
         begin
           {
@@ -837,7 +882,7 @@ begin
           xTpReeRepRes := '';
           vlrReeRepRes := 0;
         end;
-
+        *)
         // cst000, cst010, cst011, cst200, cst210, cst221, cst400, cst410
         // cst510, cst550, cst800, cst820
         IBSCBS.valores.trib.gIBSCBS.CST := cst000;
@@ -845,14 +890,14 @@ begin
 
         // cpNenhum, cp01, cp02, cp03, cp04, cp05, cp06, cp07, cp08, cp09, cp10,
         // cp11, cp12, cp13
-        IBSCBS.valores.trib.gIBSCBS.cCredPres := cp01;
+        IBSCBS.valores.trib.gIBSCBS.cCredPres := cpNenhum;
 
-        IBSCBS.valores.trib.gIBSCBS.gTribRegular.CSTReg := cst000;
-        IBSCBS.valores.trib.gIBSCBS.gTribRegular.cClassTribReg := '000001';
+        IBSCBS.valores.trib.gIBSCBS.gTribRegular.CSTReg := cstNenhum;
+        IBSCBS.valores.trib.gIBSCBS.gTribRegular.cClassTribReg := '';
 
-        IBSCBS.valores.trib.gIBSCBS.gDif.pDifUF := 5;
-        IBSCBS.valores.trib.gIBSCBS.gDif.pDifMun := 5;
-        IBSCBS.valores.trib.gIBSCBS.gDif.pDifCBS := 5;
+        IBSCBS.valores.trib.gIBSCBS.gDif.pDifUF := 0.1;
+        IBSCBS.valores.trib.gIBSCBS.gDif.pDifMun := 0;
+        IBSCBS.valores.trib.gIBSCBS.gDif.pDifCBS := 0.9;
       end;
     end;
   end;
@@ -1378,6 +1423,120 @@ begin
           end;
         end;
       end;
+
+      // Reforma Tributária
+      if rgReformaTributaria.ItemIndex = 0 then
+      begin
+        IBSCBS.finNFSe := fnfsRegular;
+        IBSCBS.indFinal := ifSim;
+        IBSCBS.cIndOp := '100301';
+        // togNenhum, togFornecimento, togRecebimentoPag
+        IBSCBS.tpOper := togNenhum;
+
+        // Grupo de NFS-e referenciadas.
+        {
+        with IBSCBS.gRefNFSe.New do
+        begin
+          // Chave da NFS-e referenciada
+          refNFSe := '12345678901234567890123456789012345678901234567890';
+        end;
+        }
+
+        // tcgNenhum, tcgUniao, tcgEstados, tcgDistritoFederal, tcgMunicipios
+        IBSCBS.tpEnteGov := tcgNenhum;
+        // idTomadorAdquirenteDestinatarioIguais, idTomadorAdquirenteIguais,
+        IBSCBS.indDest := idTomadorAdquirenteDestinatarioIguais;
+        (*
+        IBSCBS.dest.CNPJCPF := '12345678901';
+        IBSCBS.dest.Nif := '';
+        IBSCBS.dest.cNaoNIF := tnnNaoInformado;
+        IBSCBS.dest.xNome := 'Nome do Destinatario';
+        IBSCBS.dest.fone := '1622223333';
+        IBSCBS.dest.email := 'nome@provedor.com.br';
+        IBSCBS.dest.ender.endNac.cMun := StrToIntDef(edtCodCidade.Text, 0);
+        IBSCBS.dest.ender.endNac.CEP := '14800000';
+        IBSCBS.dest.ender.xLgr := 'RUA PRINCIPAL';
+        IBSCBS.dest.ender.nro := '100';
+        IBSCBS.dest.ender.xCpl := '';
+        IBSCBS.dest.ender.xBairro := 'CENTRO';
+
+        IBSCBS.imovel.inscImobFisc := '12345678901';
+        IBSCBS.imovel.cCIB := '12345678';
+        IBSCBS.imovel.ender.cep := '14800000';
+        IBSCBS.imovel.ender.endExt.cEndPost := 'cod. postal';
+        IBSCBS.imovel.ender.endExt.xCidade := 'cidade do exterior';
+        IBSCBS.imovel.ender.endExt.xEstProvReg := 'estado no exterior';
+        IBSCBS.imovel.ender.xLgr := 'RUA PRINCIPAL';
+        IBSCBS.imovel.ender.nro := '100';
+        IBSCBS.imovel.ender.xCpl := '';
+        IBSCBS.imovel.ender.xBairro := 'CENTRO';
+        *)
+        (*
+        with IBSCBS.valores.gReeRepRes.documentos.New do
+        begin
+          {
+            Grupo de informações de documentos fiscais eletrônicos que se
+            encontram no repositório nacional.
+          }
+          // tcNFSe, tcNFe, tcCTe, tcOutro
+          dFeNacional.tipoChaveDFe := tcOutro;
+          // Informar a descrição se o tipo for tcOutro
+          dFeNacional.xtipoChaveDFe := 'outro tipo de documento';
+          dFeNacional.ChaveDFe := ''; //'1234567890';
+
+          {
+            Grupo de informações de documento fiscais, eletrônicos ou não,
+            que não se encontram no repositório nacional.
+          }
+          docFiscalOutro.cMunDocFiscal := 0;
+          docFiscalOutro.nDocFiscal := '12345';
+          docFiscalOutro.xDocFiscal := 'Carta Remessa de Mercadoria';
+
+          {
+            Grupo de informações de documento não fiscal.
+          }
+          docOutro.nDoc := '12345';
+          docOutro.xDoc := 'Descricao do documento';
+
+          // Os grupos: dFeNacional, docFiscalOutro e docOutro são mutuamente
+          // excludentes, portanto somente um deles pode estar presente no XML
+
+          {
+            Grupo de informações do fornecedor do documento referenciado
+          }
+          {
+          fornec.CNPJCPF := '12345678000123';
+          fornec.NIF := '';
+          // tnnNaoInformado, tnnDispensado, tnnNaoExigencia
+          fornec.cNaoNIF := tnnNaoInformado;
+          fornec.xNome := 'fornecedor xyz';
+          }
+
+          dtEmiDoc := Date;
+          dtCompDoc := Date;
+          // trrr01, trrr02, trrr03, trrr04, trrr99
+          tpReeRepRes := trrr99;
+          // Informar a descrição se o tipo for trrr99.
+          xTpReeRepRes := '';
+          vlrReeRepRes := 0;
+        end;
+        *)
+        // cst000, cst010, cst011, cst200, cst210, cst221, cst400, cst410
+        // cst510, cst550, cst800, cst820
+        IBSCBS.valores.trib.gIBSCBS.CST := cst000;
+        IBSCBS.valores.trib.gIBSCBS.cClassTrib := '000001';
+
+        // cpNenhum, cp01, cp02, cp03, cp04, cp05, cp06, cp07, cp08, cp09, cp10,
+        // cp11, cp12, cp13
+        IBSCBS.valores.trib.gIBSCBS.cCredPres := cpNenhum;
+
+        IBSCBS.valores.trib.gIBSCBS.gTribRegular.CSTReg := cstNenhum;
+        IBSCBS.valores.trib.gIBSCBS.gTribRegular.cClassTribReg := '';
+
+        IBSCBS.valores.trib.gIBSCBS.gDif.pDifUF := 0.1;
+        IBSCBS.valores.trib.gIBSCBS.gDif.pDifMun := 0;
+        IBSCBS.valores.trib.gIBSCBS.gDif.pDifCBS := 0.9;
+      end;
     end;
   end;
 end;
@@ -1429,7 +1588,7 @@ begin
       DataEmissaoRPS := Now;
 
       // Provedor fintelISS
-      DataPagamento := Now;
+//      DataPagamento := Now;
 
       (*
         TnfseNaturezaOperacao = ( no1, no2, no3, no4, no5, no6, no7,
@@ -1698,7 +1857,7 @@ begin
 
         // Neste exemplo não temos ISS Retido ( stNormal = Não )
         // Logo o valor do ISS Retido é igual a zero.
-        Servico.Valores.IssRetido := stNormal;
+        Servico.Valores.IssRetido := stRetencao;
         Servico.Valores.ValorIssRetido := 0.00;
 
         Servico.Valores.OutrasRetencoes := 0.00;
@@ -1754,7 +1913,6 @@ begin
         Servico.ItemListaServico := '09.01';
       end;
 
-//      servico.CodigoNBS := '123456789';
       Servico.Discriminacao := 'discriminacao I' +
         ACBrNFSeX1.Configuracoes.WebServices.QuebradeLinha +
         'discriminacao II' +
@@ -1777,7 +1935,7 @@ begin
         proISSSalvador:
           Servico.CodigoTributacaoMunicipio := '0901001';
 
-        proIPM, proSystemPro:
+        proSystemPro:
           Servico.CodigoTributacaoMunicipio := '';
       else
         Servico.CodigoTributacaoMunicipio := '63194';
@@ -1801,6 +1959,20 @@ begin
 
       Servico.CodigoPais := 1058; // Brasil
       Servico.MunicipioIncidencia := StrToIntDef(edtCodCidade.Text, 0);
+
+      // Provedor ISSSalvador
+      if ACBrNFSeX1.Configuracoes.Geral.Provedor = proISSSalvador then
+      begin
+        Servico.CodigoNBS := '115021000';
+        Servico.cClassTrib := '000001';
+        Servico.INDOP := '123456';
+      end;
+
+      // Provedor Tecnos
+      if ACBrNFSeX1.Configuracoes.Geral.Provedor = proTecnos then
+        Servico.CodigoServicoNacional := '010101'
+      else
+        Servico.CodigoServicoNacional := '';
 
       {=========================================================================
         Dados do Prestador de Serviço
@@ -1999,6 +2171,14 @@ begin
           xTpReeRepRes := '';
           vlrReeRepRes := 0;
         end;
+
+        // Para o provedor Tecnos
+        IBSCBS.valores.IbsMunicipal := 0;
+        IBSCBS.valores.ValorIbsMunicipal := 0;
+        IBSCBS.valores.IbsEstadual := 0.1;
+        IBSCBS.valores.ValorIbsEstadual := 100;
+        IBSCBS.valores.Cbs := 0.9;
+        IBSCBS.valores.ValorCbs := 100;
 
         // cst000, cst010, cst011, cst200, cst210, cst221, cst400, cst410
         // cst510, cst550, cst800, cst820
@@ -2220,7 +2400,7 @@ begin
             if IniCidades.ReadString(sCod, 'UF', '') = 'TO' then
               Inc(CidComProvTO);
 
-            if IniCidades.ReadString(sCod, 'Provedor', '') = 'PadraoNacional' then
+            if (IniCidades.ReadString(sCod, 'Provedor', '') = 'PadraoNacional') then
               Inc(CidComPadroNacional);
           end;
         end;
@@ -2909,7 +3089,7 @@ var
 begin
   xTitulo := 'Consultar NFSe Por Numero';
 
-  if ACBrNFSeX1.Configuracoes.Geral.Provedor in [proPadraoNacional] then
+  if ACBrNFSeX1.Configuracoes.Geral.Provedor = proPadraoNacional then
   begin
     NumeroNFSe := '';
     if not(InputQuery(xTitulo, 'Chave da NFS-e:', NumeroNFSe)) then
@@ -4458,6 +4638,35 @@ begin
   end;
 end;
 
+procedure TfrmACBrNFSe.btnLerXmlClick(Sender: TObject);
+begin
+  OpenDialog1.Title := 'Selecione a NFSe';
+  OpenDialog1.DefaultExt := '*-NFSe.xml';
+  OpenDialog1.Filter :=
+    'Arquivos NFSe (*-NFSe.xml)|*-NFSe.xml|Arquivos XML (*.xml)|*.xml|Todos os Arquivos (*.*)|*.*';
+  OpenDialog1.InitialDir := ACBrNFSeX1.Configuracoes.Arquivos.PathSalvar;
+
+  if OpenDialog1.Execute then
+  begin
+    ACBrNFSeX1.NotasFiscais.Clear;
+
+    ACBrNFSeX1.NotasFiscais.LoadFromFile(OpenDialog1.FileName, True);
+
+    {
+       O método Emitir possui os seguintes parâmetros:
+       aNumLote (String)
+       aModEnvio [meAutomatico, meLoteAssincrono, meLoteSincrono, meUnitario]
+       aImprimir (Boolean) Valor Padrão = True, portanto imprime o DANFSE
+    }
+    // meUnitario: Ajusta o Emitir para enviar somente um Rps
+
+    // No caso do Padrão Nacional o envio é sempre unitário
+    ACBrNFSeX1.Emitir('1', meUnitario);
+
+    ChecarResposta(tmGerar);
+  end;
+end;
+
 procedure TfrmACBrNFSe.btnLinkNFSeClick(Sender: TObject);
 var
   xTitulo, xNumNFSe, xCodVerif, xID, sLink: String;
@@ -4504,7 +4713,7 @@ begin
 
   ACBrNFSeX1.ObterDANFSE(xChaveNFSe);
 
-  ChecarResposta(tmConsultarNFSePorChave);
+  ChecarResposta(tmObterDANFSE);
 end;
 
 procedure TfrmACBrNFSe.btnSalvarConfigClick(Sender: TObject);
@@ -4642,6 +4851,25 @@ begin
                                 CodVerif, sNumNFSeSub);
 
   ChecarResposta(tmSubstituirNFSe);
+end;
+
+procedure TfrmACBrNFSe.btnConsultarDPSporNumeroPNClick(Sender: TObject);
+var
+  xTitulo, xNumero, xSerie: String;
+begin
+  xTitulo := 'Consultar DPS por Numero/Serie - Provedor Pronim - API Própria';
+
+  xNumero := '';
+  if not (InputQuery(xTitulo, 'Numero do DPS:', xNumero)) then
+    exit;
+
+  xSerie := '';
+  if not (InputQuery(xTitulo, 'Serie do DPS:', xSerie)) then
+    exit;
+
+  ACBrNFSeX1.ConsultarDPSPorNumero(xNumero, xSerie);
+
+  ChecarResposta(tmConsultarNFSePorRps);
 end;
 
 procedure TfrmACBrNFSe.btnConsultarNFSeServicoTomadoPorPeriodoClick(Sender: TObject);
@@ -5873,6 +6101,25 @@ begin
             ListaDeAlertas(Alertas);
           end;
         end;
+
+      tmObterDANFSE:
+        begin
+          with ObterDANFSE do
+          begin
+            memoLog.Lines.Add('Método Executado: ' + MetodoToStr(tmObterDANFSE));
+            memoLog.Lines.Add(' ');
+            memoLog.Lines.Add('Parâmetros de Envio');
+            memoLog.Lines.Add('Chave NFSe     : ' + ChaveNFSe);
+            memoLog.Lines.Add(' ');
+            memoLog.Lines.Add('Parâmetros de Retorno');
+            memoLog.Lines.Add('Sucesso: ' + BoolToStr(Sucesso, True));
+
+            ListaDeResumos(Resumos, tmObterDANFSE);
+
+            ListaDeErros(Erros);
+            ListaDeAlertas(Alertas);
+          end;
+        end;
     end;
   end;
 
@@ -5906,7 +6153,7 @@ end;
 
 procedure TfrmACBrNFSe.ConfigurarComponente;
 var
-  Ok: Boolean;
+  Ok, Ano2026: Boolean;
   PathMensal: String;
 begin
   ACBrNFSeX1.Configuracoes.Certificados.ArquivoPFX  := '';
@@ -5977,7 +6224,7 @@ begin
   with ACBrNFSeX1.Configuracoes.WebServices do
   begin
     // Redefini a quebra de linha que por padrão é "|'
-    QuebradeLinha := ';';
+//    QuebradeLinha := ';';
 
     Ambiente   := StrToTpAmb(Ok,IntToStr(rgTipoAmb.ItemIndex+1));
     Visualizar := cbxVisualizar.Checked;
@@ -6022,6 +6269,13 @@ begin
     PathGer          := edtPathLogs.Text;
     PathMensal       := GetPathGer(0);
     PathSalvar       := PathMensal;
+
+    Ano2026 := True;
+
+    if Ano2026 then
+      IniServicos := 'C:\ACBr\trunk2\Exemplos\ACBrDFe\ACBrNFSeX\Delphi\ACBrNFSeXServicosRTC.ini'
+    else
+      IniServicos := '';
   end;
 
   if ACBrNFSeX1.DANFSE <> nil then
@@ -6079,11 +6333,18 @@ begin
   if ACBrNFSeX1.Configuracoes.Geral.Layout = loABRASF then
     lblLayout.Caption := 'ABRASF'
   else
-    lblLayout.Caption := 'Próprio';
+  begin
+    if ACBrNFSeX1.Configuracoes.Geral.APIPropria or
+       (ACBrNFSeX1.Configuracoes.Geral.Provedor = proPadraoNacional) then
+      lblLayout.Caption := 'PadraoNacional'
+    else
+      lblLayout.Caption := 'Próprio';
+  end;
 
   lblVersaoSchemas.Caption := VersaoNFSeToStr(ACBrNFSeX1.Configuracoes.Geral.Versao);
 
-  if ACBrNFSeX1.Configuracoes.Geral.Provedor = proPadraoNacional then
+  if (ACBrNFSeX1.Configuracoes.Geral.Provedor = proPadraoNacional) or
+     ACBrNFSeX1.Configuracoes.Geral.APIPropria then
   begin
     pgcProvedores.Pages[0].TabVisible := False;
     pgcProvedores.Pages[1].TabVisible := True;

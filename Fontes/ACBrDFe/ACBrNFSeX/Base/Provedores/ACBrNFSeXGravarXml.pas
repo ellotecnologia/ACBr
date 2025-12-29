@@ -76,6 +76,7 @@ type
     FFraseSecreta: string;
     FCNPJPrefeitura: string;
     FProvedor: TnfseProvedor;
+    FCNPJEmitente: string;
 
     FFormatoEmissao: TACBrTipoCampo;
     FFormatoCompetencia: TACBrTipoCampo;
@@ -97,8 +98,15 @@ type
     // Reforma Tributária
     FNrOcorrtpOper: Integer;
     FNrOcorrindDest: Integer;
+    FNrOcorrCST: Integer;
+    FNrOcorrcCredPres: Integer;
+    FNrOcorrCSTReg: Integer;
     FGerarDest: Boolean;
+    FGerarImovel: Boolean;
     FGerargReeRepRes: Boolean;
+    FGerarTribRegular: Boolean;
+    FGerargDif: Boolean;
+    FNrOcorrtpAmb: Integer;
 
     function GetOpcoes: TACBrXmlWriterOptions;
     procedure SetOpcoes(AValue: TACBrXmlWriterOptions);
@@ -143,7 +151,7 @@ type
     function GerarXMLEnderecoNacionalImovel(ender: TenderImovel): TACBrXmlNode;
     function GerarXMLEnderecoExteriorImovel(endExt: TendExt): TACBrXmlNode;
 
-    function GerarXMLIBSCBSValores(valores: Tvalorestrib): TACBrXmlNode;
+    function GerarXMLIBSCBSValores(valores: Tvalorestrib): TACBrXmlNode; virtual;
     function GerarXMLgReeRepRes(gReeRepRes: TgReeRepRes): TACBrXmlNode;
     function GerarXMLDocumentos: TACBrXmlNodeArray;
     function GerarXMLdFeNacional(dFeNacional: TdFeNacional): TACBrXmlNode;
@@ -200,6 +208,7 @@ type
     property FraseSecreta: string        read FFraseSecreta   write FFraseSecreta;
     property CNPJPrefeitura: string      read FCNPJPrefeitura write FCNPJPrefeitura;
     property Provedor: TnfseProvedor     read FProvedor       write FProvedor;
+    property CNPJEmitente: string        read FCNPJEmitente   write FCNPJEmitente;
 
     property FormatoEmissao: TACBrTipoCampo     read FFormatoEmissao     write FFormatoEmissao;
     property FormatoCompetencia: TACBrTipoCampo read FFormatoCompetencia write FFormatoCompetencia;
@@ -220,8 +229,16 @@ type
     // Reforma Tributária NFSe
     property NrOcorrtpOper: Integer read FNrOcorrtpOper write FNrOcorrtpOper;
     property NrOcorrindDest: Integer read FNrOcorrindDest write FNrOcorrindDest;
+    property NrOcorrCST: Integer read FNrOcorrCST write FNrOcorrCST;
+    property NrOcorrcCredPres: Integer read FNrOcorrcCredPres write FNrOcorrcCredPres;
+    property NrOcorrCSTReg: Integer read FNrOcorrCSTReg write FNrOcorrCSTReg;
+    property NrOcorrtpAmb: Integer read FNrOcorrtpAmb write FNrOcorrtpAmb;
+
     property GerarDest: Boolean read FGerarDest write FGerarDest;
+    property GerarImovel: Boolean read FGerarImovel write FGerarImovel;
     property GerargReeRepRes: Boolean read FGerargReeRepRes write FGerargReeRepRes;
+    property GerarTribRegular: Boolean read FGerarTribRegular write FGerarTribRegular;
+    property GerargDif: Boolean read FGerargDif write FGerargDif;
   end;
 
 implementation
@@ -299,8 +316,16 @@ begin
   // Reforma Tributária
   FNrOcorrtpOper := 0;
   FNrOcorrindDest := 1;
+  FNrOcorrCST := 1;
+  FNrOcorrcCredPres := 0;
+  FNrOcorrCSTReg := 1;
+  FNrOcorrtpAmb := 1;
+
   FGerarDest := True;
+  FGerarImovel := True;
   FGerargReeRepRes := True;
+  FGerarTribRegular := True;
+  FGerargDif := True;
 end;
 
 procedure TNFSeWClass.ConsolidarVariosItensServicosEmUmSo;
@@ -908,28 +933,42 @@ begin
         INIRec.WriteString(sSecao, 'vTipoFreteTrans', TipoFreteToStr(Transportadora.vTipoFreteTrans));
       end;
 
-      if ConstrucaoCivil.CodigoObra <> '' then
+      if (ConstrucaoCivil.CodigoObra <> '') or (ConstrucaoCivil.nCei <> '') or
+         (ConstrucaoCivil.Endereco.CEP <> '') then
       begin
         sSecao:= 'ConstrucaoCivil';
-        INIRec.WriteString(sSecao, 'CodigoObra', ConstrucaoCivil.CodigoObra);
-        INIRec.WriteString(sSecao, 'Art', ConstrucaoCivil.Art);
-        INIRec.WriteString(sSecao, 'nCei', ConstrucaoCivil.nCei);
-        INIRec.WriteString(sSecao, 'nProj', ConstrucaoCivil.nProj);
-        INIRec.WriteString(sSecao, 'nMatri', ConstrucaoCivil.nMatri);
-        INIRec.WriteString(sSecao, 'nNumeroEncapsulamento', ConstrucaoCivil.nNumeroEncapsulamento);
-        //Padrão Nacional
-        INIRec.WriteString(sSecao, 'inscImobFisc', ConstrucaoCivil.inscImobFisc);
 
-        //Padrão Nacional
-        if (ConstrucaoCivil.Endereco.Endereco <> '') or (ConstrucaoCivil.Endereco.CEP <> '') then
+        if ConstrucaoCivil.Tipo > 0 then
         begin
-          INIRec.WriteString(sSecao, 'CEP', ConstrucaoCivil.Endereco.CEP);
-          INIRec.WriteString(sSecao, 'xMunicipio', ConstrucaoCivil.Endereco.XMunicipio);
-          INIRec.WriteString(sSecao, 'UF', ConstrucaoCivil.Endereco.UF);
-          INIRec.WriteString(sSecao, 'Logradouro', ConstrucaoCivil.Endereco.Endereco);
-          INIRec.WriteString(sSecao, 'Numero', ConstrucaoCivil.Endereco.Numero);
-          INIRec.WriteString(sSecao, 'Complemento', ConstrucaoCivil.Endereco.Complemento);
-          INIRec.WriteString(sSecao, 'Bairro', ConstrucaoCivil.Endereco.Bairro);
+          INIRec.WriteInteger(sSecao, 'TipoIdentificacaoObra', ConstrucaoCivil.Tipo);
+
+          if (ConstrucaoCivil.Tipo = 2) and (ConstrucaoCivil.CodigoObra <> '') then
+            INIRec.WriteString(sSecao, 'CodigoObra', ConstrucaoCivil.CodigoObra);
+
+          if (ConstrucaoCivil.Tipo = 2) and (ConstrucaoCivil.nCei <> '') then
+            INIRec.WriteString(sSecao, 'CodigoObra', ConstrucaoCivil.nCei);
+
+          if (ConstrucaoCivil.Tipo = 1) then
+          begin
+            if (ConstrucaoCivil.Endereco.Endereco <> '') or (ConstrucaoCivil.Endereco.CEP <> '') then
+            begin
+              INIRec.WriteString(sSecao, 'CEP', ConstrucaoCivil.Endereco.CEP);
+              INIRec.WriteString(sSecao, 'xMunicipio', ConstrucaoCivil.Endereco.XMunicipio);
+              INIRec.WriteString(sSecao, 'UF', ConstrucaoCivil.Endereco.UF);
+              INIRec.WriteString(sSecao, 'Logradouro', ConstrucaoCivil.Endereco.Endereco);
+              INIRec.WriteString(sSecao, 'Numero', ConstrucaoCivil.Endereco.Numero);
+              INIRec.WriteString(sSecao, 'Complemento', ConstrucaoCivil.Endereco.Complemento);
+              INIRec.WriteString(sSecao, 'Bairro', ConstrucaoCivil.Endereco.Bairro);
+            end;
+          end;
+
+          INIRec.WriteString(sSecao, 'Art', ConstrucaoCivil.Art);
+          INIRec.WriteString(sSecao, 'nCei', ConstrucaoCivil.nCei);
+          INIRec.WriteString(sSecao, 'nProj', ConstrucaoCivil.nProj);
+          INIRec.WriteString(sSecao, 'nMatri', ConstrucaoCivil.nMatri);
+          INIRec.WriteString(sSecao, 'nNumeroEncapsulamento', ConstrucaoCivil.nNumeroEncapsulamento);
+          //Padrão Nacional
+          INIRec.WriteString(sSecao, 'inscImobFisc', ConstrucaoCivil.inscImobFisc);
         end;
       end;
 
@@ -973,7 +1012,7 @@ begin
       INIRec.WriteString(sSecao, 'xPais', Servico.Endereco.xPais);
       INIRec.WriteString(sSecao, 'UF', Servico.Endereco.UF);
 
-      //IssSaoPaulo
+      //Provedor IssSaoPaulo
       INIRec.WriteFloat(sSecao, 'ValorTotalRecebido', Servico.ValorTotalRecebido);
       INIRec.WriteFloat(sSecao, 'ValorCargaTributaria', Servico.ValorCargaTributaria);
       INIRec.WriteFloat(sSecao, 'PercentualCargaTributaria', Servico.PercentualCargaTributaria);
@@ -985,6 +1024,10 @@ begin
       //Provedor Megasoft
       INIRec.WriteString(sSecao, 'InfAdicional', Servico.InfAdicional);
       INIRec.WriteString(sSecao, 'xFormaPagamento', Servico.xFormaPagamento);
+
+      //Provedor IssSalvador
+      INIRec.WriteString(sSecao, 'cClassTrib', Servico.cClassTrib);
+      INIRec.WriteString(sSecao, 'INDOP', Servico.INDOP);
 
       for I := 0 to Servico.Deducao.Count - 1 do
       begin
@@ -1353,6 +1396,13 @@ begin
           INIRec.WriteString(sSecao, 'Condicao', FpAOwner.CondicaoPagToStr(CondicaoPagamento.Parcelas.Items[I].Condicao));
 
         end;
+
+        // Reforma Tributária
+        if (NFSe.IBSCBS.dest.xNome <> '') or (NFSe.IBSCBS.imovel.cCIB <> '') or
+           (NFSe.IBSCBS.imovel.ender.CEP <> '') or
+           (NFSe.IBSCBS.imovel.ender.endExt.cEndPost <> '') or
+           (NFSe.IBSCBS.valores.trib.gIBSCBS.CST <> cstNenhum) then
+          GerarINIIBSCBS(INIRec, NFSe.IBSCBS);
       end;
     end;
   finally
@@ -1383,7 +1433,7 @@ begin
                                                             IBSCBS.cIndOp, ''));
 
   Result.AppendChild(AddNode(tcStr, '#1', 'tpOper', 1, 1, NrOcorrtpOper,
-                                            tpOperGovToStr(IBSCBS.tpOper), ''));
+                                        tpOperGovNFSeToStr(IBSCBS.tpOper), ''));
 
   if IBSCBS.gRefNFSe.Count > 0 then
     Result.AppendChild(GerarXMLgRefNFSe(IBSCBS.gRefNFSe));
@@ -1397,7 +1447,8 @@ begin
   if (IBSCBS.dest.xNome <> '') and GerarDest then
     Result.AppendChild(GerarXMLDestinatario(IBSCBS.dest));
 
-  if (IBSCBS.imovel.cCIB <> '') or (IBSCBS.imovel.ender.xLgr <> '') then
+  if ((IBSCBS.imovel.cCIB <> '') or (IBSCBS.imovel.ender.xLgr <> '')) and
+     GerarImovel then
     Result.AppendChild(GerarXMLImovel(IBSCBS.imovel));
 
   Result.AppendChild(GerarXMLIBSCBSValores(IBSCBS.valores));
@@ -1710,20 +1761,20 @@ function TNFSeWClass.GerarXMLgIBSCBS(
 begin
   Result := CreateElement('gIBSCBS');
 
-  Result.AppendChild(AddNode(tcStr, '#1', 'CST', 3, 3, 1,
+  Result.AppendChild(AddNode(tcStr, '#1', 'CST', 3, 3, NrOcorrCST,
                                               CSTIBSCBSToStr(gIBSCBS.CST), ''));
 
   Result.AppendChild(AddNode(tcStr, '#1', 'cClassTrib', 6, 6, 1,
                                                        gIBSCBS.cClassTrib, ''));
 
-  Result.AppendChild(AddNode(tcStr, '#1', 'cCredPres', 2, 2, 0,
+  Result.AppendChild(AddNode(tcStr, '#1', 'cCredPres', 2, 2, NrOcorrcCredPres,
                                         cCredPresToStr(gIBSCBS.cCredPres), ''));
 
-  if gIBSCBS.gTribRegular.CSTReg <> cstNenhum then
+  if (gIBSCBS.gTribRegular.CSTReg <> cstNenhum) and GerarTribRegular then
     Result.AppendChild(GerarXMLgTribRegular(gIBSCBS.gTribRegular));
 
-  if (gIBSCBS.gDif.pDifUF > 0) or (gIBSCBS.gDif.pDifMun > 0) or
-     (gIBSCBS.gDif.pDifCBS > 0) then
+  if ((gIBSCBS.gDif.pDifUF > 0) or (gIBSCBS.gDif.pDifMun > 0) or
+     (gIBSCBS.gDif.pDifCBS > 0)) and GerargDif then
     Result.AppendChild(GerarXMLgDif(gIBSCBS.gDif));
 end;
 
@@ -1732,7 +1783,7 @@ function TNFSeWClass.GerarXMLgTribRegular(
 begin
   Result := CreateElement('gTribRegular');
 
-  Result.AppendChild(AddNode(tcStr, '#1', 'CSTReg', 3, 3, 1,
+  Result.AppendChild(AddNode(tcStr, '#1', 'CSTReg', 3, 3, NrOcorrCSTReg,
                                       CSTIBSCBSToStr(gTribRegular.CSTReg), ''));
 
   Result.AppendChild(AddNode(tcStr, '#1', 'cClassTribReg', 6, 6, 1,
@@ -1761,7 +1812,7 @@ begin
   AINIRec.WriteString(LSecao, 'finNFSe', finNFSeToStr(IBSCBS.finNFSe));
   AINIRec.WriteString(LSecao, 'indFinal', indFinalToStr(IBSCBS.indFinal));
   AINIRec.WriteString(LSecao, 'cIndOp', IBSCBS.cIndOp);
-  AINIRec.WriteString(LSecao, 'tpOper', tpOperGovToStr(IBSCBS.tpOper));
+  AINIRec.WriteString(LSecao, 'tpOper', tpOperGovNFSeToStr(IBSCBS.tpOper));
   AINIRec.WriteString(LSecao, 'tpEnteGov', tpEnteGovToStr(IBSCBS.tpEnteGov));
   AINIRec.WriteString(LSecao, 'indDest', indDestToStr(IBSCBS.indDest));
 

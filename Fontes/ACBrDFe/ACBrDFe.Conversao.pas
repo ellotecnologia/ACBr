@@ -119,7 +119,8 @@ type
                   teDestItemConsPessoal, tePerecPerdaRouboFurtoTranspContratAqu,
                   teAceiteDebitoApuracaoNotaCredito, teImobilizacaoItem,
                   teSolicApropCredCombustivel, teSolicApropCredBensServicos,
-                  teManifPedTransfCredIBSSucessao, teManifPedTransfCredCBSSucessao);
+                  teManifPedTransfCredIBSSucessao, teManifPedTransfCredCBSSucessao,
+                  teAtualizacaoDataPrevisaoEntrega);
 
 const
   TACBrTipoEventoArrayStrings: array[TACBrTipoEvento] of string = ('-99999', '110110',
@@ -135,7 +136,8 @@ const
     '110131', '110150', '610130', '610131', '110117', '110118', '610111',
     '110190', '110191', '110192', '110193', '110750', '110751', '510630',
     '110001', '112110', '112120', '112130', '112140', '211110', '211120',
-    '211124', '211128', '211130', '211140', '211150', '212110', '212120');
+    '211124', '211128', '211130', '211140', '211150', '212110', '212120',
+    '112150');
 
   TACBrTipoEventoDescricaoArrayStrings: array[TACBrTipoEvento] of string = ('NaoMapeado',
     'CCe', 'Cancelamento', 'ManifDestConfirmacao', 'ManifDestCiencia',
@@ -168,7 +170,8 @@ const
     'PerecPerdaRouboFurtoTranspContratAqu',
     'AceiteDebitoApuracaoNotaCredito', 'ImobilizacaoItem',
     'SolicApropCredCombustivel', 'SolicApropCredBensServicos',
-    'ManifPedTransfCredIBSSucessao', 'ManifPedTransfCredCBSSucessao');
+    'ManifPedTransfCredIBSSucessao', 'ManifPedTransfCredCBSSucessao',
+    'AtualizacaoDataPrevisaoEntrega');
 
 type
   TStrToTpEvento = function (out ok: boolean; const s: string): TACBrTipoEvento;
@@ -252,10 +255,15 @@ type
     cst12, cst13, cst14, cst21, cst72, cst73, cst74); //80 e 81 apenas para CTe
 
 const
-  TCSTIcmsArrayStrings: array[TCSTIcms] of string = ('', '00', '10', '20', '30',
-    '40', '41', '45', '50', '51', '60', '70', '80', '81', '90', '90', 'SN', '10',
-    '90', '41', '60', '02', '15', '53', '61', '01', '12', '13', '14', '21', '72',
-    '73', '74');
+  TCSTIcmsArrayStringsEnt: array[TCSTIcms] of string = ('', '00', '10', '20', '30',
+    '40', '41', '45', '50', '51', '60', '70', '80', '81', '90', '91', 'SN',
+    '10part', '90part', '41rep', '60rep', '02', '15', '53', '61', '01', '12',
+    '13', '14', '21', '72', '73', '74');
+
+  TCSTIcmsArrayStringsSai: array[TCSTIcms] of string = ('', '00', '10', '20', '30',
+    '40', '41', '45', '50', '51', '60', '70', '80', '81', '90', '90', 'SN',
+    '10', '90', '41', '60', '02', '15', '53', '61', '01', '12', '13', '14', '21',
+    '72', '73', '74');
 
   TCSTIcmsDescricaoArrayStrings: array[TCSTIcms] of string = ('VAZIO',
     '00 - TRIBUTAÇÃO NORMAL DO ICMS',
@@ -294,7 +302,7 @@ const
 type
   // NFe e SAT
   TCSOSNIcms = (csosnVazio, csosn101, csosn102, csosn103, csosn201, csosn202,
-                csosn203, csosn300, csosn400, csosn500,csosn900);
+                csosn203, csosn300, csosn400, csosn500, csosn900);
 
 const
   TCSOSNIcmsArrayStrings: array[TCSOSNIcms] of string = ('','101', '102', '103',
@@ -580,6 +588,12 @@ const
   DFeUFCodigo: array[0..26] of Integer =
   (12,27,16,13,29,23,53,32,52,21,51,50,31,15,25,41,26,22,33,24,43,11,14,42,35,28,17);
 
+type
+  TIndAceitacao = (iaNaoAceite, iaAceite);
+
+const
+  TIndAceitacaoArrayStrings: array[TIndAceitacao] of string = ('0', '1');
+
 {
   Declaração das funções de conversão
 }
@@ -745,6 +759,10 @@ function StrToCSTIBSCBS(const s: string): TCSTIBSCBS;
 function cCredPresToStr(const t: TcCredPres): string;
 function TryStrTocCredPres(const s: string; out Value: TcCredPres): Boolean;
 function StrTocCredPres(const s: string): TcCredPres;
+
+function indAceitacaoToStr(const t: TIndAceitacao): string;
+function TryStrToIndAceitacao(const s: string; out Value: TIndAceitacao): Boolean;
+function StrToIndAceitacao(const s: string): TIndAceitacao;
 
 var
   StrToTpEventoDFeList: array of TStrToTpEventoDFe;
@@ -1144,7 +1162,7 @@ end;
 
 function CSTICMSToStr(const t: TCSTIcms): string;
 begin
-  Result := TCSTIcmsArrayStrings[t];
+  Result := TCSTIcmsArrayStringsSai[t];
 end;
 
 function TryStrToCSTICMS(const s: string; out Value: TCSTIcms): Boolean;
@@ -1152,9 +1170,9 @@ var
   idx: TCSTIcms;
 begin
   Result := False;
-  for idx := Low(TCSTIcmsArrayStrings) to High(TCSTIcmsArrayStrings) do
+  for idx := Low(TCSTIcmsArrayStringsEnt) to High(TCSTIcmsArrayStringsEnt) do
   begin
-    if TCSTIcmsArrayStrings[idx] = s then
+    if TCSTIcmsArrayStringsEnt[idx] = s then
     begin
       Value := idx;
       Result := True;
@@ -1830,6 +1848,33 @@ function StrTocCredPres(const s: string): TcCredPres;
 begin
   if not TryStrTocCredPres(s, Result) then
     raise EACBrException.CreateFmt('Valor string inválido para TcCredPres: %s', [s]);
+end;
+
+function indAceitacaoToStr(const t: TIndAceitacao): string;
+begin
+  Result := TIndAceitacaoArrayStrings[t];
+end;
+
+function TryStrToIndAceitacao(const s: string; out Value: TIndAceitacao): Boolean;
+var
+  idx: TIndAceitacao;
+begin
+  Result := False;
+  for idx := Low(TIndAceitacaoArrayStrings) to High(TIndAceitacaoArrayStrings) do
+  begin
+    if TIndAceitacaoArrayStrings[idx] = s then
+    begin
+      Value := idx;
+      Result := True;
+      Exit;
+    end;
+  end;
+end;
+
+function StrToIndAceitacao(const s: string): TIndAceitacao;
+begin
+  if not TryStrToIndAceitacao(s, Result) then
+    raise EACBrException.CreateFmt('Valor string inválido para TIndAceitacao: %s', [s]);
 end;
 
 end.

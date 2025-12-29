@@ -1169,6 +1169,8 @@ begin
 
           if AuxNode <> nil then
           begin
+            Response.Status := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('Status'), tcInt);
+
             AuxNode := AuxNode.Childrens.FindAnyNs('IdentificacaoRps');
             if not Assigned(AuxNode) then Exit;
 
@@ -2374,14 +2376,14 @@ begin
         Ret.Situacao := 'Cancelado';
 
         Inicio := Pos('CancelarNfseEnvio', Response.ArquivoEnvio) + 16;
-        Fim := Pos('>', Response.ArquivoEnvio) - 1;
+        Fim := Pos('>', Response.ArquivoEnvio);
 
         if Inicio = Fim then
           xXMLNS := ''
         else
-          xXMLNS := ' ' + Copy(Response.ArquivoEnvio, Inicio + 1, Fim - (Inicio + 1));
+          xXMLNS := trim(Copy(Response.ArquivoEnvio, Inicio + 1, Fim - (Inicio + 1)));
 
-        xCancelamento := '<Cancelamento' + xXMLNS + '>' +
+        xCancelamento := '<Cancelamento ' + xXMLNS + '>' +
                             SeparaDados(Response.ArquivoEnvio, 'Pedido', True) +
                             SepararDados(Response.ArquivoRetorno, 'DataHora', True) +
                          '</Cancelamento>';

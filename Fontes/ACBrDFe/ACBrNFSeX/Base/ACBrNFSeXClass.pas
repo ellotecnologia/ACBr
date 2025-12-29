@@ -387,6 +387,10 @@ type
     FRetencoesFederais: Double;
     FValorTotalNotaFiscal: Double;
     FtotalAproxTrib: Double;
+    FValorMulta: Double;
+    FValorJuros: Double;
+    FValorIPI: Double;
+    FUnidadeServico: string;
 
     procedure SetDocDeducao(const Value: TDocDeducaoCollection);
   public
@@ -461,6 +465,12 @@ type
     property ValorTotalNotaFiscal: Double read FValorTotalNotaFiscal write FValorTotalNotaFiscal;
     //Provedor Infisc
     property totalAproxTrib: Double read FtotalAproxTrib write FtotalAproxTrib;
+    //Provedor ISSSaoPaulo
+    property ValorMulta: Double read FValorMulta write FValorMulta;
+    property ValorJuros: Double read FValorJuros write FValorJuros;
+    property ValorIPI: Double read FValorIPI write FValorIPI;
+    // Provedor Publica
+    property UnidadeServico: string read FUnidadeServico write FUnidadeServico;
   end;
 
   TDadosDeducao = class(TObject)
@@ -849,6 +859,13 @@ type
     FEndereco: TEndereco;
     FInfAdicional: string;
     FxFormaPagamento: string;
+    FCodigoNCM: string;
+    FcClassTrib: string;
+    FINDOP: string;
+    FCodigoServicoNacional: string;
+    FCodigoMunicipioLocalPrestacao: Integer;
+    FxPed: String;
+    FnItemPed: String;
 
     procedure SetItemServico(Value: TItemServicoCollection);
     procedure SetDeducao(const Value: TDeducaoCollection);
@@ -882,12 +899,12 @@ type
     property Tributacao: TTributacao read FTributacao write FTributacao;
     // Provedor Governa
     property UFPrestacao: string read FUFPrestacao write FUFPrestacao;
-    // Provedor SP
+    // Provedor ISSSaoPaulo
     property ValorCargaTributaria: Double read FValorCargaTributaria write FValorCargaTributaria;
     property PercentualCargaTributaria: Double read FPercentualCargaTributaria write FPercentualCargaTributaria;
     property FonteCargaTributaria: string read FFonteCargaTributaria write FFonteCargaTributaria;
     property ValorTotalRecebido: Double read FValorTotalRecebido write FValorTotalRecebido;
-
+    property CodigoNCM: string read FCodigoNCM write FCodigoNCM;
     // Provedor ISSBarueri
     property PrestadoEmViasPublicas: Boolean read FPrestadoEmViasPublicas write FPrestadoEmViasPublicas;
     property LocalPrestacao: TLocalPrestacao read FLocalPrestacao write FLocalPrestacao;
@@ -910,6 +927,16 @@ type
     // Provedor Megasoft
     property InfAdicional: string read FInfAdicional write FInfAdicional;
     property xFormaPagamento: string read FxFormaPagamento write FxFormaPagamento;
+    // Provedor ISSSalvador
+    property cClassTrib: string read FcClassTrib write FcClassTrib;
+    property INDOP: string read FINDOP write FINDOP;
+
+    property CodigoServicoNacional: string read FCodigoServicoNacional write FCodigoServicoNacional;
+    // Provedor Publica
+    property CodigoMunicipioLocalPrestacao: Integer read FCodigoMunicipioLocalPrestacao write FCodigoMunicipioLocalPrestacao;
+    // Provedor Tecnos
+    property xPed: String read FxPed write FxPed;
+    property nItemPed: String read FnItemPed write FnItemPed;
   end;
 
   TDadosPessoa = class(TObject)
@@ -980,6 +1007,7 @@ type
 
     FAtualizaTomador: TnfseSimNao;
     FTomadorExterior: TnfseSimNao;
+    FTomadorSubstitutoTributario: TnfseSimNao;
   public
     constructor Create;
     destructor Destroy; override;
@@ -991,6 +1019,7 @@ type
     property Contato: TContato read FContato write FContato;
     property AtualizaTomador: TnfseSimNao read FAtualizaTomador write FAtualizaTomador;
     property TomadorExterior: TnfseSimNao read FTomadorExterior write FTomadorExterior;
+    property TomadorSubstitutoTributario: TnfseSimNao read FTomadorSubstitutoTributario write FTomadorSubstitutoTributario;
   end;
 
   TDadosIntermediario = class(TObject)
@@ -1035,6 +1064,10 @@ type
     FnMatri: string;
     FnNumeroEncapsulamento: string;
     FinscImobFisc: String;
+    FTipo: Integer;
+    FReformaCivil: TnfseSimNao;
+    FLocalConstrucao: string;
+    FCib: Integer;
   public
     constructor Create;
     destructor Destroy; override;
@@ -1049,6 +1082,12 @@ type
     property nNumeroEncapsulamento: string read FnNumeroEncapsulamento write FnNumeroEncapsulamento;
     // Provedor PadraoNacional
     property inscImobFisc: String read FinscImobFisc write FinscImobFisc;
+    // Provedor Publica
+    property Tipo: Integer read FTipo write FTipo;
+    //Provedor Tecnos
+    property ReformaCivil: TnfseSimNao read FReformaCivil write FReformaCivil;
+    property LocalConstrucao: string read FLocalConstrucao write FLocalConstrucao;
+    property Cib: Integer read FCib write FCib;
   end;
 
   TParcelasCollectionItem = class(TObject)
@@ -1610,6 +1649,8 @@ type
     Fnro: string;
     FxCpl: string;
     FxBairro: string;
+    FUF: string;
+    FDescricaoMunicipio: string;
   public
     constructor Create;
     destructor Destroy; override;
@@ -1620,6 +1661,9 @@ type
     property nro: string read Fnro write Fnro;
     property xCpl: string read FxCpl write FxCpl;
     property xBairro: string read FxBairro write FxBairro;
+    // Usado pelo provedor Pulica
+    property UF: string read FUF write FUF;
+    property DescricaoMunicipio: string read FDescricaoMunicipio write FDescricaoMunicipio;
   end;
 
   { TDadosdaPessoa }
@@ -1633,6 +1677,10 @@ type
     Fender: Tender;
     Ffone: string;
     Femail: string;
+    FIE: string;
+    FIM: string;
+    FxPais: string;
+    FTipoServico: string;
   public
     constructor Create;
     destructor Destroy; override;
@@ -1644,6 +1692,12 @@ type
     property ender: Tender read Fender write Fender;
     property fone: string read Ffone write Ffone;
     property email: string read Femail write Femail;
+    // Incluido para atender o provedor SigISSWeb
+    property IE: string read FIE write FIE;
+    property IM: string read FIM write FIM;
+    property xPais: string read FxPais write FxPais;
+    // Incluido para atender o provedor Publica
+    property TipoServico: string read FTipoServico write FTipoServico;
   end;
 
   { TgCompraGov }
@@ -1818,12 +1872,25 @@ type
   private
     FgReeRepRes: TgReeRepRes;
     Ftrib: Ttrib;
+    FValorIbsMunicipal: Double;
+    FCbs: Double;
+    FIbsEstadual: Double;
+    FValorCbs: Double;
+    FValorIbsEstadual: Double;
+    FIbsMunicipal: Double;
   public
     constructor Create;
     destructor Destroy; override;
 
     property gReeRepRes: TgReeRepRes read FgReeRepRes write FgReeRepRes;
     property trib: Ttrib read Ftrib write Ftrib;
+    // Incluido para atender o provedor Tecnos
+    property IbsMunicipal: Double read FIbsMunicipal write FIbsMunicipal;
+    property ValorIbsMunicipal: Double read FValorIbsMunicipal write FValorIbsMunicipal;
+    property IbsEstadual: Double read FIbsEstadual write FIbsEstadual;
+    property ValorIbsEstadual: Double read FValorIbsEstadual write FValorIbsEstadual;
+    property Cbs: Double read FCbs write FCbs;
+    property ValorCbs: Double read FValorCbs write FValorCbs;
   end;
 
   { TenderImovel }
@@ -1836,6 +1903,9 @@ type
     Fnro: string;
     FxCpl: string;
     FxBairro: string;
+    FUF: string;
+    FDescricaoMunicipio: string;
+    FCodigoMunicipio: Integer;
   public
     constructor Create;
     destructor Destroy; override;
@@ -1846,6 +1916,10 @@ type
     property nro: string read Fnro write Fnro;
     property xCpl: string read FxCpl write FxCpl;
     property xBairro: string read FxBairro write FxBairro;
+    // Usado pelo provedor Pulica
+    property UF: string read FUF write FUF;
+    property DescricaoMunicipio: string read FDescricaoMunicipio write FDescricaoMunicipio;
+    property CodigoMunicipio: Integer read FCodigoMunicipio write FCodigoMunicipio;
   end;
 
   { TDadosimovel }
@@ -1892,13 +1966,17 @@ type
     FfinNFSe: TfinNFSe;
     FindFinal: TindFinal;
     FcIndOp: string;
-    FtpOper: TtpOperGov;
+    FtpOper: TtpOperGovNFSe;
     FgRefNFSe: TgRefNFSeCollection;
     FtpEnteGov: TtpEnteGov;
     FindDest: TindDest;
     Fdest: TDadosdaPessoa;
     Fimovel: TDadosimovel;
     Fvalores: Tvalorestrib;
+    FOperExterior: TIndicador;
+    FOperUF: string;
+    FOperxCidade: string;
+    FConsumoPessoal: TIndicador;
 
     procedure SetgRefNFSe(const Value: TgRefNFSeCollection);
   public
@@ -1908,13 +1986,18 @@ type
     property finNFSe: TfinNFSe read FfinNFSe write FfinNFSe;
     property indFinal: TindFinal read FindFinal write FindFinal;
     property cIndOp: string read FcIndOp write FcIndOp;
-    property tpOper: TtpOperGov read FtpOper write FtpOper;
+    property tpOper: TtpOperGovNFSe read FtpOper write FtpOper;
     property gRefNFSe: TgRefNFSeCollection read FgRefNFSe write SetgRefNFSe;
     property tpEnteGov: TtpEnteGov read FtpEnteGov write FtpEnteGov;
     property indDest: TindDest read FindDest write FindDest;
     property dest: TDadosdaPessoa read Fdest write Fdest;
     property imovel: TDadosimovel read Fimovel write Fimovel;
     property valores: Tvalorestrib read Fvalores write Fvalores;
+    // Incluido para atender o provedor SigISSWeb
+    property OperExterior: TIndicador read FOperExterior write FOperExterior;
+    property OperUF: string read FOperUF write FOperUF;
+    property OperxCidade: string read FOperxCidade write FOperxCidade;
+    property ConsumoPessoal: TIndicador read FConsumoPessoal write FConsumoPessoal;
   end;
 
   TNFSe = class(TPersistent)
@@ -1996,6 +2079,7 @@ type
     FTransacao: TnfseSimNao;
     FInformacoesComplementares: string;
 
+    FDataFatoGerador: TDateTime;
     FPercentualCargaTributaria: Double;
     FValorCargaTributaria: Double;
     FPercentualCargaTributariaMunicipal: Double;
@@ -2018,6 +2102,7 @@ type
     FRegimeApuracaoSN: TRegimeApuracaoSN;
     Fsubst: TSubstituicao;
     FcMotivoEmisTI: TcMotivoEmisTI;
+    FcLocEmi: string;
     // Reforma Tributaria
     FIBSCBS: TIBSCBSDPS;
 
@@ -2026,6 +2111,7 @@ type
     FEqptoRecibo: string;
     FVencimento: TDateTime;
     FtpXML: TtpXML;
+    FEmitente: TDadosPrestador;
 
     procedure Setemail(const Value: TemailCollection);
     procedure SetInformacoesComplementares(const Value: string);
@@ -2121,6 +2207,7 @@ type
     property RegRec: TRegRec read FRegRec write FRegRec;
     property FrmRec: TFrmRec read FFrmRec write FFrmRec;
     // Provedor Techos
+    property DataFatoGerador: TDateTime read FDataFatoGerador write FDataFatoGerador;
     property PercentualCargaTributaria: Double read FPercentualCargaTributaria write FPercentualCargaTributaria;
     property ValorCargaTributaria: Double read FValorCargaTributaria write FValorCargaTributaria;
     property PercentualCargaTributariaMunicipal: Double read FPercentualCargaTributariaMunicipal write FPercentualCargaTributariaMunicipal;
@@ -2146,6 +2233,7 @@ type
     property RegimeApuracaoSN: TRegimeApuracaoSN read FRegimeApuracaoSN write FRegimeApuracaoSN;
     property subst: TSubstituicao read Fsubst write Fsubst;
     property cMotivoEmisTI: TcMotivoEmisTI read FcMotivoEmisTI write FcMotivoEmisTI;
+    property cLocEmi: string read FcLocEmi write FcLocEmi;
     // Reforma Tributaria
     property IBSCBS: TIBSCBSDPS read FIBSCBS write FIBSCBS;
 
@@ -2158,6 +2246,8 @@ type
     // Utilizado para detectar se os dados que se encontram nas classes foram
     // lidos de um XML RPS ou NFS-e
     property tpXML: TtpXML read FtpXML write FtpXML;
+    // Provedor Citta e SilTecnologia
+    property Emitente: TDadosPrestador read FEmitente write FEmitente;
   end;
 
   TSubstituicaoNfse = class(TObject)
@@ -2387,6 +2477,7 @@ begin
   FIBSCBS := TIBSCBSDPS.Create;
 
   FinfNFSe := TinfNFSe.Create;
+  FEmitente := TDadosPrestador.Create;
 
   Clear;
 end;
@@ -2417,6 +2508,7 @@ begin
   FIBSCBS.Free;
 
   FinfNFSe.Free;
+  FEmitente.Free;
 
   inherited Destroy;
 end;

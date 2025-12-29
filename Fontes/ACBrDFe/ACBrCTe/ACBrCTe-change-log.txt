@@ -44,6 +44,38 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+10/12/2025
+-- ACBrCTeWebServices --
+[-] Ajuste visando sanar AV ao ler arquivo de retorno de DistribuiçãoDFe.
+  Por: Diego Folieni
+-- ACBrCTeDACTeRLRetrato --
+[-] ACBR-8440 / ACBR-8546 - Corrigida exibição da mensagem de DACTE em homologação ou cancelado.
+  Por: Renato Rubinho
+
+09/12/2025
+-- ACBrCTeWebServices --
+[*] Ajuste para retornar a data/hora de recebimento do envio do CT-e.
+  Por: Italo Giurizzato Junior
+
+10/11/2025
+-- ACBrCTe.IniWriter/ACBrCTe.XmlWriter --
+[-] Correção para emitir CTe Simplificado com os novos campos do IBS CBS.
+  Por: Italo Giurizzato Junior
+
+03/11/2025
+-- ACBrCTe.XmlWriter --
+[-] ACBR-8326 - Ajuste visando a correta geração da tag CNPJ quando se tratar de Estrangeiro.
+  Por: Evandro Santos
+
+31/10/2025
+-- ACBrCTe.IniWriter --
+[-] ACBR-7997 - Ajuste visando correta geração das seções infNFe para índice com mais de 3 casas.
+  Por: Diego Folieni
+
+29/10/2025
+-- ACBrCTe.IniReader, ACBrCTe.IniWriter --
+[-] ACBR-7997 - Ajuste visando corrigir problema na leitura de seção InfNFe com mais de 999 ocorrências
+  Por: Diego Folieni
 
 24/10/2025
 -- ACBrCTe.XMLReader --

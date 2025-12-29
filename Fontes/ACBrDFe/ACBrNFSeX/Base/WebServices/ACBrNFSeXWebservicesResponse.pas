@@ -93,6 +93,7 @@ type
     FnSeqEvento: Integer;
     FidEvento: string;
     FtpEvento: TtpEvento;
+    FXmlRetorno: string;
   public
     property NumeroNota: string read FNumeroNota write FNumeroNota;
     property CodigoVerificacao: string read FCodigoVerificacao write FCodigoVerificacao;
@@ -114,6 +115,7 @@ type
     property nSeqEvento: Integer read FnSeqEvento write FnSeqEvento;
     property idEvento: string read FidEvento write FidEvento;
     property tpEvento: TtpEvento read FtpEvento write FtpEvento;
+    property XmlRetorno: string read FXmlRetorno write FXmlRetorno;
   end;
 
   TNFSeResumoCollection = class(TACBrObjectList)
@@ -220,6 +222,7 @@ type
     FidNota: string;
     FidRps: string;
     FLink: string;
+    FStatus: Integer;
     FProtocolo: string;
     FNumeroRps: string;
     FSerieRps: string;
@@ -262,6 +265,7 @@ type
     property idNota: string read FidNota write FidNota;
     property idRps: string read FidRps write FidRps;
     property Link: string read FLink write FLink;
+    property Status: Integer read FStatus write FStatus;
     property Protocolo: string read FProtocolo write FProtocolo;
     property NumeroRps: string read FNumeroRps write FNumeroRps;
     property SerieRps: string read FSerieRps write FSerieRps;

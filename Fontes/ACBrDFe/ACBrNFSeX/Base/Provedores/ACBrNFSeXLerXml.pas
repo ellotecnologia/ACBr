@@ -749,6 +749,10 @@ begin
       if sData <> '' then
         dhRecebimento := StringToDateTimeDef(sData, 0);
 
+      sData := AINIRec.ReadString(sSecao, 'DataFatoGerador', '');
+      if sData <> '' then
+        DataFatoGerador := StringToDateTimeDef(sData, 0);
+
       NaturezaOperacao := StrToNaturezaOperacao(Ok, AINIRec.ReadString(sSecao, 'NaturezaOperacao', '0'));
 
       // Provedor Tecnos
@@ -1036,6 +1040,10 @@ begin
 
       // Provedor SigISSWeb
       Servico.xFormaPagamento := AINIRec.ReadString(sSecao, 'xFormaPagamento', '');
+
+      // Provedor ISSSalvador
+      Servico.cClassTrib := AINIRec.ReadString(sSecao, 'cClassTrib', '');
+      Servico.INDOP := AINIRec.ReadString(sSecao, 'INDOP', '');
     end;
 
     i := 1;
@@ -1076,6 +1084,7 @@ begin
         Aliquota := StringToFloatDef(AINIRec.ReadString(sSecao, 'Aliquota', ''), 0);
         Valor := StringToFloatDef(sFim, 0);
       end;
+
       Inc(i);
     end;
 
@@ -1346,6 +1355,8 @@ begin
 
       Inc(i);
     end;
+
+    LerINIIBSCBS(AINIRec, IBSCBS);
   end;
 end;
 
@@ -1362,7 +1373,7 @@ begin
   IBSCBS.finNFSe := StrTofinNFSe(ObterConteudo(ANode.Childrens.FindAnyNs('finNFSe'), tcStr));
   IBSCBS.indFinal := StrToindFinal(ObterConteudo(ANode.Childrens.FindAnyNs('indFinal'), tcStr));
   IBSCBS.cIndOp := ObterConteudo(ANode.Childrens.FindAnyNs('cIndOp'), tcStr);
-  IBSCBS.tpOper := StrTotpOperGov(ObterConteudo(ANode.Childrens.FindAnyNs('tpOper'), tcStr));
+  IBSCBS.tpOper := StrTotpOperGovNFSe(ObterConteudo(ANode.Childrens.FindAnyNs('tpOper'), tcStr));
 
   ANodeAux := ANode.Childrens.Find('gRefNFSe');
 
@@ -1766,9 +1777,15 @@ begin
     IBSCBS.finNFSe := StrTofinNFSe(AINIRec.ReadString(sSecao, 'finNFSe', ''));
     IBSCBS.indFinal := StrToindFinal(AINIRec.ReadString(sSecao, 'indFinal', ''));
     IBSCBS.cIndOp := AINIRec.ReadString(sSecao, 'cIndOp', '');
-    IBSCBS.tpOper := StrTotpOperGov(AINIRec.ReadString(sSecao, 'tpOper', ''));
+    IBSCBS.tpOper := StrTotpOperGovNFSe(AINIRec.ReadString(sSecao, 'tpOper', ''));
     IBSCBS.tpEnteGov := StrTotpEnteGov(AINIRec.ReadString(sSecao, 'tpEnteGov', ''));
     IBSCBS.indDest := StrToindDest(AINIRec.ReadString(sSecao, 'indDest', ''));
+
+    // Incluido para atender o provedor SigISSWeb
+    IBSCBS.OperExterior := StrToTIndicador(AINIRec.ReadString(sSecao, 'OperExterior', '0'));
+    IBSCBS.OperUF := AINIRec.ReadString(sSecao, 'OperUF', '');
+    IBSCBS.OperxCidade := AINIRec.ReadString(sSecao, 'OperxCidade', '');
+    IBSCBS.ConsumoPessoal := StrToTIndicador(AINIRec.ReadString(sSecao, 'ConsumoPessoal', '0'));
 
     LerINIgRefNFSe(AINIRec, IBSCBS.gRefNFSe);
     LerINIDestinatario(AINIRec, IBSCBS.dest);
@@ -1792,6 +1809,8 @@ begin
       break;
 
     gRefNFSe.New.refNFSe := sFim;
+
+    inc(i);
   end;
 end;
 
@@ -1807,6 +1826,14 @@ begin
     Dest.Nif := AINIRec.ReadString(sSecao, 'NIF', '');
     Dest.cNaoNIF := StrToNaoNIF(Ok, AINIRec.ReadString(sSecao, 'cNaoNIF', '0'));
     Dest.xNome := AINIRec.ReadString(sSecao, 'xNome', '');
+
+    // Incluido para atender o provedor SigISSWeb
+    Dest.IE := AINIRec.ReadString(sSecao, 'IE', '');
+    Dest.IM := AINIRec.ReadString(sSecao, 'IM', '');
+    Dest.xPais := AINIRec.ReadString(sSecao, 'xPais', '');
+
+    // Incluido para atender o provedor Publica
+    Dest.TipoServico := AINIRec.ReadString(sSecao, 'TipoServico', '');
 
     Dest.ender.endNac.CEP := AINIRec.ReadString(sSecao, 'CEP', '');
     Dest.ender.endNac.cMun := AINIRec.ReadInteger(sSecao, 'cMun', 0);
@@ -1897,6 +1924,8 @@ begin
       xTpReeRepRes := AINIRec.ReadString(sSecao, 'xTpReeRepRes', '');
       vlrReeRepRes := StringToFloatDef(AINIRec.ReadString(sSecao, 'vlrReeRepRes', ''), 0);
     end;
+
+    inc(i);
   end;
 end;
 

@@ -2,7 +2,7 @@
 { Projeto: Componentes ACBr                                                    }
 {  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
-{ Direitos Autorais Reservados (c) 2023 Daniel Simoes de Almeida               }
+{ Direitos Autorais Reservados (c) 2025 Daniel Simoes de Almeida               }
 
 
 {  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
@@ -26,11 +26,6 @@
 
 { Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
 {       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
-{******************************************************************************}
-
-{  Algumas funçoes dessa Unit foram extraidas de outras Bibliotecas, veja no   }
-{ cabeçalho das Funçoes no código abaixo a origem das informaçoes, e autores...}
-
 {******************************************************************************}
 
 {$I ACBr.inc}
@@ -90,7 +85,7 @@ begin
   //Este processo varre os plugins de exportação deixando apenas 1 (o ultimo) TfrxPDFExport por rtti
   //Inserir na chamada do metodo Imprimir do Relatório
   //proposto por Marcos R Weimer / compatibilizado por BigWings
-  LCount := 0;
+  (*LCount := 0;
 
   for i := Pred(frxExportFilters.Count) downto 0 do
   begin
@@ -101,14 +96,19 @@ begin
       else
         Inc(LCount);
     end;
-  end;
+  end;*)
 end;
 
 procedure SetDefaultPrinter(var frxReport : TfrxReport);
 begin
-  frxReport.PrintOptions.Clear;
-  Printer.PrinterIndex := -1;
-  frxReport.PrintOptions.Printer := Printer.Printers.Strings[Printer.PrinterIndex];
+  try
+    frxReport.PrintOptions.Clear;
+    Printer.PrinterIndex := -1;
+    if Printer.PrinterIndex >= 0 then
+      frxReport.PrintOptions.Printer := Printer.Printers.Strings[Printer.PrinterIndex];
+  except
+    //caso ocorrer erro ao setar a impressora padrão, silenciar a exception
+  end;
 end;
 
 initialization

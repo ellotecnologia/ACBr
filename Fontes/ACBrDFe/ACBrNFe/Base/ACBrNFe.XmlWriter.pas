@@ -78,6 +78,7 @@ type
     FpUsar_tcDe4: Boolean;
     FormatoValor4ou2: TACBrTipoCampo;
     FormatoValor10ou4: TACBrTipoCampo;
+    FormatoAliq4ou2: TACBrTipoCampo;
     FpChaveNFe: string;
 
     FIdCSRT: integer;
@@ -975,10 +976,15 @@ begin
   Result := nil;
   if trim(NFe.Retirada.xLgr) <> '' then
   begin
-    AjustarMunicipioUF(xUF, xMun, cMun, NFe.Emit.EnderEmit.cPais,
+    AjustarMunicipioUF(xUF, xMun, cMun, NFe.Retirada.cPais,
       NFe.Retirada.UF, NFe.Retirada.xMun, NFe.Retirada.cMun);
+
     Result := FDocument.CreateElement('retirada');
-    Result.AppendChild(AddNodeCNPJCPF('F02', 'F02a', NFe.Retirada.CNPJCPF, True, False));
+
+    if NFe.Retirada.CNPJCPF <> '' then
+      Result.AppendChild(AddNodeCNPJCPF('F02', 'F02a',
+                                            NFe.Retirada.CNPJCPF, True, False));
+
     Result.AppendChild(AddNode(tcStr, 'F02b', 'xNome', 02, 60, 0,
       NFe.Retirada.xNome, DSC_XNOME));
     Result.AppendChild(AddNode(tcStr, 'F03', 'xLgr', 02, 60, 1,
@@ -1023,10 +1029,15 @@ begin
   Result := nil;
   if trim(NFe.Entrega.xLgr) <> '' then
   begin
-    AjustarMunicipioUF(xUF, xMun, cMun, NFe.Emit.EnderEmit.cPais,
+    AjustarMunicipioUF(xUF, xMun, cMun, NFe.Entrega.cPais,
       NFe.Entrega.UF, NFe.Entrega.xMun, NFe.Entrega.cMun);
+
     Result := FDocument.CreateElement('entrega');
-    Result.AppendChild(AddNodeCNPJCPF('G02', 'G02a', NFe.Entrega.CNPJCPF, True, False));
+
+    if NFe.Entrega.CNPJCPF <> '' then
+      Result.AppendChild(AddNodeCNPJCPF('G02', 'G02a',
+                                             NFe.Entrega.CNPJCPF, True, False));
+
     Result.AppendChild(AddNode(tcStr, 'G02b', 'xNome', 02, 60, 0,
       NFe.Entrega.xNome, DSC_XNOME));
     Result.AppendChild(AddNode(tcStr, 'G03', 'xLgr', 02, 60, 1,
@@ -1356,9 +1367,9 @@ begin
     Result[j].AppendChild(AddNode(tcStr, 'I19', 'nDI', 01, 15, 1,
       NFe.Det[i].Prod.DI[j].nDI, DSC_NDI));
 
-    if not ValidaDIRE(NFe.Det[i].Prod.DI[j].nDI) and not
-      ValidaDIDSI(NFe.Det[i].Prod.DI[j].nDI) then
-      wAlerta('I19', 'nDI', DSC_NDI, ERR_MSG_INVALIDO);
+    // RV I19-10 consta como implementação futura
+    // if not ValidaDIRE(NFe.Det[i].Prod.DI[j].nDI) and not ValidaDIDSI(NFe.Det[i].Prod.DI[j].nDI) then
+    //   wAlerta('I19', 'nDI', DSC_NDI, ERR_MSG_INVALIDO);
 
     Result[j].AppendChild(AddNode(tcDat, 'I20', 'dDI', 10,
       10, 1, NFe.Det[i].Prod.DI[j].dDI, DSC_DDi));
@@ -1870,7 +1881,7 @@ begin
   Result.AppendChild(AddNode(tcDe2, 'M02', 'vTotTrib', 01, 15, 0,
     NFe.Det[i].Imposto.vTotTrib, DSC_VTOTTRIB));
 
-  if not (nfe.Ide.finNFe in [fnCredito, fnDebito]) then
+  if (not (nfe.Ide.finNFe in [fnCredito, fnDebito])) or (nfe.ide.tpNFCredito = tcRetorno) then
   begin
 
     if ((NFe.Det[i].Imposto.ISSQN.cSitTrib <> ISSQNcSitTribVazio) or
@@ -1896,9 +1907,16 @@ begin
   end;
 
   // Reforma Tributária
-  if NFe.Det[i].Imposto.ISel.CSTIS <> cstisNenhum then
-    Result.AppendChild(Gerar_ISel(NFe.Det[i].Imposto.ISel));
+  {
+    As linhas abaixo vão ficar comentados até que for publicado uma nova NT
+    que trata sobre o Imposto Seletivo que a principio só vai passar a ser
+    aceito a partir de 2027 e somente para produtos nocivos ao meio
+    ambiente e a saúde.
 
+  if (NFe.Det[i].Imposto.ISel.CSTIS <> cstisNenhum) and
+     (NFe.Det[i].Imposto.ISel.vBCIS > 0) then
+    Result.AppendChild(Gerar_ISel(NFe.Det[i].Imposto.ISel));
+  }
   Result.AppendChild(Gerar_IBSCBS(NFe.Det[i].Imposto.IBSCBS));
 end;
 
@@ -2020,8 +2038,15 @@ begin
             01, 5, 0, NFe.Det[i].Imposto.ICMS.adRemICMS, DSC_ADREMICMS));
           xmlNode.AppendChild(AddNode(tcDe2, 'N15', 'vICMSMonoOp',
             01, 15, 0, NFe.Det[i].Imposto.ICMS.vICMSMonoOp, DSC_VICMSMONOOP));
-          xmlNode.AppendChild(AddNode(tcDe4, 'N15', 'pDif',
-            01, 5, 0, NFe.Det[i].Imposto.ICMS.pDif, DSC_PDIF));
+
+          if NFe.Det[i].Imposto.ICMS.pDif = 100 then
+            FormatoAliq4ou2 := tcDe2
+          else
+            FormatoAliq4ou2 := tcDe4;
+
+          xmlNode.AppendChild(AddNode(FormatoAliq4ou2, 'N15', 'pDif', 1, 5, 0,
+                                       NFe.Det[i].Imposto.ICMS.pDif, DSC_PDIF));
+
           xmlNode.AppendChild(AddNode(tcDe2, 'N43', 'vICMSMonoDif',
             01, 15, 0, NFe.Det[i].Imposto.ICMS.vICMSMonoDif, DSC_VICMSMONODIF));
           xmlNode.AppendChild(AddNode(tcDe2, 'N39', 'vICMSMono',
@@ -3436,7 +3461,14 @@ begin
   Result.AppendChild(GerarTotalretTrib);
 
   // Reforma Tributária
+  {
+    A linha abaixo vai ficar comentado até que for publicado uma nova NT
+    que trata sobre o Imposto Seletivo que a principio só vai passar a ser
+    aceito a partir de 2027 e somente para produtos nocivos ao meio
+    ambiente e a saúde.
+
   Result.AppendChild(Gerar_ISTot(NFe.Total.ISTot));
+  }
   Result.AppendChild(Gerar_IBSCBSTot(NFe.Total.IBSCBSTot));
 
   Result.AppendChild(AddNode(tcDe2, 'W60', 'vNFTot', 1, 15, 0,
@@ -4193,8 +4225,9 @@ begin
     Result.AppendChild(AddNode(tcStr, 'UB13', 'cClassTrib', 6, 6, 1,
                                             IBSCBS.cClassTrib, DSC_CCLASSTRIB));
 
-    Result.AppendChild(AddNode(tcStr, '#3', 'indDoacao', 1, 1, 0,
-              pcnConversao.TIndicadorExToStr(IBSCBS.indDoacao), DSC_INDDOACAO));
+    if IBSCBS.indDoacao = tieSim then
+      Result.AppendChild(AddNode(tcStr, '#3', 'indDoacao', 1, 1, 0,
+                                                           '1', DSC_INDDOACAO));
 
     case IBSCBS.CST of
       cst000, cst200, cst220, cst510:
@@ -4211,10 +4244,6 @@ begin
         if (NFe.Ide.modelo = 55) then
           Result.AppendChild(Gerar_IBSCBS_gTransfCred(IBSCBS.gTransfCred));
 
-//      cst810:
-//        if (NFe.Ide.modelo = 55) and (IBSCBS.gCredPresIBSZFM.tpCredPresIBSZFM <> tcpNenhum) then
-//          Result.AppendChild(Gerar_IBSCBS_gCredPresIBSZFM(IBSCBS.gCredPresIBSZFM));
-
       cst811:
         if (NFe.Ide.modelo = 55) then
           Result.AppendChild(Gerar_IBSCBS_gAjusteCompet(IBSCBS.gAjusteCompet));
@@ -4228,7 +4257,8 @@ begin
 //  cst410 = Imunidade e não incidência usado em praticante todos DF-e mas não se calcula IBS/CBS
 //  cst820 = Tributação em declaração de regime especifico usado na NFSe
 
-    if (IBSCBS.gEstornoCred.vIBSEstCred > 0) or (IBSCBS.gEstornoCred.vCBSEstCred > 0) then
+    if (IBSCBS.gEstornoCred.vIBSEstCred > 0) or (IBSCBS.gEstornoCred.vCBSEstCred > 0) or
+      ((NFe.Ide.modelo = 55) and (NFe.Ide.tpNFDebito = tdPerdaEmEstoque)) then
       Result.AppendChild(Gerar_IBSCBS_gEstornoCred(IBSCBS.gEstornoCred));
 
     if (IBSCBS.gCredPresOper.cCredPres <> cpNenhum) then
@@ -4659,10 +4689,12 @@ begin
 
     if (IBSCBSTot.gIBS.vIBS > 0) or
        (IBSCBSTot.gIBS.gIBSUFTot.vDif > 0) or (IBSCBSTot.gIBS.gIBSMunTot.vDif > 0) or
-       (IBSCBSTot.gIBS.gIBSUFTot.vDevTrib > 0) or (IBSCBSTot.gIBS.gIBSMunTot.vDevTrib > 0) then
+       (IBSCBSTot.gIBS.gIBSUFTot.vDevTrib > 0) or (IBSCBSTot.gIBS.gIBSMunTot.vDevTrib > 0) or
+       (IBSCBSTot.gIBS.vCredPres > 0) or (IBSCBSTot.gIBS.vCredPresCondSus > 0) then
       Result.AppendChild(Gerar_IBSCBSTot_gIBS(IBSCBSTot.gIBS));
 
-    if (IBSCBSTot.gCBS.vCBS > 0) or (IBSCBSTot.gCBS.vDif > 0) or (IBSCBSTot.gCBS.vDevTrib > 0) then
+    if (IBSCBSTot.gCBS.vCBS > 0) or (IBSCBSTot.gCBS.vDif > 0) or (IBSCBSTot.gCBS.vDevTrib > 0) or
+      (IBSCBSTot.gCBS.vCredPres > 0) or (IBSCBSTot.gCBS.vCredPresCondSus > 0) then
       Result.AppendChild(Gerar_IBSCBSTot_gCBS(IBSCBSTot.gCBS));
 
     if (IBSCBSTot.gMono.vIBSMono > 0) or (IBSCBSTot.gMono.vCBSMono > 0) or

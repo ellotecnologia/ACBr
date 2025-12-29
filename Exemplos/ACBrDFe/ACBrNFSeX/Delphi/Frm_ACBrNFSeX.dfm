@@ -962,15 +962,15 @@ object frmACBrNFSe: TfrmACBrNFSe
               ParentFont = False
             end
             object Label45: TLabel
-              Left = 150
-              Top = 389
+              Left = 8
+              Top = 408
               Width = 37
               Height = 13
               Caption = 'Vers'#227'o:'
             end
             object lblVersaoSchemas: TLabel
-              Left = 203
-              Top = 390
+              Left = 61
+              Top = 409
               Width = 53
               Height = 13
               Caption = 'lblVersao'
@@ -1382,7 +1382,7 @@ object frmACBrNFSe: TfrmACBrNFSe
               Top = 0
               Width = 210
               Height = 17
-              Caption = 'Salvar Arquivos em Pastas Separadas'
+              Caption = 'Salvar Arquivos'
               TabOrder = 0
             end
             object cbxPastaMensal: TCheckBox
@@ -1751,7 +1751,7 @@ object frmACBrNFSe: TfrmACBrNFSe
           Align = alClient
           TabOrder = 0
           ControlData = {
-            4C000000C6390000602A00000000000000000000000000000000000000000000
+            4C000000382E0000E62100000000000000000000000000000000000000000000
             000000004C000000000000000000000001000000E0D057007335CF11AE690800
             2B2E126200000000000000004C0000000114020000000000C000000000000046
             8000000000000000000000000000000000000000000000000000000000000000
@@ -1769,7 +1769,7 @@ object frmACBrNFSe: TfrmACBrNFSe
           Align = alClient
           TabOrder = 0
           ControlData = {
-            4C000000C6390000602A00000000000000000000000000000000000000000000
+            4C000000382E0000E62100000000000000000000000000000000000000000000
             000000004C000000000000000000000001000000E0D057007335CF11AE690800
             2B2E126200000000000000004C0000000114020000000000C000000000000046
             8000000000000000000000000000000000000000000000000000000000000000
@@ -1786,7 +1786,7 @@ object frmACBrNFSe: TfrmACBrNFSe
           Align = alClient
           TabOrder = 0
           ControlData = {
-            4C000000C6390000602A00000000000000000000000000000000000000000000
+            4C000000382E0000E62100000000000000000000000000000000000000000000
             000000004C000000000000000000000001000000E0D057007335CF11AE690800
             2B2E126200000000000000004C0000000114020000000000C000000000000046
             8000000000000000000000000000000000000000000000000000000000000000
@@ -2201,6 +2201,21 @@ object frmACBrNFSe: TfrmACBrNFSe
               TabOrder = 0
               OnClick = btnEmitirPNClick
             end
+            object btnLerXml: TButton
+              Left = 3
+              Top = 40
+              Width = 177
+              Height = 25
+              Caption = 'Ler XML'
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clWindowText
+              Font.Height = -13
+              Font.Name = 'Tahoma'
+              Font.Style = []
+              ParentFont = False
+              TabOrder = 3
+              OnClick = btnLerXmlClick
+            end
           end
           object tsEventos1: TTabSheet
             Caption = 'Eventos'
@@ -2334,6 +2349,15 @@ object frmACBrNFSe: TfrmACBrNFSe
               Caption = 'Consultar DFe'
               TabOrder = 4
               OnClick = btnConsultarDFeClick
+            end
+            object btnConsultarDPSporNumeroPN: TButton
+              Left = 369
+              Top = 10
+              Width = 177
+              Height = 25
+              Caption = 'Consultar DPS por Numero'
+              TabOrder = 5
+              OnClick = btnConsultarDPSporNumeroPNClick
             end
           end
           object tsConsultarParametros: TTabSheet
@@ -2475,6 +2499,7 @@ object frmACBrNFSe: TfrmACBrNFSe
     Configuracoes.Geral.Emitente.DadosEmitente.Email = 'contato@provedor.com.br'
     Configuracoes.Geral.FormatoDiscriminacao = fdTabulado
     Configuracoes.Arquivos.OrdenacaoPath = <>
+    Configuracoes.Arquivos.TabServicosExt = True
     Configuracoes.WebServices.UF = 'SP'
     Configuracoes.WebServices.AguardarConsultaRet = 0
     Configuracoes.WebServices.QuebradeLinha = '|'

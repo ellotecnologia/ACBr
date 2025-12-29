@@ -176,6 +176,7 @@ function TACBrBancoSicoob.MontarCodigoBarras(const ACBrTitulo : TACBrTitulo): St
 var
   CodigoBarras, FatorVencimento, DigitoCodBarras, ANossoNumero,ACarteira :String;
   CampoLivre : String;
+  LCodigoTransmissao : String;
 begin
 
     FatorVencimento := CalcularFatorVencimento(ACBrTitulo.Vencimento);
@@ -190,7 +191,13 @@ begin
     if ACarteira = '9' then
     begin
       {Montando Campo Livre - Nova Carteira}
-      CampoLivre    := PadLeft(trim(ACBrTitulo.ACBrBoleto.Cedente.CodigoCedente), 9, '0') +
+      LCodigoTransmissao := ACBrTitulo.ACBrBoleto.Cedente.CodigoTransmissao;
+      if EstaVazio(LCodigoTransmissao) then
+        LCodigoTransmissao := ACBrTitulo.ACBrBoleto.Cedente.CodigoCedente;
+
+      LCodigoTransmissao := PadLeft(Trim(LCodigoTransmissao), 9, '0');
+
+      CampoLivre    := LCodigoTransmissao +
                        PadLeft(Copy(ANossoNumero,1,9), 9, '0') +
                        PadLeft(trim(ACBrTitulo.ACBrBoleto.Cedente.Modalidade), 2, '0');
     end else
@@ -525,7 +532,6 @@ begin
        Cedente.AgenciaDigito:= '0';
        Cedente.Conta   := rConta;
        Cedente.ContaDigito:= rDigitoConta;
-       Cedente.CodigoCedente:= rConta+rDigitoConta;
      end;
      Cedente.Conta := RemoveZerosEsquerda(Cedente.Conta);
 
@@ -1481,13 +1487,25 @@ begin
       27: Result := toRetornoDadosAlterados;
       28: Result := toRetornoDebitoTarifas;
       30: Result := toRetornoAlteracaoDadosRejeitados;
+      33: Result := toRetornoAcertoDadosRateioCredito;
+      37: Result := toRetornoEmailSMSRejeitado;
+      38: Result := toRetornoAlterarPrazoLimiteRecebimento;
+      39: Result := toRetornoDispensarPrazoLimiteRecebimento;
       40: Result := toRetornoRecebimentoInstrucaoAlterarTipoCobranca;
       42: Result := toRetornoRecebimentoInstrucaoAlterarTipoCobranca;
       43: Result := toRetornoRecebimentoInstrucaoAlterarTipoCobranca;
+      44: Result := toRetornoChequeDevolvido;
+      45: Result := toRetornoChequeCompensado;
       48: Result := toRetornoConfInstrucaoTransferenciaCarteiraModalidadeCobranca;
+      50: Result := toRetornoTituloPagoEmCheque;
       51: Result := toRetornoTarifaMensalRefEntradasBancosCorrespCarteira;
       52: Result := toRetornoTarifaMensalBaixasCarteira;
       53: Result := toRetornoTarifaMensalBaixasBancosCorrespCarteira;
+      54: Result := toRetornoBaixaTituloNegativadoSemProtesto;
+      55: Result := toRetornoConfirmacaoPedidoDispensaMulta;
+      56: Result := toRetornoConfirmacaoPedidoCobrancaMulta;
+      60: Result := toRetornoJurosDispensados;
+      80: Result := toRetornoConfirmacaoRecebPedidoNegativacao;
       98: Result := toRetornoProtestado;
       99: Result := toRetornoRegistroRecusado;
 
@@ -1563,7 +1581,19 @@ begin
       toRetornoDadosAlterados                               : Result :='27';
       toRetornoDebitoTarifas                                : Result :='28';
       toRetornoAlteracaoDadosRejeitados                     : Result :='30';
+      toRetornoAcertoDadosRateioCredito                     : Result :='33';
+      toRetornoEmailSMSRejeitado                            : Result :='37';
+      toRetornoAlterarPrazoLimiteRecebimento                : Result :='38';
+      toRetornoDispensarPrazoLimiteRecebimento              : Result :='39';
       toRetornoConfInstrucaoTransferenciaCarteiraModalidadeCobranca : Result :='48';
+      toRetornoTituloPagoEmCheque                           : Result :='50';
+      toRetornoTarifaMensalRefEntradasBancosCorrespCarteira : Result :='51';
+      toRetornoTarifaMensalBaixasCarteira                   : Result :='52';
+      toRetornoTarifaMensalBaixasBancosCorrespCarteira      : Result :='53';
+      toRetornoBaixaTituloNegativadoSemProtesto             : Result :='54';
+      toRetornoConfirmacaoPedidoDispensaMulta               : Result :='55';
+      toRetornoConfirmacaoPedidoCobrancaMulta               : Result :='56';
+      toRetornoConfirmacaoRecebPedidoNegativacao            : Result :='80';
       toRetornoDespesasProtesto                             : Result :='96';
       toRetornoDespesasSustacaoProtesto                     : Result :='97';
       toRetornoDebitoCustasAntecipadas                      : Result :='98';
@@ -1593,6 +1623,7 @@ begin
       13: Result:='13-ABATIMENTO CANCELADO' ;
       14: Result:='14-ALTERAÇÃO DE VENCIMENTO' ;
       15: Result:='15-LIQUIDAÇÃO EM CARTÓRIO' ;
+      17: Result:='17-LIQUIDAÇÃO APÓS BAIXA OU LIQUIDAÇÃO TÍTULO NÃO REGISTRADO';
       19: Result:='19-CONFIRMAÇÃO INSTRUÇÃO PROTESTO' ;
       20: Result:='20-DÉBITO EM CONTA' ;
       21: Result:='21-ALTERAÇÃO DE NOME DO SACADO' ;
@@ -1604,7 +1635,19 @@ begin
       27: Result:='27-CONFIRMAÇÃO ALTERAÇÃO DADOS' ;
       28: Result:='28-DÉBITO DE TARIFAS/CUSTAS' ;
       30: Result:='30-ALTERAÇÃO DADOS REJEITADA' ;
+      33: Result:='33-CONFIRMAÇÃO DA ALTERAÇÃO DOS DADOS DO RATEIO DE CRÉDITO';
+      37: Result:='37-ENVIO DE E-MAIL/SMS REJEITADO';
+      38: Result:='38-CONFIRMAÇÃO DE ALTERAÇÃO DO PRAZO LIMITE DE RECEBIMENTO';
+      39: Result:='39-CONFIRMAÇÃO DE DISPENSA DE PRAZO LIMITE DE RECEBIMENTO';
       48: Result:='48-CONFIRMAÇÃO INSTR. TRANSFERENCIA DE CARTEIRA';
+      50: Result:='50-TÍTULO PAGO COM CHEQUE PENDENTE DE LIQUIDAÇÃO';
+      51: Result:='51-TÍTULO DDA RECONHECIDO PELO PAGADOR';
+      52: Result:='52-TÍTULO DDA NÃO RECONHECIDO PELO PAGADOR';
+      53: Result:='53-TÍTULO DDA RECUSADO PELO CIP';
+      54: Result:='54-CONFIRMAÇÃO DA INSTRUÇÃO DE BAIXA/CANCELAMENTO DE TÍTULO NEGATIVADO SEM PROTESTO';
+      55: Result:='55-CONFIRMAÇÃO DE PEDIDO DE DISPENSA DE MULTA';
+      56: Result:='56-CONFIRMAÇÃO DO PEDIDO DE COBRANÇA DE MULTA';
+      80: Result:='80-CONFIRMAÇÃO DA INSTRUÇÃO DE NEGATIVAÇÃO';
       96: Result:='96-DESPESAS DE PROTESTO' ;
       97: Result:='97-DESPESAS DE SUSTAÇÃO DE PROTESTO' ;
       98: Result:='98-DESPESAS DE CUSTAS ANTECIPADAS' ;

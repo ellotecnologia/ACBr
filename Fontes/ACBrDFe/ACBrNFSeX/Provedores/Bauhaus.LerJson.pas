@@ -166,6 +166,7 @@ begin
   if Assigned(jsAux) then
   begin
     NFSe.DataEmissaoRps := jsAux.AsISODate['DataEmissao'];
+    NFSe.DataEmissao := NFSe.DataEmissaoRps;
 
     with NFSe.IdentificacaoRps do
     begin
@@ -472,6 +473,7 @@ begin
   LerINIDadosTomador(AINIRec);
   LerINIIdentificacaoRps(AINIRec);
   LerINIDadosServico(AINIRec);
+  LerINIListaServico(AINIRec);
   LerINIDadosValores(AINIRec);
 end;
 
@@ -503,7 +505,7 @@ begin
   sSecao := 'Prestador';
   if AINIRec.SectionExists(sSecao) then
   begin
-    NFSe.Prestador.IdentificacaoPrestador.CpfCnpj := AINIRec.ReadString(sSecao, 'CNPJ', '');
+    NFSe.Prestador.IdentificacaoPrestador.InscricaoMunicipal := AINIRec.ReadString(sSecao, 'InscricaoMunicipal', '');
   end;
 end;
 
@@ -547,8 +549,13 @@ begin
     NFSe.IdentificacaoRps.Serie := AINIRec.ReadString(sSecao, 'Serie', '0');
 
     sData := AINIRec.ReadString(sSecao, 'DataEmissaoRps', '');
+    if sData = '' then
+      sData := AINIRec.ReadString(sSecao, 'DataEmissao', '');
     if sData <> '' then
+    begin
       NFSe.DataEmissaoRps := StringToDateTimeDef(sData, 0);
+      NFSe.DataEmissao := NFSe.DataEmissaoRps;
+    end;
 
     NFSe.NaturezaOperacao := StrToNaturezaOperacao(Ok, AINIRec.ReadString(sSecao, 'NaturezaOperacao', '0'));
 

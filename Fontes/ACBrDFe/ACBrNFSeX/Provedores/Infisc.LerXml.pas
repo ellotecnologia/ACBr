@@ -41,8 +41,10 @@ uses
   ACBrXmlBase,
   ACBrDFe.Conversao,
   ACBrXmlDocument,
-  ACBrNFSeXConversao, ACBrNFSeXLerXml,
-  ACBrNFSeXLerXml_ABRASFv2;
+  ACBrNFSeXConversao,
+  ACBrNFSeXLerXml,
+  ACBrNFSeXLerXml_ABRASFv2,
+  PadraoNacional.LerXml;
 
 type
   { Provedor com layout próprio }
@@ -98,10 +100,20 @@ type
 
   end;
 
+  { TNFSeR_InfiscAPIPropria }
+
+  TNFSeR_InfiscAPIPropria = class(TNFSeR_PadraoNacional)
+  protected
+
+  public
+
+  end;
+
 implementation
 
 uses
-  ACBrUtil.Base, ACBrUtil.Strings;
+  ACBrUtil.Base,
+  ACBrUtil.Strings;
 
 //==============================================================================
 // Essa unit tem por finalidade exclusiva ler o XML do provedor:
@@ -490,6 +502,9 @@ begin
 
   for i := 0 to Length(ANodes) - 1 do
   begin
+    // Reforma Tributária
+    LerXMLIBSCBSDPS(ANodes[i].Childrens.FindAnyNs('IBSCBS'), NFSe.IBSCBS);
+
     AuxNode := ANodes[i].Childrens.FindAnyNs('serv');
 
     if AuxNode <> nil then
@@ -563,6 +578,9 @@ begin
       // versão 1.1
       if NFSe.Servico.MunicipioIncidencia = 0 then
         NFSe.Servico.MunicipioIncidencia := ObterConteudo(AuxNode.Childrens.FindAnyNs('localTributacao'), tcStr);
+
+      if NFSe.Servico.CodigoNBS = '' then
+         NFSe.Servico.CodigoNBS := ObterConteudo(AuxNode.Childrens.FindAnyNs('cNBS'), tcStr);
     end;
   end;
 end;

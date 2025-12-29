@@ -192,7 +192,7 @@ function StrToindISS(out ok: boolean; const s: string): TpcnindISS;
 function indISSToStrTagPosText(const t: TpcnindISS ): string;
 
 type
-  TpcnTipoAutor = (taEmpresaEmitente, taEmpresaDestinataria, taEmpresa, taFisco, taRFB, taOutros);
+  TpcnTipoAutor = (taEmpresaEmitente, taEmpresaDestinataria, taEmpresa, taFisco, taRFB, taOutros, taEmpresaSucessora);
 
 function TipoAutorToStr(const t: TpcnTipoAutor ): string;
 function StrToTipoAutor(out ok: boolean; const s: string): TpcnTipoAutor;
@@ -249,7 +249,8 @@ type
                 schDestItemConsPessoal, schPerecPerdaRouboFurtoTranspContratAqu,
                 schAceiteDebitoApuracaoNotaCredito, schImobilizacaoItem,
                 schSolicApropCredCombustivel, schSolicApropCredBensServicos,
-                schManifPedTransfCredIBSSucessao, schManifPedTransfCredCBSSucessao);
+                schManifPedTransfCredIBSSucessao, schManifPedTransfCredCBSSucessao,
+                schAtualizacaoDataPrevisaoEntrega);
 
 const
   TSchemaNFeArrayStrings: array[TSchemaNFe] of string = ('Erro', 'Nfe',
@@ -267,7 +268,8 @@ const
     'PerecPerdaRouboFurtoTranspContratAqu',
     'AceiteDebitoApuracaoNotaCredito', 'ImobilizacaoItem',
     'SolicApropCredCombustivel', 'SolicApropCredBensServicos',
-    'ManifPedTransfCredIBSSucessao', 'ManifPedTransfCredCBSSucessao');
+    'ManifPedTransfCredIBSSucessao', 'ManifPedTransfCredCBSSucessao',
+    'AtualizacaoDataPrevisaoEntrega');
 
   TEventoArrayStrings: array[TSchemaNFe] of string = ('', '', 'e110111', '',
     'e110110', '', '', 'e110140', '', '', '', '', '', '', '', '', '', '', '',
@@ -275,7 +277,7 @@ const
     'e210220', 'e210240', 'e110130', 'e110131', 'e110150', 'e110192', 'e110193',
     'e110750', 'e110751', 'e110001', 'e112110', 'e112120', 'e112130', 'e112140',
     'e211110', 'e211120', 'e211124', 'e211128', 'e211130', 'e211140', 'e211150',
-    'e212110', 'e212120');
+    'e212110', 'e212120', 'e112150');
 
 type
   TLayOut = (LayNfeRecepcao, LayNfeRetRecepcao, LayNfeCancelamento,
@@ -886,7 +888,8 @@ begin
                                fpPagamentoInstantaneo, fpTransfBancario,
                                fpProgramaFidelidade, fpSemPagamento, fpRegimeEspecial,
                                fpOutro, fpPagamentoInstantaneoEstatico,
-                               fpCreditoEmLojaPorDevolucao, fpFalhaHardware, fpPagamentoPosterior]);
+                               fpCreditoEmLojaPorDevolucao, fpFalhaHardware,
+                               fpPagamentoPosterior]);
 end;
 
 function FormaPagamentoToDescricao(const t: TpcnFormaPagamento): string; overload;
@@ -916,14 +919,15 @@ begin
                                fpPagamentoInstantaneo, fpTransfBancario,
                                fpProgramaFidelidade, fpSemPagamento, fpRegimeEspecial,
                                fpOutro, fpPagamentoInstantaneoEstatico,
-                               fpCreditoEmLojaPorDevolucao, fpFalhaHardware, fpPagamentoPosterior]);
+                               fpCreditoEmLojaPorDevolucao, fpFalhaHardware,
+                               fpPagamentoPosterior]);
 end;
 
 function StrToFormaPagamento(out ok: boolean; const s: string): TpcnFormaPagamento;
 begin
   result := StrToEnumerado(ok, s, ['01', '02', '03', '04', '05', '10', '11', '12',
                                    '13', '14', '15', '16', '17', '18', '19', '90',
-                                   '98', '99', '20', '21', '22'],
+                                   '98', '99', '20', '21', '22', '91'],
                               [fpDinheiro, fpCheque, fpCartaoCredito, fpCartaoDebito,
                                fpCreditoLoja, fpValeAlimentacao, fpValeRefeicao,
                                fpValePresente, fpValeCombustivel, fpDuplicataMercantil,
@@ -931,7 +935,8 @@ begin
                                fpPagamentoInstantaneo, fpTransfBancario,
                                fpProgramaFidelidade, fpSemPagamento, fpRegimeEspecial,
                                fpOutro,fpPagamentoInstantaneoEstatico,
-                               fpCreditoEmLojaPorDevolucao, fpFalhaHardware]);
+                               fpCreditoEmLojaPorDevolucao, fpFalhaHardware,
+                               fpPagamentoPosterior]);
 end;
 
 function BandeiraCartaoToDescStr(const t: TpcnBandeiraCartao): string;
@@ -1092,16 +1097,16 @@ end;
 
 function TipoAutorToStr(const t: TpcnTipoAutor ): string;
 begin
-  result := EnumeradoToStr(t, ['1', '2', '3', '5', '6', '9'],
+  result := EnumeradoToStr(t, ['1', '2', '3', '5', '6', '9', '8'],
                               [taEmpresaEmitente, taEmpresaDestinataria,
-                               taEmpresa, taFisco, taRFB, taOutros]);
+                               taEmpresa, taFisco, taRFB, taOutros, taEmpresaSucessora]);
 end;
 
 function StrToTipoAutor(out ok: boolean; const s: string): TpcnTipoAutor;
 begin
-  result := StrToEnumerado(ok, s, ['1', '2', '3', '5', '6', '9'],
+  result := StrToEnumerado(ok, s, ['1', '2', '3', '5', '6', '9', '8'],
                                   [taEmpresaEmitente, taEmpresaDestinataria,
-                                   taEmpresa, taFisco, taRFB, taOutros]);
+                                   taEmpresa, taFisco, taRFB, taOutros, taEmpresaSucessora]);
 end;
 
 function IndOperacaoToStr(const t: TpcnIndOperacao ): string;
@@ -1148,7 +1153,10 @@ begin
              '210240', '610600', '610614', '790700', '990900', '990910',
              '110180', '610554', '610510', '610615', '610610', '110130',
              '110131', '110150', '610130', '610131', '610601', '110192',
-             '110193', '610514', '610500', '110750', '110751', '510630'],
+             '110193', '610514', '610500', '110750', '110751', '510630',
+             '110001', '112110', '112120', '112130', '112140', '211110',
+             '211120', '211124', '211128', '211130', '211140', '211150',
+             '212110', '212120', '112150'],
             [teNaoMapeado, teCCe, teCancelamento, teCancSubst, teEPECNFe,
              tePedProrrog1, tePedProrrog2, teCanPedProrrog1, teCanPedProrrog2,
              teManifDestConfirmacao, teManifDestCiencia,
@@ -1161,7 +1169,15 @@ begin
              teComprEntregaCTe, teCancComprEntregaCTe, teCTeCancelado,
              teInsucessoEntregaNFe, teCancInsucessoEntregaNFe,
              teRegPasNfeProMDFeCte, teRegistroPassagemNFe, teConcFinanceira,
-             teCancConcFinanceira, teRegistroPassagemMDFe]);
+             teCancConcFinanceira, teRegistroPassagemMDFe, teCancGenerico,
+             tePagIntegLibCredPresAdq, teImporALCZFM,
+             tePerecPerdaRouboFurtoTranspContratFornec, teFornecNaoRealizPagAntec,
+             teSolicApropCredPres, teDestItemConsPessoal,
+             tePerecPerdaRouboFurtoTranspContratAqu,
+             teAceiteDebitoApuracaoNotaCredito, teImobilizacaoItem,
+             teSolicApropCredCombustivel, teSolicApropCredBensServicos,
+             teManifPedTransfCredIBSSucessao, teManifPedTransfCredCBSSucessao,
+             teAtualizacaoDataPrevisaoEntrega]);
 end;
 
 function LayOutToServico(const t: TLayOut): String;
@@ -1607,23 +1623,29 @@ end;
 
 function SchemaEventoToStr(const t: TSchemaNFe): String;
 begin
-  result := EnumeradoToStr(t, ['e110110', 'e110111', 'e110112', 'e110140',
+  result := EnumeradoToStr(t, ['e110001',
+                               'e110110', 'e110111', 'e110112', 'e110140',
                                'e111500', 'e111501', 'e111502', 'e111503',
                                'e210200', 'e210210', 'e210220', 'e210240',
                                'e110130', 'e110131', 'e110150', 'e110192',
-                               'e110193', 'e110750', 'e110751',
-                               'e211110', 'e211120', 'e211124',
-                               'e211128', 'e211130', 'e211140',
-                               'e211150'],
-    [schEnvCCe, schcancNFe, schCancSubst, schEnvEPEC,
+                               'e110193', 'e110750', 'e110751', 'e112110',
+                               'e112120', 'e112130', 'e112140', 'e211110',
+                               'e211120', 'e211124', 'e211128', 'e211130',
+                               'e211140', 'e211150', 'e212110', 'e212120',
+                               'e112150'],
+    [schCancGenerico,
+     schEnvCCe, schcancNFe, schCancSubst, schEnvEPEC,
      schPedProrrog1, schPedProrrog2, schCanPedProrrog1, schCanPedProrrog2,
      schManifDestConfirmacao, schManifDestCiencia, schManifDestDesconhecimento,
      schManifDestOperNaoRealizada, schCompEntrega, schCancCompEntrega,
      schAtorInteressadoNFe, schInsucessoEntregaNFe, schCancInsucessoEntregaNFe,
-     schConcFinanceira, schCancConcFinanceira,
-     schSolicApropCredPres, schDestItemConsPessoal, schPerecPerdaRouboFurtoTranspContratAqu,
-     schAceiteDebitoApuracaoNotaCredito, schImobilizacaoItem, schSolicApropCredCombustivel,
-     schSolicApropCredBensServicos]);
+     schConcFinanceira, schCancConcFinanceira, schPagIntegLibCredPresAdq,
+     schImporALCZFM, schPerecPerdaRouboFurtoTranspContratFornec,
+     schFornecNaoRealizPagAntec, schSolicApropCredPres, schDestItemConsPessoal,
+     schPerecPerdaRouboFurtoTranspContratAqu, schAceiteDebitoApuracaoNotaCredito,
+     schImobilizacaoItem, schSolicApropCredCombustivel, schSolicApropCredBensServicos,
+     schManifPedTransfCredIBSSucessao, schManifPedTransfCredCBSSucessao,
+     schAtualizacaoDataPrevisaoEntrega]);
 end;
 
 function AutorizacaoToStr(const t: TAutorizacao): string;

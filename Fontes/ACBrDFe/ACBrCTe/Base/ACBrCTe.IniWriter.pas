@@ -878,7 +878,11 @@ var
 begin
   for i := 0 to infNFe.Count -1 do
   begin
-    sSecao := 'infNFe' + IntToStrZero(I+1, 3);
+    //Pode ter até 2000 ocorrências, mas só mudar o índice de 3 para 4 causaria problemas indesejados...
+    if I >= 999 then
+      sSecao := 'infNFe' +  IntToStrZero(I+1, 4)
+    else
+      sSecao := 'infNFe' + IntToStrZero(I+1, 3);
 
     with infNFe.Items[i] do
     begin
@@ -1863,7 +1867,11 @@ begin
     AINIRec.WriteString(sSecao, 'cClassTrib', IBSCBS.cClassTrib);
     AINIRec.WriteString(sSecao, 'indDoacao', TIndicadorExToStr(IBSCBS.indDoacao));
 
-    if IBSCBS.gIBSCBS.vBC > 0 then
+    if ((FCTe.Ide.modelo = 57) or (FCTe.ide.tpCTe in [tcCTeSimp, tcSubstCTeSimpl])) and
+       (IBSCBS.CST in [cst000, cst200, cst400]) then
+      Gerar_IBSCBS_gIBSCBS(AINIRec, IBSCBS.gIBSCBS);
+
+    if (FCTe.Ide.modelo = 67) and (IBSCBS.CST in [cst000, cst222, cst410]) then
       Gerar_IBSCBS_gIBSCBS(AINIRec, IBSCBS.gIBSCBS);
 
     if (IBSCBS.gEstornoCred.vIBSEstCred > 0) or (IBSCBS.gEstornoCred.vCBSEstCred > 0) then

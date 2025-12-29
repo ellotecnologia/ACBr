@@ -252,7 +252,9 @@ uses
   ACBrBoletoW_Kobana,
   ACBrBoletoRet_Kobana,
   ACBrBoletoW_BTGPactual,
-  ACBrBoletoRet_BTGPactual;
+  ACBrBoletoRet_BTGPactual,
+  ACBrBoletoW_Asaas,
+  ACBrBoletoRet_Asaas;
 
   { TRetornoEnvioClass }
 
@@ -314,6 +316,7 @@ begin
   FGerador      := TGerador.Create;
   FHTTPSend     := THTTPSend.Create;
   FHTTPSend.Protocol := '1.1';
+  FHTTPSend.Clear;
   FTitulo       := nil;
 
   if Assigned(ABoletoWS.FBoleto.Configuracoes.WebService) then
@@ -500,6 +503,11 @@ begin
         FBoletoWSClass := TBoletoW_BTGPactual.Create(Self);
         FRetornoBanco  := TRetornoEnvio_BTGPactual.Create(FBoleto);
       end;
+    cobBancoAsaas:
+      begin
+        FBoletoWSClass := TBoletoW_Asaas.Create(Self);
+        FRetornoBanco  := TRetornoEnvio_Asaas.Create(FBoleto);
+      end;
     else
       FBoletoWSClass := TBoletoWSClass.Create(Self);
       FRetornoBanco  := TRetornoEnvioClass.Create(FBoleto);
@@ -616,7 +624,7 @@ begin
         FBoletoWSClass.FTitulo := FBoleto.ListadeBoletos[ indice ];
         LJsonEnvio             := FBoletoWSClass.GerarRemessa;
         Result                 := FBoletoWSClass.Enviar;
-        FRetornoWS             := FBoletoWSClass.FRetornoWS;
+        FRetornoWS             := Trim(FBoletoWSClass.FRetornoWS);
 
 
 
@@ -637,17 +645,26 @@ begin
       begin
         FBoletoWSClass.GerarRemessa;
         Result             := FBoletoWSClass.Enviar;
-        FRetornoWS         := FBoletoWSClass.FRetornoWS;
+        FRetornoWS         := Trim(FBoletoWSClass.FRetornoWS);
         RetornoBanco.RetWS := FRetornoWS;
         RetornoBanco.RetornoEnvio(0);
       end;
   except
     on E: Exception do
     begin
+      DoLog('Falha Envio: ' + ClassName, logSimples);
+      DoLog('Header:', logParanoico);
+      DoLog(FBoletoWSClass.httpsend.Headers.Text, logParanoico);
+      DoLog('Cookies:', logParanoico);
+      DoLog(FBoletoWSClass.httpsend.Cookies.Text, logParanoico);
+      DoLog(FBoletoWSClass.httpsend.Sock.SSL.CertificateFile, logParanoico);
+      DoLog(FBoletoWSClass.httpsend.Sock.SSL.PrivateKeyFile, logParanoico);
+      DoLog('Body:', logParanoico);
+      DoLog(ReadStrFromStream(FBoletoWSClass.httpsend.Document, FBoletoWSClass.httpsend.Document.Size), logParanoico);
       if not (Assigned(FBoletoWSClass.RetornoBanco)) or ((FBoletoWSClass.RetornoBanco.CodRetorno = 0) and (Trim(FBoletoWSClass.RetornoBanco.Msg) = '')) then
-        DoLog('Falha Envio: ' + ACBrStr(E.Message), logSimples)
+        DoLog('Mensagem Falha Envio: ' + ACBrStr(E.Message) + ' ' +FBoletoWSClass.httpsend.Sock.GetErrorDescEx, logSimples)
       else
-        DoLog('Erro Envio: ' + ACBrStr(IntToStr(FBoletoWSClass.RetornoBanco.CodRetorno) + sLineBreak + FBoletoWSClass.RetornoBanco.Msg + sLineBreak + E.Message), logSimples);
+        DoLog('Mensagem Falha Envio: ' + ACBrStr(IntToStr(FBoletoWSClass.RetornoBanco.CodRetorno) + sLineBreak + FBoletoWSClass.RetornoBanco.Msg + sLineBreak + E.Message + ' ' +FBoletoWSClass.httpsend.Sock.GetErrorDescEx), logSimples);
       raise;
     end;
   end;

@@ -38,6 +38,16 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+21/11/2025
+-- pcnConversao --
+[+] ACBR-5451 - Inclusão do evento Atualização da Data de Previsão de Entrega para Reforma Tributária
+  Por: everson.turossi
+
+28/10/2025
+-- pcnConversao --
+[+] Inclusão dos novos eventos referente a Reforma Tributária.
+   Por: Italo Giurizzato Junior
+
 17/10/2025
 -- pcnConversao --
 [*] Os tipos e funções agora estão definidos na unit ACBrDFe.Conversao

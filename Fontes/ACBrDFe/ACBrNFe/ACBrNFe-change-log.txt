@@ -44,6 +44,118 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+23/12/2025
+-- ACBrNFe.EventoClass --
+[*] #ACBR-8532 - Complementa a rotina DescricaoTipoEvento utilizada para nomear o evento no impresso do Fast Reports.
+  Por: Diego Folieni
+
+16/12/2025
+-- ACBrNFe.XmlWriter --
+[*] No grupo Retirada e Entrega o CNPJ é opcional.
+  Por: Italo Giurizzato Junior
+
+12/12/2025
+-- ACBrNFe.ValidarRegrasdeNegocio --
+[*] Comentado a validação da regra 571, pois não existe mais.
+  Por: Italo Giurizzato Junior
+
+09/12/2025
+-- ACBrNFe.XmlWriter --
+[-] Possível solução para gerar corretamente o grupo Entrega.
+  Por: Italo Giurizzato Junior
+-- ACBrNFeNotasFiscais/ACBrNFeWebServices/ACBrNFe.XmlReader --
+[*] Melhorias na leitura do XML da NF-e.
+  Por: Diego Folieni/Italo Giurizzato Junior
+
+05/12/2025
+-- ACBrNFe.EnvEvento --
+[-] #ACBR-8506 - Ajuste para que os eventos de Manifestação sobre Pedido de Transferência de Crédito tanto para o IBS quanto para o CBS não tenham seus acentos removidos.
+  Por: C4Dev
+
+03/12/2025
+-- ACBrNFe.EnvEvento, ACBrNFe.RetEnvEvento --
+[+] #ACBR-8514 - Implementado a leitura de XML dos eventos da Reforma Tributária
+  Por: Diego Folieni
+-- ACBrNFe.IniReader.pas --
+[+] Ajustado a leitura do da propriedade indDoacao da seção IBSCBS do metodo Ler_IBSCBS()
+  Por: Daniel de Morais InfoCodidiano
+
+27/11/2025
+-- ACBrNFe.EnvEvento --
+[+] #ACBR-5451 - Implementado a leitura INI e JSON dos eventos "Imobilização de Item", "Solicitação de Apropriação de Crédito de Combustível" e "Solicitação de Apropriação de Crédito para bens e serviços que dependem de atividade do adquirente".
+  Por: Diego Folieni
+
+26/11/2025
+-- ACBrNFe.EnvEvento --
+[+] #ACBR-5451 - Implementado a leitura INI e JSON do evento "Aceite de débito na apuração por emissão de nota de crédito".
+  Por: Diego Folieni
+[+] #ACBR-5451 - Implementado a leitura INI e JSON dos eventos: "Destinação de item para consumo pessoal" e "Perecimento, perda, roubo ou furto durante o transporte contratado pelo adquirente".
+  Por: Diego Folieni
+
+25/11/2025
+-- ACBrNFe.EnvEvento --
+[+] #ACBR-5451 - Implementado a leitura INI e JSON dos eventos: "Informação de efetivo pagamento integral para liberar crédito presumido do adquirente" e "Solicitação de Apropriação de crédito presumido".
+  Por: Diego Folieni
+-- ACBrNFe.XmlWriter --
+[*] #ACBR-8446 - Comentado as linhas que geram os grupos IS e ISTot, uma vez que só devem ser gerados a partir de 2027.
+  Por: Elton Barbosa/Italo Giurizzato Junior
+
+24/11/2025
+-- ACBrNFe.Envento --
+[+] Adiciona leitura do elemento tpAutor para os eventos já implementados na rotina que lê o JSON dos eventos.
+  Por: Diego Folieni
+-- ACBrNFeWebServices/ACBrNFe.Conversao/ACBrNFe.EnvEvento/ACBrNFe.EventoClass/pcnConversaoNFe --
+[+] #ACBR-5451 - Implementado os eventos: Manifestação sobre Pedido de Transferência de Crédito de IBS em Operações de Sucessão e Manifestação sobre Pedido de Transferência de Crédito de CBS em Operações de Sucessão.
+  Por: Diego Folieni
+
+21/11/2025
+-- ACBrNFeWebServices/ACBrNFe.EnvEvento/ACBrNFe.EventoClass/ACBrNFe.Conversao/pcnConversaoNFe --
+[+] #ACBR-5451 - Implementado o evento: Atualização da Data de Previsão de Entrega
+  Por: Everson.turossi
+
+-- ACBrNFeWebServices/ACBrNFe.EnvEvento/ACBrNFe.EventoClass --
+[+] #ACBR-5451 - Implementado o evento: Fornecimento não realizado com pagamento antecipado
+  Por: everson.turossi / Diego Folieni
+
+19/11/2025
+-- ACBrNFeWebServices/ACBrNFe.EnvEvento/ACBrNFe.EventoClass --
+[+] #ACBR-5451 - Implementado o evento: Perecimento, perda, roubo ou furto durante o transporte contratado pelo fornecedor
+  Por: Bruno Siqueira / Diego Folieni
+-- ACBrNFe.XmlWriter --
+[*] #ACBR-8424 - Ajuste para gerar corretamente o grupo ICMS tendo em vista a regra B25-80.
+  Por: C4Dev
+
+18/11/2025
+-- ACBrNFeWebServices/ACBrNFe.EnvEvento/ACBrNFe.EventoClass --
+[+] #ACBR-5451 - Implementado o evento: Importação em ALC/ZFM não convertida em isenção.
+  Por: Diego Folieni
+
+12/11/2025
+-- ACBrNFeWebServices/ACBrNFe.Conversao/ACBrNFe.EnvEvento/ACBrNFe.EventoClass/pcnConversaoNFe --
+[+] Implementado o evento: Aceite de Débito na apuração por emissão de nota de Crédito.
+  Por: SG Sistemas
+
+30/10/2025
+-- ACBrNFe.EnvEvento --
+[*] Alguns eventos não funcionam sem acentos, alterado a condição que define que 
+    não deve remover os acentos.
+  Por: Italo Giurizzato Junior
+
+29/10/2025
+-- ACBrNFeWebServices/ACBrNFe.Conversao/pcnConversaoNFe --
+[*] Alguns eventos não estavam mapeados e quem vai recepcionar os eventos da 
+    Reforma Tributária é a SVRS.
+  Por: Microsys Sistemas
+
+28/10/2025
+-- ACBrNFe.Conversao/pcnConversaoNFe --
+[*] ACBR-8304 - A função de conversão StrToFormaPagamento não contemplava o enumerado:
+    fpPagamentoPosterior.
+  Por: Ao3 Tech/Italo Giurizzato Junior
+-- ACBrNFe.Conversao/pcnConversaoNFe --
+[+] ACBR-8283 - Adicionado os novos tipos de eventos referente a Reforma Tributária.
+  Por: Italo Giurizzato Junior
+
 27/10/2025
 -- pcnConversaoNFe, ACBrNFe.Conversao --
 [*] ACBR-8201 - Adiciona novos tipos de combustível VeiculosCombustivelStr conforme tabela atualizada.
