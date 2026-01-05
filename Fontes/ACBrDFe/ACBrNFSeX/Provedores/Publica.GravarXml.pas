@@ -437,6 +437,11 @@ begin
                                                         CodigoObra, DSC_COBRA));
     end;
 
+    // 3) (comum para os dois tipos, se informado)
+    if Trim(Art) <> '' then
+      Result.AppendChild(AddNode(tcStr, '#53', 'Art', 1, 15, 1,
+                                                                 Art, DSC_ART));
+
     // ============================
     // Tipo = 1 -> Endereço completo
     // ============================
@@ -474,14 +479,14 @@ begin
       end;
     end;
 
-    // 3) (comum para os dois tipos, se informado)
-    if Trim(Art) <> '' then
-      Result.AppendChild(AddNode(tcStr, '#53', 'Art', 1, 15, 1,
-                                                                 Art, DSC_ART));
-
+    if Trim(Endereco.Endereco) <> '' then
+      Result.AppendChild(AddNode(tcStr, '#53', 'Endereco', 1, 100, 1,
+                                                                 Endereco.Endereco, DSC_ART));
+                                                                 
     If Trim(inscImobFisc) <> '' then
-      Result.AppendChild(AddNode(tcStr, '#54', 'InscImob', 1, 60, 1,
+      Result.AppendChild(AddNode(tcStr, '#54', 'Cib', 1, 60, 1,
                                                     inscImobFisc, DSC_INSCMOB));
+
   end;
 end;
 
