@@ -1,33 +1,33 @@
 {******************************************************************************}
 { Projeto: Componentes ACBr                                                    }
-{  Biblioteca multiplataforma de componentes Delphi para interaÃ§Ã£o com equipa- }
-{ mentos de AutomaÃ§Ã£o Comercial utilizados no Brasil                           }
+{  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
+{ mentos de Automação Comercial utilizados no Brasil                           }
 {                                                                              }
 { Direitos Autorais Reservados (c) 2026 Daniel Simoes de Almeida               }
 {                                                                              }
 { Colaboradores nesse arquivo:                                                 }
 {                                                                              }
-{  VocÃª pode obter a Ãºltima versÃ£o desse arquivo na pagina do  Projeto ACBr    }
+{  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
 {                                                                              }
-{  Esta biblioteca Ã© software livre; vocÃª pode redistribuÃ­-la e/ou modificÃ¡-la }
-{ sob os termos da LicenÃ§a PÃºblica Geral Menor do GNU conforme publicada pela  }
-{ Free Software Foundation; tanto a versÃ£o 2.1 da LicenÃ§a, ou (a seu critÃ©rio) }
-{ qualquer versÃ£o posterior.                                                   }
+{  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la }
+{ sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela  }
+{ Free Software Foundation; tanto a versão 2.1 da Licença, ou (a seu critério) }
+{ qualquer versão posterior.                                                   }
 {                                                                              }
-{  Esta biblioteca Ã© distribuÃ­da na expectativa de que seja Ãºtil, porÃ©m, SEM   }
-{ NENHUMA GARANTIA; nem mesmo a garantia implÃ­cita de COMERCIABILIDADE OU      }
-{ ADEQUAÃ‡ÃƒO A UMA FINALIDADE ESPECÃFICA. Consulte a LicenÃ§a PÃºblica Geral Menor}
-{ do GNU para mais detalhes. (Arquivo LICENÃ‡A.TXT ou LICENSE.TXT)              }
+{  Esta biblioteca é distribuída na expectativa de que seja útil, porém, SEM   }
+{ NENHUMA GARANTIA; nem mesmo a garantia implícita de COMERCIABILIDADE OU      }
+{ ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA. Consulte a Licença Pública Geral Menor}
+{ do GNU para mais detalhes. (Arquivo LICENÇA.TXT ou LICENSE.TXT)              }
 {                                                                              }
-{  VocÃª deve ter recebido uma cÃ³pia da LicenÃ§a PÃºblica Geral Menor do GNU junto}
-{ com esta biblioteca; se nÃ£o, escreva para a Free Software Foundation, Inc.,  }
-{ no endereÃ§o 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.          }
-{ VocÃª tambÃ©m pode obter uma copia da licenÃ§a em:                              }
+{  Você deve ter recebido uma cópia da Licença Pública Geral Menor do GNU junto}
+{ com esta biblioteca; se não, escreva para a Free Software Foundation, Inc.,  }
+{ no endereço 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.          }
+{ Você também pode obter uma copia da licença em:                              }
 { http://www.opensource.org/licenses/lgpl-license.php                          }
 {                                                                              }
-{ Daniel SimÃµes de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
-{       Rua Coronel Aureliano de Camargo, 963 - TatuÃ­ - SP - 18270-170         }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 
 unit ACBrTEFTXTGerenciadorPadrao;
@@ -41,7 +41,7 @@ uses
   ACBrTEFComum, ACBrTEFTXTComum;
 
 const
-  CACBRTEFTXT_NomeGerenciadorPadrao = 'Gerenciador PadrÃ£o';
+  CACBRTEFTXT_NomeGerenciadorPadrao = 'Gerenciador Padrão';
   CACBRTEFTXT_CMD_ATV = 'ATV';
   CACBRTEFTXT_CMD_ADM = 'ADM';
   CACBRTEFTXT_CMD_CHQ = 'CHQ';
@@ -71,6 +71,7 @@ type
   protected
     function RespostaTransacaoComSucesso: Boolean;
     function GetModeloTEF: String; override;
+    function GetVersaoTEF: String; override;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -87,8 +88,8 @@ type
       Cheque: String = ''; ChequeDC: String = '';
       Compensacao: String = '' ): Boolean;
     Function CNC(Valor: Double; const Rede, NSU: String; DataHoraTransacao: TDateTime; DocumentoVinculado: String = ''): Boolean;
-    Procedure CNF(const Rede, NSU, Finalizacao: String; DocumentoVinculado: String = '');
-    Procedure NCN(const Rede, NSU, Finalizacao: String; Valor: Double = 0; const DocumentoVinculado: String = '') ;
+    Procedure CNF(const Rede, NSU, Finalizacao: String; const DocumentoVinculado: String = '');
+    Procedure NCN(const Rede, NSU, Finalizacao: String; const DocumentoVinculado: String = '') ;
 
     property Enviar_ATV_Antes: Boolean read fEnviarATV write fEnviarATV default True;
   end;
@@ -206,7 +207,7 @@ begin
     fpParcelas.Add(Parc);
   end;
 
-  // Tipo da transaÃ§Ã£o se foi CrÃ©dito ou DÃ©bito
+  // Tipo da transação se foi Crédito ou Débito
   fpDebito := ((fpTipoTransacao >= 20) and (fpTipoTransacao <= 25)) or (fpTipoTransacao = 40);
   fpCredito := (fpTipoTransacao >= 10) and (fpTipoTransacao <= 12) ;
 
@@ -250,12 +251,20 @@ end;
 
 function TACBrTEFTXTGerenciadorPadrao.GetModeloTEF: String;
 begin
-  Result := CACBRTEFTXT_NomeGerenciadorPadrao;
+  Result := ACBrStr(CACBRTEFTXT_NomeGerenciadorPadrao);
+end;
+
+function TACBrTEFTXTGerenciadorPadrao.GetVersaoTEF: String;
+begin
+  Result := ACBrStr('Versão 2.5 - 03/2010');
 end;
 
 procedure TACBrTEFTXTGerenciadorPadrao.PrepararRequisicao(const AHeader: String);
 begin
-  if fEnviarATV and (AHeader <> CACBRTEFTXT_CMD_ATV) then
+  if fEnviarATV and
+     (AHeader <> CACBRTEFTXT_CMD_ATV) and
+     (AHeader <> CACBRTEFTXT_CMD_CNF) and
+     (AHeader <> CACBRTEFTXT_CMD_NCN) then
     ATV;
 
   inherited PrepararRequisicao(AHeader);
@@ -313,7 +322,8 @@ function TACBrTEFTXTGerenciadorPadrao.CNC(Valor: Double; const Rede,
   NSU: String; DataHoraTransacao: TDateTime; DocumentoVinculado: String): Boolean;
 begin
   PrepararRequisicao(CACBRTEFTXT_CMD_CNC);
-  Req.Campo[02,0].AsString := DocumentoVinculado;
+  if (DocumentoVinculado <> '') then
+    Req.Campo[02,0].AsString := DocumentoVinculado;
   Req.Campo[03,0].AsFloat := Valor;
   Req.Campo[10,0].AsString := Rede;
   Req.Campo[12,0].AsString := NSU;
@@ -324,25 +334,27 @@ begin
 end;
 
 procedure TACBrTEFTXTGerenciadorPadrao.CNF(const Rede, NSU,
-  Finalizacao: String; DocumentoVinculado: String);
+  Finalizacao: String; const DocumentoVinculado: String);
 begin
   PrepararRequisicao(CACBRTEFTXT_CMD_CNF);
-  Req.Campo[02,0].AsString := DocumentoVinculado;
+  if (DocumentoVinculado <> '') then
+    Req.Campo[02,0].AsString := DocumentoVinculado;
   Req.Campo[10,0].AsString := Rede;
   Req.Campo[12,0].AsString := NSU;
   Req.Campo[27,0].AsString := Finalizacao;
-  EnviarRequisicao;
+  EnviarRequisicao(False);
 end;
 
 procedure TACBrTEFTXTGerenciadorPadrao.NCN(const Rede, NSU,
-  Finalizacao: String; Valor: Double; const DocumentoVinculado: String);
+  Finalizacao: String; const DocumentoVinculado: String);
 begin
   PrepararRequisicao(CACBRTEFTXT_CMD_NCN);
-  Req.Campo[02,0].AsString := DocumentoVinculado;
+  if (DocumentoVinculado <> '') then
+    Req.Campo[02,0].AsString := DocumentoVinculado;
   Req.Campo[10,0].AsString := Rede;
   Req.Campo[12,0].AsString := NSU;
   Req.Campo[27,0].AsString := Finalizacao;
-  EnviarRequisicao;
+  EnviarRequisicao(False);
 end;
 
 end.

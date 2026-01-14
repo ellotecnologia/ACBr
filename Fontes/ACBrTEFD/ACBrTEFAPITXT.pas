@@ -1,33 +1,33 @@
 {******************************************************************************}
 { Projeto: Componentes ACBr                                                    }
-{  Biblioteca multiplataforma de componentes Delphi para intera√ß√£o com equipa- }
-{ mentos de Automa√ß√£o Comercial utilizados no Brasil                           }
+{  Biblioteca multiplataforma de componentes Delphi para interaÁ„o com equipa- }
+{ mentos de AutomaÁ„o Comercial utilizados no Brasil                           }
 {                                                                              }
 { Direitos Autorais Reservados (c) 2026 Daniel Simoes de Almeida               }
 {                                                                              }
 { Colaboradores nesse arquivo:                                                 }
 {                                                                              }
-{  Voc√™ pode obter a √∫ltima vers√£o desse arquivo na pagina do  Projeto ACBr    }
+{  VocÍ pode obter a ˙ltima vers„o desse arquivo na pagina do  Projeto ACBr    }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
 {                                                                              }
-{  Esta biblioteca √© software livre; voc√™ pode redistribu√≠-la e/ou modific√°-la }
-{ sob os termos da Licen√ßa P√∫blica Geral Menor do GNU conforme publicada pela  }
-{ Free Software Foundation; tanto a vers√£o 2.1 da Licen√ßa, ou (a seu crit√©rio) }
-{ qualquer vers√£o posterior.                                                   }
+{  Esta biblioteca È software livre; vocÍ pode redistribuÌ-la e/ou modific·-la }
+{ sob os termos da LicenÁa P˙blica Geral Menor do GNU conforme publicada pela  }
+{ Free Software Foundation; tanto a vers„o 2.1 da LicenÁa, ou (a seu critÈrio) }
+{ qualquer vers„o posterior.                                                   }
 {                                                                              }
-{  Esta biblioteca √© distribu√≠da na expectativa de que seja √∫til, por√©m, SEM   }
-{ NENHUMA GARANTIA; nem mesmo a garantia impl√≠cita de COMERCIABILIDADE OU      }
-{ ADEQUA√á√ÉO A UMA FINALIDADE ESPEC√çFICA. Consulte a Licen√ßa P√∫blica Geral Menor}
-{ do GNU para mais detalhes. (Arquivo LICEN√áA.TXT ou LICENSE.TXT)              }
+{  Esta biblioteca È distribuÌda na expectativa de que seja ˙til, porÈm, SEM   }
+{ NENHUMA GARANTIA; nem mesmo a garantia implÌcita de COMERCIABILIDADE OU      }
+{ ADEQUA«√O A UMA FINALIDADE ESPECÕFICA. Consulte a LicenÁa P˙blica Geral Menor}
+{ do GNU para mais detalhes. (Arquivo LICEN«A.TXT ou LICENSE.TXT)              }
 {                                                                              }
-{  Voc√™ deve ter recebido uma c√≥pia da Licen√ßa P√∫blica Geral Menor do GNU junto}
-{ com esta biblioteca; se n√£o, escreva para a Free Software Foundation, Inc.,  }
-{ no endere√ßo 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.          }
-{ Voc√™ tamb√©m pode obter uma copia da licen√ßa em:                              }
+{  VocÍ deve ter recebido uma cÛpia da LicenÁa P˙blica Geral Menor do GNU junto}
+{ com esta biblioteca; se n„o, escreva para a Free Software Foundation, Inc.,  }
+{ no endereÁo 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.          }
+{ VocÍ tambÈm pode obter uma copia da licenÁa em:                              }
 { http://www.opensource.org/licenses/lgpl-license.php                          }
 {                                                                              }
-{ Daniel Sim√µes de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
-{       Rua Coronel Aureliano de Camargo, 963 - Tatu√≠ - SP - 18270-170         }
+{ Daniel Simıes de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - TatuÌ - SP - 18270-170         }
 {******************************************************************************}
 
 unit ACBrTEFAPITXT;
@@ -42,7 +42,7 @@ uses
   ACBrTEFComum, ACBrTEFAPI, ACBrTEFAPIComum, ACBrTEFTXTComum, ACBrTEFTXTGerenciadorPadrao;
 
 resourcestring
-  CINFOTEFTXT_EnviandoRequisicao = 'Enviando Requisi√ß√£o';
+  CINFOTEFTXT_EnviandoRequisicao = 'Enviando RequisiÁ„o';
   CINFOTEFTXT_AguardandoSts = 'Aguardando Status';
   CINFOTEFTXT_AguardandoResp ='Aguardando Resposta';
 
@@ -56,7 +56,7 @@ type
   private
     fAguardandoResposta: Boolean;
     fModelo: TACBrTEFTXTModelo;
-    fTEFTXT: TACBrTEFTXTBaseClass;
+    fTEFTXT: TACBrTEFTXTGerenciadorPadrao;
 
     procedure QuandoGravarLogAPI(const ALogLine: String; var Tratado: Boolean);
     procedure QuandoAguardarArquivoAPI( ArquivoAguardado: String;
@@ -99,24 +99,12 @@ type
       const Rede, NSU, CodigoFinalizacao: String;
       AStatus: TACBrTEFStatusTransacao = tefstsSucessoAutomatico); override;
 
-    procedure ResolverTransacaoPendente(AStatus: TACBrTEFStatusTransacao = tefstsSucessoManual); override;
-    procedure AbortarTransacaoEmAndamento; override;
-    procedure FinalizarVenda; override;
-
-    procedure ExibirMensagemPinPad(const MsgPinPad: String); override;
-    function ObterDadoPinPad(TipoDado: TACBrTEFAPIDadoPinPad;
-      TimeOut: Integer = 30000; MinLen: SmallInt = 0; MaxLen: SmallInt = 0): String; override;
-    function VerificarPresencaPinPad: Byte; override;
     function VersaoAPI: String; override;
 
-    procedure ObterListaImagensPinPad(ALista: TStrings); override;
+    procedure ResolverTransacaoPendente(AStatus: TACBrTEFStatusTransacao = tefstsSucessoManual); override;
+    procedure AbortarTransacaoEmAndamento; override;
 
-    procedure ExibirImagemPinPad(const NomeImagem: String); override;
-    procedure ApagarImagemPinPad(const NomeImagem: String); override;
-    procedure CarregarImagemPinPad(const NomeImagem: String; AStream: TStream;
-      TipoImagem: TACBrTEFAPIImagemPinPad ); override;
-
-    property TEFTXT: TACBrTEFTXTBaseClass read fTEFTXT;
+    property TEFTXT: TACBrTEFTXTGerenciadorPadrao read fTEFTXT;
     property Modelo: TACBrTEFTXTModelo read fModelo write SetModelo;
     property AguardandoResposta: Boolean read fAguardandoResposta;
   end;
@@ -203,12 +191,24 @@ procedure TACBrTEFAPIClassTXT.QuandoAguardarArquivoAPI(ArquivoAguardado: String;
   SegundosParaTimeOut: Double; var Interromper: Boolean);
 var
   msg: String;
+  Secs: Double;
 begin
-  msg := Format( ACBrStr(CInfoAguardandoResposta),
-                 [fTEFTXT.ModeloTEF, FormatFloat('##0',abs(SegundosParaTimeOut))] );
-  TACBrTEFAPI(fpACBrTEFAPI).QuandoExibirMensagem( msg, telaTodas, -1);
+  Secs := 0;
+  if (SegundosParaTimeOut < 0) then
+    Secs := abs(SegundosParaTimeOut)
+  else
+    Secs := ((fTEFTXT.Config.TempoLimiteEsperaStatus/1000) - SegundosParaTimeOut);
 
-  TACBrTEFAPI(fpACBrTEFAPI).QuandoEsperarOperacao(opapiAguardaUsuario, Interromper);
+  if (Secs >= 2) then  // So exibe msg se espera passar de 2 seg
+  begin
+    msg := Format( ACBrStr(CInfoAguardandoResposta),
+                   [fTEFTXT.ModeloTEF, FormatFloat('##0',abs(SegundosParaTimeOut))] );
+    TACBrTEFAPI(fpACBrTEFAPI).QuandoExibirMensagem( msg, telaTodas, -1);
+  end;
+
+  if (ArquivoAguardado <> fTEFTXT.ArqSts) then
+    TACBrTEFAPI(fpACBrTEFAPI).QuandoEsperarOperacao(opapiAguardaUsuario, Interromper);
+
   if not Interromper then
     Interromper := (fAguardandoResposta = False);
 end;
@@ -219,9 +219,9 @@ var
 begin
   msg := '';
   case fTEFTXT.Status of
-    tefstEnviandoRequisicao: msg := CINFOTEFTXT_EnviandoRequisicao;
-    tefstAguardandoSts: msg := CINFOTEFTXT_AguardandoSts;
-    tefstAguardandoResp: msg := CINFOTEFTXT_AguardandoResp;
+    tefstEnviandoRequisicao: msg := ACBrStr(CINFOTEFTXT_EnviandoRequisicao);
+    tefstAguardandoSts: msg := ACBrStr(CINFOTEFTXT_AguardandoSts);
+    tefstAguardandoResp: msg := ACBrStr(CINFOTEFTXT_AguardandoResp);
   end;
 
   fAguardandoResposta := (fTEFTXT.Status in [tefstAguardandoSts, tefstAguardandoResp]);
@@ -229,75 +229,98 @@ begin
 end;
 
 procedure TACBrTEFAPIClassTXT.InterpretarRespostaAPI;
-var
-  i: Integer;
-  s: String;
-  sl: TStringList;
 begin
   fpACBrTEFAPI.UltimaRespostaTEF.Clear;
-  sl := TStringList.Create;
-  try
-    fTEFTXT.Resp.SalvarArquivo(sl);
-    for i := 0 to sl.Count-1 do
-    begin
-      s := sl[i];
-      s := StringReplace(s, '=', ' = ', []);
-      sl[i] := s;
-    end;
-
-    fpACBrTEFAPI.UltimaRespostaTEF.Conteudo.Conteudo.Text := sl.Text;
-  finally
-    sl.Free;
-  end;
-
+  fTEFTXT.Resp.SalvarArquivo(fpACBrTEFAPI.UltimaRespostaTEF.Conteudo.Conteudo);
   fpACBrTEFAPI.UltimaRespostaTEF.ConteudoToProperty;
 end;
 
 procedure TACBrTEFAPIClassTXT.CarregarRespostasPendentes(
   const AListaRespostasTEF: TACBrTEFAPIRespostas);
+var
+  Resp: TACBrTEFResp;
 begin
   inherited CarregarRespostasPendentes(AListaRespostasTEF);
+
+  if FileExists(fTEFTXT.ArqResp) then
+  begin
+    Resp := fpTEFRespClass.Create;
+    try
+      Resp.LeArquivo(fTEFTXT.ArqResp);
+      Resp.ConteudoToProperty;
+      Resp.ArqBackup := fTEFTXT.ArqResp;
+      fpACBrTEFAPI.RespostasTEF.AdicionarRespostaTEF(Resp);
+    finally
+      Resp.Free;
+    end;
+  end;
 end;
 
 function TACBrTEFAPIClassTXT.EfetuarPagamento(ValorPagto: Currency;
   Modalidade: TACBrTEFModalidadePagamento; CartoesAceitos: TACBrTEFTiposCartao;
   Financiamento: TACBrTEFModalidadeFinanciamento; Parcelas: Byte;
   DataPreDatado: TDateTime; DadosAdicionais: String): Boolean;
+var
+  Moeda: Integer;
 begin
-  Result := inherited EfetuarPagamento(ValorPagto, Modalidade, CartoesAceitos,
-    Financiamento, Parcelas, DataPreDatado, DadosAdicionais);
+  if (fpACBrTEFAPI.DadosAutomacao.MoedaISO4217 = CMODEDA_USD) then
+    Moeda := 1
+  else
+    Moeda := 0;
+
+  // Gerenciador padr„o (original) n„o preve forma da passar par‚metros:
+  // CartoesAceitos, Financiamento, Parcelas, DataPreDatado
+
+  if (Modalidade = tefmpCheque) then
+    Result := fTEFTXT.CHQ( ValorPagto, fpACBrTEFAPI.RespostasTEF.IdentificadorTransacao)
+  else
+    Result := fTEFTXT.CRT( ValorPagto, fpACBrTEFAPI.RespostasTEF.IdentificadorTransacao, Moeda);
 end;
 
 function TACBrTEFAPIClassTXT.EfetuarAdministrativa(CodOperacaoAdm: TACBrTEFOperacao): Boolean;
 begin
-  EfetuarAdministrativa('');
+  Result := False;
+  if (CodOperacaoAdm = tefopTesteComunicacao) then
+  begin
+    fTEFTXT.ATV;
+    Result := True;
+    TEFTXT.Resp.Campo[9,0].AsString := '0'; // Sinaliza como Sucesso
+  end
+  else
+    Result := fTEFTXT.ADM;
 end;
 
 function TACBrTEFAPIClassTXT.EfetuarAdministrativa(const CodOperacaoAdm: string): Boolean;
 begin
-  Result := False;
-  if (fTEFTXT is TACBrTEFTXTGerenciadorPadrao) then
-    Result := TACBrTEFTXTGerenciadorPadrao(fTEFTXT).ADM;
+  Result := EfetuarAdministrativa(tefopNenhuma);
 end;
 
 function TACBrTEFAPIClassTXT.CancelarTransacao(const NSU,
   CodigoAutorizacaoTransacao: string; DataHoraTransacao: TDateTime;
   Valor: Double; const CodigoFinalizacao: string; const Rede: string): Boolean;
 begin
-  Result := inherited CancelarTransacao(NSU, CodigoAutorizacaoTransacao,
-    DataHoraTransacao, Valor, CodigoFinalizacao, Rede);
+  Result := fTEFTXT.CNC( Valor, Rede, NSU, DataHoraTransacao);
 end;
 
 procedure TACBrTEFAPIClassTXT.FinalizarTransacao(const Rede, NSU,
   CodigoFinalizacao: String; AStatus: TACBrTEFStatusTransacao);
 begin
-  inherited FinalizarTransacao(Rede, NSU, CodigoFinalizacao, AStatus);
+  if (AStatus in [tefstsSucessoAutomatico, tefstsSucessoManual]) then
+    fTEFTXT.CNF(Rede, NSU, CodigoFinalizacao)
+  else
+    fTEFTXT.NCN(Rede, NSU, CodigoFinalizacao)
 end;
 
 procedure TACBrTEFAPIClassTXT.ResolverTransacaoPendente(
   AStatus: TACBrTEFStatusTransacao);
 begin
-  inherited ResolverTransacaoPendente(AStatus);
+  if fpACBrTEFAPI.UltimaRespostaTEF.Confirmar then
+  begin
+    FinalizarTransacao( fpACBrTEFAPI.UltimaRespostaTEF.Rede,
+                        fpACBrTEFAPI.UltimaRespostaTEF.NSU,
+                        fpACBrTEFAPI.UltimaRespostaTEF.Finalizacao,
+                        AStatus );
+  end;
 end;
 
 procedure TACBrTEFAPIClassTXT.AbortarTransacaoEmAndamento;
@@ -305,51 +328,9 @@ begin
   fAguardandoResposta := False;
 end;
 
-procedure TACBrTEFAPIClassTXT.FinalizarVenda;
-begin
-  inherited FinalizarVenda;
-end;
-
-procedure TACBrTEFAPIClassTXT.ExibirMensagemPinPad(const MsgPinPad: String);
-begin
-  inherited ExibirMensagemPinPad(MsgPinPad);
-end;
-
-function TACBrTEFAPIClassTXT.ObterDadoPinPad(TipoDado: TACBrTEFAPIDadoPinPad;
-  TimeOut: Integer; MinLen: SmallInt; MaxLen: SmallInt): String;
-begin
-  Result := inherited ObterDadoPinPad(TipoDado, TimeOut, MinLen, MaxLen);
-end;
-
-function TACBrTEFAPIClassTXT.VerificarPresencaPinPad: Byte;
-begin
-  Result := inherited VerificarPresencaPinPad;
-end;
-
 function TACBrTEFAPIClassTXT.VersaoAPI: String;
 begin
-  Result := inherited VersaoAPI;
-end;
-
-procedure TACBrTEFAPIClassTXT.ObterListaImagensPinPad(ALista: TStrings);
-begin
-  inherited ObterListaImagensPinPad(ALista);
-end;
-
-procedure TACBrTEFAPIClassTXT.ExibirImagemPinPad(const NomeImagem: String);
-begin
-  inherited ExibirImagemPinPad(NomeImagem);
-end;
-
-procedure TACBrTEFAPIClassTXT.ApagarImagemPinPad(const NomeImagem: String);
-begin
-  inherited ApagarImagemPinPad(NomeImagem);
-end;
-
-procedure TACBrTEFAPIClassTXT.CarregarImagemPinPad(const NomeImagem: String;
-  AStream: TStream; TipoImagem: TACBrTEFAPIImagemPinPad);
-begin
-  inherited CarregarImagemPinPad(NomeImagem, AStream, TipoImagem);
+  Result := fTEFTXT.VersaoTEF;
 end;
 
 end.

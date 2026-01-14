@@ -107,7 +107,7 @@ type
 
     procedure ProcessarMensagemDeErros(LJson: TACBrJSONObject;
                                      Response: TNFSeWebserviceResponse;
-                                     const AListTag: string = 'Erros');
+                                     const AListTag: string = 'Erros'); virtual;
 
     procedure ValidarSchema(Response: TNFSeWebserviceResponse; aMetodo: TMetodo); override;
   public
@@ -142,6 +142,7 @@ begin
 
   with ConfigGeral do
   begin
+    Layout := loPadraoNacional;
     QuebradeLinha := '\n';
     ModoEnvio := meUnitario;
     ConsultaLote := False;
@@ -969,6 +970,8 @@ begin
             Response.idEvento := IDEvento;
             Response.tpEvento := StrTotpEvento(Ok, Copy(IDEvento, 51, 6));
             Response.XmlRetorno := ArquivoXml;
+
+            Response.SucessoCanc := (Response.tpEvento = teCancelamento);
 
             ANode := ANode.Childrens.FindAnyNs('pedRegEvento');
             ANode := ANode.Childrens.FindAnyNs('infPedReg');
