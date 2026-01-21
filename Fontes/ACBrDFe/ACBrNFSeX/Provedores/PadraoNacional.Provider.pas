@@ -109,6 +109,7 @@ type
                                      Response: TNFSeWebserviceResponse;
                                      const AListTag: string = 'Erros'); virtual;
 
+    function PrepararArquivoEnvio(const aXml: string; aMetodo: TMetodo): string; override;
     procedure ValidarSchema(Response: TNFSeWebserviceResponse; aMetodo: TMetodo); override;
   public
     function RegimeEspecialTributacaoToStr(const t: TnfseRegimeEspecialTributacao): string; override;
@@ -198,6 +199,7 @@ begin
   begin
     GerarNFSe := 'DPS_v' + VersaoDFe + '.xsd';
     ConsultarNFSe := 'DPS_v' + VersaoDFe + '.xsd';
+//    ConsultarNFSePorChave := 'DPS_v' + VersaoDFe + '.xsd';
     ConsultarNFSeRps := 'DPS_v' + VersaoDFe + '.xsd';
     EnviarEvento := 'pedRegEvento_v' + VersaoDFe + '.xsd';
     ConsultarEvento := 'DPS_v' + VersaoDFe + '.xsd';
@@ -362,7 +364,7 @@ begin
     Nota.XmlRps := ChangeLineBreak(Nota.XmlRps, '');
 
     if (ConfigAssinar.Rps and (Response.ModoEnvio in [meLoteAssincrono, meLoteSincrono])) or
-       (ConfigAssinar.RpsGerarNFSe and (Response.ModoEnvio = meUnitario)) then
+       (ConfigAssinar.RpsGerarNFSe and (Response.ModoEnvio in [meUnitario, meAutomatico])) then
     begin
       Nota.XmlRps := FAOwner.SSL.Assinar(Nota.XmlRps,
                                          ConfigMsgDados.XmlRps.DocElemento,
@@ -1068,7 +1070,8 @@ begin
           AResumo.TipoEvento := JSon.AsString['TipoEvento'];
 
           ArquivoXml := JSon.AsString['ArquivoXml'];
-          ArquivoXml := DecodeToString(DeCompress(DecodeBase64(ArquivoXml)), True);
+//          ArquivoXml := DecodeToString(DeCompress(DecodeBase64(ArquivoXml)), True);
+          ArquivoXml := DeCompress(DecodeBase64(ArquivoXml));
 
           if ArquivoXml = '' then
           begin
@@ -1486,25 +1489,32 @@ begin
   if aMetodo in [tmGerar, tmEnviarEvento] then
   begin
     inherited ValidarSchema(Response, aMetodo);
+  end;
+end;
 
-    Response.ArquivoEnvio := ChangeLineBreak(Response.ArquivoEnvio, '');
-    Response.ArquivoEnvio := EncodeBase64(GZipCompress(Response.ArquivoEnvio));
+function TACBrNFSeProviderPadraoNacional.PrepararArquivoEnvio(
+  const aXml: string; aMetodo: TMetodo): string;
+begin
+  if aMetodo in [tmGerar, tmEnviarEvento] then
+  begin
+    Result := ChangeLineBreak(aXml, '');
+    Result := EncodeBase64(GZipCompress(Result));
 
     case aMetodo of
       tmGerar:
         begin
-          Response.ArquivoEnvio := '{"dpsXmlGZipB64":"' + Response.ArquivoEnvio + '"}';
+          Result := '{"dpsXmlGZipB64":"' + Result + '"}';
           Path := '/nfse';
         end;
 
       tmEnviarEvento:
         begin
-          Response.ArquivoEnvio := '{"pedidoRegistroEventoXmlGZipB64":"' + Response.ArquivoEnvio + '"}';
+          Result := '{"pedidoRegistroEventoXmlGZipB64":"' + Result + '"}';
           Path := '/nfse/' + Chave + '/eventos';
         end;
     else
       begin
-        Response.ArquivoEnvio := '';
+        Result := '';
         Path := '';
       end;
     end;
