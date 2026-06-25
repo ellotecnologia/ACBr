@@ -37,9 +37,15 @@ unit ACBrCIOT;
 interface
 
 uses
-  Classes, SysUtils,
-  ACBrDFe, ACBrDFeConfiguracoes, ACBrDFeException, ACBrBase,
-  ACBrCIOTConfiguracoes, ACBrCIOTWebServices, ACBrCIOTContratos,
+  Classes,
+  SysUtils,
+  ACBrDFe,
+  ACBrDFeConfiguracoes,
+  ACBrDFeException,
+  ACBrBase,
+  ACBrCIOTConfiguracoes,
+  ACBrCIOTWebServices,
+  ACBrCIOTContratos,
   ACBrCIOTConversao;
 
 const
@@ -111,11 +117,7 @@ uses
   ACBrUtil.Base,
   ACBrUtil.Strings;
 
-{$IFDEF FPC}
- {$R ACBrCIOTServicos.rc}
-{$ELSE}
- {$R ACBrCIOTServicos.res}
-{$ENDIF}
+{$R ACBrCIOTServicos.res}
 
 { TACBrCIOT }
 

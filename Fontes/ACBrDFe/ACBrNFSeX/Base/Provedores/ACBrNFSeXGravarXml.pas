@@ -51,6 +51,9 @@ type
     FPathArquivoMunicipios: string;
     FValidarInscricoes: boolean;
     FValidarListaServicos: boolean;
+    // Propriedades a serem utilizadas na geração do arquivo INI
+    FGerarTodasSecoes: boolean;
+    FDocumentar: boolean;
 
   public
     property AjustarTagNro: boolean read FAjustarTagNro write FAjustarTagNro;
@@ -59,7 +62,9 @@ type
     property PathArquivoMunicipios: string read FPathArquivoMunicipios write FPathArquivoMunicipios;
     property ValidarInscricoes: boolean read FValidarInscricoes write FValidarInscricoes;
     property ValidarListaServicos: boolean read FValidarListaServicos write FValidarListaServicos;
-
+    // Propriedades a serem utilizadas na geração do arquivo INI
+    property GerarTodasSecoes: boolean read FGerarTodasSecoes write FGerarTodasSecoes;
+    property Documentar: boolean read FDocumentar write FDocumentar;
   end;
 
   TNFSeWClass = class(TACBrXmlWriter)
@@ -118,11 +123,17 @@ type
     FGerarIBSCBSNFSe: Boolean;
     FTamMinimo: Integer;
 
-    function GetOpcoes: TACBrXmlWriterOptions;
-    procedure SetOpcoes(AValue: TACBrXmlWriterOptions);
+    FParamsTabW: TStrings;
+    FIniParamsTabW: TMemIniFile;
+    FNrOcorrnNFSe: Integer;
+
+    function GetOpcoes: TXmlWriterOptions;
+    procedure SetOpcoes(AValue: TXmlWriterOptions);
+    procedure SetParamsTabW(const Value: TStrings);
   protected
     FpAOwner: IACBrNFSeXProvider;
     LSecao: string;
+    FpIniParamsTabCarregado: Boolean;
 
     FConteudoTxt: TStringList;
 
@@ -174,7 +185,7 @@ type
 
     function GerarXMLIBSCBSTribValores(valores: Tvalorestrib): TACBrXmlNode; virtual;
     function GerarXMLgReeRepRes(gReeRepRes: TgReeRepRes): TACBrXmlNode;
-    function GerarXMLDocumentos: TACBrXmlNodeArray;
+    function GerarXMLDocumentos: TACBrXmlNodeArray; virtual;
     function GerarXMLdFeNacional(dFeNacional: TdFeNacional): TACBrXmlNode;
     function GerarXMLdocFiscalOutro(docFiscalOutro: TdocFiscalOutro): TACBrXmlNode;
     function GerarXMLdocOutro(docOutro: TdocOutro): TACBrXmlNode;
@@ -204,6 +215,13 @@ type
     procedure GerarINITotgIBS(AINIRec: TMemIniFile; TotgIBS: TgIBS);
     procedure GerarINITotgCBS(AINIRec: TMemIniFile; TotgCBS: TgCBS);
 
+    function ItemListaServicoDescricao(const Codigo: string): string;
+    function LerParamsTabIniServicos: AnsiString;
+    function LerParamsTabInterno: AnsiString;
+    function LerDescricaoServico(const ACodigo: string): string;
+    procedure LerParamsTabIni(ApenasSeNaoLido: Boolean);
+    procedure LerParamsTab;
+
     function GerarIniRps: string;
     function GerarIniNfse: string;
  public
@@ -216,7 +234,7 @@ type
     function GerarXml: Boolean; Override;
     function GerarIni: string; virtual;
 
-    property Opcoes: TACBrXmlWriterOptions read GetOpcoes write SetOpcoes;
+    property Opcoes: TXmlWriterOptions read GetOpcoes write SetOpcoes;
 
     property NFSe: TNFSe                 read FNFSe           write FNFSe;
     property VersaoNFSe: TVersaoNFSe     read FVersaoNFSe     write FVersaoNFSe;
@@ -257,6 +275,7 @@ type
     property NrOcorrfinNFSe: Integer read FNrOcorrfinNFSe write FNrOcorrfinNFSe;
     property NrOcorrindFinal: Integer read FNrOcorrindFinal write FNrOcorrindFinal;
     property NrOcorrcIndOp: Integer read FNrOcorrcIndOp write FNrOcorrcIndOp;
+    property NrOcorrnNFSe: Integer read FNrOcorrnNFSe write FNrOcorrnNFSe;
 
     property TagIBSCBS: string read FTagIBSCBS write FTagIBSCBS;
     property TagCST: string read FTagCST write FTagCST;
@@ -272,14 +291,17 @@ type
     property GerarIBSCBSNFSe: Boolean read FGerarIBSCBSNFSe write FGerarIBSCBSNFSe;
 
     property TamMinimo: Integer read FTamMinimo write FTamMinimo;
+    property ParamsTabW: TStrings read FParamsTabW write SetParamsTabW;
   end;
 
 implementation
 
 uses
+  synautil, types,
   ACBrUtil.Strings,
   ACBrDFeConsts,
   ACBrDFeException,
+  ACBrNFSeX.GravarIni,
   ACBrNFSeX,
   ACBrNFSeXConsts;
 
@@ -296,9 +318,17 @@ begin
   TXmlWriterOptions(Opcoes).PathArquivoMunicipios := '';
   TXmlWriterOptions(Opcoes).ValidarInscricoes := False;
   TXmlWriterOptions(Opcoes).ValidarListaServicos := False;
+  // Propriedades a serem utilizadas na geração do arquivo INI
+  TXmlWriterOptions(Opcoes).GerarTodasSecoes := False;
+  TXmlWriterOptions(Opcoes).Documentar := False;
 
   FConteudoTxt := TStringList.Create;
   FConteudoTxt.Clear;
+
+  FParamsTabW := TStringList.Create;
+
+  FIniParamsTabW := TMemIniFile.Create('');
+  FpIniParamsTabCarregado := False;
 
   Configuracao;
 end;
@@ -308,7 +338,6 @@ begin
   // Propriedades de Formatação de informações
   FFormatoEmissao := tcDatHor;
   FFormatoCompetencia := tcDatHor;
-  FFormDiscriminacao := fdNenhum;
   FFormItemLServico := filsComFormatacao;
 
   // Os 4 IF abaixo vão configurar o componente conforme a presença do
@@ -356,6 +385,7 @@ begin
   FNrOcorrcCredPres := 0;
   FNrOcorrCSTReg := 1;
   FNrOcorrtpAmb := 1;
+  FNrOcorrnNFSe := 1;
 
   FTagIBSCBS := 'IBSCBS';
   FTagCST := 'CST';
@@ -375,16 +405,22 @@ end;
 
 procedure TNFSeWClass.ConsolidarVariosItensServicosEmUmSo;
 var
-  i: Integer;
-  xDiscriminacao, xItemListaServ: string;
-  vValorDeducoes, vValorServicos, vDescontoCondicionado, vAliquota, vBaseCalculo,
-  vDescontoIncondicionado, vValorPis, vValorCofins, vValorInss, vValorIr,
-  vValorCsll, vValorIss, vAliquotaPis, vAliquotaCofins, vAliquotaInss,
-  vAliquotaIr, vAliquotaCsll, vValorIssRetido: Double;
+  i, UltimoItem: Integer;
+  xDiscriminacao: string;
+  vQtdeDiaria, vValorTaxaTurismo, vValorRecebido,
+  vValorDeducoes, vValorServicos, vDescontoCondicionado,
+  vBaseCalculo, vDescontoIncondicionado, vValorPis, vValorCofins, vValorInss, vValorIr,
+  vValorCsll, vValorIss,
+  vValorIssRetido: Double;
 begin
   if NFSe.Servico.ItemServico.Count > 0 then
   begin
     xDiscriminacao := '';
+
+    vQtdeDiaria := 0;
+    vValorTaxaTurismo := 0;
+    vValorRecebido := 0;
+
     vValorDeducoes := 0;
     vValorServicos := 0;
     vDescontoCondicionado := 0;
@@ -397,26 +433,15 @@ begin
     vValorCsll := 0;
     vValorIss := 0;
     vValorIssRetido := 0;
-    vAliquota := 0;
-    vAliquotaPis := 0;
-    vAliquotaCofins := 0;
-    vAliquotaInss := 0;
-    vAliquotaIr := 0;
-    vAliquotaCsll := 0;
 
     with FNFSe.Servico do
     begin
       for i := 0 to ItemServico.Count -1 do
       begin
-        xItemListaServ := ItemServico[i].ItemListaServico;
-        vAliquota := ItemServico[i].Aliquota;
-        vAliquotaPis := ItemServico[i].AliqRetPIS;
-        vAliquotaCofins := ItemServico[i].AliqRetCOFINS;
-        vAliquotaInss := ItemServico[i].AliqRetINSS;
-        vAliquotaIr := ItemServico[i].AliqRetIRRF;
-        vAliquotaCsll := ItemServico[i].AliqRetCSLL;
-
+        vQtdeDiaria := vQtdeDiaria + ItemServico[i].QtdeDiaria;
+        vValorTaxaTurismo := vValorTaxaTurismo + ItemServico[i].ValorTaxaTurismo;
         vValorDeducoes := vValorDeducoes + ItemServico[i].ValorDeducoes;
+        vValorRecebido := vValorRecebido + ItemServico[i].ValorRecebido;
         vValorServicos := vValorServicos + ItemServico[i].ValorTotal;
         vDescontoCondicionado := vDescontoCondicionado + ItemServico[i].DescontoCondicionado;
         vDescontoIncondicionado := vDescontoIncondicionado + ItemServico[i].DescontoIncondicionado;
@@ -462,15 +487,6 @@ begin
       end;
     end;
 
-    // Leva em consideração a informação do ultimo item da lista.
-    NFSe.Servico.ItemListaServico := xItemListaServ;
-    NFSe.Servico.Valores.Aliquota := vAliquota;
-    NFSe.Servico.Valores.AliquotaPis := vAliquotaPis;
-    NFSe.Servico.Valores.AliquotaCofins := vAliquotaCofins;
-    NFSe.Servico.Valores.AliquotaInss := vAliquotaInss;
-    NFSe.Servico.Valores.AliquotaIr := vAliquotaIr;
-    NFSe.Servico.Valores.AliquotaCsll := vAliquotaCsll;
-
     // Consolida todos os itens da lista.
     case FormatoDiscriminacao of
       fdTabulado:
@@ -482,18 +498,71 @@ begin
       NFSe.Servico.Discriminacao := xDiscriminacao;
     end;
 
-    NFSe.Servico.Valores.ValorDeducoes := vValorDeducoes;
-    NFSe.Servico.Valores.ValorServicos := vValorServicos;
-    NFSe.Servico.Valores.DescontoCondicionado := vDescontoCondicionado;
-    NFSe.Servico.Valores.DescontoIncondicionado := vDescontoIncondicionado;
-    NFSe.Servico.Valores.BaseCalculo := vBaseCalculo;
-    NFSe.Servico.Valores.ValorPis := vValorPis;
-    NFSe.Servico.Valores.ValorCofins := vValorCofins;
-    NFSe.Servico.Valores.ValorInss := vValorInss;
-    NFSe.Servico.Valores.ValorIr := vValorIr;
-    NFSe.Servico.Valores.ValorCsll := vValorCsll;
-    NFSe.Servico.Valores.ValorIss := vValorIss;
-    NFSe.Servico.Valores.ValorIssRetido := vValorIssRetido;
+    // Leva em consideração a informação do ultimo item da lista.
+    UltimoItem := FNFSe.Servico.ItemServico.Count -1;
+    NFSe.Servico.CodigoMunicipio := IntToStr(FNFSe.Servico.ItemServico[UltimoItem].CodigoMunicipio);
+    NFSe.Servico.CodigoPais := FNFSe.Servico.ItemServico[UltimoItem].CodigoPais;
+    NFSe.Servico.ItemListaServico := FNFSe.Servico.ItemServico[UltimoItem].ItemListaServico;
+    NFSe.Servico.xItemListaServico := FNFSe.Servico.ItemServico[UltimoItem].xItemListaServico;
+    NFSe.Servico.CodigoTributacaoMunicipio := FNFSe.Servico.ItemServico[UltimoItem].CodigoTributacaoMunicipio;
+    NFSe.Servico.CodigoNBS := FNFSe.Servico.ItemServico[UltimoItem].CodigoNBS;
+    NFSe.infNFSe.xNBS := FNFSe.Servico.ItemServico[UltimoItem].xNBS;
+    NFSe.Servico.CodigoInterContr := FNFSe.Servico.ItemServico[UltimoItem].CodigoInterContr;
+    NFSe.Servico.CodigoCnae := FNFSe.Servico.ItemServico[UltimoItem].CodigoCnae;
+    NFSe.Servico.ResponsavelRetencao := FNFSe.Servico.ItemServico[UltimoItem].ResponsavelRetencao;
+    NFSe.Servico.ExigibilidadeISS := FNFSe.Servico.ItemServico[UltimoItem].ExigibilidadeISS;
+    NFSe.Servico.MunicipioIncidencia := FNFSe.Servico.ItemServico[UltimoItem].MunicipioIncidencia;
+    NFSe.Servico.xMunicipioIncidencia := FNFSe.Servico.ItemServico[UltimoItem].xMunicipioIncidencia;
+    NFSe.Servico.NumeroProcesso := FNFSe.Servico.ItemServico[UltimoItem].NumeroProcesso;
+    NFSe.Servico.InfAdicional := FNFSe.Servico.ItemServico[UltimoItem].InfAdicional;
+    NFSe.Servico.CodigoServicoNacional := FNFSe.Servico.ItemServico[UltimoItem].CodigoServicoNacional;
+    NFSe.Servico.CodigoTributacaoNacional := FNFSe.Servico.ItemServico[UltimoItem].CodigoTributacaoNacional;
+
+    NFSe.Servico.Valores.Aliquota := FNFSe.Servico.ItemServico[UltimoItem].Aliquota;
+    NFSe.Servico.Valores.AliquotaDeducoes := FNFSe.Servico.ItemServico[UltimoItem].AliqDeducoes;
+    NFSe.Servico.Valores.AliquotaPis := FNFSe.Servico.ItemServico[UltimoItem].AliqRetPIS;
+    NFSe.Servico.Valores.AliquotaCofins := FNFSe.Servico.ItemServico[UltimoItem].AliqRetCOFINS;
+    NFSe.Servico.Valores.AliquotaInss := FNFSe.Servico.ItemServico[UltimoItem].AliqRetINSS;
+    NFSe.Servico.Valores.AliquotaIr := FNFSe.Servico.ItemServico[UltimoItem].AliqRetIRRF;
+    NFSe.Servico.Valores.AliquotaCsll := FNFSe.Servico.ItemServico[UltimoItem].AliqRetCSLL;
+    NFSe.Servico.Valores.RetidoCSLL := FNFSe.Servico.ItemServico[UltimoItem].RetidoCSLL;
+    NFSe.Servico.Valores.RetidoPIS := FNFSe.Servico.ItemServico[UltimoItem].RetidoPIS;
+    NFSe.Servico.Valores.RetidoCOFINS := FNFSe.Servico.ItemServico[UltimoItem].RetidoCOFINS;
+    NFSe.Servico.Valores.RetidoINSS := FNFSe.Servico.ItemServico[UltimoItem].RetidoINSS;
+    NFSe.Servico.Valores.RetidoIR := FNFSe.Servico.ItemServico[UltimoItem].RetidoIRRF;
+    NFSe.Servico.Valores.RetidoCPP := FNFSe.Servico.ItemServico[UltimoItem].RetidoCPP;
+
+    // Realiza a totalização dos valores
+    if NFSe.Servico.Valores.QtdeDiaria = 0 then
+      NFSe.Servico.Valores.QtdeDiaria := vQtdeDiaria;
+    if NFSe.Servico.Valores.ValorTaxaTurismo = 0 then
+      NFSe.Servico.Valores.ValorTaxaTurismo := vValorTaxaTurismo;
+    if NFSe.Servico.Valores.ValorDeducoes = 0 then
+      NFSe.Servico.Valores.ValorDeducoes := vValorDeducoes;
+    if NFSe.Servico.Valores.ValorRecebido = 0 then
+      NFSe.Servico.Valores.ValorRecebido := vValorRecebido;
+    if NFSe.Servico.Valores.ValorServicos = 0 then
+      NFSe.Servico.Valores.ValorServicos := vValorServicos;
+    if NFSe.Servico.Valores.DescontoCondicionado = 0 then
+      NFSe.Servico.Valores.DescontoCondicionado := vDescontoCondicionado;
+    if NFSe.Servico.Valores.DescontoIncondicionado = 0 then
+      NFSe.Servico.Valores.DescontoIncondicionado := vDescontoIncondicionado;
+    if NFSe.Servico.Valores.BaseCalculo = 0 then
+      NFSe.Servico.Valores.BaseCalculo := vBaseCalculo;
+    if NFSe.Servico.Valores.ValorPis = 0 then
+      NFSe.Servico.Valores.ValorPis := vValorPis;
+    if NFSe.Servico.Valores.ValorCofins = 0 then
+      NFSe.Servico.Valores.ValorCofins := vValorCofins;
+    if NFSe.Servico.Valores.ValorInss = 0 then
+      NFSe.Servico.Valores.ValorInss := vValorInss;
+    if NFSe.Servico.Valores.ValorIr = 0 then
+      NFSe.Servico.Valores.ValorIr := vValorIr;
+    if NFSe.Servico.Valores.ValorCsll = 0 then
+      NFSe.Servico.Valores.ValorCsll := vValorCsll;
+    if NFSe.Servico.Valores.ValorIss = 0 then
+      NFSe.Servico.Valores.ValorIss := vValorIss;
+    if NFSe.Servico.Valores.ValorIssRetido = 0 then
+      NFSe.Servico.Valores.ValorIssRetido := vValorIssRetido;
   end;
 end;
 
@@ -517,8 +586,8 @@ function TNFSeWClass.GerarJson(const xDescricao, xCodigoItem: string;
 begin
   Result := '{"Descricao":"' + xDescricao + '",' +
              '"ItemServico":"' + xCodigoItem + '",' +
-             '"ValorUnitario":' + FloatToStr(aValorUnitario) + ',' +
              '"Quantidade":' + FloatToStr(aQuantidade) + ',' +
+             '"ValorUnitario":' + FloatToStr(aValorUnitario) + ',' +
              '"ValorServico":' + FloatToStr(aValorServico) + ',' +
              '"ValorBaseCalculo":' + FloatToStr(aBaseCalculo) + ',' +
              '"Aliquota":' + FloatToStr(aAliquota) + '}';
@@ -538,6 +607,8 @@ end;
 destructor TNFSeWClass.Destroy;
 begin
   FConteudoTxt.Free;
+  FParamsTabW.Free;
+  FIniParamsTabW.Free;
 
   inherited Destroy;
 end;
@@ -558,7 +629,7 @@ begin
 
     filsComFormatacaoSemZeroEsquerda:
       if Copy(item, 1, 1) = '0' then
-        Result := Copy(item, 2, 4)
+        Result := Copy(item, 2, Length(item))
       else
         Result := item;
 
@@ -567,7 +638,7 @@ begin
         Result := OnlyNumber(item);
 
         if Copy(Result, 1, 1) = '0' then
-          Result := Copy(Result, 2, 4);
+          Result := Copy(Result, 2, Length(Result));
       end
   else
     Result := item;
@@ -621,27 +692,116 @@ var
   i: Integer;
   item: string;
 begin
-  if Length(Codigo) <= 5 then
-  begin
-    item := OnlyNumber(Codigo);
+  item := OnlyNumber(Codigo);
 
+  if Length(item) >= 5 then
+  begin
+    i := StrToIntDef(item, 0);
+    item := Poem_Zeros(i, 6);
+
+    Result := Copy(item, 1, 2) + '.' + Copy(item, 3, 2) + '.' + Copy(item, 5, 2);
+  end;
+
+  if Length(item) <= 4 then
+  begin
     i := StrToIntDef(item, 0);
     item := Poem_Zeros(i, 4);
 
     Result := Copy(item, 1, 2) + '.' + Copy(item, 3, 2);
-  end
-  else
-    Result := Codigo;
+  end;
 end;
 
-function TNFSeWClass.GetOpcoes: TACBrXmlWriterOptions;
+function TNFSeWClass.GetOpcoes: TXmlWriterOptions;
 begin
   Result := TXmlWriterOptions(FOpcoes);
 end;
 
-procedure TNFSeWClass.SetOpcoes(AValue: TACBrXmlWriterOptions);
+procedure TNFSeWClass.LerParamsTab;
+var
+  ConteudoParams: AnsiString;
+begin
+  ConteudoParams := LerParamsTabIniServicos;
+
+  if ConteudoParams = '' then
+    ConteudoParams := LerParamsTabInterno;
+
+  FParamsTabW.Text := ConteudoParams;
+end;
+
+function TNFSeWClass.LerParamsTabIniServicos: AnsiString;
+var
+  ArqIni: String;
+  FS: TFileStream;
+begin
+  Result := '';
+  ArqIni := Trim(FpAOwner.ConfigGeral.IniTabServicos);
+
+  if (ArqIni <> '') and FileExists(ArqIni) then
+  begin
+    FS := TFileStream.Create(ArqIni, fmOpenRead or fmShareDenyNone);  // Thread Safe
+    try
+      FS.Position := 0;
+      Result := ReadStrFromStream(FS, FS.Size);
+    finally
+      FS.Free;
+    end;
+  end;
+end;
+
+function TNFSeWClass.LerParamsTabInterno: AnsiString;
+var
+  RS: TResourceStream;
+begin
+  Result := '';
+
+  RS := TResourceStream.Create(HInstance, 'TabServicos', RT_RCDATA);
+  try
+    RS.Position := 0;
+    Result := ReadStrFromStream(RS, RS.Size);
+  finally
+    RS.Free;
+  end;
+end;
+
+procedure TNFSeWClass.LerParamsTabIni(ApenasSeNaoLido: Boolean);
+begin
+  if ApenasSeNaoLido and FpIniParamsTabCarregado then
+    exit;
+
+  if ParamsTabW.Count = 0 then
+    LerParamsTab;
+
+  FIniParamsTabW.SetStrings(ParamsTabW);
+  FpIniParamsTabCarregado := True;
+end;
+
+function TNFSeWClass.ItemListaServicoDescricao(const Codigo: string): string;
+var
+  xCodigo: string;
+begin
+  xCodigo := OnlyNumber(Codigo);
+
+  if FpAOwner.ConfigGeral.TabServicosExt then
+    Result := ObterDescricaoServico(xCodigo)
+  else
+    Result := LerDescricaoServico(xCodigo);
+end;
+
+function TNFSeWClass.LerDescricaoServico(const ACodigo: string): string;
+begin
+  FIniParamsTabW.SetStrings(ParamsTabW);
+
+  Result := ACBrStr(FIniParamsTabW.ReadString(OnlyNumber(ACodigo), 'Descricao', ''));
+end;
+
+procedure TNFSeWClass.SetOpcoes(AValue: TXmlWriterOptions);
 begin
   FOpcoes := AValue;
+end;
+
+procedure TNFSeWClass.SetParamsTabW(const Value: TStrings);
+begin
+  FParamsTabW := Value;
 end;
 
 function TNFSeWClass.GerarCNPJ(const CNPJ: string): TACBrXmlNode;
@@ -671,16 +831,28 @@ begin
 end;
 
 function TNFSeWClass.GerarIni: string;
+var
+  WIni: TNFSeIniWriter;
 begin
   // Usar o FpAOwner em vez de  FProvider
 
-//  if NFSe.tpXML = txmlRPS then
-  Result := GerarIniRps
-//  else
-//    Result := GerarIniNfse;
+  WIni := TNFSeIniWriter.Create(NFSe, FpAOwner);
 
-//  Result := '';
-//  raise EACBrNFSeException.Create(ClassName + '.GerarIni, não implementado');
+  try
+    WIni.IniParams := IniParams;
+    WIni.GerarSecaoOpcional := Opcoes.GerarTodasSecoes;
+    WIni.Documentar := Opcoes.Documentar;
+
+    Result := WIni.GerarArquivoIni;
+  finally
+    WIni.Free;
+  end;
+{
+  if NFSe.tpXML = txmlRPS then
+    Result := GerarIniRps
+  else
+    Result := GerarIniNfse;
+}
 end;
 
 function TNFSeWClass.GerarIniNfse: string;
@@ -999,6 +1171,7 @@ begin
             begin
               INIRec.WriteString(sSecao, 'CEP', ConstrucaoCivil.Endereco.CEP);
               INIRec.WriteString(sSecao, 'xMunicipio', ConstrucaoCivil.Endereco.XMunicipio);
+              INIRec.WriteString(sSecao, 'CodigoMunicipio', ConstrucaoCivil.Endereco.CodigoMunicipio);
               INIRec.WriteString(sSecao, 'UF', ConstrucaoCivil.Endereco.UF);
               INIRec.WriteString(sSecao, 'Logradouro', ConstrucaoCivil.Endereco.Endereco);
               INIRec.WriteString(sSecao, 'Numero', ConstrucaoCivil.Endereco.Numero);
@@ -1014,6 +1187,10 @@ begin
           INIRec.WriteString(sSecao, 'nNumeroEncapsulamento', ConstrucaoCivil.nNumeroEncapsulamento);
           //Padrão Nacional
           INIRec.WriteString(sSecao, 'inscImobFisc', ConstrucaoCivil.inscImobFisc);
+          if ConstrucaoCivil.Cib > 0 then
+            INIRec.WriteInteger(sSecao, 'Cib', ConstrucaoCivil.Cib);
+          if ConstrucaoCivil.infobrasopcao > 0 then
+            INIRec.WriteInteger(sSecao, 'ObrasOpcao', ConstrucaoCivil.infobrasopcao);
         end;
       end;
 
@@ -1043,6 +1220,7 @@ begin
       //Padrão Nacional e IssNet
       INIRec.WriteString(sSecao, 'CodigoNBS', Servico.CodigoNBS);
       INIRec.WriteString(sSecao, 'CodigoInterContr', Servico.CodigoInterContr);
+      INIRec.WriteString(sSecao, 'xNBS', infNFSe.xNBS);
 
       // Provedor SoftPlan
       INIRec.WriteString(sSecao, 'CFPS', '');
@@ -1235,10 +1413,13 @@ begin
         INIRec.WriteDate(sSecao, 'dtIni', Servico.Evento.dtIni);
         INIRec.WriteDate(sSecao, 'dtFim', Servico.Evento.dtFim);
         INIRec.WriteString(sSecao, 'idAtvEvt', Servico.Evento.idAtvEvt);
+        INIRec.WriteInteger(sSecao, 'AtividadeEventoOpcao', Servico.Evento.infoatividadeeventoopcao);
         INIRec.WriteString(sSecao, 'CEP', Servico.Evento.Endereco.CEP);
+        INIRec.WriteString(sSecao, 'CodigoMunicipio', Servico.Evento.Endereco.CodigoMunicipio);
         INIRec.WriteString(sSecao, 'xMunicipio', Servico.Evento.Endereco.xMunicipio);
         INIRec.WriteString(sSecao, 'UF', Servico.Evento.Endereco.UF);
         INIRec.WriteString(sSecao, 'Logradouro', Servico.Evento.Endereco.Endereco);
+        INIRec.WriteString(sSecao, 'Numero', Servico.Evento.Endereco.Numero);
         INIRec.WriteString(sSecao, 'Complemento', Servico.Evento.Endereco.Complemento);
         INIRec.WriteString(sSecao, 'Bairro', Servico.Evento.Endereco.Bairro);
       end;
@@ -1269,6 +1450,7 @@ begin
       INIRec.WriteFloat(sSecao, 'ValorDeducoes', Servico.Valores.ValorDeducoes);
       INIRec.WriteFloat(sSecao, 'AliquotaDeducoes', Servico.Valores.AliquotaDeducoes);
       INIRec.WriteString(sSecao, 'JustificativaDeducao', Servico.Valores.JustificativaDeducao);
+      INIRec.WriteFloat(sSecao, 'BaseCalculoPISCOFINS', Servico.Valores.BaseCalculoPisCofins);
       INIRec.WriteFloat(sSecao, 'ValorPis', Servico.Valores.ValorPis);
       INIRec.WriteFloat(sSecao, 'AliquotaPis', Servico.Valores.AliquotaPis);
       INIRec.WriteString(sSecao, 'RetidoPis', FpAOwner.SimNaoToStr(Servico.Valores.RetidoPis));
@@ -1326,7 +1508,7 @@ begin
         INIRec.WriteString(sSecao, 'chNFSe', Servico.Valores.DocDeducao[i].chNFSe);
         INIRec.WriteString(sSecao, 'chNFe', Servico.Valores.DocDeducao[i].chNFe);
         INIRec.WriteString(sSecao, 'nDoc', Servico.Valores.DocDeducao[i].nDoc);
-        INIRec.WriteString(sSecao, 'tpDedRed', tpDedRedToStr(Servico.Valores.DocDeducao[i].tpDedRed));
+        INIRec.WriteString(sSecao, 'tpDedRed', FpAOwner.tpDedRedToStr(Servico.Valores.DocDeducao[i].tpDedRed));
         INIRec.WriteString(sSecao, 'xDescOutDed', Servico.Valores.DocDeducao[i].xDescOutDed);
         INIRec.WriteDate(sSecao, 'dtEmiDoc', Servico.Valores.DocDeducao[i].dtEmiDoc);
         INIRec.WriteFloat(sSecao, 'vDedutivelRedutivel', Servico.Valores.DocDeducao[i].vDedutivelRedutivel);
@@ -1395,6 +1577,9 @@ begin
         INIRec.WriteFloat(sSecao, 'vRetCP', Servico.Valores.tribFed.vRetCP);
         INIRec.WriteFloat(sSecao, 'vRetIRRF', Servico.Valores.tribFed.vRetIRRF);
         INIRec.WriteFloat(sSecao, 'vRetCSLL', Servico.Valores.tribFed.vRetCSLL);
+        INIRec.WriteFloat(sSecao, 'vBCPIRRF', Servico.Valores.tribFed.vBCPIRRF);
+        INIRec.WriteFloat(sSecao, 'vBCCSLL', Servico.Valores.tribFed.vBCCSLL);
+        INIRec.WriteFloat(sSecao, 'vBCPCP', Servico.Valores.tribFed.vBCPCP);
       end;
 
       sSecao := 'totTrib';
@@ -1444,14 +1629,18 @@ begin
           INIRec.WriteString(sSecao, 'Condicao', FpAOwner.CondicaoPagToStr(CondicaoPagamento.Parcelas.Items[I].Condicao));
 
         end;
-
-        // Reforma Tributária
-        if (NFSe.IBSCBS.dest.xNome <> '') or (NFSe.IBSCBS.imovel.cCIB <> '') or
-           (NFSe.IBSCBS.imovel.ender.CEP <> '') or
-           (NFSe.IBSCBS.imovel.ender.endExt.cEndPost <> '') or
-           (NFSe.IBSCBS.valores.trib.gIBSCBS.CST <> cstNenhum) then
-          GerarINIIBSCBS(INIRec, NFSe.IBSCBS);
       end;
+      // Reforma Tributária
+      if (NFSe.IBSCBS.dest.xNome <> '') or (NFSe.IBSCBS.imovel.cCIB <> '') or
+         (NFSe.IBSCBS.imovel.ender.CEP <> '') or
+         (NFSe.IBSCBS.imovel.ender.endExt.cEndPost <> '') or
+         (NFSe.IBSCBS.valores.trib.gIBSCBS.CST <> cstNenhum) or
+         (NFSe.IBSCBS.valores.trib.gIBSCBS.cClassTrib <> '') then
+        GerarINIIBSCBS(INIRec, NFSe.IBSCBS);
+
+      if (NFSe.infNFSe.IBSCBS.valores.vBC > 0) or (NFSe.infNFSe.IBSCBS.valores.uf.pIBSUF > 0) or
+         (NFSe.infNFSe.IBSCBS.valores.mun.pIBSMun > 0) or (NFSe.infNFSe.IBSCBS.valores.fed.pCBS > 0) then
+        GerarINIIBSCBSNFSe(INIRec, NFSe.infNFSe.IBSCBS);
     end;
   finally
     IniNFSe := TStringList.Create;
@@ -1476,6 +1665,9 @@ begin
 
   Result.AppendChild(AddNode(tcStr, '#1', 'xLocalidadeIncid', 1, 15, 1,
                                      NFSe.infNFSe.IBSCBS.xLocalidadeIncid, ''));
+
+  Result.AppendChild(AddNode(tcDe2, '#1', 'pRedutor', 1, 15, 0,
+                                             NFSe.infNFSe.IBSCBS.pRedutor, ''));
 
   Result.AppendChild(GerarXMLIBSCBSValores(NFSe.infNFSe.IBSCBS.Valores));
   Result.AppendChild(GerarXMLIBSCBSTotCIBS(NFSe.infNFSe.IBSCBS.totCIBS));
@@ -1829,11 +2021,13 @@ begin
     if NFSe.IBSCBS.valores.gReeRepRes.documentos[i].dFeNacional.chaveDFe <> '' then
       Result[i].AppendChild(GerarXMLdFeNacional(NFSe.IBSCBS.valores.gReeRepRes.documentos[i].dFeNacional))
     else
-    if NFSe.IBSCBS.valores.gReeRepRes.documentos[i].docFiscalOutro.cMunDocFiscal > 0 then
-      Result[i].AppendChild(GerarXMLdocFiscalOutro(NFSe.IBSCBS.valores.gReeRepRes.documentos[i].docFiscalOutro))
-    else
-    if NFSe.IBSCBS.valores.gReeRepRes.documentos[i].docOutro.nDoc <> '' then
-      Result[i].AppendChild(GerarXMLdocOutro(NFSe.IBSCBS.valores.gReeRepRes.documentos[i].docOutro));
+    begin
+      if NFSe.IBSCBS.valores.gReeRepRes.documentos[i].docFiscalOutro.cMunDocFiscal > 0 then
+        Result[i].AppendChild(GerarXMLdocFiscalOutro(NFSe.IBSCBS.valores.gReeRepRes.documentos[i].docFiscalOutro))
+      else
+      if NFSe.IBSCBS.valores.gReeRepRes.documentos[i].docOutro.nDoc <> '' then
+        Result[i].AppendChild(GerarXMLdocOutro(NFSe.IBSCBS.valores.gReeRepRes.documentos[i].docOutro));
+    end;
 
     if NFSe.IBSCBS.valores.gReeRepRes.documentos[i].fornec.xNome <> '' then
       Result[i].AppendChild(GerarXMLfornec(NFSe.IBSCBS.valores.gReeRepRes.documentos[i].fornec));
@@ -1939,7 +2133,8 @@ begin
   Result.AppendChild(AddNode(tcStr, '#1', 'cCredPres', 2, 2, NrOcorrcCredPres,
                                         cCredPresToStr(gIBSCBS.cCredPres), ''));
 
-  if (gIBSCBS.gTribRegular.CSTReg <> cstNenhum) and GerarTribRegular then
+  if (gIBSCBS.gTribRegular.CSTReg <> cstNenhum) and
+     (gIBSCBS.gTribRegular.cClassTribReg <> '') and GerarTribRegular then
     Result.AppendChild(GerarXMLgTribRegular(gIBSCBS.gTribRegular));
 
   if ((gIBSCBS.gDif.pDifUF > 0) or (gIBSCBS.gDif.pDifMun > 0) or
@@ -2012,15 +2207,13 @@ begin
   AINIRec.WriteString(LSecao, 'CNPJCPF', Dest.CNPJCPF);
   AINIRec.WriteString(LSecao, 'NIF', Dest.NIF);
   AINIRec.WriteString(LSecao, 'cNaoNIF', NaoNIFToStr(Dest.cNaoNIF));
-  AINIRec.WriteString(LSecao, 'xNome', Dest.xNome);
+  AINIRec.WriteString(LSecao, 'RazaoSocial', Dest.xNome);
 
+  AINIRec.WriteInteger(LSecao, 'CodigoMunicipio', Dest.ender.endNac.cMun);
   AINIRec.WriteString(LSecao, 'CEP', Dest.ender.endNac.CEP);
-  AINIRec.WriteInteger(LSecao, 'cMun', Dest.ender.endNac.cMun);
-  AINIRec.WriteInteger(LSecao, 'cPais', Dest.ender.endExt.cPais);
-  AINIRec.WriteString(LSecao, 'cEndPost', Dest.ender.endExt.cEndPost);
-  AINIRec.WriteString(LSecao, 'xCidade', Dest.ender.endExt.xCidade);
-  AINIRec.WriteString(LSecao, 'xEstProvReg', Dest.ender.endExt.xEstProvReg);
-
+  AINIRec.WriteInteger(LSecao, 'CodigoPais', Dest.ender.endExt.cPais);
+  AINIRec.WriteString(LSecao, 'xMunicipio', Dest.ender.endExt.xCidade);
+  AINIRec.WriteString(LSecao, 'UF', Dest.ender.UF);
   AINIRec.WriteString(LSecao, 'Logradouro', Dest.ender.xLgr);
   AINIRec.WriteString(LSecao, 'Numero', Dest.ender.nro);
   AINIRec.WriteString(LSecao, 'Complemento', Dest.ender.xCpl);
@@ -2028,6 +2221,14 @@ begin
 
   AINIRec.WriteString(LSecao, 'Telefone', Dest.fone);
   AINIRec.WriteString(LSecao, 'Email', Dest.email);
+
+  // Incluido para atender o provedor SigISSWeb
+  AINIRec.WriteString(LSecao, 'InscricaoMunicipal', Dest.IM);
+  AINIRec.WriteString(LSecao, 'InscricaoMunicipal', Dest.IE);
+  AINIRec.WriteString(LSecao, 'xPais', Dest.xPais);
+
+  // Incluido para atender o provedor Publica
+  AINIRec.WriteString(LSecao, 'TipoServico', Dest.TipoServico);
 end;
 
 procedure TNFSeWClass.GerarINIImovel(AINIRec: TMemIniFile;

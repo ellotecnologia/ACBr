@@ -111,6 +111,8 @@ type
 
     function PrepararArquivoEnvio(const aXml: string; aMetodo: TMetodo): string; override;
     procedure ValidarSchema(Response: TNFSeWebserviceResponse; aMetodo: TMetodo); override;
+
+    function TrocaEscapeporConchete(const aXml: string): string;
   public
     function RegimeEspecialTributacaoToStr(const t: TnfseRegimeEspecialTributacao): string; override;
     function StrToRegimeEspecialTributacao(out ok: boolean; const s: string): TnfseRegimeEspecialTributacao; override;
@@ -199,7 +201,6 @@ begin
   begin
     GerarNFSe := 'DPS_v' + VersaoDFe + '.xsd';
     ConsultarNFSe := 'DPS_v' + VersaoDFe + '.xsd';
-//    ConsultarNFSePorChave := 'DPS_v' + VersaoDFe + '.xsd';
     ConsultarNFSeRps := 'DPS_v' + VersaoDFe + '.xsd';
     EnviarEvento := 'pedRegEvento_v' + VersaoDFe + '.xsd';
     ConsultarEvento := 'DPS_v' + VersaoDFe + '.xsd';
@@ -419,12 +420,9 @@ var
         ANode := ANode.Childrens.FindAnyNs('infDPS');
         NumDps := ObterConteudoTag(ANode.Childrens.FindAnyNs('nDPS'), tcStr);
 
-        with Response do
-        begin
-          NumeroNota := NumNFSe;
-          Data := DataAut;
-          XmlRetorno := NFSeXml;
-        end;
+        Response.NumeroNota := NumNFSe;
+        Response.Data := DataAut;
+        Response.XmlRetorno := NFSeXml;
 
         ANota := TACBrNFSeX(FAOwner).NotasFiscais.FindByRps(NumDps);
 
@@ -469,8 +467,10 @@ begin
 
       if NFSeXml <> '' then
       begin
-//        NFSeXml := DecodeToString(DeCompress(DecodeBase64(NFSeXml)), True);
         NFSeXml := DeCompress(DecodeBase64(NFSeXml));
+
+        NFSeXml := TrocaEscapeporConchete(NFSeXml);
+
         LerNFSe(NFSeXml);
       end;
     except
@@ -596,7 +596,9 @@ begin
           vogais acentuadas e cedilha.
         }
         if NFSeXml <> '' then
-          NFSeXml := DecodeToString(DeCompress(DecodeBase64(NFSeXml)), True);
+          NFSeXml := DeCompress(DecodeBase64(NFSeXml));
+
+        NFSeXml := TrocaEscapeporConchete(NFSeXml);
 
         DocumentXml := TACBrXmlDocument.Create;
 
@@ -611,7 +613,7 @@ begin
             end;
 
             DocumentXml.LoadFromXml(NFSeXml);
-
+            Response.XmlRetorno := NFSeXml;
             ANode := DocumentXml.Root.Childrens.FindAnyNs('infNFSe');
 
             NumNFSe := ObterConteudoTag(ANode.Childrens.FindAnyNs('nNFSe'), tcStr);
@@ -663,8 +665,8 @@ begin
     if chNFSe = '' then
     begin
       AErro := Response.Erros.New;
-      AErro.Codigo := Cod004;
-      AErro.Descricao := ACBrStr(Desc004);
+      AErro.Codigo := Cod118;
+      AErro.Descricao := ACBrStr(Desc118);
     end;
 
     if Response.Erros.Count > 0 then Exit;
@@ -704,22 +706,16 @@ begin
                          '<xMotivo>' + xMotivo + '</xMotivo>';
 
       teRejeicaoPrestador:
-        xCamposEvento := '<infRej>' +
-                           '<cMotivo>' + IntToStr(cMotivo) + '</cMotivo>' +
-                           '<xMotivo>' + xMotivo + '</xMotivo>' +
-                         '</infRej>';
+        xCamposEvento := '<cMotivo>' + IntToStr(cMotivo) + '</cMotivo>' +
+                         '<xMotivo>' + xMotivo + '</xMotivo>';
 
       teRejeicaoTomador:
-        xCamposEvento := '<infRej>' +
-                           '<cMotivo>' + IntToStr(cMotivo) + '</cMotivo>' +
-                           '<xMotivo>' + xMotivo + '</xMotivo>' +
-                         '</infRej>';
+        xCamposEvento := '<cMotivo>' + IntToStr(cMotivo) + '</cMotivo>' +
+                         '<xMotivo>' + xMotivo + '</xMotivo>';
 
       teRejeicaoIntermediario:
-        xCamposEvento := '<infRej>' +
-                           '<cMotivo>' + IntToStr(cMotivo) + '</cMotivo>' +
-                           '<xMotivo>' + xMotivo + '</xMotivo>' +
-                         '</infRej>';
+        xCamposEvento := '<cMotivo>' + IntToStr(cMotivo) + '</cMotivo>' +
+                         '<xMotivo>' + xMotivo + '</xMotivo>';
     else
       // teConfirmacaoPrestador, teConfirmacaoTomador,
       // ConfirmacaoIntermediario
@@ -738,7 +734,7 @@ begin
                    xAutorEvento +
                    '<chNFSe>' + chNFSe + '</chNFSe>' +
                    '<' + tpEventoToStr(tpEvento) + '>' +
-                     '<xDesc>' + tpEventoToDesc(tpEvento) + '</xDesc>' +
+                     '<xDesc>' + ACBrStr(tpEventoToDesc(tpEvento)) + '</xDesc>' +
                      xCamposEvento +
                    '</' + tpEventoToStr(tpEvento) + '>' +
                  '</infPedReg>' +
@@ -787,7 +783,9 @@ begin
 
       if EventoXml <> '' then
       begin
-        EventoXml := DecodeToString(DeCompress(DecodeBase64(EventoXml)), True);
+        EventoXml := DeCompress(DecodeBase64(EventoXml));
+
+        EventoXml := TrocaEscapeporConchete(EventoXml);
 
         DocumentXml := TACBrXmlDocument.Create;
 
@@ -906,7 +904,7 @@ var
   i: Integer;
   AErro: TNFSeEventoCollectionItem;
   AResumo: TNFSeResumoCollectionItem;
-  IDEvento, TipoEvento, ArquivoXml, nomeArq: string;
+  IDEvento, ArquivoXml, nomeArq: string;
   DocumentXml: TACBrXmlDocument;
   ANode: TACBrXmlNode;
   Ok: Boolean;
@@ -936,9 +934,9 @@ begin
 
         AResumo := Response.Resumos.New;
         AResumo.ChaveDFe := JSon.AsString['chaveAcesso'];
-        TipoEvento := 'e' + JSon.AsString['tipoEvento'];
+        AResumo.TipoEvento := 'e' + JSon.AsString['tipoEvento'];
         AResumo.TipoDoc := 'Evento de ' +
-                           tpEventoToDesc(StrTotpEvento(Ok, TipoEvento));
+                           tpEventoToDesc(StrTotpEvento(Ok, AResumo.TipoEvento));
 
         ArquivoXml := JSon.AsString['arquivoXml'];
 
@@ -947,7 +945,7 @@ begin
         else
           ArquivoXml := DeCompress(DecodeBase64(ArquivoXml));
 
-        ArquivoXml := DecodeToString(ArquivoXml, True);
+        ArquivoXml := TrocaEscapeporConchete(ArquivoXml);
 
         if ArquivoXml = '' then
         begin
@@ -1013,6 +1011,8 @@ procedure TACBrNFSeProviderPadraoNacional.PrepararConsultarDFe(
 begin
   if Response.ChaveNFSe <> '' then
     Path := '/NFSe/' + Response.ChaveNFSe + '/Eventos'
+  else if Response.Cnpj <> '' then
+    Path := '/DFe/' + IntToStr(Response.NSU) + '?cnpjConsulta=' + Response.Cnpj
   else
     Path := '/DFe/' + IntToStr(Response.NSU);
 
@@ -1070,8 +1070,9 @@ begin
           AResumo.TipoEvento := JSon.AsString['TipoEvento'];
 
           ArquivoXml := JSon.AsString['ArquivoXml'];
-//          ArquivoXml := DecodeToString(DeCompress(DecodeBase64(ArquivoXml)), True);
           ArquivoXml := DeCompress(DecodeBase64(ArquivoXml));
+
+          ArquivoXml := TrocaEscapeporConchete(ArquivoXml);
 
           if ArquivoXml = '' then
           begin
@@ -1495,6 +1496,8 @@ end;
 function TACBrNFSeProviderPadraoNacional.PrepararArquivoEnvio(
   const aXml: string; aMetodo: TMetodo): string;
 begin
+  Result := aXml;
+
   if aMetodo in [tmGerar, tmEnviarEvento] then
   begin
     Result := ChangeLineBreak(aXml, '');
@@ -1527,20 +1530,29 @@ function TACBrNFSeProviderPadraoNacional.RegimeEspecialTributacaoToStr(
   const t: TnfseRegimeEspecialTributacao): string;
 begin
   Result := EnumeradoToStr(t,
-                         ['0', '1', '2', '3', '4', '5', '6'],
+                         ['0', '1', '2', '3', '4', '5', '6', '9'],
                          [retNenhum, retCooperativa, retEstimativa,
                          retMicroempresaMunicipal, retNotarioRegistrador,
-                         retISSQNAutonomos, retSociedadeProfissionais]);
+                         retISSQNAutonomos, retSociedadeProfissionais, retOutros]);
+end;
+
+function TACBrNFSeProviderPadraoNacional.TrocaEscapeporConchete(
+  const aXml: string): string;
+begin
+  Result := StringReplace(aXml, '&amp;lt;', '[', [rfReplaceAll]);
+  Result := StringReplace(Result, '&amp;gt;', ']', [rfReplaceAll]);
+  Result := StringReplace(Result, '&lt;', '[', [rfReplaceAll]);
+  Result := StringReplace(Result, '&gt;', ']', [rfReplaceAll]);
 end;
 
 function TACBrNFSeProviderPadraoNacional.StrToRegimeEspecialTributacao(
   out ok: boolean; const s: string): TnfseRegimeEspecialTributacao;
 begin
   Result := StrToEnumerado(ok, s,
-                        ['0', '1', '2', '3', '4', '5', '6'],
+                        ['0', '1', '2', '3', '4', '5', '6', '9'],
                         [retNenhum, retCooperativa, retEstimativa,
                          retMicroempresaMunicipal, retNotarioRegistrador,
-                         retISSQNAutonomos, retSociedadeProfissionais]);
+                         retISSQNAutonomos, retSociedadeProfissionais, retOutros]);
 end;
 
 function TACBrNFSeProviderPadraoNacional.RegimeEspecialTributacaoDescricao(
@@ -1554,6 +1566,7 @@ begin
     retNotarioRegistrador:     Result := '4 - Notário ou Registrador';
     retISSQNAutonomos:         Result := '5 - Profissional Autônomo';
     retSociedadeProfissionais: Result := '6 - Sociedade de Profissionais';
+    retOutros:                 Result := '9 - Outros';
   else
     Result := '';
   end;

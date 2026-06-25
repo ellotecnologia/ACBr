@@ -38,12 +38,31 @@ interface
 
 uses
   SysUtils, Classes, StrUtils,
-  ACBrNFSeXLerXml_ABRASFv2;
+  ACBrNFSeXLerXml_ABRASFv2,
+  PadraoNacional.LerXml;
 
 type
   { TNFSeR_Fiorilli200 }
 
   TNFSeR_Fiorilli200 = class(TNFSeR_ABRASFv2)
+  protected
+
+  public
+
+  end;
+
+  { TNFSeR_FiorilliAPIPropria }
+
+  TNFSeR_FiorilliAPIPropria = class(TNFSeR_PadraoNacional)
+  protected
+
+  public
+
+  end;
+
+  { TNFSeR_FiorilliAPIPropria101 }
+
+  TNFSeR_FiorilliAPIPropria101 = class(TNFSeR_FiorilliAPIPropria)
   protected
 
   public

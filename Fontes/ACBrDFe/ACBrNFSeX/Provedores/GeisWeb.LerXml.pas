@@ -42,6 +42,7 @@ uses
   ACBrXmlDocument,
   ACBrDFe.Conversao,
   ACBrNFSeXConversao,
+  ACBrNFSeXClass,
   ACBrNFSeXLerXml;
 
 type
@@ -65,6 +66,7 @@ type
     procedure LerEnderecoTomador(const ANode: TACBrXmlNode);
     procedure LerOrgaoGerador(const ANode: TACBrXmlNode);
     procedure LerOutrosImpostos(const ANode: TACBrXmlNode);
+    procedure LerXMLIBSCBSDPS(const ANode: TACBrXmlNode; IBSCBS: TIBSCBSDPS); override;
   public
     function LerXml: Boolean; override;
     function LerXmlRps(const ANode: TACBrXmlNode): Boolean;
@@ -283,8 +285,6 @@ begin
       Discriminacao := StringReplace(Discriminacao, FpQuebradeLinha,
                                                     sLineBreak, [rfReplaceAll]);
 
-      VerificarSeConteudoEhLista(Discriminacao);
-
       CodigoMunicipio := ObterConteudo(AuxNode.Childrens.FindAnyNs('MunicipioPrestacaoServico'), tcStr);
       CodigoTributacaoMunicipio := ItemListaServico;
       xCodigoTributacaoMunicipio := xItemListaServico;
@@ -376,7 +376,19 @@ begin
   else
     Result := LerXmlRps(XmlNode);
 
+  VerificarSeConteudoEhLista(NFSe.Servico.Discriminacao);
+
   FreeAndNil(FDocument);
+end;
+
+procedure TNFSeR_GeisWeb.LerXMLIBSCBSDPS(const ANode: TACBrXmlNode;
+  IBSCBS: TIBSCBSDPS);
+var
+  lAuxNode: TACBrXmlNode;
+begin
+  lAuxNode := ANode.Childrens.FindAnyNs('IBSCBS');
+  if Assigned(lAuxNode) then
+    LerXMLIBSCBSValores(lAuxNode.Childrens.FindAnyNs('valores'), IBSCBS.valores);
 end;
 
 function TNFSeR_GeisWeb.LerXmlNfse(const ANode: TACBrXmlNode): Boolean;

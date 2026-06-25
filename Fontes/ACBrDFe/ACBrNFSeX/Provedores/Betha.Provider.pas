@@ -1164,6 +1164,8 @@ end;
 function TACBrNFSeProviderBethaAPIPropria.PrepararArquivoEnvio(
   const aXml: string; aMetodo: TMetodo): string;
 begin
+  Result := aXml;
+
   if aMetodo in [tmGerar, tmEnviarEvento] then
     Result := ChangeLineBreak(aXml, '');
 end;
@@ -1285,7 +1287,6 @@ end;
 procedure TACBrNFSeProviderBethaAPIPropria.PrepararConsultaSituacao(
   Response: TNFSeConsultaSituacaoResponse);
 var
-  aXml: string;
   Emitente: TEmitenteConfNFSe;
   ACodMun, ATpAmbiente, ATpIntegracao: string;
 begin
@@ -1294,7 +1295,7 @@ begin
   ACodMun := IntToStr(TACBrNFSeX(FAOwner).Configuracoes.Geral.CodigoMunicipio);
   ATpAmbiente := '1';
 
-  if ConfigGeral.Ambiente = taHomologacao then
+  if TACBrNFSeX(FAOwner).Configuracoes.WebServices.Ambiente = taHomologacao then
    ATpAmbiente := '2';
 
   case Response.tpEvento of

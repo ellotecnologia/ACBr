@@ -101,7 +101,7 @@ type
   public
     function GerarXml: Boolean; override;
 
-    function GerarIni: string; override;
+//    function GerarIni: string; override;
   end;
 
 implementation
@@ -430,6 +430,7 @@ function TNFSeW_Agili.GerarInfDeclaracaoPrestacaoServico: TACBrXmlNode;
 var
   xmlNode: TACBrXmlNode;
   item: string;
+  aBC, aValor: Double;
 begin
   Result := CreateElement('InfDeclaracaoPrestacaoServico');
 
@@ -556,11 +557,33 @@ begin
   Result.AppendChild(AddNode(tcDe2, '#1', 'ValorOutrasRetencoes', 1, 15, 1,
                                      NFSe.Servico.Valores.OutrasRetencoes, ''));
 
-  Result.AppendChild(AddNode(tcDe2, '#1', 'ValorIBS', 1, 15, 1, 0, ''));
-  Result.AppendChild(AddNode(tcDe2, '#1', 'AliquotaIBS', 1, 15, 1, 0, ''));
-  Result.AppendChild(AddNode(tcDe2, '#1', 'ValorCBS', 1, 15, 1, 0, ''));
-  Result.AppendChild(AddNode(tcDe2, '#1', 'AliquotaCBS', 1, 15, 1, 0, ''));
-  Result.AppendChild(AddNode(tcDe2, '#1', 'ValorBaseIBSeCBS', 1, 15, 1, 0, ''));
+
+  if (NFSe.OptanteSimplesNacional = snNao) and (NFSe.OptanteMEISimei = snNao) then
+  begin
+    aBC := NFSe.Servico.Valores.ValorServicos - NFSe.Servico.Valores.ValorIss -
+      NFSe.Servico.Valores.DescontoIncondicionado - NFSe.Servico.Valores.ValorPis -
+      NFSe.Servico.Valores.ValorCofins;
+  end
+  else
+  begin
+    aBC := 0;
+  end;
+
+  aValor := aBC * NFSe.Servico.ItemServico[0].AliqIBS/100;
+
+  Result.AppendChild(AddNode(tcDe2, '#1', 'ValorIBS', 1, 15, 1, aValor, ''));
+
+  Result.AppendChild(AddNode(tcDe2, '#1', 'AliquotaIBS', 1, 15, 1,
+                                      NFSe.Servico.ItemServico[0].AliqIBS, ''));
+
+  aValor := aBC * NFSe.Servico.ItemServico[0].AliqCBS/100;
+
+  Result.AppendChild(AddNode(tcDe2, '#1', 'ValorCBS', 1, 15, 1, aValor, ''));
+
+  Result.AppendChild(AddNode(tcDe2, '#1', 'AliquotaCBS', 1, 15, 1,
+                                      NFSe.Servico.ItemServico[0].AliqCBS, ''));
+
+  Result.AppendChild(AddNode(tcDe2, '#1', 'ValorBaseIBSeCBS', 1, 15, 1, aBC, ''));
 
   Result.AppendChild(AddNode(tcDe2, '#1', 'ValorBaseCalculoISSQN', 1, 15, 0,
                                          NFSe.Servico.Valores.BaseCalculo, ''));
@@ -691,7 +714,7 @@ begin
   Result.AppendChild(AddNode(tcDat, '#1', 'DataEmissao', 10, 10, 1,
                                                   NFSe.DataEmissao, DSC_DHEMI));
 end;
-
+(*
 function TNFSeW_Agili.GerarIni: string;
 var
   INIRec: TMemIniFile;
@@ -718,7 +741,7 @@ begin
     end;
   end;
 end;
-
+*)
 procedure TNFSeW_Agili.GerarIniNfse(AINIRec: TMemIniFile);
 begin
   GerarINIIdentificacaoNFSe(AINIRec);
@@ -861,6 +884,7 @@ begin
   AINIRec.WriteInteger(sSecao, 'MunicipioIncidencia', NFSe.Servico.MunicipioIncidencia);
   AINIRec.WriteString(sSecao, 'NumeroProcesso', NFSe.Servico.NumeroProcesso);
   AINIRec.WriteString(sSecao, 'ResponsavelRetencao', FpAOwner.ResponsavelRetencaoToStr(NFSe.Servico.ResponsavelRetencao));
+  AINIRec.WriteString(sSecao, 'CodigoNBS', NFSe.Servico.CodigoNBS);
 
   if NFSe.tpXML = txmlNFSe then
   begin

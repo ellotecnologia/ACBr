@@ -103,6 +103,7 @@ type
     procedure AtribuirAbatimento(AJsonObject: TACBrJSONObject);
     procedure AtribuirDesconto(AJsonObject: TACBrJSONObject);
     function DateTimeToDateBradesco( const AValue:TDateTime ):String;
+    function DateTimeToDateBradescoSemFormatacao(const AValue: TDateTime): String;
     procedure GerarNegativacao(AJsonObject: TACBrJSONObject);
     procedure GerarProtesto(AJsonObject: TACBrJSONObject);
   protected
@@ -121,6 +122,7 @@ type
     procedure RequisicaoAltera;
     procedure RequisicaoBaixa;
     procedure RequisicaoConsultaDetalhe;
+    procedure RequisicaoConsulta;
 
     procedure GerarBenificiarioFinalHibrido(AJsonObject: TACBrJSONObject);
     procedure GerarBenificiarioFinalComum(AJsonObject: TACBrJSONObject);
@@ -168,6 +170,8 @@ const
   PATH_BAIXAR_PORTAL      = '/boleto/cobranca-baixa/v1/baixar';
   PATH_ALTERAR_PORTAL     = '/boleto/cobranca-altera/v1/alterar';
   PATH_CONSULTA_PORTAL    = '/boleto/cobranca-consulta/v1/consultar';
+  PATH_CONSULTA_PORTAL_PIX  = '/boleto-hibrido/cobranca-consulta-titulo/v1/consultar';
+  PATH_LISTA_BOLETO_PORTAL_PIX  = '/boleto-hibrido/cobranca-lista/v1/listar';
 
   // Legado (sem certificado)
   PATH_COB_LEGADO         = '/v1/boleto-hibrido/registrar-boleto';
@@ -261,12 +265,33 @@ begin
     tpConsultaDetalhe:
       begin
         if LUseCert then
-          LPath := PATH_CONSULTA_PORTAL
+        begin
+          if LIndicadorPix then
+            LPath := PATH_CONSULTA_PORTAL_PIX
+          else
+            LPath := PATH_CONSULTA_PORTAL;
+        end
         else
           LPath := PATH_CONSULTA_LEGADO;
       end;
 
-    tpBaixa,
+
+    tpConsulta:
+      begin
+        // lista de boletos pix qrcode liquidado por periodo
+        if LUseCert then
+        begin
+          if LIndicadorPix then
+            LPath := PATH_LISTA_BOLETO_PORTAL_PIX
+          else
+            raise Exception.Create('TpConsulta implementada para Boletos com QrCode, credenciais do Portal Desenv.');
+        end
+        else
+          raise Exception.Create('TpConsulta implementada para Boletos com QrCode, credenciais do Portal Desenv.');
+      end;
+
+
+    tpBaixa, 
     tpCancelar:
       begin
         if LUseCert then
@@ -371,7 +396,7 @@ begin
       AddHeaderParam('X-Brad-Timestamp', LTimestamp );
       AddHeaderParam('X-Brad-Algorithm', 'SHA256');
       AddHeaderParam('acess-token',Boleto.Cedente.CedenteWS.ClientID);
-      AddHeaderParam('cpf-cnpj',OnlyNumber(Boleto.Cedente.CNPJCPF) )
+      AddHeaderParam('cpf-cnpj',OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF) )
     end;
   end;
 end;
@@ -402,6 +427,13 @@ begin
     begin
       FMetodoHTTP := htPOST;//Define Método POST Consulta Detalhe.
       RequisicaoConsultaDetalhe;
+      GerarHeader;
+    end;
+     tpConsulta:
+    begin
+      FMetodoHTTP := htPOST;//Define Método POST Consulta.
+      //nao existia, raize no legado. ou sem pix
+      RequisicaoConsulta;
       GerarHeader;
     end;
   else
@@ -525,6 +557,12 @@ begin
   Result := FormatDateBr(AValue, 'DD.MM.YYYY');
 end;
 
+function TBoletoW_Bradesco.DateTimeToDateBradescoSemFormatacao(const AValue: TDateTime): String;
+begin
+  Result := FormatDateBr(AValue, 'DDMMYYYY');
+end;
+
+
 function TBoletoW_Bradesco.ValidaAmbiente: Integer;
 begin
   Result := StrToIntDef(IfThen(Boleto.Configuracoes.WebService.Ambiente = tawsProducao, '1','2'), 2);
@@ -542,14 +580,14 @@ begin
   try
     if Boleto.Cedente.TipoInscricao = pJuridica then
     begin
-      LJsonCnpjCPF.AddPair('cpfCnpj', Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 1, 8));
-      LJsonCnpjCPF.AddPair('filial', Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 9, 4));
-      LJsonCnpjCPF.AddPair('controle', Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 13, 2));
+      LJsonCnpjCPF.AddPair('cpfCnpj', Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 1, 8));
+      LJsonCnpjCPF.AddPair('filial', Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 9, 4));
+      LJsonCnpjCPF.AddPair('controle', Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 13, 2));
     end else
     begin
-      LJsonCnpjCPF.AddPair('cpfCnpj', Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 1, 9));
+      LJsonCnpjCPF.AddPair('cpfCnpj', Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 1, 9));
       LJsonCnpjCPF.AddPair('filial', '0');
-      LJsonCnpjCPF.AddPair('controle', Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 10, 2));
+      LJsonCnpjCPF.AddPair('controle', Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 10, 2));
     end;
     LJsonObject.AddPair('cpfCnpj', LJsonCnpjCPF);
     LJsonObject.AddPair('produto', RemoveZerosEsquerda(ATitulo.Carteira));
@@ -580,14 +618,14 @@ begin
   try
     if Boleto.Cedente.TipoInscricao = pJuridica then
     begin
-      LJsonObject.AddPair('nuCPFCNPJ',    Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 1, 8));
-      LJsonObject.AddPair('filialCPFCNPJ',Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 9, 4));
-      LJsonObject.AddPair('ctrlCPFCNPJ',  Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 13, 2));
+      LJsonObject.AddPair('nuCPFCNPJ',    Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 1, 8));
+      LJsonObject.AddPair('filialCPFCNPJ',Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 9, 4));
+      LJsonObject.AddPair('ctrlCPFCNPJ',  Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 13, 2));
     end else
     begin
-      LJsonObject.AddPair('nuCPFCNPJ',    Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 1, 9));
+      LJsonObject.AddPair('nuCPFCNPJ',    Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 1, 9));
       LJsonObject.AddPair('filialCPFCNPJ', '0');
-      LJsonObject.AddPair('ctrlCPFCNPJ',  Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 10, 2));
+      LJsonObject.AddPair('ctrlCPFCNPJ',  Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 10, 2));
     end;
     LJsonObject.AddPair('idProduto', ATitulo.Carteira);
     LJsonObject.AddPair('nuNegociacao', AgenciaContaFormatada(18));
@@ -604,8 +642,8 @@ begin
     LJsonObject.AddPair('cdEspecieTitulo', EspecieDocumento);
 
 
-    //LJsonObject.AddPair('tpProtestoAutomáticoNegativação', );
-    //LJsonObject.AddPair('prazoProtestoAutomáticoNegativação', );
+    //LJsonObject.AddPair('tpProtestoAutomaticoNegativacao', );
+    //LJsonObject.AddPair('prazoProtestoAutomaticoNegativacao', );
     LJsonObject.AddPair('controleParticipante', Trim(IfThen(ATitulo.NumeroDocumento <> '',
                                            ATitulo.NumeroDocumento,
                                            IfThen(ATitulo.SeuNumero <> '',
@@ -643,14 +681,14 @@ begin
 
     LJsonObject.AddPair('nomePagador', Copy(TiraAcentos(ATitulo.Sacado.NomeSacado), 1, 70));
     LJsonObject.AddPair('logradouroPagador', Copy(TiraAcentos(ATitulo.Sacado.Logradouro) + ' ' +ATitulo.Sacado.Numero, 1, 40));
-    LJsonObject.AddPair('NuLogradouroPagador', 0);//FIXO
+    LJsonObject.AddPair('nuLogradouroPagador', ATitulo.Sacado.Numero);//FIXO
     LJsonObject.AddPair('cepPagador', Copy(OnlyNumber(ATitulo.Sacado.CEP), 1, 5));
     LJsonObject.AddPair('complementoCepPagador', Copy(OnlyNumber(ATitulo.Sacado.CEP), 6, 8));
     LJsonObject.AddPair('bairroPagador', Copy(TiraAcentos(ATitulo.Sacado.Bairro), 1, 40));
     LJsonObject.AddPair('municipioPagador', Copy(TiraAcentos(ATitulo.Sacado.Cidade), 1, 30));
     LJsonObject.AddPair('ufPagador', Copy(TiraAcentos(ATitulo.Sacado.UF), 1, 2));
     LJsonObject.AddPair('cdIndCpfcnpjPagador', IfThen(ATitulo.Sacado.Pessoa = pJuridica, '2', '1'));
-    LJsonObject.AddPair('nuCpfcnpjPagador', OnlyNumber(ATitulo.Sacado.CNPJCPF));
+    LJsonObject.AddPair('nuCpfcnpjPagador', OnlyCPFCNPJAlphaNum(ATitulo.Sacado.CNPJCPF));
 
     GerarBenificiarioFinalComum(LJsonObject);
 
@@ -673,16 +711,17 @@ begin
     LJsonObject.AddPair('codUsuario', 'APISERVIC');//FIXO.
     if Boleto.Cedente.TipoInscricao = pJuridica then
     begin
-      LJsonObject.AddPair('nroCpfCnpjBenef',    Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 1, 8));
-      LJsonObject.AddPair('filCpfCnpjBenef',Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 9, 4));
-      LJsonObject.AddPair('digCpfCnpjBenef',  Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 13, 2));
+      LJsonObject.AddPair('nroCpfCnpjBenef',    Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 1, 8));
+      LJsonObject.AddPair('filCpfCnpjBenef',Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 9, 4));
+      LJsonObject.AddPair('digCpfCnpjBenef',  Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 13, 2));
     end else
     begin
-      LJsonObject.AddPair('nroCpfCnpjBenef',    Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 1, 9));
+      LJsonObject.AddPair('nroCpfCnpjBenef',    Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 1, 9));
       LJsonObject.AddPair('filCpfCnpjBenef', '0');
-      LJsonObject.AddPair('digCpfCnpjBenef',  Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 10, 2));
+      LJsonObject.AddPair('digCpfCnpjBenef',  Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 10, 2));
     end;
 
+    LJsonObject.AddPair('qtdDecurPrz', DaysBetween(ATitulo.Vencimento, ATitulo.DataLimitePagto));
     LJsonObject.AddPair('tipoAcesso', 2);//FIXO.
     LJsonObject.AddPair('cpssoaJuridContr', 0);//FIXO.
     LJsonObject.AddPair('ctpoContrNegoc', 0);//FIXO.
@@ -709,10 +748,12 @@ begin
     LJsonObject.AddPair('demisTitloCobr', DateTimeToDateBradesco(ATitulo.DataDocumento));
     LJsonObject.AddPair('dvctoTitloCobr', DateTimeToDateBradesco(ATitulo.Vencimento));
     LJsonObject.AddPair('cidtfdTpoVcto', 0);//FIXO.
-    if Boleto.Configuracoes.WebService.UseCertificateHTTP then // Portal Developers
-      LJsonObject.AddPair('cindcdEconmMoeda', '9')
-    else // LEGADO
+
+    // A propriedade cindcdEconmMoeda só existe no boleto com QrCode/Hibrido tanto no legado/portal dev
+    // Segundo manual do portal DEV QrCode v1.8.1 e Convencional v1.7.0
+    if Boleto.Cedente.CedenteWS.IndicadorPix then
       LJsonObject.AddPair('cindcdEconmMoeda', '00006');
+
     LJsonObject.AddPair('vnmnalTitloCobr', ATitulo.ValorDocumento*100);
     LJsonObject.AddPair('qmoedaNegocTitlo', 0);//FIXO.
     LJsonObject.AddPair('cespceTitloCobr', EspecieDocumento);
@@ -746,7 +787,7 @@ begin
     GerarDesconto(LJsonObject);
 
     //Tipo de prazo desconto/bonificação: 1 = Dias corridos | 2 = Dias úteis. Obrigatório? Sim, caso informado valor ou percentual de desconto/bonificação.
-    LJsonObject.AddPair('ctpoPrzCobr', 0);
+    LJsonObject.AddPair('ctpoPrzCobr', '00');
     if Boleto.Configuracoes.WebService.UseCertificateHTTP then
     begin
       LJsonObject.AddPair('pdescBonifPgto', '');//NÃO Obrigatório;
@@ -771,7 +812,7 @@ begin
     LJsonObject.AddPair('imunSacdoTitlo', Copy(TiraAcentos(ATitulo.Sacado.Cidade), 1, 30));
     LJsonObject.AddPair('csglUfSacdo', Copy(TiraAcentos(ATitulo.Sacado.UF), 1, 2));
     LJsonObject.AddPair('indCpfCnpjSacdo', IfThen(ATitulo.Sacado.Pessoa = pJuridica, '2', '1'));
-    LJsonObject.AddPair('nroCpfCnpjSacdo', OnlyNumber(ATitulo.Sacado.CNPJCPF));
+    LJsonObject.AddPair('nroCpfCnpjSacdo', OnlyCPFCNPJAlphaNum(ATitulo.Sacado.CNPJCPF));
     LJsonObject.AddPair('renderEletrSacdo', Copy(ATitulo.Sacado.Email, 1, 70));
     LJsonObject.AddPair('cdddFoneSacdo', Copy(OnlyNumber(ATitulo.Sacado.Fone), 1, 3));//NÃO Obrigatório;
     LJsonObject.AddPair('cfoneSacdoTitlo', Copy(OnlyNumber(ATitulo.Sacado.Fone), 1, 11));//NÃO Obrigatório;
@@ -886,26 +927,92 @@ begin
     Exit;
   LJsonObject := TACBrJSONObject.Create;
   try
+    if (Boleto.Cedente.CedenteWS.IndicadorPix) and (Boleto.Configuracoes.WebService.UseCertificateHTTP) then
+    begin
+      //Consulta de boleto com qrcode
+      LJsonObject.AddPair('contaProduto', AgenciaContaFormatada(11));
+       if Boleto.Cedente.TipoInscricao = pJuridica then
+      begin
+        LJsonObject.AddPair('controleCpfCnpjUsuario',  Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 13, 2));
+        LJsonObject.AddPair('cpfCnpjUsuario',    Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 1, 8));
+        LJsonObject.AddPair('filialCnpjUsuario',Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 9, 4));
+
+      end else
+      begin
+        LJsonObject.AddPair('controleCpfCnpjUsuario',  Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 10, 2));
+        LJsonObject.AddPair('cpfCnpjUsuario',    Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 1, 9));
+        LJsonObject.AddPair('filialCnpjUsuario', '0');
+      end;
+      LJsonObject.AddPair('idProduto', RemoveZerosEsquerda(ATitulo.Carteira));
+      LJsonObject.AddPair('nomePersonalizado', '');
+      LJsonObject.AddPair('nossoNumero', OnlyNumber(ATitulo.NossoNumero));
+      LJsonObject.AddPair('seqTitulo', '0');
+      LJsonObject.AddPair('status', 0);
+    end
+    else
+    begin
+      //Consulta de boleto sem qrcode
+      LJsonCpfCnpj := TACBrJSONObject.Create;
+
+      if Boleto.Cedente.TipoInscricao = pJuridica then
+      begin
+        LJsonCpfCnpj.AddPair('cpfCnpj',    Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 1, 8));
+        LJsonCpfCnpj.AddPair('filial',Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 9, 4));
+        LJsonCpfCnpj.AddPair('controle',  Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 13, 2));
+      end else
+      begin
+        LJsonCpfCnpj.AddPair('cpfCnpj',    Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 1, 9));
+        LJsonCpfCnpj.AddPair('filial', '0');
+        LJsonCpfCnpj.AddPair('controle',  Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 10, 2));
+      end;
+      LJsonObject.AddPair('cpfCnpj', LJsonCpfCnpj);
+
+      LJsonObject.AddPair('produto', RemoveZerosEsquerda(ATitulo.Carteira));
+      LJsonObject.AddPair('negociacao', AgenciaContaFormatada(11));
+      LJsonObject.AddPair('nossoNumero', OnlyNumber(ATitulo.NossoNumero));
+      LJsonObject.AddPair('sequencia', '0');
+      LJsonObject.AddPair('status', 0);
+    end;
+
+    FPDadosMsg := LJsonObject.ToJSON;
+  finally
+    LJsonObject.Free;
+  end;
+end;
+
+procedure TBoletoW_Bradesco.RequisicaoConsulta;
+var
+  LJsonObject, LJsonCpfCnpj: TACBrJSONObject;
+begin
+  if not Assigned(ATitulo) then
+    Exit;
+  LJsonObject := TACBrJSONObject.Create;
+  try
     LJsonCpfCnpj := TACBrJSONObject.Create;
 
     if Boleto.Cedente.TipoInscricao = pJuridica then
     begin
-      LJsonCpfCnpj.AddPair('cpfCnpj',    Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 1, 8));
-      LJsonCpfCnpj.AddPair('filial',Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 9, 4));
-      LJsonCpfCnpj.AddPair('controle',  Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 13, 2));
+      LJsonCpfCnpj.AddPair('cpfCnpj',    Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 1, 8));
+      LJsonCpfCnpj.AddPair('filial',Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 9, 4));
+      LJsonCpfCnpj.AddPair('controle',  Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 13, 2));
     end else
     begin
-      LJsonCpfCnpj.AddPair('cpfCnpj',    Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 1, 9));
+      LJsonCpfCnpj.AddPair('cpfCnpj',    Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 1, 9));
       LJsonCpfCnpj.AddPair('filial', '0');
-      LJsonCpfCnpj.AddPair('controle',  Copy(OnlyNumber(Boleto.Cedente.CNPJCPF), 10, 2));
+      LJsonCpfCnpj.AddPair('controle',  Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 10, 2));
     end;
     LJsonObject.AddPair('cpfCnpj', LJsonCpfCnpj);
 
     LJsonObject.AddPair('produto', RemoveZerosEsquerda(ATitulo.Carteira));
     LJsonObject.AddPair('negociacao', AgenciaContaFormatada(11));
-    LJsonObject.AddPair('nossoNumero', OnlyNumber(ATitulo.NossoNumero));
-    LJsonObject.AddPair('sequencia', '0');
-    LJsonObject.AddPair('status', 0);
+    LJsonObject.AddPair('dataMovimentoDe', 0);
+    LJsonObject.AddPair('dataMovimentoAte', 0);
+    LJsonObject.AddPair('dataPagamentoDe', DateTimeToDateBradescoSemFormatacao(Boleto.Configuracoes.WebService.Filtro.dataMovimento.DataInicio));
+    LJsonObject.AddPair('dataPagamentoAte', DateTimeToDateBradescoSemFormatacao(Boleto.Configuracoes.WebService.Filtro.dataMovimento.DataFinal));
+    LJsonObject.AddPair('origemPagamento', 0);
+    LJsonObject.AddPair('valorTituloDe', 0);
+    LJsonObject.AddPair('valorTituloAte', 0);
+    LJsonObject.AddPair('paginaAnterior', 0);
 
     FPDadosMsg := LJsonObject.ToJSON;
   finally
@@ -925,7 +1032,7 @@ begin
   AJsonObject.AddPair('municipioSacadorAvalista', Copy(TiraAcentos(ATitulo.Sacado.SacadoAvalista.Cidade), 1, 40));
   AJsonObject.AddPair('ufSacadorAvalista', Copy(TiraAcentos(ATitulo.Sacado.SacadoAvalista.UF), 1, 2));
   AJsonObject.AddPair('cdIndCpfcnpjSacadorAvalista', IfThen(aTitulo.Sacado.SacadoAvalista.Pessoa = pJuridica, '2', '1'));
-  AJsonObject.AddPair('nuCpfcnpjSacadorAvalista', Copy(OnlyNumber(ATitulo.Sacado.SacadoAvalista.CNPJCPF), 1, 14));
+  AJsonObject.AddPair('nuCpfcnpjSacadorAvalista', Copy(OnlyCPFCNPJAlphaNum(ATitulo.Sacado.SacadoAvalista.CNPJCPF), 1, 14));
   AJsonObject.AddPair('endEletronicoSacadorAvalista', Copy(ATitulo.Sacado.SacadoAvalista.Email, 1, 70));
 end;
 
@@ -944,7 +1051,7 @@ begin
   LCEPComplemento := Copy(aTitulo.Sacado.SacadoAvalista.CEP, 6, 8);
   LTelefoneDDD := Copy(OnlyNumber(aTitulo.Sacado.SacadoAvalista.Fone), 1, 3);
   LTelefone := Copy(OnlyNumber(aTitulo.Sacado.SacadoAvalista.Fone), 1, 11);
-  LDocumento := Copy(OnlyNumber(aTitulo.Sacado.SacadoAvalista.CNPJCPF), 1, 14);
+  LDocumento := Copy(OnlyCPFCNPJAlphaNum(aTitulo.Sacado.SacadoAvalista.CNPJCPF), 1, 14);
   LNumero := aTitulo.Sacado.SacadoAvalista.Numero;
   case ATitulo.Sacado.SacadoAvalista.Pessoa of
     pFisica   : LTipoPessoa := '1';
@@ -1180,7 +1287,7 @@ begin
 
     // Data base para cálculo dos dias
     LDiasProtesto := DaysBetween(ATitulo.Vencimento, ATitulo.DataProtesto);
-    if (LDiasProtesto < 5) and (LDiasProtesto <> 0) then
+    if (LDiasProtesto > 0) and (LDiasProtesto < 5) then
       raise Exception.Create('Erro quantidade de dias para protesto. (mínimo de 5 dias).');
   end;
 
@@ -1291,7 +1398,7 @@ var
 
   procedure AdicionarDescontoJSON(const Sufixo: string; TipoDesconto: Integer);
   begin
-    if TipoDesconto <> 0 then
+    if (TipoDesconto > 0) and (ATitulo.ValorDesconto > 0) then
     begin
       if TipoDesconto = 1 then
       begin

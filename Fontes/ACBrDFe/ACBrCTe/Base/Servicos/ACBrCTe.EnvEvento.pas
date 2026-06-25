@@ -45,8 +45,6 @@ uses
   {$IfEnd}
   ACBrDFeConsts,
   pcteConversaoCTe,
-  pcnSignature,
-//  ACBrDFeComum.SignatureClass,
   ACBrCTe.Consts,
   ACBrCTe.EventoClass,
   ACBrBase,
@@ -127,6 +125,10 @@ type
     function Gerar_Evento_CancComprEntrega(Idx: Integer): TACBrXmlNode;
     function Gerar_Evento_InsucessoEntrega(Idx: Integer): TACBrXmlNode;
     function Gerar_Evento_CancInsucessoEntrega(Idx: Integer): TACBrXmlNode;
+
+    function Gerar_Evento_VinculoPagamento(AIdx: Integer): TACBrXmlNode;
+    function Gerar_Pagamento(pgto: Tpgto): TACBrXmlNode;
+    function Gerar_Evento_CancelamentoVinculoPagamento(AIdx: Integer): TACBrXmlNode;
   public
     constructor Create;
     destructor Destroy; override;
@@ -152,11 +154,13 @@ implementation
 
 uses
   IniFiles,
+  synautil,
   ACBrDFeUtil,
   ACBrUtil.Base,
   ACBrUtil.Strings,
   ACBrUtil.DateTime,
   ACBrUtil.FilesIO,
+  ACBrUtil.XMLHTML,
   ACBrCTe.RetEnvEvento;
 
 { TEventoCTe }
@@ -733,11 +737,11 @@ var
 begin
   if VersaoDF >= ve400 then
     Evento[Idx].InfEvento.id := 'ID' + Evento[Idx].InfEvento.TipoEvento +
-                             OnlyNumber(Evento[Idx].InfEvento.chCTe) +
+                             RemoverLiteralChave(Evento[Idx].InfEvento.chCTe) +
                              Format('%.3d', [Evento[Idx].InfEvento.nSeqEvento])
   else
     Evento[Idx].InfEvento.id := 'ID' + Evento[Idx].InfEvento.TipoEvento +
-                             OnlyNumber(Evento[Idx].InfEvento.chCTe) +
+                             RemoverLiteralChave(Evento[Idx].InfEvento.chCTe) +
                              Format('%.2d', [Evento[Idx].InfEvento.nSeqEvento]);
 
   if Length(Evento[Idx].InfEvento.id) < 54 then
@@ -752,7 +756,7 @@ begin
   Result.AppendChild(AddNode(tcStr, 'HP09', 'tpAmb', 1, 1, 1,
                            TpAmbToStr(Evento[Idx].InfEvento.tpAmb), DSC_TPAMB));
 
-  sDoc := OnlyNumber(Evento[Idx].InfEvento.CNPJ);
+  sDoc := RemoverLiteralChave(Evento[Idx].InfEvento.CNPJ);
 
   if EstaVazio(sDoc) then
     sDoc := ExtrairCNPJCPFChaveAcesso(Evento[Idx].InfEvento.chCTe);
@@ -821,6 +825,12 @@ begin
     teInsucessoEntregaCTe: Result.AppendChild(Gerar_Evento_InsucessoEntrega(Idx));
 
     teCancInsucessoEntregaCTe: Result.AppendChild(Gerar_Evento_CancInsucessoEntrega(Idx));
+
+    teVinculoPgto:
+      Result.AppendChild(Gerar_Evento_VinculoPagamento(Idx));
+
+    teCancVinculoPgto:
+      Result.AppendChild(Gerar_Evento_CancelamentoVinculoPagamento(Idx));
   end;
 end;
 
@@ -841,16 +851,10 @@ end;
 
 function TEventoCTe.LerXML(const CaminhoArquivo: string): Boolean;
 var
-  ArqEvento: TStringList;
+  aXml: string;
 begin
-  ArqEvento := TStringList.Create;
-
-  try
-    ArqEvento.LoadFromFile(CaminhoArquivo);
-    Result := LerXMLFromString(ArqEvento.Text);
-  finally
-    ArqEvento.Free;
-  end;
+  aXml := CarregarArquivo(CaminhoArquivo);
+  Result := LerXMLFromString(aXml);
 end;
 
 function TEventoCTe.LerXMLFromString(const AXML: string): Boolean;
@@ -861,7 +865,7 @@ begin
   RetEventoCTe := TRetEventoCTe.Create;
 
   try
-    RetEventoCTe.XmlRetorno := AXML;
+    RetEventoCTe.XmlRetorno := RemoverUTF8Bom(AXML);
     Result := RetEventoCTe.LerXml;
 
     with FEvento.New do
@@ -904,6 +908,7 @@ begin
       infEvento.detEvento.dhHashEntrega := RetEventoCTe.InfEvento.detEvento.dhHashEntrega;
 
       infEvento.detEvento.nProtCE := RetEventoCTe.InfEvento.detEvento.nProtCE;
+      infEvento.detEvento.nProtIE := RetEventoCTe.InfEvento.detEvento.nProtIE;
 
       infEvento.detEvento.dhTentativaEntrega := RetEventoCTe.InfEvento.detEvento.dhTentativaEntrega;
       infEvento.detEvento.nTentativa := RetEventoCTe.InfEvento.detEvento.nTentativa;
@@ -911,6 +916,16 @@ begin
       infEvento.detEvento.xJustMotivo := RetEventoCTe.InfEvento.detEvento.xJustMotivo;
       infEvento.detEvento.hashTentativaEntrega := RetEventoCTe.InfEvento.detEvento.hashTentativaEntrega;
       infEvento.detEvento.dhHashTentativaEntrega := RetEventoCTe.InfEvento.detEvento.dhHashTentativaEntrega;
+
+      // teVinculoPgto
+      infEvento.DetEvento.pgto.nPag := RetEventoCTe.InfEvento.DetEvento.pgto.nPag;
+      infEvento.DetEvento.pgto.idTransacao := RetEventoCTe.InfEvento.DetEvento.pgto.idTransacao;
+      infEvento.DetEvento.pgto.tpMeioPgto := RetEventoCTe.InfEvento.DetEvento.pgto.tpMeioPgto;
+      infEvento.DetEvento.pgto.CNPJReceb := OnlyCPFCNPJAlphaNum(RetEventoCTe.InfEvento.DetEvento.pgto.CNPJReceb);
+      infEvento.DetEvento.pgto.CNPJBasePSP := OnlyCPFCNPJAlphaNum(RetEventoCTe.InfEvento.DetEvento.pgto.CNPJBasePSP);
+
+      // teCancVinculoPgto
+      infEvento.DetEvento.nProtVincPgto := RetEventoCTe.InfEvento.DetEvento.nProtVincPgto;
 
       for i := 0 to RetEventoCTe.InfEvento.detEvento.infCorrecao.Count -1 do
       begin
@@ -1227,6 +1242,18 @@ begin
                 Inc(J);
               end;
             end;
+
+          teVinculoPgto:
+            begin
+              infEvento.detEvento.pgto.nPag := INIRec.ReadInteger(sSecao, 'nPag', 0);
+              infEvento.detEvento.pgto.idTransacao := INIRec.ReadString(sSecao, 'idTransacao', '');
+              infEvento.detEvento.pgto.tpMeioPgto := INIRec.ReadString(sSecao, 'tpMeioPgto', '');
+              infEvento.detEvento.pgto.CNPJReceb := OnlyCPFCNPJAlphaNum(INIRec.ReadString(sSecao, 'CNPJReceb', ''));
+              infEvento.detEvento.pgto.CNPJBasePSP := OnlyCPFCNPJAlphaNum(INIRec.ReadString(sSecao, 'CNPJBasePSP', ''));
+            end;
+
+          teCancVinculoPgto:
+            infEvento.DetEvento.nProtVincPgto := INIRec.ReadString(sSecao, 'nProtVincPgto', '');
         end;
       end;
 
@@ -1282,6 +1309,52 @@ begin
   Fsignature.Free;
 
   inherited;
+end;
+
+function TEventoCTe.Gerar_Evento_VinculoPagamento(AIdx: Integer): TACBrXmlNode;
+begin
+  Result := CreateElement('evVincPgto');
+
+  Result.AppendChild(AddNode(tcStr, 'EP02', 'descEvento', 4, 60, 1,
+                                           Evento[AIdx].FInfEvento.DescEvento));
+
+  Result.AppendChild(AddNode(tcStr, 'EP03', 'nProt', 15, 15, 1,
+                                      Evento[AIdx].FInfEvento.detEvento.nProt));
+
+  Result.AppendChild(Gerar_Pagamento(Evento[AIdx].FInfEvento.detEvento.pgto));
+end;
+
+function TEventoCTe.Gerar_Pagamento(pgto: Tpgto): TACBrXmlNode;
+begin
+  Result := CreateElement('pgto');
+
+  Result.SetAttribute('nPag', IntToStr(pgto.nPag));
+
+  Result.SetAttribute('idTransacao', pgto.idTransacao);
+
+  Result.AppendChild(AddNode(tcStr, '#44', 'tpMeioPgto', 2, 2, 1,
+                                              pgto.tpMeioPgto, DSC_TPMEIOPGTO));
+
+  Result.AppendChild(AddNode(tcStr, '#44', 'CNPJReceb', 14, 14, 1,
+                                                OnlyCPFCNPJAlphaNum(pgto.CNPJReceb), DSC_CNPJRECEB));
+
+  Result.AppendChild(AddNode(tcStr, '#44', 'CNPJBasePSP', 8, 8, 1,
+                                            OnlyCPFCNPJAlphaNum(pgto.CNPJBasePSP), DSC_CNPJBASEPSP));
+end;
+
+function TEventoCTe.Gerar_Evento_CancelamentoVinculoPagamento(
+  AIdx: Integer): TACBrXmlNode;
+begin
+  Result := CreateElement('evCancVincPgto');
+
+  Result.AppendChild(AddNode(tcStr, 'EP02', 'descEvento', 4, 60, 1,
+                                           Evento[AIdx].FInfEvento.DescEvento));
+
+  Result.AppendChild(AddNode(tcStr, 'EP03', 'nProt', 15, 15, 1,
+                                      Evento[AIdx].FInfEvento.detEvento.nProt));
+
+  Result.AppendChild(AddNode(tcStr, 'EP04', 'nProtVincPgto', 15, 15, 1,
+                              Evento[AIdx].FInfEvento.detEvento.nProtVincPgto));
 end;
 
 end.

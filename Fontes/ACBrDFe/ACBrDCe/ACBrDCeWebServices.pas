@@ -690,7 +690,7 @@ begin
     begin
       with TACBrDCe(FPDFeOwner).Declaracoes.Items[I] do
       begin
-        if OnlyNumber(chDCe) = NumID then
+        if RemoverLiteralChave(chDCe) = NumID then
         begin
 
           if (FPConfiguracoesDCe.Geral.ValidarDigest) and
@@ -831,7 +831,8 @@ var
   NumChave: string;
 begin
   if FDCeChave = AValue then Exit;
-    NumChave := OnlyNumber(AValue);
+
+  NumChave := Copy(AValue, 4, Length(AValue));
 
   if not ValidarChave(NumChave) then
     raise EACBrDCeException.Create(Format('Chave "%s" inválida.',[AValue]));
@@ -1108,7 +1109,7 @@ begin
         begin
           with TACBrDCe(FPDFeOwner).Declaracoes.Items[i] do
           begin
-            if (OnlyNumber(FDCeChave) = NumID) then
+            if (Copy(FDCeChave, 4, Length(FDCeChave)) = NumID) then
             begin
               Atualiza := (NaoEstaVazio(FDCeRetorno.XMLprotDCe));
 
@@ -1483,7 +1484,7 @@ begin
 
       if FPConfiguracoesDCe.Arquivos.SalvarEvento then
       begin
-        NomeArq := OnlyNumber(FEvento.Evento[0].InfEvento.Id) + '-procEventoDCe.xml';
+        NomeArq := RemoverLiteralChave(FEvento.Evento[0].InfEvento.Id) + '-procEventoDCe.xml';
         PathArq := PathWithDelim(GerarPathEvento(FEvento.Evento[0].InfEvento.CNPJCPF));
 
         FPDFeOwner.Gravar(NomeArq, Texto, PathArq);

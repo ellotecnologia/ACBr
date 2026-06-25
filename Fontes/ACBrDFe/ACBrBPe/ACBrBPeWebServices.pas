@@ -462,7 +462,7 @@ begin
       acontece o erro. }
     if (pos('svrs.rs.gov.br', FPURL) > 0) and
        (MinutesBetween(BPeRetorno.dhRecbto, Now) > 50) and
-       (not IsHorarioDeVerao(CUFtoUF(FcUF), BPeRetorno.dhRecbto)) then
+       (not IsHorarioDeVerao(CodigoUFparaUF(FcUF), BPeRetorno.dhRecbto)) then
       FdhRecbto:= IncHour(BPeRetorno.dhRecbto, -1)
     else
       FdhRecbto := BPeRetorno.dhRecbto;
@@ -610,7 +610,7 @@ begin
     teSVCAN: xUF := 'SVC-AN';
     teSVCRS: xUF := 'SVC-RS';
   else
-    xUF := CUFtoUF(FcUF);
+    xUF := CodigoUFparaUF(FcUF);
   end;
 
   TACBrBPe(FPDFeOwner).LerServicoDeParams(
@@ -747,7 +747,7 @@ begin
     begin
       with TACBrBPe(FPDFeOwner).Bilhetes.Items[I] do
       begin
-        if OnlyNumber(chBPe) = NumID then
+        if RemoverLiteralChave(chBPe) = NumID then
         begin
           if (FPConfiguracoesBPe.Geral.ValidarDigest) and
              (FBPeRetorno.protBPe.digVal <> '') and
@@ -883,7 +883,7 @@ var
   NumChave: String;
 begin
   if FBPeChave = AValue then Exit;
-  NumChave := OnlyNumber(AValue);
+  NumChave := RemoverLiteralChave(AValue);
 
   if not ValidarChave(NumChave) then
      raise EACBrBPeException.Create('Chave "' + AValue + '" inválida.');
@@ -924,7 +924,7 @@ begin
     teSVCAN: xUF := 'SVC-AN';
     teSVCRS: xUF := 'SVC-RS';
   else
-    xUF := CUFtoUF(FcUF);
+    xUF := CodigoUFparaUF(FcUF);
   end;
 
   TACBrBPe(FPDFeOwner).LerServicoDeParams(
@@ -1169,7 +1169,7 @@ begin
         begin
           with TACBrBPe(FPDFeOwner).Bilhetes.Items[i] do
           begin
-            if (OnlyNumber(FBPeChave) = NumID) then
+            if (RemoverLiteralChave(FBPeChave) = NumID) then
             begin
               Atualiza := (NaoEstaVazio(BPeRetorno.XMLprotBPe));
               if Atualiza and TACBrBPe(FPDFeOwner).CstatCancelada(BPeRetorno.CStat) then
@@ -1388,7 +1388,8 @@ begin
   end;
 
   if not (FEvento.Evento.Items[0].infEvento.tpEvento in
-    [teCancelamento, teNaoEmbarque, teAlteracaoPoltrona, teExcessoBagagem]) then
+    [teCancelamento, teNaoEmbarque, teAlteracaoPoltrona, teExcessoBagagem,
+     teVinculoPgto, teCancVinculoPgto]) then
   begin
     FPLayout := LayBPeEventoAN;
     UF       := 'AN';
@@ -1448,14 +1449,27 @@ begin
           teNaoEmbarque: SchemaEventoBPe := schevNaoEmbBPe;
           teAlteracaoPoltrona: SchemaEventoBPe := schevAlteracaoPoltrona;
           teExcessoBagagem: SchemaEventoBPe := schevExcessoBagagem;
+          teVinculoPgto: SchemaEventoBPe := schevVincPgto;
+          teCancVinculoPgto: SchemaEventoBPe := schevCancVincPgto;
         end;
 
         infEvento.detEvento.nProt    := FEvento.Evento[I].infEvento.detEvento.nProt;
         infEvento.detEvento.xJust    := FEvento.Evento[I].infEvento.detEvento.xJust;
+        // teAlteracaoPoltrona
         infEvento.detEvento.poltrona := FEvento.Evento[I].infEvento.detEvento.poltrona;
+        // teExcessoBagagem
         infEvento.detEvento.qBagagem := FEvento.Evento[I].infEvento.detEvento.qBagagem;
         infEvento.detEvento.vTotBag  := FEvento.Evento[I].infEvento.detEvento.vTotBag;
-      end;
+        infEvento.detEvento.vTotDFe  := FEvento.Evento[I].infEvento.detEvento.vTotDFe;
+        // teVinculoPgto
+        infEvento.detEvento.pgto.nPag := FEvento.Evento[I].infEvento.detEvento.pgto.nPag;
+        infEvento.detEvento.pgto.idTransacao := FEvento.Evento[I].infEvento.detEvento.pgto.idTransacao;
+        infEvento.detEvento.pgto.tpMeioPgto := FEvento.Evento[I].infEvento.detEvento.pgto.tpMeioPgto;
+        infEvento.detEvento.pgto.CNPJReceb := FEvento.Evento[I].infEvento.detEvento.pgto.CNPJReceb;
+        infEvento.detEvento.pgto.CNPJBasePSP := FEvento.Evento[I].infEvento.detEvento.pgto.CNPJBasePSP;
+        // teCancVinculoPgto
+        infEvento.detEvento.nProtVincPgto := FEvento.Evento[I].infEvento.detEvento.nProtVincPgto;
+       end;
     end;
     {*)}
 
@@ -1514,6 +1528,20 @@ begin
                           Trim(RetornarConteudoEntre(AXMLEvento, '<evExcessoBagagem>', '</evExcessoBagagem>')) +
                         '</evExcessoBagagem>';
         end;
+
+      schevVincPgto:
+        begin
+          AXMLEvento := '<evVincPgto xmlns="' + ACBRBPE_NAMESPACE + '">' +
+                          Trim(RetornarConteudoEntre(AXMLEvento, '<evVincPgto>', '</evVincPgto>')) +
+                        '</evVincPgto>';
+        end;
+
+      schevCancVincPgto:
+        begin
+          AXMLEvento := '<evCancVincPgto xmlns="' + ACBRBPE_NAMESPACE + '">' +
+                          Trim(RetornarConteudoEntre(AXMLEvento, '<evCancVincPgto>', '</evCancVincPgto>')) +
+                        '</evCancVincPgto>';
+        end;
     else
       AXMLEvento := '';
     end;
@@ -1558,10 +1586,10 @@ begin
   EventoRetorno.XmlRetorno := ParseText(FPRetWS);
   EventoRetorno.LerXml;
 
-  FcStat := EventoRetorno.retInfEvento.cStat;
-  FxMotivo := EventoRetorno.retInfEvento.xMotivo;
-  FPMsg := EventoRetorno.retInfEvento.xMotivo;
-  FTpAmb := EventoRetorno.retInfEvento.tpAmb;
+  FcStat := EventoRetorno.cStat;
+  FxMotivo := EventoRetorno.xMotivo;
+  FPMsg := EventoRetorno.xMotivo;
+  FTpAmb := EventoRetorno.tpAmb;
 
   // 135 = Evento Registrado e vinculado ao BPe
   Result := (FcStat = 135);
@@ -1601,7 +1629,7 @@ begin
 
         if FPConfiguracoesBPe.Arquivos.SalvarEvento then
         begin
-          NomeArq := OnlyNumber(FEvento.Evento[0].infEvento.Id) + '-procEventoBPe.xml';
+          NomeArq := RemoverLiteralChave(FEvento.Evento[0].infEvento.Id) + '-procEventoBPe.xml';
           PathArq := PathWithDelim(GerarPathEvento(FEvento.Evento[0].infEvento.CNPJ));
 
           FPDFeOwner.Gravar(NomeArq, Texto, PathArq);
@@ -1630,9 +1658,9 @@ begin
                          'Versão Aplicativo: %s ' + LineBreak +
                          'Status Código: %s ' + LineBreak +
                          'Status Descrição: %s ' + LineBreak),
-                 [FEventoRetorno.versao, TipoAmbienteToStr(FEventoRetorno.retInfEvento.tpAmb),
-                  FEventoRetorno.retInfEvento.verAplic, IntToStr(FEventoRetorno.retInfEvento.cStat),
-                  FEventoRetorno.retInfEvento.xMotivo]);
+                 [FEventoRetorno.versao, TipoAmbienteToStr(FEventoRetorno.tpAmb),
+                  FEventoRetorno.verAplic, IntToStr(FEventoRetorno.cStat),
+                  FEventoRetorno.xMotivo]);
 
   aMsg := aMsg + Format(ACBrStr('Recebimento: %s ' + LineBreak),
      [IfThen(FEventoRetorno.RetinfEvento.dhRegEvento = 0, '',

@@ -47,8 +47,6 @@ uses
   ACBrXmlBase,
   ACBrDFe.Conversao,
   ACBrDFeConsts,
-  pcnSignature,
-//  ACBrDFeComum.SignatureClass,
   ACBrDCe.Consts,
   ACBrDCe.EventoClass,
   ACBrBase,
@@ -216,7 +214,7 @@ var
   sDoc: string;
 begin
   Evento[Idx].InfEvento.id := 'ID' + Evento[Idx].InfEvento.TipoEvento +
-                             OnlyNumber(Evento[Idx].InfEvento.chDCe) +
+                             RemoverLiteralChave(Evento[Idx].InfEvento.chDCe) +
                              Format('%.3d', [Evento[Idx].InfEvento.nSeqEvento]);
 
   if Length(Evento[Idx].InfEvento.id) < 54 then
@@ -235,7 +233,7 @@ begin
                     EmitenteDCeToStr(Evento[Idx].InfEvento.tpEmit), DSC_TPEMIT));
 
   { Segundo o Manual }
-  sDoc := OnlyNumber(Evento[Idx].InfEvento.CNPJCPF);
+  sDoc := OnlyAlphaNum(Evento[Idx].InfEvento.CNPJCPF);
 
   if EstaVazio(sDoc) then
     sDoc := ExtrairCNPJCPFChaveAcesso(Evento[Idx].InfEvento.chDCe);
@@ -246,11 +244,11 @@ begin
   if not ValidarCNPJ(sDoc) then
     wAlerta('HP10', 'CNPJAutor', DSC_CNPJ, ERR_MSG_INVALIDO);
 
-  sDoc := OnlyNumber(Evento[Idx].InfEvento.IdOutrosEmit);
+  sDoc := Evento[Idx].InfEvento.IdOutrosEmit;
 
   if EstaVazio(sDoc) then
   begin
-    sDoc := OnlyNumber(Evento[Idx].InfEvento.CNPJCPFEmit);
+    sDoc := OnlyAlphaNum(Evento[Idx].InfEvento.CNPJCPFEmit);
 
     if Length(sDoc) = 14 then
     begin
@@ -310,16 +308,10 @@ end;
 
 function TEventoDCe.LerXML(const CaminhoArquivo: string): Boolean;
 var
-  ArqEvento: TStringList;
+  aXml: string;
 begin
-  ArqEvento := TStringList.Create;
-
-  try
-    ArqEvento.LoadFromFile(CaminhoArquivo);
-    Result := LerXMLFromString(ArqEvento.Text);
-  finally
-    ArqEvento.Free;
-  end;
+  aXml := CarregarArquivo(CaminhoArquivo);
+  Result := LerXMLFromString(aXml);
 end;
 
 function TEventoDCe.LerXMLFromString(const AXML: string): Boolean;
@@ -400,7 +392,7 @@ begin
     while true do
     begin
       sSecao := 'EVENTO' + IntToStrZero(I, 3);
-      sFim := INIRec.ReadString(sSecao, 'chNFe', 'FIM');
+      sFim := INIRec.ReadString(sSecao, 'chDCe', 'FIM');
 
       if (sFim = 'FIM') or (Length(sFim) <= 0) then
         break ;

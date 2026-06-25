@@ -1,46 +1,56 @@
 {******************************************************************************}
 { Projeto: Componentes ACBr                                                    }
-{  Biblioteca multiplataforma de componentes Delphi para intera��o com equipa- }
-{ mentos de Automa��o Comercial utilizados no Brasil                           }
+{  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
+{ mentos de Automação Comercial utilizados no Brasil                           }
 {                                                                              }
-{  Voc� pode obter a �ltima vers�o desse arquivo na pagina do  Projeto ACBr    }
+{  Você pode obter a última versão desse arquivo na pagina do  Projeto ACBr    }
 { Componentes localizado em      http://www.sourceforge.net/projects/acbr      }
 {                                                                              }
-{  Esta biblioteca � software livre; voc� pode redistribu�-la e/ou modific�-la }
-{ sob os termos da Licen�a P�blica Geral Menor do GNU conforme publicada pela  }
-{ Free Software Foundation; tanto a vers�o 2.1 da Licen�a, ou (a seu crit�rio) }
-{ qualquer vers�o posterior.                                                   }
+{  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la }
+{ sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela  }
+{ Free Software Foundation; tanto a versão 2.1 da Licença, ou (a seu critério) }
+{ qualquer versão posterior.                                                   }
 {                                                                              }
-{  Esta biblioteca � distribu�da na expectativa de que seja �til, por�m, SEM   }
-{ NENHUMA GARANTIA; nem mesmo a garantia impl�cita de COMERCIABILIDADE OU      }
-{ ADEQUA��O A UMA FINALIDADE ESPEC�FICA. Consulte a Licen�a P�blica Geral Menor}
-{ do GNU para mais detalhes. (Arquivo LICEN�A.TXT ou LICENSE.TXT)              }
+{  Esta biblioteca é distribuída na expectativa de que seja útil, porém, SEM   }
+{ NENHUMA GARANTIA; nem mesmo a garantia implícita de COMERCIABILIDADE OU      }
+{ ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA. Consulte a Licença Pública Geral Menor}
+{ do GNU para mais detalhes. (Arquivo LICENÇA.TXT ou LICENSE.TXT)              }
 {                                                                              }
-{  Voc� deve ter recebido uma c�pia da Licen�a P�blica Geral Menor do GNU junto}
-{ com esta biblioteca; se n�o, escreva para a Free Software Foundation, Inc.,  }
-{ no endere�o 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.          }
-{ Voc� tamb�m pode obter uma copia da licen�a em:                              }
+{  Você deve ter recebido uma cópia da Licença Pública Geral Menor do GNU junto}
+{ com esta biblioteca; se não, escreva para a Free Software Foundation, Inc.,  }
+{ no endereço 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.          }
+{ Você também pode obter uma copia da licença em:                              }
 { http://www.opensource.org/licenses/lgpl-license.php                          }
 {                                                                              }
-{ Daniel Sim�es de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
-{       Rua Coronel Aureliano de Camargo, 963 - Tatu� - SP - 18270-170         }
+{ Daniel Simões de Almeida - daniel@projetoacbr.com.br - www.projetoacbr.com.br}
+{       Rua Coronel Aureliano de Camargo, 963 - Tatuí - SP - 18270-170         }
 {******************************************************************************}
 Agradecimentos:
 
 * Administradores:
-- Daniel Sim�es de Almeida
+- Daniel Simões de Almeida
 
 {******************************************************************************
 |* ACBrLibPIXCD
 |*
-|* PROP�SITO: Registro de Altera��es
+|* PROPÓSITO: Registro de Alterações
 ******************************************************************************}
 
-S�mbolo : Significado
+Símbolo : Significado
 
 [+]     : Novo recurso
 [*]     : Recurso modificado/melhorado
-[-]     : Corre��o de Bug (assim esperamos)
+[-]     : Correção de Bug (assim esperamos)
+
+12/06/2026
+-- ACBrLibPIXCDDataModule --
+[-] Correção na aplicação das configurações do AppLess e QQPag
+  Por: doszapro
+  
+20/04/2026
+-- ACBrLibPIXCDConfig, ACBrLibPIXCDConsts, ACBrLibPIXCDDataModule --
+[+] Inclusão PSP QQPag (Quero Quero - VerdeCard)
+    Por: Antonio Carlos Junior  
 
 09/10/2025
 -- ACBrLibPIXCDConsoleMT.lpi, ACBrLibPIXCDConsoleMTDemo.lpi --
@@ -52,54 +62,54 @@ S�mbolo : Significado
 
 07/10/2025
 -- ACBrLibPIXCDBase --
-[*] Implementa c�digo de retorno -7 (ErrHttp)
-    por: J�lio Cavalcanti
+[*] Implementa código de retorno -7 (ErrHttp)
+    por: Júlio Cavalcanti
 
 07/10/2025
 -- ACBrLibPIXCDConfig, ACBrLibPIXCDDataModule, ACBrLibPIXCDConsts  --
-[*] Remo��o da propriedade APIVersion de todos os PSPs da lib.
+[*] Remoção da propriedade APIVersion de todos os PSPs da lib.
     por: Julio Cavalcanti
 
 06/10/2025
 -- ACBrLibPIXCDConfig, ACBrLibPIXCDDataModule, ACBrLibPIXCDConsts  --
-[+] Inclus�o de propriedade APIVersao para o PSP Bradesco
+[+] Inclusão de propriedade APIVersao para o PSP Bradesco
     por: Julio Cavalcanti
 
 30/09/2025
 -- ACBrLibPIXCD --
-[+] Inclus�o dos m�todos GerarToken e InformarToken, respons�veis por possibilitar
-    a autentica��o dos PSPs de forma manual atrav�s da Lib.
+[+] Inclusão dos métodos GerarToken e InformarToken, responsáveis por possibilitar
+    a autenticação dos PSPs de forma manual através da Lib.
     por: Elias Cesar
 
 13/08/2025
 -- ACBrLibPIXCD --
-[+] Inclus�o de novo m�todo para gerar QrCode est�tico com chave pix.
+[+] Inclusão de novo método para gerar QrCode estático com chave pix.
     por: Julio Cavalcanti
 
 10/07/2025
 -- ACBrLibPIXCDDataModule, ACBrLibPIXCDConsts, ACBrLibPIXCDConfig --
-[+] ACBrLibPIXCD - Migra��o Matera -> PIXNoPDV
+[+] ACBrLibPIXCD - Migração Matera -> PIXNoPDV
     Por: Antonio Carlos Junior
 
 30/06/2025
 -- ACBrLibPIXCDBase --
-[-] Corre��o na valida��o de sucesso tamb�m na cria��o de uma cobran�a imediata
-    por: Elias C�sar
+[-] Correção na validação de sucesso também na criação de uma cobrança imediata
+    por: Elias César
 
 10/06/2025
 -- ACBrLibPIXCDBase --
-[-] Corre��o na valida��o de sucesso da requisi��o
-    por: J�lio Cavalcanti
+[-] Correção na validação de sucesso da requisição
+    por: Júlio Cavalcanti
 
 10/04/2025
 -- ACBrLibPIXCDDataModule, ACBrLibPIXCDConsts, ACBrLibPIXCDConfig --
-[+] Inclus�o PSP AppLess - #TK-6880.
-[*] Implementado evento ACBrPSPSicoob1QuandoReceberRespostaHttp para retornar informa��es do Pagador (Nome, CPF/CNPJ) utilizado apenas no PSP Sicoob - #TK-6844.
-    Por: Antonio Carlos Junior / J�lio Cavalcanti
+[+] Inclusão PSP AppLess - #TK-6880.
+[*] Implementado evento ACBrPSPSicoob1QuandoReceberRespostaHttp para retornar informações do Pagador (Nome, CPF/CNPJ) utilizado apenas no PSP Sicoob - #TK-6844.
+    Por: Antonio Carlos Junior / Júlio Cavalcanti
 
 08/04/2025
 -- ACBrLibPIXCDBase --
-[*] Ajustes nos m�todos PIXCD_CriarCobrancaImediata e PIXCD_CriarCobranca para retornar o PixCopiaECola utilizando a fun��o GerarQRCodeDinamico caso o PSP retorne com a informa��o vazia.
+[*] Ajustes nos métodos PIXCD_CriarCobrancaImediata e PIXCD_CriarCobranca para retornar o PixCopiaECola utilizando a função GerarQRCodeDinamico caso o PSP retorne com a informação vazia.
     Por: Antonio Carlos Junior
 
 07/04/2025
@@ -109,8 +119,8 @@ S�mbolo : Significado
 
 19/03/2025
 -- ACBrLibPIXCDMateraRespostas --
-[*] #TK-6665: Ajuste na classe TLibPIXCDMateraAlias para retornar o texto ao inv�s do �ndice.
-    Por: J�lio Cavalcanti
+[*] #TK-6665: Ajuste na classe TLibPIXCDMateraAlias para retornar o texto ao invés do índice.
+    Por: Júlio Cavalcanti
 
 10/03/2025
 -- ACBrLibPIXCDConsts, ACBrLibPIXCDConfig, ACBrLibPIXCDDataModule --
@@ -124,100 +134,100 @@ S�mbolo : Significado
 
 05/03/2025
 -- ACBrLibPIXCD.lpi, ACBrLibPIXCDDemo.lpi, ACBrLibPIXCDConsoleMT.lpi e ACBrLibPIXCDConsoleMTDemo.lpi--
-[*] Realizado ajustes nos paths para compila��o com os novos scripts do Jenkins.
+[*] Realizado ajustes nos paths para compilação com os novos scripts do Jenkins.
     Por: Antonio Carlos Junior
 
 24/02/2025
 -- ACBrLibPIXCDDataModule.pas --
-[*] Implementado evento ACBrPSPBancoDoBrasil1QuandoReceberRespostaHttp para retornar informa��es do Pagador (Nome, CPF/CNPJ) utilizado apenas no PSP Banco do Brasil.
-#TK-6644 - AcbrpixCD.dll n�o retorna informa��es do pagador.
+[*] Implementado evento ACBrPSPBancoDoBrasil1QuandoReceberRespostaHttp para retornar informações do Pagador (Nome, CPF/CNPJ) utilizado apenas no PSP Banco do Brasil.
+#TK-6644 - AcbrpixCD.dll não retorna informações do pagador.
   Por: Antonio Carlos Junior
 
 31/12/2024
 -- ACBrLibPIXCDBase --
-[*] Mapeando exce��o EACBrPixHttpException no m�todo MateraIncluirChavePix para exibir o 
-    JSON de resposta na descri��o da exce��o.
-    Por: J�lio Cavalcanti 
+[*] Mapeando exceção EACBrPixHttpException no método MateraIncluirChavePix para exibir o 
+    JSON de resposta na descrição da exceção.
+    Por: Júlio Cavalcanti 
 
 26/12/2024
 -- ACBrLibPIXCDConsoleMTDemo.lpi --
-[+] Adicionado novo Projeto, 100% CONSOLE e MT vers�o Demonstra��o.
-[+] Compat�vel com compila��o em Linux 64 e Android 32 e 64
+[+] Adicionado novo Projeto, 100% CONSOLE e MT versão Demonstração.
+[+] Compatível com compilação em Linux 64 e Android 32 e 64
     Por: Antonio Carlos Junior
 
 18/12/2024
 --- ACBrLibPIXCDBase ---
-[*] Ajuste nos m�todos MateraSolicitarRetirada, MateraConsultarAliasRetirada, MateraSolicitarDevolucao, MateraConsultarMotivosDevolucao, MateraConsultarExtratoEC             para mapear exce��es de erro HTTP e trazer o JSON de retorno.
-    Por: J�lio Cavalcanti, Elias C�sar, Daniel Oliveira
+[*] Ajuste nos métodos MateraSolicitarRetirada, MateraConsultarAliasRetirada, MateraSolicitarDevolucao, MateraConsultarMotivosDevolucao, MateraConsultarExtratoEC             para mapear exceções de erro HTTP e trazer o JSON de retorno.
+    Por: Júlio Cavalcanti, Elias César, Daniel Oliveira
 
 17/12/2024
 -- ACBrLibPIXCDConsoleMT.lpi --
 [+] Adicionado novo Projeto, 100% CONSOLE e MT
-[+] Compat�vel com compila��o em Linux 64 e Android 32 e 64
+[+] Compatível com compilação em Linux 64 e Android 32 e 64
     Por: Antonio Carlos Junior
 
 12/12/2024
 --- ACBrLibPIXCDMateraRespostas ---
-[*] Ajuste na classe TLibPIXCDMateraDestinationAccount e TLibPIXCDMateraBankTransfer para retornar o texto ao inv�s do valor.
-    Por: Antonio Carlos Junior, Elias C�sar, J�lio Cavalcanti
+[*] Ajuste na classe TLibPIXCDMateraDestinationAccount e TLibPIXCDMateraBankTransfer para retornar o texto ao invés do valor.
+    Por: Antonio Carlos Junior, Elias César, Júlio Cavalcanti
 
 10/12/2024
 -- ACBrLibPIXCDDataModule, ACBrLibPIXCDConsts, ACBrLibPIXCDConfig --
-[*] Inclus�o das propriedades ArquivoChavePrivada e ArquivoCertificado para uso do PSP Cielo em Produ��o.
-    #TK-6118 - ACBrPIXCD - Como passar os certificados - PSP Cielo - Produ��o.
+[*] Inclusão das propriedades ArquivoChavePrivada e ArquivoCertificado para uso do PSP Cielo em Produção.
+    #TK-6118 - ACBrPIXCD - Como passar os certificados - PSP Cielo - Produção.
     Por: Antonio Carlos Junior
 
 
 21/11/2024
 --- ACBrLibPIXCDRespostas ---
-[*] Ajuste no Status da Devolu��o e Cobran�as para retornar o texto ao inv�s do valor.
+[*] Ajuste no Status da Devolução e Cobranças para retornar o texto ao invés do valor.
     Por: Antonio Carlos Junior 
 
 19/11/2024
 -- ACBrLibPIXCMateraRespostas --
-[*] #TK-6170: Corrige a resposta do m�todo ConsultarExtrato
+[*] #TK-6170: Corrige a resposta do método ConsultarExtrato
   Por: Antonio Carlos Junior / Julio Cavalcante / Diego Folieni
 
 18/11/2024
 -- ACBrLibPIXCDBase, ACBrLibPIXCDRespostas --
-[*] #TK-6237: Adiciona na leitura do retorno as informa��es relacionadas a cobran�a.
+[*] #TK-6237: Adiciona na leitura do retorno as informações relacionadas a cobrança.
    Por: Diego Folieni
 
 30/10/2024
 --- ACBrLibPIXCDRespostas ---
-[*] Ajustes respostas do m�todo PIXCD_CriarCobranca e PIXCD_ConsultarCobranca
-    #TK-6184 - ACBrLibPIXCD Ita� n�o retornando o texto do QRCode
+[*] Ajustes respostas do método PIXCD_CriarCobranca e PIXCD_ConsultarCobranca
+    #TK-6184 - ACBrLibPIXCD Itaú não retornando o texto do QRCode
     Por: Antonio Carlos Junior
 
 13/09/2024
 -- ACBrLibPIXCDBase --
-[*] #TK-5927: Ajuste visando corrigir problema se receber resposta de erro ao cancelar cobran�a.
+[*] #TK-5927: Ajuste visando corrigir problema se receber resposta de erro ao cancelar cobrança.
 Por: Diego Folieni 
 
 23/07/2024
 -- ACBrLibPIXCDBase, ACBrLibPIXCDConsts, ACBrLibPIXCDRespostas, ACBrLibPIXCDST, ACBrLibPIXCDMT,
    ACBrLibPIXCDStaticImportST, ACBrLibPIXCDStaticImportMT --
-[+] Novos m�todos PIXCD_ConsultarCobrancasCob e PIXCD_ConsultarCobrancasCobV
+[+] Novos métodos PIXCD_ConsultarCobrancasCob e PIXCD_ConsultarCobrancasCobV
 Por: Antonio Carlos Junior   
 
 15/07/2024
 -- ACBrLibPIXCDBase, ACBrLibPIXCDConfig, ACBrLibPIXCDConsts, ACBrLibPIXCDDataModule, ACBrLibPIXCDMateraRespostas,
    ACBrLibPIXCDST, ACBrLibPIXCDMT, ACBrLibPIXCDStaticImportST, ACBrLibPIXCDStaticImportMT -- 
-[+] Novos m�todos para uso PSP Matera.
-[+] Inclus�o novos PSPs.
-Por: Antonio Carlos Junior / Revis�o: Elias Cesar
+[+] Novos métodos para uso PSP Matera.
+[+] Inclusão novos PSPs.
+Por: Antonio Carlos Junior / Revisão: Elias Cesar
 
 
 28/05/2024
 -- ACBrLibPIXCDRespostas --
-[*] Adiciona se��o Viola��es na resposta quando houver erro e a informa��o for devolvida.
+[*] Adiciona seção Violações na resposta quando houver erro e a informação for devolvida.
 Por: Diego Folieni
 
 02/05/2024
 -- ACBrLibPIXCDConfig --
-[*] Altera o escopo de vari�vel visando correto uso de heran�a.
+[*] Altera o escopo de variável visando correto uso de herança.
 Por: Diego Folieni
-[*] Refactoring da maneira como era lido e salvo a informa��o dos scopes
+[*] Refactoring da maneira como era lido e salvo a informação dos scopes
 Por: Diego Folieni
 -- ACBrLibPIXCDConfig, ACBrLibPIXCDDataModule, ACBrLibPIXCDConsts --
 [*] Adiciona a propriedade Scopes para os PSPs.
@@ -230,48 +240,48 @@ Por: Daniel Morais Infocotidiano
 
 20/02/2024
 -- ACBrLibPIXCDConfig --
-[*] Corrige a informa��o do ArqPFX no GravarIni para o PSP Bradesco.
+[*] Corrige a informação do ArqPFX no GravarIni para o PSP Bradesco.
   Por: Eduardo Telles
 
 12/02/2024
 -- ACBrLibPIXCDBase, ACBrLibPIXCDResposta --
-[*] Ajustes nas nomenclaturas de algumas fun��es visando trazer maior clareza no c�digo e evitar poss�veis problemas.
+[*] Ajustes nas nomenclaturas de algumas funções visando trazer maior clareza no código e evitar possíveis problemas.
    Por: Diego Folieni
 
 26/01/2024
 --- ACBrLibPIXCDBase, ACBrLibPIXCDRespostas, ACBrLibPIXCDConsts ---
-[*] Ajustes unit ACBrLibPIXCDRespostas e nos m�todos ACBrLibPIXCDBase - #TK-4998
-    Por: Diego Folieni / Revis�o Antonio Carlos Junior
+[*] Ajustes unit ACBrLibPIXCDRespostas e nos métodos ACBrLibPIXCDBase - #TK-4998
+    Por: Diego Folieni / Revisão Antonio Carlos Junior
 
 23/01/2024
 -- ACBrLibPIXCDConfig --
-[*] Corre��o do reader da propriedade ClientId para a config do PSP Sicoob.
+[*] Correção do reader da propriedade ClientId para a config do PSP Sicoob.
     Por: Diego Folieni
 
 28/12/2023
 --- ACBrLibPIXCDDataModule ---
-[+] Cria��o Vers�o Demonstra��o ACBrLibPIXCD
+[+] Criação Versão Demonstração ACBrLibPIXCD
     Por: Antonio Carlos Junior
 
 27/12/2023
 --- ACBrLibPIXCDBase, ACBrLibPIXCDST, ACBrLibPIXCDStaticImportST, ACBrLibPIXCDMT, ACBrLibPIXCDStaticImportMT ---
-[*] Ajuste M�todo GerarQRCodeEstatico
+[*] Ajuste Método GerarQRCodeEstatico
     Por: Antonio Carlos Junior
 
 22/12/2023
 --- ACBrLibPIXCDDataModule, ACBrLibPIXCDConsts, ACBrLibPIXCDConfig ---
-[*] Inclus�o propriedade ChavePIX para PSP MercadoPago.
+[*] Inclusão propriedade ChavePIX para PSP MercadoPago.
     Por: Antonio Carlos Junior
 
 19/12/2023
 --- ACBrLibPIXCDBase, ACBrLibPIXCDST, ACBrLibPIXCDMT, ACBrLibPIXCDStaticImportST, ACBrLibPIXCDStaticImportMT ---
-[*] Ajustes nos m�todos CriarCobranca
-[+] Cria��o m�todos CancelarCobranca
+[*] Ajustes nos métodos CriarCobranca
+[+] Criação métodos CancelarCobranca
     Por: Antonio Carlos Junior
 
 12/12/2023
 --- ACBrLibPIXCDDataModule, ACBrLibPIXCDConsts, ACBrLibPIXCDConfig ---
-[+] Inclus�o novas propriedades dos PSPs.
+[+] Inclusão novas propriedades dos PSPs.
     Por: Antonio Carlos Junior 
 
 11/12/2023
@@ -281,15 +291,15 @@ Por: Daniel Morais Infocotidiano
 
 06/12/2023
 --- ACBrLibPIXCDBase, ACBrLibPIXCDConsts, ACBrLibPIXCDRespostas ---
-[*] Ajustes na unit ACBrLibPIXCDResposta e nos m�todos em ACBrLibPIXCDBase.
-[+] Implementado novos m�todos.
+[*] Ajustes na unit ACBrLibPIXCDResposta e nos métodos em ACBrLibPIXCDBase.
+[+] Implementado novos métodos.
     Por: Antonio Carlos Junior
 
 07/11/2023
 --- ACBrLibPIXCDBase, ACBrLibPIXCDConfig, ACBrLibPIXCDConsts, ACBrLibPIXCDDataModule --- 
-[+] Inclus�o novos PSPs.
-[+] Inclus�o das propriedades dos novos PSPs.
-[+] Implementado m�todos de Consulta ACBrLibPIXCD.
+[+] Inclusão novos PSPs.
+[+] Inclusão das propriedades dos novos PSPs.
+[+] Implementado métodos de Consulta ACBrLibPIXCD.
     Por: Antonio Carlos Junior
 
 29/09/2023
@@ -299,11 +309,10 @@ Por: Daniel Morais Infocotidiano
 
 22/09/2023
 --- ACBrLibPIXCDConfig, ACBrLibPIXCDConsts, ACBrLibPIXCDDataModule ---
-[+] Inclus�o das propriedades dos PSPs.
+[+] Inclusão das propriedades dos PSPs.
     Por: Antonio Carlos Junior
 
 14/07/2023
 --- ACBrLibPIXCD ---
 [+] Inicio do projeto
     Por: Antonio Carlos Junior
-

@@ -42,6 +42,21 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+04/06/2026
+-- ACBrDFeComum.ConsReciDFe/ACBrDFeComum.RetDistDFeInt --
+[*] Melhorias e ajuste para atender o CNPJ Alfa.
+   Por: Italo Giurizzato Junior
+
+06/05/2026
+-- ACBrDFeComum.RetDistDFeInt --
+[*] Ajuste para realizar a leitura correta de um XML de CTe Simplificado.
+   Por: Italo Giurizzato Junior
+
+10/04/2024
+-- ACBrDFeComum.RetConsStatServ --
+[*] Remoção de variável definida e não utilizada.
+   Por: Italo Giurizzato Junior
+
 18/12/2025
 -- ACBrDFeComum.DistDFeInt --
 [*] Alteração visando a leitura e a gravação correta do XML de eventos.

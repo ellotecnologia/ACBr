@@ -38,6 +38,22 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+26/05/2026
+-- pcnConversao --
+[+] ACBr-9316 - Incluido o enumerado: peProvedorAssinaturaAutorizacao no 
+    tipo: TACBrProcessoEmissao e ajustado as funções de conversão.
+   Por: Italo Giurizzato Junior
+
+16/04/2024
+-- pcnConversao --
+[+] ACBR-9067 - Inclusão do enumerado cstPart20 para o ICMSPart visando atender a NT 2022/002 versão 1.30a
+   Por: Italo Giurizzato Junior
+
+10/04/2024
+-- pcnConversao --
+[+] ACBR-9136 - Inclusão dos eventos: Vinculação de Pagamento e Cancelamento de Vinculação de Pagamento.
+   Por: Italo Giurizzato Junior
+
 21/11/2025
 -- pcnConversao --
 [+] ACBR-5451 - Inclusão do evento Atualização da Data de Previsão de Entrega para Reforma Tributária

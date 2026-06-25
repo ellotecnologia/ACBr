@@ -442,7 +442,7 @@ begin
                       IntToStrZero(Round(ValorAbatimento*100), 13), Space(13))  + // Valor do abatimento
 
                TipoSacado                                                       + // Tipo do Sacado (01-CPF, 02-CNPJ, 03-Outros)
-               PadLeft(OnlyNumber(Sacado.CNPJCPF), 14, '0')                     + // Número da inscrição do Sacado (CPF, CNPJ)
+               PadLeft(OnlyCPFCNPJAlphaNum(Sacado.CNPJCPF), 14, '0')                     + // Número da inscrição do Sacado (CPF, CNPJ)
                PadRight(Sacado.NomeSacado, 35)                                  + // Nome do Sacado
                space(5)                                                         + // Brancos
                PadRight(Sacado.Logradouro+' '+
@@ -505,7 +505,7 @@ begin
                '0' +                                              //   8 -   8   Registro header de arquivo
                Space(9) +                                         //   9 -  17   Uso exclusivo FEBRABAN/CNAB
                TipoInsc +                                         //  18 -  18   Tipo de inscrição
-               OnlyNumber(CNPJCPF) +                              //  19 -  32   Número de inscrição da empresa (Não considerado)
+               OnlyCPFCNPJAlphaNum(CNPJCPF) +                              //  19 -  32   Número de inscrição da empresa (Não considerado)
                PadLeft(OnlyNumber(Convenio), 13, '0') +           //  33 -  45   Código do convênio
                Space(7) +                                         //  46 -  52   Brancos
                '0'+                                               //  53 -  53   Zeros
@@ -537,7 +537,7 @@ begin
                PadLeft(IntToStr(fpLayoutVersaoLote), 3, '0') +    //  14 -  16   Número da versão do layout do lote
                Space(1) +                                         //  17 -  17   Uso exclusivo FEBRABAN/CNAB
                TipoInsc +                                         //  18 -  18   Tipo de inscrição da empresa
-               PadLeft(OnlyNumber(CNPJCPF), 15, '0') +            //  19 -  33   Número de inscrição da empresa
+               PadLeft(OnlyCPFCNPJAlphaNum(CNPJCPF), 15, '0') +            //  19 -  33   Número de inscrição da empresa
                PadLeft(OnlyNumber(Convenio), 13, '0') +           //  34 -  46   Código do convênio
                Space(7) +                                         //  47 -  53   Brancos
                PadLeft(OnlyNumber(Agencia), 5, '0') +             //  54 -  58   Agência
@@ -558,8 +558,8 @@ begin
                PadLeft(IntToStr(fpLayoutVersaoLote), 3, '0') +    //  14 -  16   Número da versão do layout do lote
                Space(1) +                                         //  17 -  17   Uso exclusivo FEBRABAN/CNAB
                TipoInsc +                                         //  18 -  18   Tipo de inscrição da empresa
-               PadLeft(OnlyNumber(CNPJCPF), 15, '0') +            //  19 -  33   Número de inscrição da empresa
-               PadLeft(OnlyNumber(Convenio), 13, '0') +           //  34 -  46   Código do convênio
+               PadLeft(OnlyCPFCNPJAlphaNum(CNPJCPF), 15, '0') +            //  19 -  33   Número de inscrição da empresa
+               PadLeft(OnlyCPFCNPJAlphaNum(Convenio), 13, '0') +           //  34 -  46   Código do convênio
                Space(7) +                                         //  47 -  53   Brancos
                PadLeft(OnlyNumber(Agencia), 5, '0') +             //  54 -  58   Agência
                PadLeft(AgenciaDigito, 1, ' ') +                   //  59 -  59   Dígito da agência
@@ -632,7 +632,7 @@ end;
 function TACBrBanrisul.GerarRegistroTransacao240(
   ACBrTitulo: TACBrTitulo): String;
 var
-    aAceite, DiasProt, Juros, TipoInscSacado, Ocorrencia: String;
+    aAceite, DiasProt, Juros, TipoInscSacado, Ocorrencia, LEspecie: String;
     sDiasBaixaDevol, ACaracTitulo, ATipoBoleto, AEspecieCobranca : String;
     LTipoMoraJuros : byte;
 begin
@@ -721,6 +721,30 @@ begin
          Ocorrencia := '01'; {Remessa}
       end;
 
+      {Definindo o tipo da Especie do Titulo}
+      if Trim(EspecieDoc) = 'DM' then
+         LEspecie := '02'
+      else if Trim(EspecieDoc) = 'DMI' then
+         LEspecie := '03'
+      else if Trim(EspecieDoc) = 'DS' then
+         LEspecie := '04'
+      else if Trim(EspecieDoc) = 'DSI' then
+         LEspecie := '05'
+      else if Trim(EspecieDoc) = 'LC' then
+         LEspecie := '07'
+      else if Trim(EspecieDoc) = 'NP' then
+         LEspecie := '12'
+      else if Trim(EspecieDoc) = 'PC' then
+         LEspecie := '22'
+      else if Trim(EspecieDoc) = 'CC' then
+         LEspecie := '31'
+      else if Trim(EspecieDoc) = 'BDP' then
+         LEspecie := '32'
+      else if Trim(EspecieDoc) = 'OUTROS' then
+         LEspecie := '99'
+      else
+         LEspecie := '02';  // valor padrão DM
+
      {Pegando Tipo de Boleto}
      ATipoBoleto := '1';
      case ACBrBoleto.Cedente.ResponEmissao of
@@ -770,7 +794,7 @@ begin
                   PadLeft(StringReplace(FormatFloat('#####0.00', ValorDocumento), ',', '', []), 15, '0') +                              //  86-100 VALOR DO TITULO
                   '00000' +                                                                                                             // 101-105 AGENCIA COBRADORA
                   '0' +                                                                                                                 // 106-106 DV AGENCIA COBRADORA
-                  '02' +                                                                                                                // 107-108 ESPECIDE DO TITULO
+                  PadRight(LEspecie,2) +                                                                                                // 107-108 ESPECIDE DO TITULO
                   aAceite +                                                                                                             // 109-109 ACEITE
                   FormatDateTime('ddmmyyyy', DataProcessamento) +                                                                       // 110-117 DATA DE EMISSAO
                   Juros +                                                                                                               // 118-141 JUROS
@@ -812,7 +836,7 @@ begin
                   PadLeft(StringReplace(FormatFloat('#####0.00', ValorDocumento), ',', '', []), 15, '0') +                              //  86-100 VALOR DO TITULO
                   '00000' +                                                                                                             // 101-105 AGENCIA COBRADORA
                   '0' +                                                                                                                 // 106-106 DV AGENCIA COBRADORA
-                  '02' +                                                                                                                // 107-108 ESPECIDE DO TITULO
+                  PadRight(LEspecie,2) +                                                                                                // 107-108 ESPECIDE DO TITULO
                   aAceite +                                                                                                             // 109-109 ACEITE
                   FormatDateTime('ddmmyyyy', DataProcessamento) +                                                                       // 110-117 DATA DE EMISSAO
                   Juros +                                                                                                               // 118-141 JUROS
@@ -838,7 +862,7 @@ begin
                 'Q ' +
                 Ocorrencia +
                 TipoInscSacado +
-                PadLeft(OnlyNumber(Sacado.CNPJCPF), 15, '0') +
+                PadLeft(OnlyCPFCNPJAlphaNum(Sacado.CNPJCPF), 15, '0') +
                 PadRight(Sacado.NomeSacado, 40) +
                 PadRight(Sacado.Logradouro+' '+
                     Sacado.Numero+' '+
@@ -1011,7 +1035,7 @@ begin
     ACBrBanco.ACBrBoleto.DataCreditoLanc := 0;
   end;
 
-  rCNPJCPF := OnlyNumber(copy(ARetorno[1], 20, 14));
+  rCNPJCPF := OnlyCPFCNPJAlphaNum(copy(ARetorno[1], 20, 14));
 
   try
     ValidarDadosRetorno(rAgencia, rConta, rCNPJCPF);

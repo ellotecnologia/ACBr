@@ -43,6 +43,7 @@ uses
   ACBrUtil.FilesIO,
   ACBrXmlBase,
   ACBrDFe.Conversao,
+  ACBrDFeUtil,
   ACBrDFe, ACBrDFeConfiguracoes, ACBrDFeException, ACBrBase,
   ACBrMDFeConfiguracoes, ACBrMDFeWebServices, ACBrMDFeManifestos,
   ACBrMDFeDAMDFeClass,
@@ -152,11 +153,7 @@ uses
   dateutils,
   ACBrDFeSSL;
 
-{$IFDEF FPC}
- {$R ACBrMDFeServicos.rc}
-{$ELSE}
- {$R ACBrMDFeServicos.res}
-{$ENDIF}
+{$R ACBrMDFeServicos.res}
 
 { TACBrMDFe }
 
@@ -211,7 +208,7 @@ begin
     ImprimirEventoPDF;
     AnexosEmail.Add(DAMDFE.ArquivoPDF);
 
-    NomeArq := OnlyNumber(EventoMDFe.Evento[0].InfEvento.Id);
+    NomeArq := RemoverLiteralChave(EventoMDFe.Evento[0].InfEvento.Id);
     EnviarEmail(sPara, sAssunto, sMensagem, sCC, AnexosEmail, StreamMDFe,
 	    NomeArq + '-procEventoMDFe.xml', sReplyTo);
   finally
@@ -286,7 +283,7 @@ begin
   if Pos('?', urlUF) <= 0 then
     urlUF := urlUF + '?';
 
-  idMDFe := OnlyNumber(FMDFe.infMDFe.ID);
+  idMDFe := RemoverLiteralChave(FMDFe.infMDFe.ID);
 
   // Passo 1
   sEntrada := 'chMDFe=' + idMDFe + '&tpAmb=' + TpAmbToStr(FMDFe.Ide.tpAmb);
@@ -458,7 +455,7 @@ function TACBrMDFe.GerarChaveContingencia(FMDFe: TMDFe): String;
   const
     PESO = '43298765432987654329876543298765432';
   begin
-    chave := OnlyNumber(chave);
+    chave := RemoverLiteralChave(chave);
     j := 0;
     Digito := 0;
     Result := True;
@@ -552,7 +549,7 @@ begin
     with EventoMDFe.Evento.New do
     begin
       infEvento.CNPJCPF  := Manifestos.Items[i].MDFe.Emit.CNPJCPF;
-      infEvento.cOrgao   := StrToIntDef(copy(OnlyNumber(WebServices.Consulta.MDFeChave), 1, 2), 0);
+      infEvento.cOrgao   := StrToIntDef(copy(RemoverLiteralChave(WebServices.Consulta.MDFeChave), 1, 2), 0);
       infEvento.dhEvento := now;
       infEvento.tpEvento := teCancelamento;
       infEvento.chMDFe   := WebServices.Consulta.MDFeChave;
@@ -662,7 +659,7 @@ begin
 
     if Manifestos.Count > 0 then
     begin
-      chMDFe := OnlyNumber(EventoMDFe.Evento.Items[i].InfEvento.chMDFe);
+      chMDFe := RemoverLiteralChave(EventoMDFe.Evento.Items[i].InfEvento.chMDFe);
 
       // Se tem a chave do MDFe no Evento, procure por ela nos manifestos carregados //
       if NaoEstaVazio(chMDFe) then

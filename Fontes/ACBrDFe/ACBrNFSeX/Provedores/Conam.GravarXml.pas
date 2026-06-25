@@ -54,6 +54,7 @@ type
     FValReg30: Double;
     FQtdReg40: Integer;
     FQtdReg50: Integer;
+    FEnder   : TEnder;
   protected
     procedure Configuracao; override;
 
@@ -62,7 +63,7 @@ type
     function GerarReg40: TACBrXmlNode;
     function GerarReg40Item(const Sigla, Conteudo: string): TACBrXmlNode;
     function GerarReg50: TACBrXmlNode;
-    function GerarReg50Item(const TipoEnd: string): TACBrXmlNode;
+    function GerarReg50Item(const TipoEnd: Integer): TACBrXmlNode;
 
     function GerarXmlItemDestinatario(Dest: TDadosdaPessoa): TACBrXmlNode;
     function GerarXMLItemEnderecoDestinatario(Ender: TEnder): TACBrXmlNode;
@@ -235,10 +236,9 @@ begin
 
   if (CpfCnpj <> 'CONSUMIDOR') and (CpfCnpj <> 'EXTERIOR') then
     NFSeNode.AppendChild(AddNode(tcStr, '#1', 'CepTom', 1, 8, 1,
-                                    OnlyNumber(NFSe.Tomador.Endereco.CEP), ''))
+                                     OnlyNumber(NFSe.Tomador.Endereco.CEP), ''))
   else
-    NFSeNode.AppendChild(AddNode(tcStr, '#1', 'CepTom', 1, 8, 1,
-                                                                '00000000',''));
+    NFSeNode.AppendChild(AddNode(tcStr, '#1', 'CepTom', 1, 8, 1, '',''));
 
   if (CpfCnpj = 'CONSUMIDOR') then
     NFSeNode.AppendChild(AddNode(tcStr, '#1', 'Telefone', 1, 10, 1, '', ''))
@@ -607,7 +607,7 @@ begin
 
   if NFSe.IBSCBS.dest.xNome <> '' then
   begin
-    xmlNode := GerarReg50Item('1');
+    xmlNode := GerarReg50Item(1);
     Result.AppendChild(xmlNode);
 
     Inc(FQtdReg50);
@@ -615,7 +615,7 @@ begin
 
   if NFSe.ConstrucaoCivil.nCei <> '' then
   begin
-    xmlNode := GerarReg50Item('2');
+    xmlNode := GerarReg50Item(2);
     Result.AppendChild(xmlNode);
 
     Inc(FQtdReg50);
@@ -623,26 +623,28 @@ begin
 
   if NFSe.IBSCBS.imovel.cCIB <> '' then
   begin
-    xmlNode := GerarReg50Item('3');
+    xmlNode := GerarReg50Item(3);
     Result.AppendChild(xmlNode);
 
     Inc(FQtdReg50);
   end;
 end;
 
-function TNFSeW_Conam.GerarReg50Item(const TipoEnd: string): TACBrXmlNode;
-var
-  Tipo: Integer;
+function TNFSeW_Conam.GerarReg50Item(const TipoEnd: Integer): TACBrXmlNode;
 begin
   Result := CreateElement('Reg50Item');
 
-  Result.AppendChild(AddNode(tcStr, '#1', 'TipoEnd', 1, 1, 1, TipoEnd, ''));
+  Result.AppendChild(AddNode(tcInt, '#1', 'TipoEnd', 1, 1, 1, TipoEnd, ''));
 
-  case Tipo of
+  case TipoEnd of
     1: Result.AppendChild(GerarXmlItemDestinatario(NFSe.IBSCBS.dest));
     2: Result.AppendChild(GerarXmlItemObra(NFSe.ConstrucaoCivil));
-    3: Result.AppendChild(GerarXmlItemImovel(NFSe.IBSCBS.imovel));
+  else
+    // TipoEnd = 3
+    Result.AppendChild(GerarXmlItemImovel(NFSe.IBSCBS.imovel));
   end;
+
+  Result.AppendChild(GerarXMLItemEnderecoDestinatario(Fender));
 end;
 
 function TNFSeW_Conam.GerarXmlItemDestinatario(
@@ -686,14 +688,14 @@ begin
     Result.AppendChild(AddNode(tcStr, '#1', 'DestNIF', 1, 40, 1, Dest.Nif, ''))
   else
   if CNPJCPF <> '' then
-    Result := AddNode(tcStr, '#1', 'DestCpfCnpj', 0, 14, 1, CNPJCPF)
+    Result.AppendChild(AddNode(tcStr, '#1', 'DestCpfCnpj', 0, 14, 1, CNPJCPF , ''))
   else
     Result.AppendChild(AddNode(tcStr, '#1', 'DestNaoNIF', 1, 1, 1,
                                                 NaoNIFToStr(Dest.cNaoNIF), ''));
 
   Result.AppendChild(AddNode(tcStr, '#1', 'DestNome', 1, 300, 1, Dest.xNome, ''));
 
-  Result.AppendChild(GerarXMLItemEnderecoDestinatario(Dest.ender));
+  FEnder := Dest.ender;
 end;
 
 function TNFSeW_Conam.GerarXMLItemEnderecoDestinatario(
@@ -767,13 +769,13 @@ begin
                                              finNFSeToStr(IBSCBS.finNFSe), ''));
 
   Result.AppendChild(AddNode(tcStr, '#1', 'IndConsFin', 1, 1, 1,
-                 IfThen(indFinalToStr(IBSCBS.indFinal) = '1','SIM','NAO'), ''));
+                              IfThen(IBSCBS.indFinal = ifSim,'SIM','NAO'), ''));
 
   Result.AppendChild(AddNode(tcStr, '#1', 'IndDest', 1, 1, 1,
-                   IfThen(indDestToStr(IBSCBS.indDest) = '1','SIM','NAO'), ''));
+    IfThen(IBSCBS.indDest = idTomadorAdquirenteDestinatarioIguais,'SIM','NAO'), ''));
 
   Result.AppendChild(AddNode(tcStr, '#1', 'IndOpeOne', 1, 1, 1,
-              IfThen(TIndicadorToStr(IBSCBS.IndOpeOne) = '1','SIM','NAO'), ''));
+                             IfThen(IBSCBS.IndOpeOne = tiSim,'SIM','NAO'), ''));
 
   Result.AppendChild(AddNode(tcStr, '#1', 'IndCodOpe', 6, 6, 1,
                                                             IBSCBS.cIndOp, ''));

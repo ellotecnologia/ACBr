@@ -262,7 +262,7 @@ begin
       if (Boleto.Cedente.Conta = EmptyStr) then
         raise EACBrBoletoWSException.Create(ClassName + ' Obrigatório informar o contaBeneficiario. ');
 
-      LDocumento := OnlyNumber(Boleto.Configuracoes.WebService.Filtro.cnpjCpfPagador);
+      LDocumento := OnlyCPFCNPJAlphaNum(Boleto.Configuracoes.WebService.Filtro.cnpjCpfPagador);
 
       LConsulta := TStringList.Create;
       try
@@ -272,8 +272,8 @@ begin
         if Boleto.Configuracoes.WebService.Filtro.contaCaucao > 0 then
           LConsulta.Add('contaCaucao='+ IntToStr(Boleto.Configuracoes.WebService.Filtro.contaCaucao));
 
-        LConsulta.Add('agenciaBeneficiario='+OnlyNumber( Boleto.Cedente.Agencia ));
-        LConsulta.Add('contaBeneficiario='+OnlyNumber( Boleto.Cedente.Conta ));
+        LConsulta.Add('agenciaBeneficiario='+RemoveZerosEsquerda(OnlyNumber( Boleto.Cedente.Agencia )));
+        LConsulta.Add('contaBeneficiario='+RemoveZerosEsquerda(OnlyNumber( Boleto.Cedente.Conta )));
 
         if Boleto.Configuracoes.WebService.Filtro.carteira > 0 then
           LConsulta.Add('carteiraConvenio='+IntToStr(Boleto.Configuracoes.WebService.Filtro.carteira));
@@ -340,6 +340,7 @@ procedure TBoletoW_BancoBrasil_API.RequisicaoJson;
 var
   LData: string;
   LJsonObject: TACBrJSONObject;
+  LDias : Integer;
 begin
   if Assigned(ATitulo) then
   begin
@@ -360,7 +361,30 @@ begin
       LJsonObject.AddPair('valorAbatimento', ATitulo.ValorAbatimento);
 
       if (ATitulo.DataProtesto > 0) then
-        LJsonObject.AddPair('quantidadeDiasProtesto', Trunc(ATitulo.DataProtesto - ATitulo.Vencimento))
+      begin
+        LDias := ATitulo.DiasDeProtesto; // ja é calculado na classe principal
+        if (ATitulo.TipoDiasProtesto = diUteis) and (LDias in [3..5]) then
+        begin
+          if not LDias in [3..5] then
+            raise EACBrBoletoWSException.Create(
+              ClassName + ' TipoDiasProtesto ou DataProtesto inválido.'+sLineBreak+
+                          'Para DiasUteis: deve ser entre 3 e 5.'+sLineBreak+
+                          'Para DiasCorridos: deve ser 6..29, 35, 40 ou 45.'+sLineBreak+
+                          'https://apoio.developers.bb.com.br/referency/post/5f4fb7f5b71fb5001268ca44');
+          LJsonObject.AddPair('quantidadeDiasProtesto', LDias);
+        end
+        else
+        begin
+          if not ( (LDias in [6..29]) or (LDias = 35) or
+                   (LDias = 40) or (LDias = 45) ) then
+            raise EACBrBoletoWSException.Create(
+              ClassName + ' TipoDiasProtesto ou DataProtesto inválido.'+sLineBreak+
+                          'Para DiasUteis: deve ser entre 3 e 5.'+sLineBreak+
+                          'Para DiasCorridos: deve ser 6..29, 35, 40 ou 45.'+sLineBreak+
+                          'https://apoio.developers.bb.com.br/referency/post/5f4fb7f5b71fb5001268ca44');
+          LJsonObject.AddPair('quantidadeDiasProtesto', LDias);
+        end;
+      end
       else
         LJsonObject.AddPair('quantidadeDiasProtesto', 0);
 
@@ -375,15 +399,20 @@ begin
       LJsonObject.AddPair('descricaoTipoTitulo', ATitulo.EspecieDoc);
 
       if ATitulo.TipoPagamento = tpAceita_Qualquer_Valor then
-        LJsonObject.AddPair('indicadorPermissaoRecebimentoParcial', 'S');
+        LJsonObject.AddPair('indicadorPermissaoRecebimentoParcial', 'S')
+      else
+        LJsonObject.AddPair('indicadorPermissaoRecebimentoParcial', 'N') ;
 
       //LJsonObject.AddPair('numeroTituloBeneficiario', Copy(Trim(UpperCase(ATitulo.NumeroDocumento)),0,15));
       //LJsonObject.AddPair('campoUtilizacaoBeneficiario', Trim(Copy(OnlyCharsInSet(AnsiUpperCase(ATitulo.Mensagem.Text),CHARS_VALIDOS),0,30)));
       LJsonObject.AddPair('campoUtilizacaoBeneficiario',Trim(Copy(OnlyCharsInSet(AnsiUpperCase(ATitulo.NumeroDocumento),CHARS_VALIDOS),0,30)));
       LJsonObject.AddPair('numeroTituloBeneficiario', Copy(Trim(UpperCase(IfThen(ATitulo.SeuNumero<>'',ATitulo.SeuNumero,ATitulo.NumeroDocumento))),0,15));
-      LJsonObject.AddPair('numeroTituloCliente', Boleto.Banco.MontarCampoNossoNumero(ATitulo));
-      LJsonObject.AddPair('mensagemBloquetoOcorrencia', UpperCase(Copy(Trim(ATitulo.Mensagem.Text),0,30)));
 
+
+      if (StrToInt64Def(ATitulo.NossoNumero,0) > 0)  then
+        LJsonObject.AddPair('numeroTituloCliente', Boleto.Banco.MontarCampoNossoNumero(ATitulo)) ;
+
+      LJsonObject.AddPair('mensagemBloquetoOcorrencia', UpperCase(Copy(Trim(ATitulo.Mensagem.Text),0,30)));
       GerarDesconto( LJsonObject );
       GerarJuros( LJsonObject );
       GerarMulta( LJsonObject );
@@ -517,7 +546,10 @@ begin
         LJsonObject.AddPair('indicadorAlterarPrazoBoletoVencido', 'S');
         AlteracaoPrazo(LJsonObject);
       end;
-      toRemessaNegativacaoSemProtesto:  begin
+      toRemessaNegativacaoSemProtesto,
+      ToRemessaPedidoNegativacao,
+      ToRemessaExcluirNegativacaoBaixar,
+      ToRemessaExcluirNegativacaoSerasaBaixar:  begin
         LJsonObject.AddPair('indicadorNegativar', 'S');
         AtribuirNegativacao(LJsonObject);
       end;
@@ -572,8 +604,8 @@ begin
 
   LJsonPagadorObject := TACBrJSONObject.Create;
   try
-    LJsonPagadorObject.AddPair('tipoInscricao', StrToIntDef(IfThen(Length( OnlyNumber(ATitulo.Sacado.CNPJCPF)) = 11,'1','2'),0));
-    LJsonPagadorObject.AddPair('numeroInscricao', StrToInt64Def(OnlyNumber(ATitulo.Sacado.CNPJCPF),0));
+    LJsonPagadorObject.AddPair('tipoInscricao', StrToIntDef(IfThen(Length( OnlyCPFCNPJAlphaNum(ATitulo.Sacado.CNPJCPF)) = 11,'1','2'),0));
+    LJsonPagadorObject.AddPair('numeroInscricao', OnlyCPFCNPJAlphaNum(ATitulo.Sacado.CNPJCPF));
     LJsonPagadorObject.AddPair('nome', ATitulo.Sacado.NomeSacado);
     LJsonPagadorObject.AddPair('endereco', ATitulo.Sacado.Logradouro + ' ' + ATitulo.Sacado.Numero);
     LJsonPagadorObject.AddPair('cep', StrToInt64Def(OnlyNumber(ATitulo.Sacado.CEP),0));
@@ -597,8 +629,8 @@ begin
 
   LJsonSacadorAvalista := TACBrJSONObject.Create;
   try
-    LJsonSacadorAvalista.AddPair('tipoInscricao', StrToInt(IfThen( Length( OnlyNumber(ATitulo.Sacado.SacadoAvalista.CNPJCPF)) = 11,'1','2')));
-    LJsonSacadorAvalista.AddPair('numeroInscricao', StrToInt64Def(OnlyNumber(ATitulo.Sacado.SacadoAvalista.CNPJCPF),0));
+    LJsonSacadorAvalista.AddPair('tipoInscricao', StrToInt(IfThen( Length( OnlyCPFCNPJAlphaNum(ATitulo.Sacado.SacadoAvalista.CNPJCPF)) = 11,'1','2')));
+    LJsonSacadorAvalista.AddPair('numeroInscricao', OnlyCPFCNPJAlphaNum(ATitulo.Sacado.SacadoAvalista.CNPJCPF));
     LJsonSacadorAvalista.AddPair('nome', ATitulo.Sacado.SacadoAvalista.NomeAvalista);
   finally
     AJsonObject.AddPair('beneficiarioFinal', LJsonSacadorAvalista);
@@ -995,16 +1027,62 @@ begin
   if not Assigned(ATitulo) or not Assigned(AJsonObject) then
     Exit;
 
-  if ATitulo.DiasDeNegativacao <= 0 then
-    Exit;
+    {
+    https://apoio.developers.bb.com.br/apis/5?versaoApi=2&topico=17571996
+    Código para identificação do tipoNegativacao que deverá ser aplicado ao Boleto.
+    Valores a informar: 1 - Incluir Negativação
+                        2 - Alterar Negativação
+                        3 - Cancelar Negativação (cancela a instrução antes da data de negativação)
+                        4 - Excluir Negativação  (exclusão do cliente já negativado no Serasa/Quod).
 
-  LJsonAtribuirNegativacaoObject := TACBrJSONObject.Create;
-  try
-    LJsonAtribuirNegativacaoObject.AddPair('quantidadeDiasNegativacao', ATitulo.DiasDeNegativacao);
-    LJsonAtribuirNegativacaoObject.AddPair('tipoNegativacao', 1);
-  finally
-    AJsonObject.AddPair('negativacao', LJsonAtribuirNegativacaoObject);
-  end;
+    Código do Órgão Negativador.
+        Domínio: 10 - SERASA 11 - QUOD.
+    }
+
+    case ATitulo.OcorrenciaOriginal.Tipo of
+      ToRemessaExcluirNegativacaoBaixar:  // 3 - Cancelar Negativação (cancela a instrução antes da data de negativação)
+      begin
+         LJsonAtribuirNegativacaoObject := TACBrJSONObject.Create;
+          try
+            LJsonAtribuirNegativacaoObject.AddPair('tipoNegativacao', 3);
+            if NaoEstaVazio(ATitulo.OrgaoNegativador) then
+              LJsonAtribuirNegativacaoObject.AddPair('orgaoNegativador', ATitulo.OrgaoNegativador);
+          finally
+            AJsonObject.AddPair('negativacao', LJsonAtribuirNegativacaoObject);
+          end;
+      end;
+
+      ToRemessaExcluirNegativacaoSerasaBaixar: //4 - Excluir Negativação  (exclusão do cliente já negativado no Serasa/Quod).
+      begin
+         LJsonAtribuirNegativacaoObject := TACBrJSONObject.Create;
+          try
+            LJsonAtribuirNegativacaoObject.AddPair('tipoNegativacao', 4);
+            if NaoEstaVazio(ATitulo.OrgaoNegativador) then
+              LJsonAtribuirNegativacaoObject.AddPair('orgaoNegativador', ATitulo.OrgaoNegativador);
+          finally
+            AJsonObject.AddPair('negativacao', LJsonAtribuirNegativacaoObject);
+          end;
+      end;
+    end;
+
+    if ATitulo.DiasDeNegativacao <= 0 then
+     Exit;
+
+    case ATitulo.OcorrenciaOriginal.Tipo of
+      toRemessaNegativacaoSemProtesto,
+      ToRemessaPedidoNegativacao: // 1 - Incluir Negativação
+      begin
+        LJsonAtribuirNegativacaoObject := TACBrJSONObject.Create;
+        try
+          LJsonAtribuirNegativacaoObject.AddPair('quantidadeDiasNegativacao', ATitulo.DiasDeNegativacao);
+          LJsonAtribuirNegativacaoObject.AddPair('tipoNegativacao', 1);
+          if NaoEstaVazio(ATitulo.OrgaoNegativador) then
+            LJsonAtribuirNegativacaoObject.AddPair('orgaoNegativador',StrToInt64Def(ATitulo.OrgaoNegativador,0));;
+        finally
+          AJsonObject.AddPair('negativacao', LJsonAtribuirNegativacaoObject);
+        end;
+      end;
+    end;
 end;
 
 procedure TBoletoW_BancoBrasil_API.AlteracaoSeuNumero(AJsonObject: TACBrJSONObject);

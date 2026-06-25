@@ -64,6 +64,9 @@ type
     procedure DefinirAutenticacao;
     function ValidaAmbiente: String;
     procedure RequisicaoJson;
+    procedure RequisicaoAltera;
+    procedure RequisicaoAlteraVencimento;
+    procedure RequisicaoConcederAbatimento;
     procedure RequisicaoBaixa;
     procedure RequisicaoConsulta;
     procedure RequisicaoConsultaDetalhe;
@@ -115,7 +118,7 @@ uses
 
 procedure TBoletoW_Banrisul.DefinirURL;
 var
-  DevAPP, ID, NConvenio: String;
+  ID: String;
 begin
    case Boleto.Configuracoes.WebService.Ambiente of
     tawsProducao    : FPURL.URLProducao    := C_URL;
@@ -129,6 +132,17 @@ begin
   case Boleto.Configuracoes.WebService.Operacao of
     tpInclui:
       FPURL.SetPathURI( '/boletos' );
+    tpAltera :
+    begin
+      case ATitulo.OcorrenciaOriginal.Tipo of
+        toRemessaAlterarVencimento  : FPURL.SetPathURI( '/boletos/'+ Id + '?tipo_id=NOSSO_NUMERO&tipo_alteracao=06' );
+        toRemessaAlterarValorAbatimento : FPURL.SetPathURI( '/boletos/'+ Id + '?tipo_id=NOSSO_NUMERO&tipo_alteracao=04' );
+        else
+          raise EACBrBoletoWSException.Create(ClassName +
+            ' Não Implementado DefinirURL/Operação/tpAltera para ocorrência '+
+            inttostr(Integer(ATitulo.OcorrenciaOriginal.Tipo)));
+      end;
+    end;
     tpConsulta:
       FPURL.SetPathURI('/boletos?' + DefinirParametros);
     tpConsultaDetalhe:
@@ -158,6 +172,11 @@ begin
            FMetodoHTTP := htPOST; // Define Método POST para Incluir
            RequisicaoJson;
         end;
+      tpAltera:
+       begin
+         FMetodoHTTP:= htPATCH;  // Define Método PATCH para alteracao
+         RequisicaoAltera;
+       end;
       tpBaixa:
         begin
            FMetodoHTTP := htPOST; // Define Método POST para Baixa
@@ -200,7 +219,7 @@ begin
 
   if Assigned(Boleto) then
   begin
-    if Boleto.Configuracoes.WebService.Operacao = tpBaixa then
+    if Boleto.Configuracoes.WebService.Operacao in [tpBaixa, tpAltera] then
       AddHeaderParam('bergs-ambiente', ValidaAmbiente);
   end;
 end;
@@ -215,7 +234,7 @@ begin
     if Boleto.Configuracoes.WebService.Filtro.indicadorSituacao = isbNenhum then
      raise EACBrBoletoWSException.Create(ClassName + ' Obrigatório informar o indicadorSituacao diferente de isbNenhum. ');
 
-    LDocumento := OnlyNumber(Boleto.Configuracoes.WebService.Filtro.cnpjCpfPagador);
+    LDocumento := OnlyCPFCNPJAlphaNum(Boleto.Configuracoes.WebService.Filtro.cnpjCpfPagador);
 
     LConsulta := TStringList.Create;
 
@@ -345,8 +364,8 @@ begin
 end;
 
 procedure TBoletoW_Banrisul.RequisicaoBaixa;
-var
-  LJsonObject: TACBrJSONObject;
+//var
+//  LJsonObject: TACBrJSONObject;
 begin
   (*
     if Assigned(ATitulo) then
@@ -357,6 +376,62 @@ begin
       FPDadosMsg := LJsonObject.ToJSON;
     end;
   *)
+end;
+
+procedure TBoletoW_Banrisul.RequisicaoAltera;
+begin
+  if Assigned(ATitulo) then
+  begin
+    case ATitulo.OcorrenciaOriginal.Tipo of
+      toRemessaAlterarVencimento  : RequisicaoAlteraVencimento;
+      toRemessaAlterarValorAbatimento : RequisicaoConcederAbatimento;
+      else
+        raise EACBrBoletoWSException.Create(ClassName + Format(S_OPERACAO_NAO_IMPLEMENTADO, [
+         ' RequisicaoAltera/Operação/tpAltera para ocorrência '+inttostr(Integer(ATitulo.OcorrenciaOriginal.Tipo))]));
+    end;
+  end;
+end;
+
+procedure TBoletoW_Banrisul.RequisicaoAlteraVencimento;
+var
+  LJsonEnvio, LJsonTitulo : TACBrJSONObject;
+begin
+  if Assigned(ATitulo) then
+  begin
+    LJsonTitulo := TACBrJSONObject.Create;
+    LJsonEnvio  := TACBrJSONObject.Create;
+    try
+      LJsonTitulo.AddPair('data_vencimento', FormatDateBr(ATitulo.Vencimento, 'YYYY-MM-DD') );
+      LJsonEnvio.AddPair('titulo', LJsonTitulo);
+
+      FPDadosMsg := LJsonEnvio.ToJSON;
+    finally
+    end;
+  end;
+end;
+
+procedure TBoletoW_Banrisul.RequisicaoConcederAbatimento;
+var
+  LJsonEnvio, LJsonTitulo, LJsonInstrucoes, LJsonAbatimento : TACBrJSONObject;
+begin
+  if Assigned(ATitulo) then
+  begin
+    LJsonTitulo := TACBrJSONObject.Create;
+    LJsonEnvio := TACBrJSONObject.Create;
+    LJsonInstrucoes := TACBrJSONObject.Create;
+    LJsonAbatimento := TACBrJSONObject.Create;
+    try
+      LJsonAbatimento.AddPair('valor', StringReplace(FormatFloat('0.00', ATitulo.ValorAbatimento),
+                                                     ',', '.', [rfReplaceAll]) );
+
+      LJsonInstrucoes.AddPair('abatimento', LJsonAbatimento);
+      LJsonTitulo.AddPair('instrucoes', LJsonInstrucoes);
+      LJsonEnvio.AddPair('titulo', LJsonTitulo);
+
+      FPDadosMsg := LJsonEnvio.ToJSON;
+    finally
+    end;
+  end;
 end;
 
 procedure TBoletoW_Banrisul.RequisicaoConsulta;
@@ -376,8 +451,8 @@ begin
   if Assigned(ATitulo) and Assigned(AJson) then
   begin
     LJsonPagadorObject := TACBrJSONObject.Create;
-    LJsonPagadorObject.AddPair('tipo_pessoa', IfThen(Length(OnlyNumber(ATitulo.Sacado.CNPJCPF)) = 11, 'F', 'J'));
-    LJsonPagadorObject.AddPair('cpf_cnpj',    OnlyNumber(ATitulo.Sacado.CNPJCPF));//StrToInt64(OnlyNumber(ATitulo.Sacado.CNPJCPF)));
+    LJsonPagadorObject.AddPair('tipo_pessoa', IfThen(Length(OnlyCPFCNPJAlphaNum(ATitulo.Sacado.CNPJCPF)) = 11, 'F', 'J'));
+    LJsonPagadorObject.AddPair('cpf_cnpj',    OnlyCPFCNPJAlphaNum(ATitulo.Sacado.CNPJCPF));//StrToInt64(OnlyCPFCNPJAlphaNum(ATitulo.Sacado.CNPJCPF)));
     LJsonPagadorObject.AddPair('nome',        Copy(trim(ATitulo.Sacado.NomeSacado), 0, 40));
 
     LJsonPagadorObject.AddPair('endereco',    Copy(trim(ATitulo.Sacado.Logradouro + ',' +
@@ -449,10 +524,10 @@ begin
     LJsonSacadorAvalista := TACBrJSONObject.Create;
 
     LJsonSacadorAvalista.AddPair('tipoInscricao',
-                                  StrToInt(IfThen(Length(OnlyNumber(ATitulo.Sacado.SacadoAvalista.CNPJCPF)) = 11, '1', '2')));
+                                  StrToInt(IfThen(Length(OnlyCPFCNPJAlphaNum(ATitulo.Sacado.SacadoAvalista.CNPJCPF)) = 11, '1', '2')));
 
     LJsonSacadorAvalista.AddPair('numeroInscricao',
-                                  StrToInt64Def(OnlyNumber(ATitulo.Sacado.SacadoAvalista.CNPJCPF), 0));
+                                  StrToInt64Def(OnlyCPFCNPJAlphaNum(ATitulo.Sacado.SacadoAvalista.CNPJCPF), 0));
 
     LJsonSacadorAvalista.AddPair('nome',   ATitulo.Sacado.SacadoAvalista.NomeAvalista);
 

@@ -149,8 +149,12 @@ type
     function LoadFromFile(const CaminhoArquivo: string; AGerarNFSe: Boolean = True): Boolean;
     function LoadFromStream(AStream: TStringStream; AGerarNFSe: Boolean = True): Boolean;
     function LoadFromString(const AXMLString: string; AGerarNFSe: Boolean = True): Boolean;
+
     function LoadFromIni(const AIniString: string): Boolean;
+
     function LoadFromLoteNfse(const CaminhoArquivo: string): Boolean;
+    function LoadFromLoteNfseStream(AStream: TStringStream): Boolean;
+    function LoadFromLoteNfseString(const AXMLString: string): Boolean;
 
     function GerarIni: string;
     function GravarXML(const PathNomeArquivo: string = ''): Boolean;
@@ -721,16 +725,8 @@ function TNotasFiscais.LoadFromFile(const CaminhoArquivo: string;
 var
   XmlUTF8: AnsiString;
   i, l: integer;
-  MS: TMemoryStream;
 begin
-  MS := TMemoryStream.Create;
-  try
-    MS.LoadFromFile(CaminhoArquivo);
-
-    XmlUTF8 := ReadStrFromStream(MS, MS.Size);
-  finally
-    MS.Free;
-  end;
+  XmlUTF8 := CarregarArquivo(CaminhoArquivo);
 
   l := Self.Count; // Indice da última nota já existente
 
@@ -749,6 +745,35 @@ begin
   end;
 end;
 
+function TNotasFiscais.LoadFromStream(AStream: TStringStream;
+  AGerarNFSe: Boolean = True): Boolean;
+var
+  AXML: AnsiString;
+begin
+  AStream.Position := 0;
+  AXML := ReadStrFromStream(AStream, AStream.Size);
+
+  Result := Self.LoadFromString(String(AXML), AGerarNFSe);
+end;
+
+function TNotasFiscais.LoadFromString(const AXMLString: string;
+  AGerarNFSe: Boolean = True): Boolean;
+var
+  XMLStr: AnsiString;
+begin
+  XMLStr := RemoverUTF8Bom(AXMLString);
+
+  with Self.New do
+  begin
+    LerXML(XMLStr);
+
+    if AGerarNFSe then
+      GerarXML;
+  end;
+
+  Result := Self.Count > 0;
+end;
+
 function TNotasFiscais.LoadFromIni(const AIniString: string): Boolean;
 begin
   with Self.New do
@@ -759,15 +784,55 @@ end;
 
 function TNotasFiscais.LoadFromLoteNfse(const CaminhoArquivo: string): Boolean;
 var
-  XMLStr: string;
   XMLUTF8: AnsiString;
-  i, l: integer;
-  MS: TMemoryStream;
+  i, l: Integer;
+//  IsFile: Boolean;
+begin
+  XMLUTF8 := CarregarArquivo(CaminhoArquivo);
+  XMLUTF8 := RemoverUTF8Bom(XMLUTF8);
+
+  l := Self.Count; // Indice da última nota já existente
+
+  Result := Self.LoadFromString(String(XMLUTF8));
+
+  if Result then
+  begin
+    // Atribui Nome do arquivo a novas notas inseridas //
+    for i := l to Self.Count - 1 do
+    begin
+      if Pos('-rps.xml', CaminhoArquivo) > 0 then
+        Self.Items[i].NomeArqRps := CaminhoArquivo
+      else
+      begin
+//        if IsFile then
+//          Self.Items[i].NomeArq := CaminhoArquivo
+//        else
+          Self.Items[i].NomeArq := TACBrNFSeX(FACBrNFSe).GetNumID(Items[i].NFSe) + '-nfse.xml';
+      end;
+    end;
+  end;
+end;
+
+function TNotasFiscais.LoadFromLoteNfseStream(AStream: TStringStream): Boolean;
+var
+  AXML: AnsiString;
+begin
+  AStream.Position := 0;
+  AXML := ReadStrFromStream(AStream, AStream.Size);
+
+  Result := Self.LoadFromLoteNFSeString(String(AXML));
+end;
+
+function TNotasFiscais.LoadFromLoteNfseString(
+  const AXMLString: string): Boolean;
+var
+  XMLStr: string;
+//  i: integer;
   P, N, TamTag, j: Integer;
   aXml, aXmlLote: string;
-  TagF: Array[1..16] of string;
-  SL: TStringStream;
-  IsFile: Boolean;
+  TagF: Array[1..17] of string;
+//  SL: TStringStream;
+//  IsFile: Boolean;
 
   function PrimeiraNFSe: Integer;
   begin
@@ -786,7 +851,8 @@ var
     TagF[13] := '<NOTA>';             // Provedor AssessorPublico
     TagF[14] := '<NOTA_FISCAL>';      // Provedor ISSDSF
     TagF[15] := '<tcCompNfse>';       // Provedor ISSCuritiba
-    TagF[16] := '<notafiscal>';       //Provedor SigISSWeb
+    TagF[16] := '<notafiscal>';       // Provedor SigISSWeb
+    TagF[17] := '<NFSE>';             // Provedor Ginfes - Obtido do Site
 
     j := 0;
 
@@ -815,6 +881,7 @@ var
     TagF[14] := '</NOTA_FISCAL>';      // Provedor ISSDSF
     TagF[15] := '</tcCompNfse>';       // Provedor ISSCuritiba
     TagF[16] := '</notafiscal>';       // Provedor SigISSWeb
+    TagF[17] := '</NFSE>';             // Provedor Ginfes - Obtido do Site
 
     j := 0;
 
@@ -830,29 +897,11 @@ var
     Result := FaststringReplace(XMLStr, ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"', '', [rfReplaceAll]);
     Result := FaststringReplace(Result, ' xmlns:xsd="http://www.w3.org/2001/XMLSchema"', '', [rfReplaceAll]);
     Result := RemoverPrefixosDesnecessarios(Result);
+    Result := RemoverIdentacao(Result);
   end;
 begin
-  MS := TMemoryStream.Create;
-  try
-    IsFile := FilesExists(CaminhoArquivo);
-
-    if (IsFile) then
-      MS.LoadFromFile(CaminhoArquivo)
-    else
-    begin
-      SL := TStringStream.Create(CaminhoArquivo);
-      MS.LoadFromStream(SL);
-      SL.Free;
-    end;
-
-    XMLUTF8 := ReadStrFromStream(MS, MS.Size);
-  finally
-    MS.Free;
-  end;
-
-  l := Self.Count; // Indice da última nota já existente
-
-  XMLStr := LimparXml(XMLUTF8);
+  XMLStr := RemoverUTF8Bom(AXMLString);
+  XMLStr := LimparXml(XMLStr);
 
   aXmlLote := XMLStr;
   Result := False;
@@ -860,7 +909,7 @@ begin
   aXmlLote := copy(aXmlLote, P, length(aXmlLote));
   N := PosNFSe;
 
-  while N > 0 do
+  while N > 1 do
   begin
     aXml := copy(aXmlLote, 1, N + TamTAG);
     aXmlLote := Trim(copy(aXmlLote, N + TamTAG + 1, length(aXmlLote)));
@@ -869,48 +918,6 @@ begin
 
     N := PosNFSe;
   end;
-
-  if Result then
-  begin
-    // Atribui Nome do arquivo a novas notas inseridas //
-    for i := l to Self.Count - 1 do
-    begin
-      if Pos('-rps.xml', CaminhoArquivo) > 0 then
-        Self.Items[i].NomeArqRps := CaminhoArquivo
-      else
-      begin
-        if IsFile then
-          Self.Items[i].NomeArq := CaminhoArquivo
-        else
-          Self.Items[i].NomeArq := TACBrNFSeX(FACBrNFSe).GetNumID(Items[i].NFSe) + '-nfse.xml';
-      end;
-    end;
-  end;
-end;
-
-function TNotasFiscais.LoadFromStream(AStream: TStringStream;
-  AGerarNFSe: Boolean = True): Boolean;
-var
-  AXML: AnsiString;
-begin
-  AStream.Position := 0;
-  AXML := ReadStrFromStream(AStream, AStream.Size);
-
-  Result := Self.LoadFromString(String(AXML), AGerarNFSe);
-end;
-
-function TNotasFiscais.LoadFromString(const AXMLString: string;
-  AGerarNFSe: Boolean = True): Boolean;
-begin
-  with Self.New do
-  begin
-    LerXML(AXMLString);
-
-    if AGerarNFSe then
-      GerarXML;
-  end;
-
-  Result := Self.Count > 0;
 end;
 
 function TNotasFiscais.GravarXML(const PathNomeArquivo: string): Boolean;

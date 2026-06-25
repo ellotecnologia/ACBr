@@ -41,6 +41,16 @@ Símbolo : Significado
 [+]     : Novo recurso
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
+22/06/2026
+-- ACBrLibDCeBase --
+[*] Ajuste das chaves chaves e cnpj alfanumérico.
+   ACBr-9369
+   Por: Daniel de Morais InfoCotidiano
+
+08/05/2026
+--- ACBrLibDCe, ACBrLibDCeDemo ---
+[+] ACBR-1679 - Implementação da ACBrLibDCe
+    Por: Renato Rubinho
 
 08/10/2025
 --- ACBrLibDCe ---

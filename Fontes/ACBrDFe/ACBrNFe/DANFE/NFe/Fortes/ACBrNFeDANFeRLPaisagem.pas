@@ -663,7 +663,7 @@ procedure TfrlDANFeRLPaisagem.RLNFeBeforePrint(Sender: TObject; var PrintIt: Boo
 begin
   InicializarDados;
 
-  RLNFe.Title := OnlyNumber(fpNFe.InfNFe.Id);
+  RLNFe.Title := RemoverLiteralChave(fpNFe.InfNFe.Id);
 end;
 
 procedure TfrlDANFeRLPaisagem.rlbEmitenteBeforePrint(Sender: TObject; var PrintIt: Boolean);
@@ -758,7 +758,7 @@ begin
     if (fpNFe.procNFe.cStat > 0) then
     begin
       case fpNFe.procNFe.cStat of
-        100:
+        100, 150:
         begin
           rlbCodigoBarras.Visible := True;
           rllXMotivo.Visible := False;
@@ -769,6 +769,8 @@ begin
         begin
           rllXmotivo.Caption := 'NF-e CANCELADA';
           rllDadosVariaveis3_Descricao.Caption := ACBrStr('PROTOCOLO DE HOMOLOGAÇÃO DE CANCELAMENTO');
+          rlbCanceladaDenegada.Visible := True;
+          RLLCanceladaDenegada.Caption := 'NF-e CANCELADA';
         end;
 
         110, 205, 301, 302:
@@ -794,6 +796,8 @@ begin
         rllXmotivo.Caption := ACBrStr('NF-E NÃO ENVIADA PARA SEFAZ');
         rllDadosVariaveis3_Descricao.Visible := False;
         rllDadosVariaveis3.Visible := False;
+        rllHomologacao.Visible := true;
+        rllHomologacao.Caption := ACBrStr('NF-e NÃO PROTOCOLADA NA SEFAZ - SEM VALOR FISCAL')
       end;
     end;
   end;
@@ -1033,7 +1037,7 @@ begin
       rllChave.Font.Size := rllChave.Font.Size - 1;  //para nao truncar a chave vai diminuir o fonte
 
     rlbCodigoBarras.Visible := True;
-    rlbCodigoBarras.Caption := OnlyNumber(fpNFe.InfNFe.Id);
+    rlbCodigoBarras.Caption := RemoverLiteralChave(fpNFe.InfNFe.Id);
     if fpDANFe.FormatarNumeroDocumento then
       rllNumNF0.Caption := ACBrStr('Nº ') + FormatarNumeroDocumentoFiscal(IntToStr(nNF))
     else

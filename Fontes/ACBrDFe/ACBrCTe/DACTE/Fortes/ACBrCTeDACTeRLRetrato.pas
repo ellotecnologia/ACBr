@@ -781,7 +781,8 @@ begin
   else
   begin
     if (fpCTe.infCTeNorm.infDoc.infNFe.Count > 0) or
-       (fpCTe.infCTeNorm.docAnt.emiDocAnt.Count > 0) then
+       (fpCTe.infCTeNorm.docAnt.emiDocAnt.Count > 0) or
+       (fpCTe.infCTeNorm.infDoc.infDCe.Count > 0) then
     begin
       rllTituloCNPJ1.Caption := 'CHAVE DO DF-e';
       rllTituloCNPJ2.Caption := 'CHAVE DO DF-e';
@@ -818,6 +819,31 @@ begin
         cdsDocumentos.FieldByName('CNPJCPF_2').AsString :=
           FormatarCNPJouCPF(fpCTe.Rem.CNPJCPF);
         cdsDocumentos.FieldByName('DOCUMENTO_2').AsString := serie + '-' + nDoc;
+
+        cdsDocumentos.Post;
+      end;
+      Inc(Item);
+    end;
+  end;
+
+  //Varrendo DCe
+  for I := 0 to (fpCTe.infCTeNorm.infDoc.infDCe.Count - 1) do
+  begin
+    with fpCTe.infCTeNorm.infDoc.infDCe.Items[I] do
+    begin
+      if (Item mod 2) = 0 then
+      begin
+        cdsDocumentos.Append;
+
+        cdsDocumentos.FieldByName('TIPO_1').AsString := 'DC-E ' + copy(chave, 26, 9);
+        cdsDocumentos.FieldByName('CNPJCPF_1').AsString := FormatarChaveAcesso(chave);
+        cdsDocumentos.FieldByName('DOCUMENTO_1').AsString := '';
+      end
+      else
+      begin
+        cdsDocumentos.FieldByName('TIPO_2').AsString := 'DC-E ' + copy(chave, 26, 9);
+        cdsDocumentos.FieldByName('CNPJCPF_2').AsString := FormatarChaveAcesso(chave);
+        cdsDocumentos.FieldByName('DOCUMENTO_2').AsString := '';
 
         cdsDocumentos.Post;
       end;
@@ -1221,7 +1247,7 @@ begin
   rllModal.Caption := ACBrStr(TpModalToStrText(fpCTe.Ide.modal));
   rllModelo.Caption := IntToStr(fpCTe.Ide.modelo);
   rllEmissao.Caption := FormatDateTimeBr(fpCTe.Ide.dhEmi);
-  rllChave.Caption := FormatarChaveAcesso(OnlyNumber(fpCTe.InfCTe.Id));
+  rllChave.Caption := FormatarChaveAcesso(RemoverLiteralChave(fpCTe.InfCTe.Id));
 
   rllTipoCte.Caption := ACBrStr(tpCTToStrText(fpCTe.Ide.tpCTe));
   rllTipoServico.Caption := ACBrStr(TpServToStrText(fpCTe.Ide.tpServ));
@@ -1979,7 +2005,7 @@ begin
   rlb_09_Obs.Height := rlmObs.Height + 20 + 4;
 
   if rllMsgTeste.Visible and (rlb_09_Obs.Height < 68) then
-    rlb_09_Obs.Height := 38;
+    rlb_09_Obs.Height := 68;
 end;
 
 procedure TfrmDACTeRLRetrato.rlb_10_ModRodFracionadoBeforePrint(Sender: TObject;
@@ -2945,7 +2971,7 @@ begin
 
   rllSerie.Caption := IntToStr(fpCTe.Ide.serie);
   rllNumCte.Caption := FormatFloat('000,000,000', fpCTe.Ide.nCT);
-  rlbCodigoBarras.Caption := OnlyNumber(fpCTe.InfCTe.Id);
+  rlbCodigoBarras.Caption := RemoverLiteralChave(fpCTe.InfCTe.Id);
 
   posicionaCanhoto;
 end;

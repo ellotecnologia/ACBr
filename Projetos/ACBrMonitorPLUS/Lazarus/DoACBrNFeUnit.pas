@@ -437,6 +437,12 @@ public
   procedure Executar; override;
 end;
 
+{ TMetodoSetRespTecnico}
+TMetodoSetRespTecnico = class(TACBrMetodo)
+public
+  procedure Executar; override;
+end;
+
 implementation
 
 uses
@@ -512,6 +518,7 @@ begin
   ListaDeMetodos.Add(CMetodoDistribuicaoDFe);
   ListaDeMetodos.Add(CMetodoDataVencimentoCertificado);
   ListaDeMetodos.Add(CMetodoSetTipoImpressao);
+  ListaDeMetodos.Add(CMetodoSetRespTecnico);
 
   // DoACBrUnit
   ListaDeMetodos.Add(CMetodoSavetofile);
@@ -603,6 +610,7 @@ begin
     55 : AMetodoClass := TMetodoDistribuicaoDFe;
     56 : AMetodoClass := TMetodoCertificadoDataVencimento; // DataVencimentoCertificado
     57 : AMetodoClass := TMetodoSetTipoImpressao;
+    58 : AMetodoClass := TMetodoSetRespTecnico;
 
     else
       begin
@@ -663,7 +671,7 @@ begin
           begin
             DoConfiguraDANFe(pPDF, Trim(pPreview) );
             NotasFiscais.Items[J].ImprimirPDF;
-            ArqPDF := OnlyNumber(ACBrNFe.NotasFiscais.Items[J].NFe.infNFe.ID)+'-nfe.pdf';
+            ArqPDF := RemoverLiteralChave(ACBrNFe.NotasFiscais.Items[J].NFe.infNFe.ID)+'-nfe.pdf';
 
             if not( TpResp in [resJSON, resXML]) then
               fpCmd.Resposta :=  fpCmd.Resposta + sLineBreak +
@@ -712,7 +720,7 @@ begin
        ( NaoEstaVazio(MonitorConfig.DFE.WebService.NFe.CNPJContador) ) then
     begin
       with NotasFiscais.Items[0].NFe.autXML.New do
-        CNPJCPF := OnlyNumber( MonitorConfig.DFE.WebService.NFe.CNPJContador );
+        CNPJCPF := OnlyCPFCNPJAlphaNum( MonitorConfig.DFE.WebService.NFe.CNPJContador );
       NotasFiscais.Items[0].GerarXML;
     end;
 
@@ -781,7 +789,7 @@ begin
       fACBrNFe.DANFE.NumCopias := pCopias;
 
     fACBrNFe.NotasFiscais.Items[0].ImprimirPDF;
-    ArqPDF := OnlyNumber(fACBrNFe.NotasFiscais.Items[0].NFe.infNFe.ID)+'-nfe.pdf';
+    ArqPDF := RemoverLiteralChave(fACBrNFe.NotasFiscais.Items[0].NFe.infNFe.ID)+'-nfe.pdf';
 
     if not(TpResp in [resJSON, resXML]) then
       fpCmd.Resposta :=  fpCmd.Resposta + sLineBreak +
@@ -1378,7 +1386,7 @@ begin
       end
       else
         ACBrNFe.WebServices.Consulta.NFeChave :=
-          OnlyNumber(ACBrNFe.NotasFiscais.Items[0].NFe.infNFe.ID);
+          RemoverLiteralChave(ACBrNFe.NotasFiscais.Items[0].NFe.infNFe.ID);
 
       DoValidarIntegradorNFCe(ACBrNFe.WebServices.Consulta.NFeChave);
 
@@ -1721,7 +1729,7 @@ begin
   LNFe.NotasFiscais.Validar;
 
   ArqNFe := PathWithDelim(LNFe.Configuracoes.Arquivos.PathSalvar) +
-    OnlyNumber(LNFe.NotasFiscais.Items[0].NFe.infNFe.ID) + '-nfe.xml';
+    RemoverLiteralChave(LNFe.NotasFiscais.Items[0].NFe.infNFe.ID) + '-nfe.xml';
   LNFe.NotasFiscais.GravarXML(ArqNFe);
 
   if not FileExists(ArqNFe) then
@@ -1834,7 +1842,7 @@ begin
     ACBrNFe.NotasFiscais.Validar;
 
     ArqNFe := PathWithDelim(PathWithDelim(ExtractFilePath(Application.ExeName)) +
-      'Lotes' + PathDelim + 'Lote' + trim(ANumeroLote)) + OnlyNumber(
+      'Lotes' + PathDelim + 'Lote' + trim(ANumeroLote)) + RemoverLiteralChave(
       ACBrNFe.NotasFiscais.Items[0].NFe.infNFe.ID) + '-nfe.xml';
     ACBrNFe.NotasFiscais.GravarXML(ExtractFilePath(ArqNFe));
 
@@ -2131,7 +2139,7 @@ begin
     end;
 
     ArqNFe := PathWithDelim(ACBrNFe.Configuracoes.Arquivos.PathSalvar) +
-      OnlyNumber(ACBrNFe.NotasFiscais.Items[0].NFe.infNFe.ID) + '-nfe.xml';
+      RemoverLiteralChave(ACBrNFe.NotasFiscais.Items[0].NFe.infNFe.ID) + '-nfe.xml';
     ACBrNFe.NotasFiscais.GravarXML(ArqNFe);
 
     if not FileExists(ArqNFe) then
@@ -2269,7 +2277,7 @@ begin
     begin
       infEvento.CNPJ := ACNPJ;
       if Trim(infEvento.CNPJ) = '' then
-        infEvento.CNPJ := copy(OnlyNumber(ACBrNFe.WebServices.Consulta.NFeChave), 7, 14)
+        infEvento.CNPJ := copy(RemoverLiteralChave(ACBrNFe.WebServices.Consulta.NFeChave), 7, 14)
       else
       begin
         if not( ValidarCNPJouCPF(ACNPJ) ) then
@@ -2277,7 +2285,7 @@ begin
       end;
 
       infEvento.cOrgao := StrToIntDef(
-        copy(OnlyNumber(ACBrNFe.WebServices.Consulta.NFeChave), 1, 2), 0);
+        copy(RemoverLiteralChave(ACBrNFe.WebServices.Consulta.NFeChave), 1, 2), 0);
       infEvento.dhEvento := now;
       infEvento.tpEvento := teCancelamento;
       infEvento.chNFe := ACBrNFe.WebServices.Consulta.NFeChave;
@@ -2497,7 +2505,7 @@ begin
       DoConfiguraDANFe(False, '');
       try
         ACBrNFe.ImprimirInutilizacaoPDF;
-        ArqPDF := OnlyNumber(ACBrNFe.InutNFe.ID);
+        ArqPDF := RemoverLiteralChave(ACBrNFe.InutNFe.ID);
         ArqPDF := PathWithDelim(ACBrNFe.DANFe.PathPDF) + ArqPDF + '-procInutNFe.pdf';
 
         fpCmd.Resposta := 'Arquivo criado em: ' + ArqPDF;
@@ -3009,7 +3017,7 @@ begin
           try
             ACBrNFe.ImprimirInutilizacaoPDF;
 
-            ArqPDF := OnlyNumber(ACBrNFe.InutNFe.ID);
+            ArqPDF := RemoverLiteralChave(ACBrNFe.InutNFe.ID);
             ArqPDF := PathWithDelim(ACBrNFe.DANFE.PathPDF)+ArqPDF+'-procInutNFe.pdf';
           except
             on E: Exception do
@@ -3200,7 +3208,7 @@ begin
     ACBrNFe.NotasFiscais.Validar;
 
     ArqNFe := PathWithDelim(ACBrNFe.Configuracoes.Arquivos.PathSalvar) +
-      OnlyNumber(ACBrNFe.NotasFiscais.Items[0].NFe.infNFe.ID) + '-nfe.xml';
+      RemoverLiteralChave(ACBrNFe.NotasFiscais.Items[0].NFe.infNFe.ID) + '-nfe.xml';
     ACBrNFe.NotasFiscais.GravarXML(ArqNFe);
 
     if not FileExists(ArqNFe) then
@@ -3300,7 +3308,7 @@ begin
   LNFe.NotasFiscais.Validar;
 
   ArqNFe := PathWithDelim(LNFe.Configuracoes.Arquivos.PathSalvar) +
-    OnlyNumber(LNFe.NotasFiscais.Items[0].NFe.infNFe.ID) + '-nfe.xml';
+    RemoverLiteralChave(LNFe.NotasFiscais.Items[0].NFe.infNFe.ID) + '-nfe.xml';
   LNFe.NotasFiscais.GravarXML(ArqNFe);
 
   if not FileExists(ArqNFe) then
@@ -3419,7 +3427,7 @@ begin
     ACBrNFe.NotasFiscais.Validar;
 
     ArqNFe := PathWithDelim(PathWithDelim(ExtractFilePath(Application.ExeName)) +
-      'Lotes' + PathDelim + 'Lote' + trim(ANumeroLote)) + OnlyNumber(
+      'Lotes' + PathDelim + 'Lote' + trim(ANumeroLote)) + RemoverLiteralChave(
       ACBrNFe.NotasFiscais.Items[0].NFe.infNFe.ID) + '-nfe.xml';
     ACBrNFe.NotasFiscais.GravarXML(ExtractFilePath(ArqNFe));
 
@@ -3532,6 +3540,26 @@ begin
 
   end;
 
+end;
+
+{ TMetodoSetRespTecnico }
+
+{ Params: 0 - idCSRT
+          1 - CSRT
+}
+procedure TMetodoSetRespTecnico.Executar;
+begin
+  with TACBrObjetoNFe(fpObjetoDono) do
+  begin
+    with MonitorConfig.DFE.RespTecnico do
+    begin
+      if NaoEstaVazio(fpCmd.Params(0)) then
+        IdCSRT := fpCmd.Params(0);
+      CSRT := fpCmd.Params(1);
+    end;
+
+    MonitorConfig.SalvarArquivo;
+  end;
 end;
 
 end.

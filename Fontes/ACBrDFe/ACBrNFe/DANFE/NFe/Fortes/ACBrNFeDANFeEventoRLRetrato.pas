@@ -263,7 +263,7 @@ begin
 
     rllDataHoraEvento.Caption := FormatDateTimeBr(InfEvento.dhEvento);
     rllEvento.Caption := InfEvento.TipoEvento;
-    rllDescrEvento.Caption := ACBrStr(InfEvento.DescEvento);
+    rllDescrEvento.Caption := InfEvento.DescEvento;
     rllSeqEvento.Caption := IntToStr(InfEvento.nSeqEvento);
     rllVersaoEvento.Caption := InfEvento.versaoEvento;
     rllStatusEvento.Caption := IntToStr(RetInfEvento.cStat) + ' - ' + RetInfEvento.xMotivo;
@@ -542,7 +542,7 @@ begin
     rliMarcaDagua1.Top := ((rlbCorrecao.Top + rlbCorrecao.Height) div 2) - (rliMarcaDagua1.Height div 2);
   end;
 
-    teCancelamento, teManifDestConfirmacao, teManifDestCiencia, teManifDestDesconhecimento, teManifDestOperNaoRealizada:
+    teCancelamento, teCancSubst, teManifDestConfirmacao, teManifDestCiencia, teManifDestDesconhecimento, teManifDestOperNaoRealizada:
     begin
       rlbJustificativa.Visible := True;
       rlbCondUso.Visible := False;

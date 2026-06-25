@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="12"/>
@@ -13,17 +13,15 @@
       <SessionStorage Value="InProjectDir"/>
       <Title Value="ACBrLibMDFe"/>
       <ResourceType Value="res"/>
-      <XPManifest>
-        <DpiAware Value="True/PM"/>
-      </XPManifest>
+      <UseXPManifest Value="True"/>
     </General>
     <VersionInfo>
       <UseVersionInfo Value="True"/>
-      <AutoIncrementBuild Value="True"/>
+      <AutoIncrementBuild Value="False"/>
       <MajorVersionNr Value="1"/>
       <MinorVersionNr Value="2"/>
       <RevisionNr Value="2"/>
-      <BuildNr Value="338"/>
+      <BuildNr Value="362"/>
       <Language Value="0416"/>
       <StringTable CompanyName="Projeto ACBr" FileDescription="ACBrMDFe - BIblioteca para emissão e impressão de Manifesto de Documentos Fiscais Eletrônicos" InternalName="ACBrLibMDFe" LegalCopyright="Projeto ACBr" LegalTrademarks="Projeto ACBr" ProductName="ACBrMDFe " ProductVersion="0.0.0.1"/>
     </VersionInfo>

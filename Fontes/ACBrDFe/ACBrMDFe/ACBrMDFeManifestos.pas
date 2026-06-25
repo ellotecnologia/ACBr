@@ -667,7 +667,7 @@ begin
     ((Copy(MDFe.infMDFe.ID, 5, 2) <> IntToStrZero(MDFe.Ide.cUF, 2)) or
     (Copy(MDFe.infMDFe.ID, 7, 2)  <> Copy(FormatFloat('0000', wAno), 3, 2)) or
     (Copy(MDFe.infMDFe.ID, 9, 2)  <> FormatFloat('00', wMes)) or
-    (Copy(MDFe.infMDFe.ID, 11, 14)<> PadLeft(OnlyNumber(MDFe.Emit.CNPJCPF), 14, '0')) or
+    (Copy(MDFe.infMDFe.ID, 11, 14)<> PadLeft(OnlyCPFCNPJAlphaNum(MDFe.Emit.CNPJCPF), 14, '0')) or
     (Copy(MDFe.infMDFe.ID, 25, 2) <> MDFe.Ide.modelo) or
     (Copy(MDFe.infMDFe.ID, 27, 3) <> IntToStrZero(MDFe.Ide.serie, 3)) or
     (Copy(MDFe.infMDFe.ID, 30, 9) <> IntToStrZero(MDFe.Ide.nMDF, 9)) or
@@ -705,7 +705,7 @@ end;
 
 function TManifesto.GetNumID: String;
 begin
-  Result := Trim(OnlyNumber(MDFe.infMDFe.ID));
+  Result := Trim(RemoverLiteralChave(MDFe.infMDFe.ID));
 end;
 
 function TManifesto.GetXMLAssinado: String;
@@ -895,6 +895,7 @@ begin
   try
     MS.LoadFromFile(CaminhoArquivo);
     XMLUTF8 := ReadStrFromStream(MS, MS.Size);
+    XMLUTF8 := RemoverUTF8Bom(XMLUTF8);
   finally
     MS.Free;
   end;
@@ -934,7 +935,9 @@ var
 
 begin
   // Verifica se precisa Converter de UTF8 para a String nativa da IDE //
-  XMLStr := ConverteXMLtoNativeString(AXMLString);
+  XMLStr := RemoverUTF8Bom(AXMLString);
+  XMLStr := ConverteXMLtoNativeString(XMLStr);
+  XMLStr := RemoverDeclaracaoXML(XMLStr);
 
   N := PosMDFe;
   while N > 0 do

@@ -16,13 +16,14 @@
     </General>
     <VersionInfo>
       <UseVersionInfo Value="True"/>
-      <AutoIncrementBuild Value="True"/>
+      <AutoIncrementBuild Value="False"/>
       <MinorVersionNr Value="2"/>
       <RevisionNr Value="1"/>
-      <BuildNr Value="366"/>
+      <BuildNr Value="388"/>
       <Language Value="0416"/>
       <Attributes pvaPreRelease="True"/>
       <StringTable CompanyName="Projeto ACBr" FileDescription="ACBrCHQ - Biblioteca para impressão de Cheque" InternalName="ACBrLibCHQ" LegalCopyright="Projeto ACBr" LegalTrademarks="Projeto ACBr" ProductName="CHQ" ProductVersion="0.2.1.1"/>
+      <MajorVersionNr Value="0"/>
     </VersionInfo>
     <BuildModes Count="13">
       <Item1 Name="Win32-i386-CDECL" Default="True"/>
@@ -31,7 +32,7 @@
           <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="bin\Cdecl\ACBrCHQ64"/>
+            <Filename Value="bin\Windows\Cdecl\ACBrCHQ64"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir);..\Comum"/>
@@ -73,7 +74,7 @@
           <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="bin\StdCall\ACBrCHQ32"/>
+            <Filename Value="bin\Windows\StdCall\ACBrCHQ32"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir);..\Comum"/>
@@ -114,7 +115,7 @@
           <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="bin\StdCall\ACBrCHQ64"/>
+            <Filename Value="bin\Windows\StdCall\ACBrCHQ64"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir);..\Comum"/>
@@ -272,7 +273,7 @@
           <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="bin\MT\Cdecl\ACBrCHQ32"/>
+            <Filename Value="bin\Windows\MT\Cdecl\ACBrCHQ32"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir);..\Comum"/>
@@ -313,7 +314,7 @@
           <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="bin\MT\Cdecl\ACBrCHQ64"/>
+            <Filename Value="bin\Windows\MT\Cdecl\ACBrCHQ64"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir);..\Comum"/>
@@ -355,7 +356,7 @@
           <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="bin\MT\StdCall\ACBrCHQ32"/>
+            <Filename Value="bin\Windows\MT\StdCall\ACBrCHQ32"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir);..\Comum"/>
@@ -396,7 +397,7 @@
           <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="bin\MT\StdCall\ACBrCHQ64"/>
+            <Filename Value="bin\Windows\MT\StdCall\ACBrCHQ64"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir);..\Comum"/>
@@ -437,7 +438,7 @@
           <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="bin\MT\Linux\acbrchq64"/>
+            <Filename Value="bin\Linux\MT\acbrchq64"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir);..\Comum"/>
@@ -478,7 +479,7 @@
           <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="bin\MT\Linux\acbrchq32"/>
+            <Filename Value="bin\Linux\MT\acbrchq32"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir);..\Comum"/>
@@ -597,7 +598,7 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="bin\Cdecl\ACBrCHQ32"/>
+      <Filename Value="bin\Windows\Cdecl\ACBrCHQ32"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir);..\Comum"/>

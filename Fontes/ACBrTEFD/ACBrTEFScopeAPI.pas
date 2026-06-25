@@ -3,7 +3,7 @@
 {  Biblioteca multiplataforma de componentes Delphi para interação com equipa- }
 { mentos de Automação Comercial utilizados no Brasil                           }
 {                                                                              }
-{ Direitos Autorais Reservados (c) 2024 Daniel Simoes de Almeida               }
+{ Direitos Autorais Reservados (c) 2026 Daniel Simoes de Almeida               }
 {                                                                              }
 { Colaboradores nesse arquivo:                                                 }
 {                                                                              }
@@ -1414,6 +1414,7 @@ type
     fSessaoAberta: Boolean;
     fVersaoAutomacao: String;
     fInformacoesPinPad: String;
+    fInterfacePinPad: Integer;
 
     // Funcoes originais do SCOPE
     xScopeOpen: function(Modo, Empresa, Filial, Pdv: PAnsiChar): LongInt;
@@ -1651,6 +1652,9 @@ type
     property UsarScopeClientConnector: Boolean read fUsarScopeClientConnector
       write fUsarScopeClientConnector default False;
 
+    property InterfacePinPad: Integer read fInterfacePinPad
+      write fInterfacePinPad default PP_INTERFACE_LIB_COMPARTILHADA;
+
     property Carregada: Boolean read fCarregada;
     property Inicializada: Boolean read fInicializada write SetInicializada;
     property Conectado: Boolean read fConectado;
@@ -1709,6 +1713,7 @@ implementation
 
 uses
   IniFiles, StrUtils, TypInfo, Math, DateUtils,
+  ACBrTEFAPIComum,
   ACBrUtil.Strings,
   ACBrUtil.Math,
   ACBrUtil.FilesIO;
@@ -1748,6 +1753,7 @@ begin
   fOnExibeQRCode := Nil;
   fDadosDaTransacao := TStringList.Create;
   fRespostasPorEstados := TStringList.Create;
+  fInterfacePinPad := PP_INTERFACE_LIB_COMPARTILHADA;
 end;
 
 destructor TACBrTEFScopeAPI.Destroy;
@@ -2058,9 +2064,9 @@ procedure TACBrTEFScopeAPI.LoadLibFunctions;
       begin
         LibPointer := NIL ;
         if FuncIsRequired then
-          DoException(Format('Erro ao carregar a função: %s de: %s',[FuncName, LibName]))
+          DoException(Format(ACBrStr(sACBrTEFAPIErroAoCarregarMetodoDeLib),[FuncName, LibName]))
         else
-          GravarLog(Format('     Função não requerida: %s não encontrada em: %s',[FuncName, LibName]));
+          GravarLog(Format('     '+ACBrStr(sACBrTEFAPIMetodoNaoRequeridoNaoEncontrado),[FuncName, LibName]));
         end ;
     end ;
   end;
@@ -3141,9 +3147,12 @@ var
   rColetaEx: TParam_Coleta_Ext;
   TipoCaptura: Word;
   Resposta, MsgCli, MsgOpe: String;
+  UltimaMsgOpe, UltimaMsgCli: String;
   Fluxo: TACBrTEFScopeEstadoOperacao;
   Cancelar: Boolean;
 begin
+  UltimaMsgOpe := '';
+  UltimaMsgCli := '';
   Result := -1;
   GravarLog('ExecutarTransacao');
 
@@ -3178,6 +3187,19 @@ begin
          (iStatus = TC_COLETA_EM_ANDAMENTO) or          // Outra operação no PinPad //
          (iStatus = TC_INFO_RET_FLUXO) then
       begin
+        ObterMsgUltimaTransacao(MsgCli, MsgOpe);
+        if (MsgCli <> '') and (MsgCli <> UltimaMsgCli) then
+        begin
+          ExibirMensagem(MsgCli, tmCliente);
+          UltimaMsgCli := MsgCli;
+        end;
+
+        if (MsgOpe <> '') and (MsgOpe <> UltimaMsgOpe) then
+        begin
+          ExibirMensagem(MsgOpe, tmOperador);
+          UltimaMsgOpe := MsgOpe;
+        end;
+
         // Chama evento, permitindo ao usuário cancelar
         Cancelar := False;
         ChamarEventoTransacaoEmAndamento(Fluxo, Cancelar);
@@ -3649,7 +3671,7 @@ procedure TACBrTEFScopeAPI.ObterMsgUltimaTransacao(out AMsgCliente: String; out
 var
   MsgColetada: TColeta_Msg;
   ret: LongInt;
-  s: String;
+  s, MsgOp1, MsgOp2, MsgCl1, MsgCl2: String;
 begin
   AMsgCliente := '';
   AMsgOperador := '';
@@ -3660,14 +3682,18 @@ begin
 
   if (ret = RCS_SUCESSO) then
   begin
+    MsgOp1 := ArrayOfCharToString(MsgColetada.Op1);
+    MsgOp2 := ArrayOfCharToString(MsgColetada.Op2);
+    MsgCl1 := ArrayOfCharToString(MsgColetada.Cl1);
+    MsgCl2 := ArrayOfCharToString(MsgColetada.Cl2);
     s := 'Coleta_Msg.' + sLineBreak +
-         '  Op1: '+ArrayOfCharToString(MsgColetada.Op1) + sLineBreak +
-         '  Op2: '+ArrayOfCharToString(MsgColetada.Op2) + sLineBreak +
-         '  Cl1: '+ArrayOfCharToString(MsgColetada.Cl1) + sLineBreak +
-         '  Cl2: '+ArrayOfCharToString(MsgColetada.Cl2);
+         '  Op1: '+ MsgOp1 + sLineBreak +
+         '  Op2: '+ MsgOp2 + sLineBreak +
+         '  Cl1: '+ MsgCl1 + sLineBreak +
+         '  Cl2: '+ MsgCl2;
     GravarLog(s);
-    AMsgCliente := Trim(ArrayOfCharToString(MsgColetada.Cl1) + sLineBreak + ArrayOfCharToString(MsgColetada.Cl2));
-    AMsgOperador := Trim(ArrayOfCharToString(MsgColetada.Op1) + sLineBreak + ArrayOfCharToString(MsgColetada.Op2));
+    AMsgCliente := Trim(MsgCl1 + sLineBreak + MsgCl2);
+    AMsgOperador := Trim(MsgOp1 + sLineBreak + MsgOp2);
   end;
 end;
 
@@ -4120,8 +4146,8 @@ begin
   FecharComunicacaoScope;
   GravarLog('AbrirPinPad');
 
-  GravarLog('ScopeValidaInterfacePP( '+IntToStr(PP_INTERFACE_LIB_COMPARTILHADA)+' )');
-  ret := xScopeValidaInterfacePP( PP_INTERFACE_LIB_COMPARTILHADA );
+  GravarLog('ScopeValidaInterfacePP( '+IntToStr(InterfacePinPad)+' )');
+  ret := xScopeValidaInterfacePP( InterfacePinPad );
   GravarLog('  ret: '+IntToStr(ret));
   if (ret <> PC_OK) then
     TratarErroPinPadScope(ret);
@@ -4183,6 +4209,9 @@ var
   ret: LongInt;
   s: AnsiString;
 begin
+  if InterfacePinPad = PP_NAO_UTILIZA then
+    Exit;
+
   s := AnsiString(FormatarMsgPinPad(fMsgPinPad));
   GravarLog('ScopePPClose( '+s+' )');
   ret := xScopePPClose(PAnsiChar(s));

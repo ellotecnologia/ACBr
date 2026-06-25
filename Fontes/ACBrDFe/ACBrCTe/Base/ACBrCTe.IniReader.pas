@@ -41,9 +41,9 @@ uses
   IniFiles,
   ACBrCTe.Classes,
   ACBrXmlBase,
+  pcnConversao,
   ACBrDFe.Conversao,
   pcteProcCTe,
-  pcnConversao,
   pcteConversaoCTe;
 
 type
@@ -65,6 +65,7 @@ type
     procedure Ler_GTVe(AINIRec: TMemIniFile);
 
     procedure Ler_Identificacao(AINIRec: TMemIniFile; Ide: TIde);
+    procedure Ler_refDFe(AINIRec: TMemIniFile; refDFe: TrefDFeCollection);
     procedure Ler_InfPercurso(AINIRec: TMemIniFile; infPercurso: TinfPercursoCollection);
     procedure Ler_Tomador4(AINIRec: TMemIniFile; toma4: TToma4);
     procedure Ler_Complemento(AINIRec: TMemIniFile; Compl: TCompl);
@@ -125,6 +126,7 @@ type
     procedure Ler_DetalhamentoGTV(AINIRec: TMemIniFile; detGTV: TdetGTV);
 
     procedure Ler_ProcessamentoCTe(AINIRec: TMemIniFile; procCTe: TProcCTe);
+    procedure Ler_PagamentosVinculados(AINIRec: TMemIniFile; pgto: TpgtoCollection);
 
     // Reforma Tributária
     procedure Ler_IBSCBS(AINIRec: TMemIniFile; IBSCBS: TIBSCBS);
@@ -223,17 +225,17 @@ begin
   Ide.serie   := AINIRec.ReadInteger('ide','serie'  ,1);
   Ide.nCT     := AINIRec.ReadInteger('ide','nCT' ,0);
   Ide.dhEmi   := StringToDateTime(AINIRec.ReadString('ide','dhEmi','0'));
-  Ide.tpImp   := StrToTpImp(OK, AINIRec.ReadString('ide','tpImp', '1'));
+  Ide.tpImp   := StrToTpImp(AINIRec.ReadString('ide','tpImp', '1'));
   Ide.tpEmis  := StrToTpEmis(OK, AINIRec.ReadString('ide', 'tpEmis', IntToStr(tpEmis)));
   Ide.tpAmb   := StrToTpAmb(OK, AINIRec.ReadString('ide', 'tpAmb', IntToStr(Ambiente)));
   Ide.tpCTe   := StrTotpCTe(OK, AINIRec.ReadString('ide', 'tpCTe', '0'));
-  Ide.procEmi := StrToProcEmi(OK,AINIRec.ReadString('ide','procEmi','0'));
+  Ide.procEmi := StrToProcEmi(AINIRec.ReadString('ide','procEmi','0'));
   Ide.verProc := AINIRec.ReadString('ide','verProc' ,'ACBrCTe');
   Ide.refCTe  := AINIRec.ReadString('ide','refCTe','');
   Ide.cMunEnv := AINIRec.ReadInteger('ide','cMunEnv',0);
   Ide.xMunEnv := AINIRec.ReadString('ide','xMunEnv','');
   Ide.UFEnv   := AINIRec.ReadString('ide','UFEnv','');
-  Ide.modal   := StrToTpModal(OK, AINIRec.ReadString('ide','modal','01'));
+  Ide.modal   := StrToTpModal(AINIRec.ReadString('ide','modal','01'));
   Ide.tpServ  := StrToTpServ(OK,AINIRec.ReadString('ide','tpServ','0'));
   Ide.cMunIni := AINIRec.ReadInteger('ide','cMunIni',0);
   Ide.xMunIni := AINIRec.ReadString('ide','xMunIni','');
@@ -250,8 +252,8 @@ begin
   Ide.xJust  := AINIRec.ReadString('ide','xJust' ,'');
 
   Ide.toma03.Toma    := StrToTpTomador(OK,AINIRec.ReadString('toma3','toma','0'));
-  Ide.indGlobalizado := StrToTIndicador(OK, AINIRec.ReadString('ide','indGlobalizado','0'));
-  Ide.indIEToma      := StrToindIEDest(OK, AINIRec.ReadString('ide','indIEToma','1'));
+  Ide.indGlobalizado := StrToTIndicador(AINIRec.ReadString('ide','indGlobalizado','0'));
+  Ide.indIEToma      := StrToindIEDest(AINIRec.ReadString('ide','indIEToma','1'));
   // GTV-e
   Ide.dhSaidaOrig := StringToDateTime(AINIRec.ReadString('ide','dhSaidaOrig'  ,'0'));
   Ide.dhChegadaDest := StringToDateTime(AINIRec.ReadString('ide','dhChegadaDest'  ,'0'));
@@ -259,7 +261,35 @@ begin
   Ide.gCompraGov.pRedutor := StringToFloatDef(AINIRec.ReadString('ide', 'pRedutor', ''), 0);
 
   if Ide.gCompraGov.pRedutor > 0 then
+  begin
     Ide.gCompraGov.tpEnteGov := StrTotpEnteGov(AINIRec.ReadString('ide', 'tpEnteGov', ''));
+    Ide.gCompraGov.tpOperGov := StrTotpOperGov(AINIRec.ReadString('ide', 'tpOperGov', ''));
+
+    Ler_refDFe(AINIRec, Ide.gCompraGov.refDFe);
+  end;
+end;
+
+procedure TCTeIniReader.Ler_refDFe(AINIRec: TMemIniFile;
+  refDFe: TrefDFeCollection);
+var
+  i: Integer;
+  sSecao, sFim: string;
+  Item: TrefDFeCollectionItem;
+begin
+  i := 1;
+  while true do
+  begin
+    sSecao := 'refDFe' + IntToStrZero(i, 3);
+    sFim := AINIRec.ReadString(sSecao, 'refDFeAnt', 'FIM');
+    if sFim = 'FIM' then
+      break;
+
+    Item := refDFe.New;
+
+    Item.refDFeAnt := sFim;
+
+    Inc(i);
+  end;
 end;
 
 procedure TCTeIniReader.Ler_CTe(AINIRec: TMemIniFile);
@@ -278,10 +308,11 @@ begin
   Ler_ValorPrestacao(AINIRec, FCTe.vPrest);
   Ler_ValorPrestacaoComposicao(AINIRec, FCTe.vPrest.Comp);
   Ler_Imposto(AINIRec, FCTe.Imp);
+  Ler_PagamentosVinculados(AINIRec, FCTe.pgtoVinc.pgto);
 
   case FCTe.ide.tpCTe of
     tcNormal, 
-	tcSubstituto:
+    tcSubstituto:
       Ler_InfCTeNormal(AINIRec, FCTe.infCTeNorm);
 	  
     tcComplemento:
@@ -312,6 +343,7 @@ begin
   Ler_InfCTeNormalCobr(AINIRec, FCTe.cobr);
   Ler_InfCTeNormalInfCTeSub(AINIRec, FCTe.infCteSub);
   Ler_Imposto(AINIRec, FCTe.imp);
+  Ler_PagamentosVinculados(AINIRec, FCTe.pgtoVinc.pgto);
   Ler_Total(AINIRec, FCTe.total);
   Ler_AutorizadosXml(AINIRec, FCTe.autXML);
   Ler_InfRespTecnico(AINIRec, FCTe.infRespTec);
@@ -328,7 +360,9 @@ begin
   Ler_Emitente(AINIRec, FCTe.emit);
   Ler_Tomador(AINIRec, FCTe.toma);
   Ler_ValorPrestacao(AINIRec, FCTe.vPrest);
+  Ler_ValorPrestacaoComposicao(AINIRec, FCTe.vPrest.Comp);
   Ler_Imposto(AINIRec, FCTe.imp);
+  Ler_PagamentosVinculados(AINIRec, FCTe.pgtoVinc.pgto);
 
   FCTe.infCTeNorm.refCTeCanc := AINIRec.ReadString('infCTeNorm', 'refCTeCanc', '');
 
@@ -694,7 +728,7 @@ begin
 
   if AINIRec.ReadString('ICMS00', 'CST','') <> '' then
   begin
-    Imp.ICMS.ICMS00.CST   := StrToCSTICMS(OK,AINIRec.ReadString('ICMS00','CST','00'));
+    Imp.ICMS.ICMS00.CST   := StrToCSTICMS(AINIRec.ReadString('ICMS00','CST','00'));
     imp.ICMS.SituTrib     := Imp.ICMS.ICMS00.CST;
     Imp.ICMS.ICMS00.vBC   := StringToFloatDef(AINIRec.ReadString('ICMS00','vBC','') ,0);
     Imp.ICMS.ICMS00.pICMS := StringToFloatDef(AINIRec.ReadString('ICMS00','pICMS','') ,0);
@@ -703,7 +737,7 @@ begin
 
   if AINIRec.ReadString('ICMS20', 'CST','') <> '' then
   begin
-    Imp.ICMS.ICMS20.CST    := StrToCSTICMS(OK,AINIRec.ReadString('ICMS20','CST','00'));
+    Imp.ICMS.ICMS20.CST    := StrToCSTICMS(AINIRec.ReadString('ICMS20','CST','00'));
     imp.ICMS.SituTrib      := Imp.ICMS.ICMS20.CST;
     Imp.ICMS.ICMS20.pRedBC := StringToFloatDef(AINIRec.ReadString('ICMS20','pRedBC','') ,0);
     Imp.ICMS.ICMS20.vBC    := StringToFloatDef(AINIRec.ReadString('ICMS20','vBC','') ,0);
@@ -716,7 +750,7 @@ begin
 
   if AINIRec.ReadString('ICMS45','CST','') <> '' then
   begin
-    Imp.ICMS.ICMS45.CST := StrToCSTICMS(OK,AINIRec.ReadString('ICMS45','CST','40'));
+    Imp.ICMS.ICMS45.CST := StrToCSTICMS(AINIRec.ReadString('ICMS45','CST','40'));
     imp.ICMS.SituTrib   := Imp.ICMS.ICMS45.CST;
 
     Imp.ICMS.ICMS45.vICMSDeson := StringToFloatDef(AINIRec.ReadString('ICMS45','vICMSDeson','') ,0);
@@ -725,7 +759,7 @@ begin
 
   if AINIRec.ReadString('ICMS60', 'CST','') <> '' then
   begin
-    Imp.ICMS.ICMS60.CST        := StrToCSTICMS(OK,AINIRec.ReadString('ICMS60','CST','60'));
+    Imp.ICMS.ICMS60.CST        := StrToCSTICMS(AINIRec.ReadString('ICMS60','CST','60'));
     imp.ICMS.SituTrib          := Imp.ICMS.ICMS60.CST;
     Imp.ICMS.ICMS60.vBCSTRet   := StringToFloatDef(AINIRec.ReadString('ICMS60','vBCSTRet','') ,0);
     Imp.ICMS.ICMS60.vICMSSTRet := StringToFloatDef(AINIRec.ReadString('ICMS60','vICMSSTRet','') ,0);
@@ -738,7 +772,7 @@ begin
 
   if AINIRec.ReadString('ICMS90', 'CST','') <> '' then
   begin
-    Imp.ICMS.ICMS90.CST    := StrToCSTICMS(OK,AINIRec.ReadString('ICMS90','CST','90'));
+    Imp.ICMS.ICMS90.CST    := StrToCSTICMS(AINIRec.ReadString('ICMS90','CST','90'));
     imp.ICMS.SituTrib      := Imp.ICMS.ICMS90.CST;
     Imp.ICMS.ICMS90.pRedBC := StringToFloatDef(AINIRec.ReadString('ICMS90','pRedBC','') ,0);
     Imp.ICMS.ICMS90.vBC    := StringToFloatDef(AINIRec.ReadString('ICMS90','vBC','') ,0);
@@ -752,7 +786,7 @@ begin
 
   if AINIRec.ReadString('ICMSOutraUF', 'CST','') <> '' then
   begin
-    Imp.ICMS.ICMSOutraUF.CST           := StrToCSTICMS(OK,AINIRec.ReadString('ICMSOutraUF','CST','90'));
+    Imp.ICMS.ICMSOutraUF.CST           := StrToCSTICMS(AINIRec.ReadString('ICMSOutraUF','CST','90'));
     imp.ICMS.SituTrib                  := cstICMSOutraUF;
     Imp.ICMS.ICMSOutraUF.pRedBCOutraUF := StringToFloatDef(AINIRec.ReadString('ICMSOutraUF','pRedBCOutraUF','') ,0);
     Imp.ICMS.ICMSOutraUF.vBCOutraUF    := StringToFloatDef(AINIRec.ReadString('ICMSOutraUF','vBCOutraUF','') ,0);
@@ -845,7 +879,7 @@ begin
       break;
     with infCarga.infQ.New do
     begin
-      cUnid  := StrToUnidMed(OK, sFim);
+      cUnid  := StrToUnidMed(sFim);
       tpMed  := AINIRec.ReadString(sSecao,'tpMed','');
       qCarga := StringToFloatDef(AINIRec.ReadString(sSecao,'qCarga','') ,0);
     end;
@@ -898,7 +932,7 @@ begin
 
         with infUnidTransp.New do
         begin
-          tpUnidTransp := StrToUnidTransp(OK,AINIRec.ReadString(sSecao,'tpUnidTransp','1'));
+          tpUnidTransp := StrToUnidTransp(AINIRec.ReadString(sSecao,'tpUnidTransp','1'));
           idUnidTransp := AINIRec.ReadString(sSecao,'idUnidTransp','');
           qtdRat       := StringToFloatDef(AINIRec.ReadString(sSecao,'qtdRat',''),0);
 
@@ -926,7 +960,7 @@ begin
 
             with infUnidCarga.New do
             begin
-              tpUnidCarga := StrToUnidCarga(OK,AINIRec.ReadString(sSecao,'tpUnidCarga','1'));
+              tpUnidCarga := StrToUnidCarga(AINIRec.ReadString(sSecao,'tpUnidCarga','1'));
               idUnidCarga := AINIRec.ReadString(sSecao,'idUnidCarga','');
               qtdRat      := StringToFloatDef(AINIRec.ReadString(sSecao,'qtdRat',''),0);
 
@@ -960,7 +994,7 @@ begin
 
         with infUnidCarga.New do
         begin
-          tpUnidCarga := StrToUnidCarga(OK,AINIRec.ReadString(sSecao,'tpUnidCarga','1'));
+          tpUnidCarga := StrToUnidCarga(AINIRec.ReadString(sSecao,'tpUnidCarga','1'));
           idUnidCarga := AINIRec.ReadString(sSecao,'idUnidCarga','');
           qtdRat      := StringToFloatDef(AINIRec.ReadString(sSecao,'qtdRat',''),0);
 
@@ -1039,7 +1073,7 @@ begin
         break;
       with infUnidTransp.New do
       begin
-        tpUnidTransp := StrToUnidTransp(OK,AINIRec.ReadString(sSecao,'tpUnidTransp','1'));
+        tpUnidTransp := StrToUnidTransp(AINIRec.ReadString(sSecao,'tpUnidTransp','1'));
         idUnidTransp := AINIRec.ReadString(sSecao,'idUnidTransp','');
         qtdRat       := StringToFloatDef(AINIRec.ReadString(sSecao,'qtdRat',''),0);
 
@@ -1064,7 +1098,7 @@ begin
             break;
           with infUnidCarga.New do
           begin
-            tpUnidCarga := StrToUnidCarga(OK,AINIRec.ReadString(sSecao,'tpUnidCarga','1'));
+            tpUnidCarga := StrToUnidCarga(AINIRec.ReadString(sSecao,'tpUnidCarga','1'));
             idUnidCarga := AINIRec.ReadString(sSecao,'idUnidCarga','');
             qtdRat      := StringToFloatDef(AINIRec.ReadString(sSecao,'qtdRat',''),0);
 
@@ -1096,7 +1130,7 @@ begin
         break;
       with infUnidCarga.New do
       begin
-        tpUnidCarga := StrToUnidCarga(OK,AINIRec.ReadString(sSecao,'tpUnidCarga','1'));
+        tpUnidCarga := StrToUnidCarga(AINIRec.ReadString(sSecao,'tpUnidCarga','1'));
         idUnidCarga := AINIRec.ReadString(sSecao,'idUnidCarga','');
         qtdRat      := StringToFloatDef(AINIRec.ReadString(sSecao,'qtdRat',''),0);
 
@@ -1150,7 +1184,7 @@ begin
           break;
         with infUnidTransp.New do
         begin
-          tpUnidTransp := StrToUnidTransp(OK,AINIRec.ReadString(sSecao,'tpUnidTransp','1'));
+          tpUnidTransp := StrToUnidTransp(AINIRec.ReadString(sSecao,'tpUnidTransp','1'));
           idUnidTransp := AINIRec.ReadString(sSecao,'idUnidTransp','');
           qtdRat       := StringToFloatDef(AINIRec.ReadString(sSecao,'qtdRat',''),0);
 
@@ -1175,7 +1209,7 @@ begin
               break;
             with infUnidCarga.New do
             begin
-              tpUnidCarga := StrToUnidCarga(OK,AINIRec.ReadString(sSecao,'tpUnidCarga','1'));
+              tpUnidCarga := StrToUnidCarga(AINIRec.ReadString(sSecao,'tpUnidCarga','1'));
               idUnidCarga := AINIRec.ReadString(sSecao,'idUnidCarga','');
               qtdRat      := StringToFloatDef(AINIRec.ReadString(sSecao,'qtdRat',''),0);
 
@@ -1206,7 +1240,7 @@ begin
           break;
         with infUnidCarga.New do
         begin
-          tpUnidCarga := StrToUnidCarga(OK,AINIRec.ReadString(sSecao,'tpUnidCarga','1'));
+          tpUnidCarga := StrToUnidCarga(AINIRec.ReadString(sSecao,'tpUnidCarga','1'));
           idUnidCarga := AINIRec.ReadString(sSecao,'idUnidCarga','');
           qtdRat      := StringToFloatDef(AINIRec.ReadString(sSecao,'qtdRat',''),0);
 
@@ -1433,10 +1467,10 @@ begin
           tpVeic  := StrToTpVeiculo(OK, sFim);
         sFim := AINIRec.ReadString(sSecao,'tpRod','');
         if sFim <> '' then
-          tpRod   := StrToTpRodado(OK, sFim);
+          tpRod   := StrToTpRodado(sFim);
         sFim := AINIRec.ReadString(sSecao,'tpCar','');
         if sFim <> '' then
-          tpCar   := StrToTpCarroceria(OK, sFim);
+          tpCar   := StrToTpCarroceria(sFim);
         UF      := AINIRec.ReadString(sSecao,'UF','');
 
         if AINIRec.SectionExists('prop' + IntToStrZero(I,3))then
@@ -1447,7 +1481,7 @@ begin
         Prop.xNome   := AINIRec.ReadString(sSecao,'xNome','');
         Prop.IE      := AINIRec.ReadString(sSecao,'IE','');
         Prop.UF      := AINIRec.ReadString(sSecao,'PropUF',UF);
-        Prop.tpProp  := StrToTpProp(OK,AINIRec.ReadString(sSecao,'ProptpProp',AINIRec.ReadString(sSecao,'tpProp','')));
+        Prop.tpProp  := StrToTpProp(AINIRec.ReadString(sSecao,'ProptpProp',AINIRec.ReadString(sSecao,'tpProp','')));
       end;
       Inc(I);
     end;
@@ -1541,7 +1575,7 @@ begin
     Aquav.prtEmb   := AINIRec.ReadString(sSecao,'prtEmb','');
     Aquav.prtTrans := AINIRec.ReadString(sSecao,'prtTrans','');
     Aquav.prtDest  := AINIRec.ReadString(sSecao,'prtDest','');
-    Aquav.tpNav    := StrToTpNavegacao(OK,AINIRec.ReadString(sSecao,'tpNav',''));
+    Aquav.tpNav    := StrToTpNavegacao(AINIRec.ReadString(sSecao,'tpNav',''));
     Aquav.irin     := AINIRec.ReadString(sSecao,'irin','');
 
     I := 1;
@@ -1778,7 +1812,7 @@ begin
     with infCteSub do
     begin
       chCte         := AINIRec.ReadString(sSecao,'chCte','');
-      indAlteraToma := StrToTIndicador(Ok, AINIRec.ReadString(sSecao,'indAlteraToma','0'));
+      indAlteraToma := StrToTIndicador(AINIRec.ReadString(sSecao,'indAlteraToma','0'));
 
       if AINIRec.SectionExists('tomaICMS') then
       begin
@@ -1875,7 +1909,7 @@ begin
   while true do
   begin
     sSecao := 'autXML' + IntToStrZero(I,2) ;
-    sFim   := OnlyNumber(AINIRec.ReadString(sSecao, 'CNPJCPF', 'FIM'));
+    sFim   := OnlyCPFCNPJAlphaNum(AINIRec.ReadString(sSecao, 'CNPJCPF', 'FIM'));
     if (sFim = 'FIM') or (Length(sFim) <= 0) then
       break ;
 
@@ -1923,7 +1957,7 @@ begin
   begin
     // os 2 campos abaixo são usados pelo CT-e Simplificado
     toma.Toma      := StrToTpTomador(OK,AINIRec.ReadString('toma','toma','0'));
-    toma.indIEToma := StrToindIEDest(OK, AINIRec.ReadString('toma','indIEToma','1'));
+    toma.indIEToma := StrToindIEDest(AINIRec.ReadString('toma','indIEToma','1'));
 
     toma.CNPJCPF := AINIRec.ReadString('toma','CNPJCPF','');
     toma.IE      := AINIRec.ReadString('toma','IE','');
@@ -2169,7 +2203,7 @@ begin
         prop.xNome          := AINIRec.ReadString(sSecao,'xNome','');
         prop.IE             := AINIRec.ReadString(sSecao,'IE','');
         prop.UF             := AINIRec.ReadString(sSecao,'propUF', AINIRec.ReadString(sSecao, 'UF', ''));
-        prop.tpProp         := StrToTpProp(OK,AINIRec.ReadString(sSecao,'ProptpProp',AINIRec.ReadString(sSecao,'tpProp','')));
+        prop.tpProp         := StrToTpProp(AINIRec.ReadString(sSecao,'ProptpProp',AINIRec.ReadString(sSecao,'tpProp','')));
       end;
       Inc(I);
     end;
@@ -2329,6 +2363,36 @@ begin
   end;
 end;
 
+procedure TCTeIniReader.Ler_PagamentosVinculados(AINIRec: TMemIniFile;
+  pgto: TpgtoCollection);
+var
+  I: Integer;
+  sSecao, sFim: String;
+  ItemPag: TpgtoCollectionItem;
+begin
+  //
+  // Seção [pgtoVincxx] Dados do Pagamento Vinculado 01-99
+  //
+  I := 1 ;
+  while true do
+  begin
+    sSecao := 'pgtoVinc' + IntToStrZero(I,2) ;
+    sFim   := AINIRec.ReadString(sSecao, 'nPag', 'FIM');
+    if (sFim = 'FIM') or (Length(sFim) <= 0) then
+      break ;
+
+    ItemPag := pgto.New;
+
+    ItemPag.nPag := StrToIntDef(sFim, 0);
+    ItemPag.idTransacao := AINIRec.ReadString(sSecao, 'idTransacao', '');
+    ItemPag.tpMeioPgto := AINIRec.ReadString(sSecao, 'tpMeioPgto', '');
+    ItemPag.CNPJReceb := OnlyCPFCNPJAlphaNum(AINIRec.ReadString(sSecao, 'CNPJReceb', ''));
+    ItemPag.CNPJBasePSP := OnlyCPFCNPJAlphaNum(AINIRec.ReadString(sSecao, 'CNPJBasePSP', ''));
+
+    Inc(I);
+  end;
+end;
+
 // Reforma Tributária
 procedure TCTeIniReader.Ler_IBSCBS(AINIRec: TMemIniFile; IBSCBS: TIBSCBS);
 var
@@ -2341,7 +2405,7 @@ begin
   begin
     IBSCBS.CST := StrToCSTIBSCBS(AINIRec.ReadString(sSecao, 'CST', ''));
     IBSCBS.cClassTrib := AINIRec.ReadString(sSecao, 'cClassTrib', '');
-    IBSCBS.indDoacao := StrToTIndicadorEx(ok, AINIRec.ReadString(sSecao, 'indDoacao', ''));
+    IBSCBS.indDoacao := StrToTIndicadorEx(AINIRec.ReadString(sSecao, 'indDoacao', ''));
 
     Ler_IBSCBS_gIBSCBS(AINIRec, IBSCBS.gIBSCBS);
     Ler_gEstornoCred(AINIRec, IBSCBS.gEstornoCred);

@@ -136,6 +136,7 @@ end;
 function TACBrBancoBradesco.ConverterJurosValorDiario(
   const ACBrTitulo: TACBrTitulo): Double;
 begin
+  Result := 0;	
   with ACBrTitulo do
   begin
     case CodigoMoraJuros of
@@ -145,6 +146,8 @@ begin
       cjValorMensal: Result := (ValorMoraJuros / 30);
       cjTaxaDiaria: Result := (ValorMoraJuros * ValorDocumento / 100);
     end;
+    if (Result = 0) and (ValorMoraJuros > 0) then
+      Result := ValorMoraJuros;
   end;
 end;
 
@@ -375,7 +378,7 @@ begin
 
         {Dados do sacado}
         IfThen(Sacado.Pessoa = pJuridica,'2','1')           + //Tipo Tipo de Inscrição 18 18 1 - Num *G005
-        PadLeft(OnlyNumber(Sacado.CNPJCPF), 15, '0')        + //Número Número de Inscrição 19 33 15 - Num *G006
+        PadLeft(OnlyCPFCNPJAlphaNum(Sacado.CNPJCPF), 15, '0')        + //Número Número de Inscrição 19 33 15 - Num *G006
         PadRight(Sacado.NomeSacado, 40, ' ')                + //Nome 34 73 40 - Alfa G013
         PadRight(Sacado.Logradouro + ' ' + Sacado.Numero + ' ' + Sacado.Complemento + ' ' + Sacado.Bairro, 40, ' ') + //Endereço 74 113 40 - Alfa G032
         PadRight(Sacado.Bairro, 15, ' ')                    + //Bairro 114 128 15 - Alfa G032
@@ -489,7 +492,7 @@ begin
      begin
        if Sacado.SacadoAvalista.CNPJCPF <> '' then
        begin
-         MensagemCedente := PadLeft(OnlyNumber(Sacado.SacadoAvalista.CNPJCPF), 15, '0') +  // 335 a 349 - CNPJ do beneficiário final
+         MensagemCedente := PadLeft(OnlyCPFCNPJAlphaNum(Sacado.SacadoAvalista.CNPJCPF), 15, '0') +  // 335 a 349 - CNPJ do beneficiário final
          '  ' +                                                                            // 350 a 351 - Brancos
          PadRight(Sacado.SacadoAvalista.NomeAvalista, 43);                                 // 352 a 394 - Nome do beneficiário final
        end
@@ -521,7 +524,7 @@ begin
        IntToStrZero( round( ValorDesconto * 100 ), 13)          +  // 180 a 192 - Valor Desconto
        IntToStrZero( round( ValorIOF * 100 ), 13)               +  // 193 a 205 - Valor IOF
        IntToStrZero( round( ValorAbatimento * 100 ), 13)        +  // 206 a 218 - Valor Abatimento
-       sTipoSacado + PadLeft(OnlyNumber(Sacado.CNPJCPF),14,'0') +  // 219 a 234 - Tipo de Inscrição + Número de Inscrição do Pagador
+       sTipoSacado + PadLeft(OnlyCPFCNPJAlphaNum(Sacado.CNPJCPF),14,'0') +  // 219 a 234 - Tipo de Inscrição + Número de Inscrição do Pagador
        PadRight( Sacado.NomeSacado, 40, ' ')                    +  // 235 a 274 - Nome do Pagador
        PadRight(Sacado.Logradouro + ' ' + Sacado.Numero + ' '   +
          Sacado.Complemento + ' ' + Sacado.Bairro, 40)          +  // 275 a 314 - Endereço completo do pagador

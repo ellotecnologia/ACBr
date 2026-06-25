@@ -128,7 +128,9 @@ uses
   XTRTecnologia.LerJson, XTRTecnologia.Provider, ISSMap.GravarXml, 
   ISSMap.LerXml, ISSMap.Provider, Aspec.GravarJson, Aspec.LerJson, 
   Aspec.Provider, Smart4.GravarXml, Smart4.LerXml, Smart4.Provider, 
-  LazarusPackageIntf;
+  ACBrNFSeX.LerIni, ACBrNFSeX.GravarIni, BWSistemas.GravarXml, 
+  BWSistemas.LerXml, BWSistemas.Provider, HM2.GravarXml, 
+  HM2.LerXml, HM2.Provider, LazarusPackageIntf;
 
 implementation
 

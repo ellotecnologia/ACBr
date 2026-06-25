@@ -46,10 +46,8 @@ uses
   ACBrDFeConsts,
   ACBrBase,
   pcnConversao,
-  pcnSignature,
   ACBrXmlBase,
   ACBrDFe.Conversao,
-//  ACBrDFeComum.SignatureClass,
   ACBrBPeClass,
   ACBrBPeEventoClass,
   ACBrBPeConsts,
@@ -107,6 +105,9 @@ type
     function Gerar_Evento_NaoEmbarque(AIdx: Integer): TACBrXmlNode;
     function Gerar_Evento_AlteracaoPoltrona(AIdx: Integer): TACBrXmlNode;
     function Gerar_Evento_ExcessoBagagem(AIdx: Integer): TACBrXmlNode;
+    function Gerar_Evento_VinculoPagamento(AIdx: Integer): TACBrXmlNode;
+    function Gerar_Pagamento(pgto: Tpgto): TACBrXmlNode;
+    function Gerar_Evento_CancelamentoVinculoPagamento(AIdx: Integer): TACBrXmlNode;
 
     // Reforma Tributaria
     function Gerar_IBSCBS(IBSCBS: TIBSCBS): TACBrXmlNode;
@@ -151,6 +152,7 @@ uses
   ACBrUtil.Strings,
   ACBrUtil.FilesIO,
   ACBrUtil.DateTime,
+  ACBrUtil.XMLHTML,
   ACBrBPeRetEnvEvento,
   ACBrBPeConversao;
 
@@ -212,7 +214,7 @@ var
 begin
   Evento[AIdx].InfEvento.id := 'ID'+
                                Evento[AIdx].InfEvento.TipoEvento +
-                               OnlyNumber(Evento[AIdx].InfEvento.chBPe) +
+                               RemoverLiteralChave(Evento[AIdx].InfEvento.chBPe) +
                                Format('%.2d', [Evento[AIdx].InfEvento.nSeqEvento]);
 
   Result := CreateElement('infEvento');
@@ -224,7 +226,7 @@ begin
   Result.AppendChild(AddNode(tcStr, 'P06', 'tpAmb', 1, 1, 1,
                    TipoAmbienteToStr(Evento[AIdx].InfEvento.tpAmb), DSC_TPAMB));
 
-  sDoc := OnlyNumber(Evento[AIdx].InfEvento.CNPJ);
+  sDoc := OnlyCPFCNPJAlphaNum(Evento[AIdx].InfEvento.CNPJ);
 
   if EstaVazio(sDoc) then
     sDoc := ExtrairCNPJCPFChaveAcesso(Evento[AIdx].InfEvento.chBPe);
@@ -272,6 +274,12 @@ begin
 
     teExcessoBagagem:
       Result.AppendChild(Gerar_Evento_ExcessoBagagem(AIdx));
+
+    teVinculoPgto:
+      Result.AppendChild(Gerar_Evento_VinculoPagamento(AIdx));
+
+    teCancVinculoPgto:
+      Result.AppendChild(Gerar_Evento_CancelamentoVinculoPagamento(AIdx));
   end;
 end;
 
@@ -335,6 +343,55 @@ begin
 
   // Reforma Tributária
   Result.AppendChild(Gerar_IBSCBS(Evento[AIdx].FInfEvento.detEvento.IBSCBS));
+
+  Result.AppendChild(AddNode(tcDe2, '#250', 'vTotDFe', 1, 15, 0,
+                       Evento[AIdx].FInfEvento.detEvento.vTotDFe, DSC_VTOTDFE));
+end;
+
+function TEventoBPe.Gerar_Evento_VinculoPagamento(AIdx: Integer): TACBrXmlNode;
+begin
+  Result := CreateElement('evVincPgto');
+
+  Result.AppendChild(AddNode(tcStr, 'EP02', 'descEvento', 4, 60, 1,
+                                           Evento[AIdx].FInfEvento.DescEvento));
+
+  Result.AppendChild(AddNode(tcStr, 'EP03', 'nProt', 15, 15, 1,
+                                      Evento[AIdx].FInfEvento.detEvento.nProt));
+
+  Result.AppendChild(Gerar_Pagamento(Evento[AIdx].FInfEvento.detEvento.pgto));
+end;
+
+function TEventoBPe.Gerar_Pagamento(pgto: Tpgto): TACBrXmlNode;
+begin
+  Result := CreateElement('pgto');
+
+  Result.SetAttribute('nPag', IntToStr(pgto.nPag));
+
+  Result.SetAttribute('idTransacao', pgto.idTransacao);
+
+  Result.AppendChild(AddNode(tcStr, '#44', 'tpMeioPgto', 2, 2, 1,
+                                              pgto.tpMeioPgto, DSC_TPMEIOPGTO));
+
+  Result.AppendChild(AddNode(tcStr, '#44', 'CNPJReceb', 14, 14, 1,
+                                                pgto.CNPJReceb, DSC_CNPJRECEB));
+
+  Result.AppendChild(AddNode(tcStr, '#44', 'CNPJBasePSP', 8, 8, 1,
+                                            pgto.CNPJBasePSP, DSC_CNPJBASEPSP));
+end;
+
+function TEventoBPe.Gerar_Evento_CancelamentoVinculoPagamento(
+  AIdx: Integer): TACBrXmlNode;
+begin
+  Result := CreateElement('evCancVincPgto');
+
+  Result.AppendChild(AddNode(tcStr, 'EP02', 'descEvento', 4, 60, 1,
+                                           Evento[AIdx].FInfEvento.DescEvento));
+
+  Result.AppendChild(AddNode(tcStr, 'EP03', 'nProt', 15, 15, 1,
+                                      Evento[AIdx].FInfEvento.detEvento.nProt));
+
+  Result.AppendChild(AddNode(tcStr, 'EP04', 'nProtVincPgto', 15, 15, 1,
+                              Evento[AIdx].FInfEvento.detEvento.nProtVincPgto));
 end;
 
 { TInfEventoCollectionItem }
@@ -399,15 +456,10 @@ end;
 
 function TEventoBPe.LerXML(const ACaminhoArquivo: string): Boolean;
 var
-  ArqEvento: TStringList;
+  LXML: string;
 begin
-  ArqEvento := TStringList.Create;
-  try
-    ArqEvento.LoadFromFile(ACaminhoArquivo);
-    Result := LerXMLFromString(ArqEvento.Text);
-  finally
-    ArqEvento.Free;
-  end;
+  LXML := CarregarArquivo(ACaminhoArquivo);
+  Result := LerXMLFromString(LXML);
 end;
 
 function TEventoBPe.LerXMLFromString(const AXML: string): Boolean;
@@ -416,7 +468,7 @@ var
 begin
   RetEventoBPe := TRetEventoBPe.Create;
   try
-    RetEventoBPe.XmlRetorno := AXML;
+    RetEventoBPe.XmlRetorno := RemoverUTF8Bom(AXML);
     Result := RetEventoBPe.LerXml;
 
     with FEvento.New do
@@ -431,15 +483,28 @@ begin
 //      infEvento.dhEvento := RetEventoBPe.RetInfEvento.dhEvento;
       infEvento.tpEvento := RetEventoBPe.RetInfEvento.tpEvento;
       infEvento.nSeqEvento := RetEventoBPe.RetInfEvento.nSeqEvento;
-
       infEvento.DetEvento.descEvento := RetEventoBPe.RetInfEvento.xEvento;
-      infEvento.DetEvento.nProt := RetEventoBPe.RetInfEvento.nProt;
-      {
-      infEvento.DetEvento.xJust := RetEventoBPe.RetInfEvento.xJust;
+
+      infEvento.DetEvento.nProt := RetEventoBPe.InfEvento.DetEvento.nProt;
+      infEvento.DetEvento.xJust := RetEventoBPe.InfEvento.DetEvento.xJust;
+
+      // teAlteracaoPoltrona
       infEvento.DetEvento.poltrona := RetEventoBPe.InfEvento.DetEvento.poltrona;
+      // teExcessoBagagem
       infEvento.DetEvento.qBagagem := RetEventoBPe.InfEvento.DetEvento.qBagagem;
       infEvento.DetEvento.vTotBag := RetEventoBPe.InfEvento.DetEvento.vTotBag;
-      }
+      infEvento.DetEvento.vTotDFe := RetEventoBPe.InfEvento.DetEvento.vTotDFe;
+
+      // teVinculoPgto
+      infEvento.DetEvento.pgto.nPag := RetEventoBPe.InfEvento.DetEvento.pgto.nPag;
+      infEvento.DetEvento.pgto.idTransacao := RetEventoBPe.InfEvento.DetEvento.pgto.idTransacao;
+      infEvento.DetEvento.pgto.tpMeioPgto := RetEventoBPe.InfEvento.DetEvento.pgto.tpMeioPgto;
+      infEvento.DetEvento.pgto.CNPJReceb := RetEventoBPe.InfEvento.DetEvento.pgto.CNPJReceb;
+      infEvento.DetEvento.pgto.CNPJBasePSP := RetEventoBPe.InfEvento.DetEvento.pgto.CNPJBasePSP;
+
+      // teCancVinculoPgto
+      infEvento.DetEvento.nProtVincPgto := RetEventoBPe.InfEvento.DetEvento.nProtVincPgto;
+
       signature.URI := RetEventoBPe.signature.URI;
       signature.DigestValue := RetEventoBPe.signature.DigestValue;
       signature.SignatureValue := RetEventoBPe.signature.SignatureValue;
@@ -503,9 +568,20 @@ begin
         infEvento.nSeqEvento := INIRec.ReadInteger(sSecao, 'nSeqEvento', 1);
         infEvento.detEvento.xJust := INIRec.ReadString(sSecao, 'xJust', '');
         infEvento.detEvento.nProt := INIRec.ReadString(sSecao, 'nProt', '');
+        // teAlteracaoPoltrona
         infEvento.detEvento.poltrona := INIRec.ReadInteger(sSecao, 'poltrona', 0);
+        // teExcessoBagagem
         infEvento.detEvento.qBagagem := INIRec.ReadInteger(sSecao, 'qBagagem', 0);
         infEvento.detEvento.vTotBag := StringToFloatDef(INIRec.ReadString(sSecao, 'vTotBag', ''), 0);
+        infEvento.detEvento.vTotDFe := StringToFloatDef(INIRec.ReadString(sSecao, 'vTotDFe', ''), 0);
+        // teVinculoPgto
+        infEvento.detEvento.pgto.nPag := INIRec.ReadInteger(sSecao, 'nPag', 0);
+        infEvento.detEvento.pgto.idTransacao := INIRec.ReadString(sSecao, 'idTransacao', '');
+        infEvento.detEvento.pgto.tpMeioPgto := INIRec.ReadString(sSecao, 'tpMeioPgto', '');
+        infEvento.detEvento.pgto.CNPJReceb := INIRec.ReadString(sSecao, 'CNPJReceb', '');
+        infEvento.detEvento.pgto.CNPJBasePSP := INIRec.ReadString(sSecao, 'CNPJBasePSP', '');
+        // teCancVinculoPgto
+        infEvento.DetEvento.nProtVincPgto := INIRec.ReadString(sSecao, 'nProtVincPgto', '');
 
         // Reforma Tributária
         // Falta Implementar

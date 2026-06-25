@@ -518,7 +518,7 @@ begin
         AlteraAtribuiJuros(LJson);
       toRemessaAlterarMulta:
         AtribuirMulta(LJson);
-      toRemessaAlterarValorAbatimento, toRemessaCancelarAbatimento:
+      toRemessaAlterarValorAbatimento, toRemessaCancelarAbatimento, toRemessaConcederAbatimento:
         AtribuirAbatimento(LJson);
       ToRemessaPedidoNegativacao:
         FMetodoHTTP := HtPOST;
@@ -542,13 +542,12 @@ end;
 procedure TBoletoW_Sicoob_V3.GerarPagador(AJson: TACBrJSONObject);
  var
   LJsonDadosPagador: TACBrJSONObject;
-  LJsonArrayEmail: TACBrJSONArray;
 begin
   if not Assigned(aTitulo) or not Assigned(AJson) then
     Exit;
 
   LJsonDadosPagador := TACBrJSONObject.Create;
-  LJsonDadosPagador.AddPair('numeroCpfCnpj',OnlyNumber(aTitulo.Sacado.CNPJCPF));
+  LJsonDadosPagador.AddPair('numeroCpfCnpj',OnlyCPFCNPJAlphaNum(aTitulo.Sacado.CNPJCPF));
   LJsonDadosPagador.AddPair('nome',aTitulo.Sacado.NomeSacado);
   LJsonDadosPagador.AddPair('endereco',aTitulo.Sacado.Logradouro + ' ' + aTitulo.Sacado.Numero);
   LJsonDadosPagador.AddPair('bairro',aTitulo.Sacado.Bairro);
@@ -562,7 +561,6 @@ end;
 
 procedure TBoletoW_Sicoob_V3.GerarInstrucao(AJson: TACBrJSONObject);
 var
-  JsonDadosInstrucao: TACBrJSONObject;
   JsonArrayInstrucao: TACBrJSONArray;
 begin
   if not Assigned(aTitulo) or not Assigned(AJson) then
@@ -571,7 +569,6 @@ begin
   if ATitulo.Instrucao1 = '' then
     Exit;
 
-  JsonDadosInstrucao := TACBrJSONObject.Create;
   JsonArrayInstrucao := TACBrJSONArray.Create;
   if NaoEstaVazio(ATitulo.Instrucao1) then
     JsonArrayInstrucao.AddElement(ATitulo.Instrucao1);
@@ -607,7 +604,7 @@ begin
 
   LJsonSacadorAvalista := TACBrJSONObject.Create;
   LJsonSacadorAvalista.AddPair('nome',aTitulo.Sacado.SacadoAvalista.NomeAvalista);
-  LJsonSacadorAvalista.AddPair('numeroCpfCnpj',OnlyNumber(aTitulo.Sacado.SacadoAvalista.CNPJCPF));
+  LJsonSacadorAvalista.AddPair('numeroCpfCnpj',OnlyCPFCNPJAlphaNum(aTitulo.Sacado.SacadoAvalista.CNPJCPF));
   AJson.AddPair('beneficiarioFinal', LJsonSacadorAvalista);
 end;
 

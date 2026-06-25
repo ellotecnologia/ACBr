@@ -41,7 +41,8 @@ uses
   ACBrXmlBase,
   ACBrXmlDocument,
   ACBrNFSeXGravarXml,
-  ACBrNFSeXConversao;
+  ACBrNFSeXConversao,
+  ACBrNFSeXClass;
 
 type
   { TNFSeW_GeisWeb }
@@ -58,6 +59,10 @@ type
     function GerarEnderecoTomador: TACBrXmlNode;
     function GerarOrgaoGerador: TACBrXmlNode;
     function GerarOutrosImpostos: TACBrXmlNode;
+    function GerarXMLIBSCBS(IBSCBS: TIBSCBSDPS): TACBrXmlNode; override;
+    function GerarXMLIBSCBSTribValores(valores: Tvalorestrib): TACBrXmlNode; override;
+    function GerarXMLgIBSCBS(gIBSCBS: TgIBSCBS): TACBrXmlNode; override;
+    function GerarXMLgTribRegular(gTribRegular: TgTribRegular): TACBrXmlNode; //override;
   public
     function GerarXml: Boolean; override;
 
@@ -124,20 +129,66 @@ begin
   xmlNode := GerarOutrosImpostos;
   NFSeNode.AppendChild(xmlNode);
 
-  NFSeNode.AppendChild(AddNode(tcStr, '#1', 'NCM', 1, 10, 0,
+  if VersaoNFSe = ve101 then
+  begin
+    NFSeNode.AppendChild(AddNode(tcStr, '#1', 'NCM', 1, 10, 1,
                                                    NFSe.Servico.CodigoNCM, ''));
 
-  NFSeNode.AppendChild(AddNode(tcStr, '#1', 'NBS', 1, 10, 0,
+    NFSeNode.AppendChild(AddNode(tcStr, '#1', 'NBS', 1, 10, 1,
                                                    NFSe.Servico.CodigoNBS, ''));
 
-  // Reforma Tributária
-  if NFSe.IBSCBS.valores.trib.gIBSCBS.CST <> cstNenhum then
-  begin
-    xmlNode := GerarXmlIBSCBS(NFSe.IBSCBS);
-    NFSeNode.AppendChild(xmlNode);
+    NFSeNode.AppendChild(AddNode(tcStr, '#1', 'CodigoNacional', 6, 6, 1,
+                                       NFSe.Servico.CodigoServicoNacional, ''));
+
+    // Reforma Tributária
+    if NFSe.IBSCBS.valores.trib.gIBSCBS.CST <> cstNenhum then
+    begin
+      xmlNode := GerarXmlIBSCBS(NFSe.IBSCBS);
+      NFSeNode.AppendChild(xmlNode);
+    end;
   end;
 
   Result := True;
+end;
+
+function TNFSeW_GeisWeb.GerarXMLIBSCBS(IBSCBS: TIBSCBSDPS): TACBrXmlNode;
+begin
+  Result := CreateElement(TagIBSCBS);
+
+  Result.AppendChild(GerarXMLIBSCBSTribValores(IBSCBS.valores));
+end;
+
+function TNFSeW_GeisWeb.GerarXMLIBSCBSTribValores(
+  valores: Tvalorestrib): TACBrXmlNode;
+begin
+  Result := CreateElement('valores');
+
+  Result.AppendChild(GerarXMLTributos(valores.trib));
+end;
+
+function TNFSeW_GeisWeb.GerarXMLgIBSCBS(gIBSCBS: TgIBSCBS): TACBrXmlNode;
+begin
+  Result := CreateElement('gIBSCBS');
+
+  Result.AppendChild(AddNode(tcStr, '#1', 'cClassTrib', 6, 6, 1,
+                                                       gIBSCBS.cClassTrib, ''));
+
+  Result.AppendChild(AddNode(tcDe2, '#1', 'Ibs', 1, 15, 1,
+                                 NFSe.infNFSe.IBSCBS.totCIBS.gIBS.vIBSTot, ''));
+
+  Result.AppendChild(AddNode(tcDe2, '#1', 'Cbs', 1, 15, 1,
+                                    NFSe.infNFSe.IBSCBS.totCIBS.gCBS.vCBS, ''));
+
+  Result.AppendChild(GerarXMLgTribRegular(gIBSCBS.gTribRegular));
+end;
+
+function TNFSeW_GeisWeb.GerarXMLgTribRegular(
+  gTribRegular: TgTribRegular): TACBrXmlNode;
+begin
+  Result := CreateElement('gTribRegular');
+
+  Result.AppendChild(AddNode(tcStr, '#1', 'cClassTribReg', 6, 6, 1,
+                                               gTribRegular.cClassTribReg, ''));
 end;
 
 function TNFSeW_GeisWeb.GerarEnderecoTomador: TACBrXmlNode;
@@ -162,11 +213,14 @@ begin
   Result.AppendChild(AddNode(tcStr, '#1', 'Cep', 1, 11, 1,
                                                 Nfse.Tomador.Endereco.CEP, ''));
 
-  Result.AppendChild(AddNode(tcStr, '#1', 'Pais', 1, 11, 0,
-                                                Nfse.Tomador.Endereco.xPais, ''));
+  if VersaoNFSe = ve101 then
+  begin
+    Result.AppendChild(AddNode(tcStr, '#1', 'Pais', 1, 11, 0,
+                                              Nfse.Tomador.Endereco.xPais, ''));
 
-  Result.AppendChild(AddNode(tcStr, '#1', 'ProvReg', 1, 11, 0,
+    Result.AppendChild(AddNode(tcStr, '#1', 'ProvReg', 1, 11, 0,
                                                 '.', ''));
+  end;
 
   Result.AppendChild(AddNode(tcStr, '#1', 'Telefone', 1, 11, 0,
                                             Nfse.Tomador.Contato.Telefone, ''));
@@ -204,12 +258,15 @@ begin
   Result.AppendChild(AddNode(tcStr, '#1', 'CnpjCpf', 1, 14, 1,
                                 NFSe.Tomador.IdentificacaoTomador.CpfCnpj, ''));
 
-  Result.AppendChild(AddNode(tcStr, '#1', 'NIF', 1, 40, 0,
+  if VersaoNFSe = ve101 then
+  begin
+    Result.AppendChild(AddNode(tcStr, '#1', 'NIF', 1, 40, 0,
                                     NFSe.Tomador.IdentificacaoTomador.Nif, ''));
 
-  if NFSe.Tomador.IdentificacaoTomador.cNaoNIF <> tnnNaoInformado then
-    Result.AppendChild(AddNode(tcStr, '#1', 'NaoNIF', 1, 1, 0,
+    if NFSe.Tomador.IdentificacaoTomador.cNaoNIF <> tnnNaoInformado then
+      Result.AppendChild(AddNode(tcStr, '#1', 'NaoNIF', 1, 1, 0,
                    NaoNIFToStr(NFSe.Tomador.IdentificacaoTomador.cNaoNIF), ''));
+  end;
 end;
 
 function TNFSeW_GeisWeb.GerarOrgaoGerador: TACBrXmlNode;

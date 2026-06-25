@@ -797,13 +797,13 @@ var
 begin
   DecodeDate(nfe.ide.dEmi, wAno, wMes, wDia);
 
-  chaveNFe := OnlyNumber(NFe.infNFe.ID);
+  chaveNFe := RemoverLiteralChave(NFe.infNFe.ID);
   {(*}
   Result := not
     ((Copy(chaveNFe, 1, 2) <> IntToStrZero(NFe.Ide.cUF, 2)) or
     (Copy(chaveNFe, 3, 2)  <> Copy(FormatFloat('0000', wAno), 3, 2)) or
     (Copy(chaveNFe, 5, 2)  <> FormatFloat('00', wMes)) or
-    (Copy(chaveNFe, 7, 14) <> PadLeft(OnlyNumber(NFe.Emit.CNPJCPF), 14, '0')) or
+    (Copy(chaveNFe, 7, 14) <> PadLeft(OnlyCPFCNPJAlphaNum(NFe.Emit.CNPJCPF), 14, '0')) or
     (Copy(chaveNFe, 21, 2) <> IntToStrZero(NFe.Ide.modelo, 2)) or
     (Copy(chaveNFe, 23, 3) <> IntToStrZero(NFe.Ide.serie, 3)) or
     (Copy(chaveNFe, 26, 9) <> IntToStrZero(NFe.Ide.nNF, 9)) or
@@ -842,7 +842,7 @@ end;
 
 function NotaFiscal.GetNumID: String;
 begin
-  Result := OnlyNumber(NFe.infNFe.ID);
+  Result := RemoverLiteralChave(NFe.infNFe.ID);
 end;
 
 function NotaFiscal.GetXMLAssinado: String;
@@ -1041,9 +1041,7 @@ begin
   try
     MS.LoadFromFile(CaminhoArquivo);
     XMLUTF8 := ReadStrFromStream(MS, MS.Size);
-    l := Length(CUTF8BOM);
-    if (copy(XMLUTF8, 1, l) = CUTF8BOM) then
-      System.Delete(XMLUTF8, 1, l);
+    XMLUTF8 := RemoverUTF8Bom(XMLUTF8);
   finally
     MS.Free;
   end;
@@ -1098,15 +1096,8 @@ var
 begin
   // Verifica se precisa Converter de UTF8 para a String nativa da IDE //
 
-  if (Trim(AXMLString) <> '') and (XmlEhUTF8BOM(AXMLString)) then
-  begin
-    //Se tiver o BOM, eu ignoro os bytes do mesmo.
-    XMLStr := Copy(AXMLString, 4, Length(AXMLString));
-    XMLStr := ConverteXMLtoNativeString(XMLStr);
-  end
-  else
-    XMLStr := ConverteXMLtoNativeString(AXMLString);
-
+  XMLStr := RemoverUTF8Bom(AXMLString);
+  XMLStr := ConverteXMLtoNativeString(XMLStr);
   XMLStr := RemoverDeclaracaoXML(XMLStr);
 
   Fecha := PosFechaNFe;

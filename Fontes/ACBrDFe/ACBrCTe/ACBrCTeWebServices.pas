@@ -47,7 +47,7 @@ uses
   pcnRetConsReciDFe,
   ACBrDFeComum.RetConsCad,
   ACBrDFeComum.RetEnvio,
-  pcteConversaoCTe, pcteProcCte,
+  pcteConversaoCTe, pcteProcCTe,
   ACBrCTe.EnvEvento,
   ACBrCTe.RetEnvEvento,
   ACBrCTe.RetConsSit,
@@ -1201,7 +1201,7 @@ begin
             begin
               with TACBrCTe(FPDFeOwner).Conhecimentos.Items[I] do
               begin
-                if OnlyNumber(chCTe) = NumID then
+                if RemoverLiteralChave(chCTe) = NumID then
                 begin
                   if (FPConfiguracoesCTe.Geral.ValidarDigest) and
                      (FCTeRetornoSincrono.protCTe.digVal <> '') and
@@ -1354,7 +1354,7 @@ begin
         begin
           with TACBrCTe(FPDFeOwner).Conhecimentos.Items[I] do
           begin
-            if OnlyNumber(chCTe) = NumID then
+            if RemoverLiteralChave(chCTe) = NumID then
             begin
               if (FPConfiguracoesCTe.Geral.ValidarDigest) and
                  (FCTeRetornoSincrono.protCTe.digVal <> '') and
@@ -1561,7 +1561,7 @@ begin
     begin
       for j := 0 to FConhecimentos.Count - 1 do
       begin
-        if OnlyNumber(FCTeRetorno.ProtDFe.Items[i].chDFe) = FConhecimentos.Items[J].NumID then
+        if RemoverLiteralChave(FCTeRetorno.ProtDFe.Items[i].chDFe) = FConhecimentos.Items[J].NumID then
         begin
           FConhecimentos.Items[j].CTe.procCTe.verAplic := '';
           FConhecimentos.Items[j].CTe.procCTe.chCTe    := '';
@@ -1741,7 +1741,7 @@ begin
   begin
     for J := 0 to FConhecimentos.Count - 1 do
     begin
-      if OnlyNumber(AInfProt.Items[I].chDFe) = FConhecimentos.Items[J].NumID then
+      if RemoverLiteralChave(AInfProt.Items[I].chDFe) = FConhecimentos.Items[J].NumID then
       begin
         if (TACBrCTe(FPDFeOwner).Configuracoes.Geral.ValidarDigest) and
           (FConhecimentos.Items[J].CTe.signature.DigestValue <>
@@ -2109,7 +2109,7 @@ var
   NumChave: String;
 begin
   if FCTeChave = AValue then Exit;
-  NumChave := OnlyNumber(AValue);
+  NumChave := RemoverLiteralChave(AValue);
 
   if not ValidarChave(NumChave) then
      raise EACBrCTeException.Create('Chave "'+AValue+'" inválida.');
@@ -2434,7 +2434,7 @@ begin
           begin
             // Se verdadeiro significa que o componente esta carregado com todos os
             // dados do CT-e
-            if (OnlyNumber(FCTeChave) = NumID) then
+            if (RemoverLiteralChave(FCTeChave) = NumID) then
             begin
               Atualiza := (NaoEstaVazio(CTeRetorno.XMLprotCTe));
 
@@ -2761,7 +2761,7 @@ end;
 
 function TCTeInutilizacao.GerarPrefixoArquivo: String;
 begin
-  Result := Trim(OnlyNumber(FID));
+  Result := Trim(RemoverLiteralChave(FID));
 end;
 
 { TCTeConsultaCadastro }
@@ -3052,6 +3052,7 @@ begin
     FPHeaderElement := '';
 
   VerServ := VersaoCTeToDbl(FPConfiguracoesCTe.Geral.VersaoDF);
+
   FCNPJ   := FEvento.Evento.Items[0].InfEvento.CNPJ;
   FIE     := FEvento.Evento.Items[0].InfEvento.detEvento.IE;
   FTpAmb  := FEvento.Evento.Items[0].InfEvento.tpAmb;
@@ -3071,7 +3072,8 @@ begin
 
   if (FEvento.Evento.Items[0].InfEvento.tpEvento in [teCCe, teCancelamento,
       teMultiModal, tePrestDesacordo, teGTV, teComprEntrega, teCancComprEntrega,
-      teCancPrestDesacordo, teInsucessoEntregaCTe, teCancInsucessoEntregaCTe]) then
+      teCancPrestDesacordo, teInsucessoEntregaCTe, teCancInsucessoEntregaCTe,
+      teVinculoPgto, teCancVinculoPgto]) then
     FPLayout := LayCTeEvento
   else
     FPLayout := LayCTeEventoAN;
@@ -3126,6 +3128,7 @@ begin
         infEvento.tpEvento := FEvento.Evento[I].InfEvento.tpEvento;
         infEvento.nSeqEvento := FEvento.Evento[I].InfEvento.nSeqEvento;
         infEvento.versaoEvento := FEvento.Evento[I].InfEvento.versaoEvento;
+        infEvento.detEvento.nProt := FEvento.Evento[i].InfEvento.detEvento.nProt;
 
         case InfEvento.tpEvento of
           teCCe:
@@ -3148,7 +3151,6 @@ begin
           teCancelamento:
           begin
             SchemaEventoCTe := schevCancCTe;
-            infEvento.detEvento.nProt := FEvento.Evento[I].InfEvento.detEvento.nProt;
             infEvento.detEvento.xJust := FEvento.Evento[I].InfEvento.detEvento.xJust;
           end;
 
@@ -3187,7 +3189,6 @@ begin
           teCancPrestDesacordo:
           begin
             SchemaEventoCTe := schevCancPrestDesacordo;
-            infEvento.detEvento.nProt := FEvento.Evento[i].InfEvento.detEvento.nProt;
           end;
 
           teGTV:
@@ -3234,7 +3235,6 @@ begin
           teComprEntrega:
           begin
             SchemaEventoCTe := schevCECTe;
-            infEvento.detEvento.nProt     := FEvento.Evento[i].InfEvento.detEvento.nProt;
             infEvento.detEvento.dhEntrega := FEvento.Evento[i].InfEvento.detEvento.dhEntrega;
             infEvento.detEvento.nDoc      := FEvento.Evento[i].InfEvento.detEvento.nDoc;
             infEvento.detEvento.xNome     := FEvento.Evento[i].InfEvento.detEvento.xNome;
@@ -3254,14 +3254,12 @@ begin
           teCancComprEntrega:
           begin
             SchemaEventoCTe := schevCancCECTe;
-            infEvento.detEvento.nProt   := FEvento.Evento[i].InfEvento.detEvento.nProt;
             infEvento.detEvento.nProtCE := FEvento.Evento[i].InfEvento.detEvento.nProtCE;
           end;
 
           teInsucessoEntregaCTe:
           begin
             SchemaEventoCTe := schevIECTe;
-            infEvento.detEvento.nProt := FEvento.Evento[i].InfEvento.detEvento.nProt;
             infEvento.detEvento.dhTentativaEntrega := FEvento.Evento[i].InfEvento.detEvento.dhTentativaEntrega;
             infEvento.detEvento.nTentativa := FEvento.Evento[i].InfEvento.detEvento.nTentativa;
             infEvento.detEvento.tpMotivo := FEvento.Evento[i].InfEvento.detEvento.tpMotivo;
@@ -3281,8 +3279,23 @@ begin
           teCancInsucessoEntregaCTe:
           begin
             SchemaEventoCTe := schevCancIECTe;
-            infEvento.detEvento.nProt := FEvento.Evento[i].InfEvento.detEvento.nProt;
             infEvento.detEvento.nProtIE := FEvento.Evento[i].InfEvento.detEvento.nProtIE;
+          end;
+
+          teVinculoPgto:
+          begin
+            SchemaEventoCTe := schevVincPgto;
+            infEvento.detEvento.pgto.nPag := FEvento.Evento[I].infEvento.detEvento.pgto.nPag;
+            infEvento.detEvento.pgto.idTransacao := FEvento.Evento[I].infEvento.detEvento.pgto.idTransacao;
+            infEvento.detEvento.pgto.tpMeioPgto := FEvento.Evento[I].infEvento.detEvento.pgto.tpMeioPgto;
+            infEvento.detEvento.pgto.CNPJReceb := OnlyCPFCNPJAlphaNum(FEvento.Evento[I].infEvento.detEvento.pgto.CNPJReceb);
+            infEvento.detEvento.pgto.CNPJBasePSP := OnlyCPFCNPJAlphaNum(FEvento.Evento[I].infEvento.detEvento.pgto.CNPJBasePSP);
+          end;
+
+          teCancVinculoPgto:
+          begin
+            SchemaEventoCTe := schevCancVincPgto;
+            infEvento.detEvento.nProtVincPgto := FEvento.Evento[I].infEvento.detEvento.nProtVincPgto;
           end;
         end;
       end;
@@ -3395,6 +3408,20 @@ begin
           AXMLEvento := '<evCancIECTe xmlns="' + ACBRCTE_NAMESPACE + '">' +
                           Trim(RetornarConteudoEntre(AXMLEvento, '<evCancIECTe>', '</evCancIECTe>')) +
                         '</evCancIECTe>';
+        end;
+
+      schevVincPgto:
+        begin
+          AXMLEvento := '<evVincPgto xmlns="' + ACBRCTE_NAMESPACE + '">' +
+                          Trim(RetornarConteudoEntre(AXMLEvento, '<evVincPgto>', '</evVincPgto>')) +
+                        '</evVincPgto>';
+        end;
+
+      schevCancVincPgto:
+        begin
+          AXMLEvento := '<evCancVincPgto xmlns="' + ACBRCTE_NAMESPACE + '">' +
+                          Trim(RetornarConteudoEntre(AXMLEvento, '<evCancVincPgto>', '</evCancVincPgto>')) +
+                        '</evCancVincPgto>';
         end;
     else
       AXMLEvento := '';
@@ -3545,7 +3572,7 @@ begin
 
             if FPConfiguracoesCTe.Arquivos.SalvarEvento then
             begin
-              NomeArq := OnlyNumber(FEvento.Evento.Items[I].InfEvento.Id) + '-procEventoCTe.xml';
+              NomeArq := RemoverLiteralChave(FEvento.Evento.Items[I].InfEvento.Id) + '-procEventoCTe.xml';
               PathArq := PathWithDelim(GerarPathEvento(FEvento.Evento.Items[I].InfEvento.CNPJ, FEvento.Evento.Items[I].InfEvento.detEvento.IE));
 
               FPDFeOwner.Gravar(NomeArq, Texto, PathArq);
@@ -3602,10 +3629,11 @@ end;
 
 constructor TDistribuicaoDFe.Create(AOwner: TACBrDFe);
 begin
-  inherited Create(AOwner);
-
   FOwner := AOwner;
   FretDistDFeInt := TretDistDFeInt.Create(AOwner, 'CTe');
+  FlistaArqs := TStringList.Create;
+
+  inherited Create(AOwner);
 end;
 
 destructor TDistribuicaoDFe.Destroy;
@@ -3628,14 +3656,16 @@ begin
   FPHeaderElement := '';
 
   if Assigned(FretDistDFeInt) then
+  begin
     FretDistDFeInt.Free;
-
-  FretDistDFeInt := TRetDistDFeInt.Create(FOwner, 'CTe');
+    FretDistDFeInt := TRetDistDFeInt.Create(FOwner, 'CTe');
+  end;
 
   if Assigned(FlistaArqs) then
+  begin
     FlistaArqs.Free;
-
-  FlistaArqs := TStringList.Create;
+    FlistaArqs := TStringList.Create;
+  end;
 end;
 
 procedure TDistribuicaoDFe.DefinirURL;
@@ -3738,7 +3768,7 @@ begin
           FNomeArq := FretDistDFeInt.docZip.Items[I].resDFe.chDFe + '-cte.xml';
 
         schprocEventoCTe:
-          FNomeArq := OnlyNumber(FretDistDFeInt.docZip.Items[I].procEvento.Id) +
+          FNomeArq := RemoverLiteralChave(FretDistDFeInt.docZip.Items[I].procEvento.Id) +
                      '-procEventoCTe.xml';
       end;
 
@@ -3982,7 +4012,7 @@ procedure TWebServices.Inutiliza(const CNPJ, AJustificativa: String;
 var
   CNPJ_temp: string;
 begin
-  CNPJ_temp := OnlyNumber(CNPJ);
+  CNPJ_temp := OnlyCPFCNPJAlphaNum(CNPJ);
 
   if not ValidarCNPJ(CNPJ_temp) then
     raise EACBrCTeException.Create('CNPJ: ' + CNPJ_temp + ', inválido.');

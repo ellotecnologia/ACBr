@@ -115,6 +115,7 @@ type
 
   TNFSeW_InfiscAPIPropria = class(TNFSeW_PadraoNacional)
   protected
+    function GerarXMLTributacaoMunicipal: TACBrXmlNode; override;
 
   end;
 
@@ -634,16 +635,11 @@ begin
     Result.AppendChild(AddNode(tcStr, '#1', 'chaveAcessoSubstituida', 0, 1, 0,
                                                                        '', ''));
 
-    if ((NFSe.Producao = snSim) and (Now >= EncodeDate(2026, 1, 1))) or
-       (NFSe.Producao <> snSim) then
-    begin
-      if NFSe.Prestador.Endereco.CodigoMunicipio <> '' then
-         Result.AppendChild(AddNode(tcStr, '#1', 'cLocPrestacao', 1, 15, 1,
+    Result.AppendChild(AddNode(tcStr, '#1', 'cLocPrestacao', 1, 15, 1,
                                   NFSe.Prestador.Endereco.CodigoMunicipio, ''));
 
-      Result.AppendChild(AddNode(tcInt, '#1', 'cPaisPrestacao', 1, 4, 1,
+    Result.AppendChild(AddNode(tcInt, '#1', 'cPaisPrestacao', 1, 4, 1,
                                        NFSe.Prestador.Endereco.CodigoPais, ''));
-    end;
   end;
 end;
 
@@ -1066,7 +1062,8 @@ begin
 
   if (FPVersao = ve101) and ((NFSe.Servico.ItemServico[Item].ValorPIS > 0) or
      (NFSe.Servico.ItemServico[Item].ValorCOFINS > 0)) then
-    Result.AppendChild(AddNode(tcStr, '#1', 'tpRetPisCofins', 1, 1, 1, '1', ''));
+    Result.AppendChild(AddNode(tcStr, '#1', 'tpRetPisCofins', 1, 1, 1,
+         tpRetPisCofinsToStr(nfse.Servico.Valores.tribFed.tpRetPisCofins), ''));
 
   Result.AppendChild(AddNode(tcStr, '#1', 'cNBS', 9, 9, 0,
                                                    NFSe.Servico.CodigoNBS, ''));
@@ -1239,6 +1236,41 @@ begin
   NrOcorrCodigoPaisTomador := 1;
 
   GerarNSRps := True;
+end;
+
+{ TNFSeW_InfiscAPIPropria }
+
+function TNFSeW_InfiscAPIPropria.GerarXMLTributacaoMunicipal: TACBrXmlNode;
+var
+  NrOcorr: Integer;
+begin
+  Result := CreateElement('tribMun');
+
+  Result.AppendChild(AddNode(tcStr, '#1', 'tribISSQN', 1, 1, 1,
+                   tribISSQNToStr(NFSe.Servico.Valores.tribMun.tribISSQN), ''));
+
+  if NFSe.Servico.Valores.tribMun.cPaisResult > 0 then
+    Result.AppendChild(AddNode(tcStr, '#1', 'cPaisResult', 2, 2, 0,
+         CodIBGEPaisToSiglaISO2(NFSe.Servico.Valores.tribMun.cPaisResult), ''));
+
+  if NFSe.Servico.Valores.tribMun.tribISSQN = tiImunidade then
+    Result.AppendChild(AddNode(tcStr, '#1', 'tpImunidade', 1, 1, 0,
+               tpImunidadeToStr(NFSe.Servico.Valores.tribMun.tpImunidade), ''));
+
+  Result.AppendChild(GerarXMLExigibilidadeSuspensa);
+  Result.AppendChild(GerarXMLBeneficioMunicipal);
+
+  Result.AppendChild(AddNode(tcStr, '#1', 'tpRetISSQN', 2, 2, 1,
+                 tpRetISSQNToStr(NFSe.Servico.Valores.tribMun.tpRetISSQN), ''));
+
+  NrOcorr := 0;
+
+  if (NFSe.Servico.Valores.tribMun.tpRetISSQN = trNaoRetido) and
+     (NFSe.OptanteSN <> osnNaoOptante) then
+    NrOcorr := 1;
+
+  Result.AppendChild(AddNode(tcDe2, '#1', 'pAliq', 1, 3, NrOcorr,
+                                       NFSe.Servico.Valores.tribMun.pAliq, ''));
 end;
 
 end.

@@ -52,7 +52,7 @@ type
   private
     LSecao: string;
   protected
-    procedure LerCondicaoPagamento(const ANode: TACBrXmlNode);
+    procedure LerCondicaoPagamento(const ANode: TACBrXmlNode); override;
 
     procedure LerINISecaoCondicaoPagamento(const AINIRec: TMemIniFile); override;
     procedure LerINISecaoParcelas(const AINIRec: TMemIniFile); override;
@@ -77,7 +77,7 @@ type
 
     // Reescrito a leitura do grupo IBSCBS do DPS pelo fato do provedor ainda
     // estar usando o layout definido na NT 003 versão 1.2
-    procedure LerXMLIBSCBSDPS(const ANode: TACBrXmlNode; IBSCBS: TIBSCBSDPS); override;
+//    procedure LerXMLIBSCBSDPS(const ANode: TACBrXmlNode; IBSCBS: TIBSCBSDPS); override;
   public
 
   end;
@@ -178,13 +178,9 @@ begin
 end;
 
 { TNFSeR_BethaAPIPropria }
-
+(*
 procedure TNFSeR_BethaAPIPropria.LerXMLIBSCBSDPS(const ANode: TACBrXmlNode;
   IBSCBS: TIBSCBSDPS);
-var
-  ANodeAux: TACBrXmlNode;
-  ANodes: TACBrXmlNodeArray;
-  i: Integer;
 begin
   if not Assigned(ANode) then Exit;
 
@@ -198,5 +194,5 @@ begin
   LerXMLImovel(ANode.Childrens.FindAnyNs('imovel'), IBSCBS.imovel);
   LerXMLIBSCBSValores(ANode.Childrens.FindAnyNs('valores'), IBSCBS.valores);
 end;
-
+*)
 end.

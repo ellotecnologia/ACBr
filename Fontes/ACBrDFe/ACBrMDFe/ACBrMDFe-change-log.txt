@@ -41,6 +41,49 @@ Símbolo : Significado
 [+]     : Novo recurso
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
+24/06/2026
+-- Diversas units ACBrMDFe  --
+[*] Ajuste das chaves chaves e cnpj alfanumérico.
+   ACBr-9369
+   Por: Larissa Santos
+
+27/03/2026
+-- ACBrMDFeDAMDFeFPDF --
+[-] ACBR-9123: Corrigida impressão da lista de NFes e CTes no DAMDFE em FPDF - https://www.projetoacbr.com.br/forum/topic/90813-acbr-9123-n%C3%A3o-lista-as-nf-na-damf-mdfe/
+   Por: Renato Rubinho
+
+23/03/2026
+-- ACBrMDFeDAMDFeFPDF --
+[-] ACBR-8578: Corrigida impressão do logo jpg no FPDF - https://www.projetoacbr.com.br/forum/topic/91219-acbr-8578-acbrlibmdfeconsolemt-ajustes-na-impress%C3%A3o-do-damdfe
+   Por: Renato Rubinho
+
+06/03/2026
+-- Frm_ACBrMDFe --
+[+] ACBR-8578: Implementado motor FPDF no programa de exemplo em Delphi DE MDFe
+  Por: Renato Rubinho
+-- ACBrMDFeDAMDFeFPDF --
+[-] ACBR-8578: Corrigido AV e implementada impressão do Logo no DAMDFe com FPDF - https://www.projetoacbr.com.br/forum/topic/87166-acbr-8578-problema-ao-imprimir-mdf-e-com-logo-da-empresa-informado-acbrlibmdfe-122345/
+  Por: Renato Rubinho
+
+25/02/2026
+-- ACBrMDFeManifestos --
+[*] Alteração visando remover se necessário os bytes do UTF8 BOM ao carregar um XML.
+   Por: Italo Giurizzato Junior
+
+17/02/2026
+-- ACBrMDFeManifestos --
+[-] ACBr-8942: Ajuste visando evitar erro ao ler XML na codificação UTF-8 BOM.
+   Por: Italo Giurizzato Junior
+
+28/01/2026
+-- ACBrMDFeDAMDFeFPDF --
+[-] Correção para não duplicar os títulos do grupo Vale Pedágio quando não houverem informações - https://www.projetoacbr.com.br/forum/topic/89878-acbr-8578-acbrlibmdfeconsolemt-ajustes-na-impress%C3%A3o-do-damdfe/?&_rid=62658#findComment-584357
+   Por: Renato Rubinho
+
+27/01/2026
+-- ACBrMDFeDAMDFeFPDF --
+[-] Correção na impressão da chave da NFe ou CTe
+   Por: Renato Rubinho
 
 17/10/2025
 -- pmdfeMDFeR/pmdfeMDFeW --

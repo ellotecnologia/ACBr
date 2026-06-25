@@ -182,6 +182,7 @@ type
 
     procedure ImprimirDACTe(ACTE: TCTe = nil); override;
     procedure ImprimirDACTePDF(ACTE: TCTe = nil); override;
+    procedure ImprimirDACTePDF(AStream: TStream; ACTE: TCTe = nil); override;
     procedure ImprimirEVENTO(ACTE: TCTe = nil); override;
     procedure ImprimirEVENTOPDF(ACTE: TCTe = nil); override;
     procedure ImprimirINUTILIZACAO(ACTE: TCTe = nil); override;
@@ -1295,7 +1296,7 @@ begin
       frxPDFExport.ShowDialog := False;
       NomeArq := Trim(DACTEClassOwner.NomeDocumento);
       if EstaVazio(NomeArq) then
-        NomeArq := OnlyNumber(CTE.infCTe.Id) + '-cte.pdf';
+        NomeArq := RemoverLiteralChave(CTE.infCTe.Id) + '-cte.pdf';
       frxPDFExport.FileName := PathWithDelim(DACTEClassOwner.PathPDF) + NomeArq;
 
       if not DirectoryExists(ExtractFileDir(frxPDFExport.FileName)) then
@@ -1305,6 +1306,32 @@ begin
     finally
       frxPDFExport.ShowDialog := OldShowDialog;
       FPArquivoPDF := frxPDFExport.FileName;
+    end;
+  end;
+end;
+
+procedure TACBrCTeDACTEFR.ImprimirDACTePDF(AStream: TStream; ACTE: TCTe = nil);
+const
+  TITULO_PDF = 'Conhecimento de Transporte Eletrônico';
+var
+  OldShowDialog: Boolean;
+begin
+  if PrepareReport(ACTE) then
+  begin
+    frxPDFExport.Author   := Sistema;
+    frxPDFExport.Creator  := Sistema;
+    frxPDFExport.Producer := Sistema;
+    frxPDFExport.Title    := TITULO_PDF;
+    frxPDFExport.Subject  := TITULO_PDF;
+    frxPDFExport.Keywords := TITULO_PDF;
+    OldShowDialog         := frxPDFExport.ShowDialog;
+    try
+      frxPDFExport.ShowDialog := False;
+      frxPDFExport.FileName := '';
+      frxPDFExport.Stream := AStream;
+      frxReport.Export(frxPDFExport);
+    finally
+      frxPDFExport.ShowDialog := OldShowDialog;
     end;
   end;
 end;
@@ -1341,7 +1368,7 @@ begin
       frxPDFExport.ShowDialog := False;
       NomeArq := Trim(DACTEClassOwner.NomeDocumento);
       if EstaVazio(NomeArq) then
-        NomeArq := OnlyNumber(TACBrCTe(ACBrCTe).EventoCTe.Evento.Items[0].InfEvento.Id) + '-procEventoCTe.pdf';
+        NomeArq := RemoverLiteralChave(TACBrCTe(ACBrCTe).EventoCTe.Evento.Items[0].InfEvento.Id) + '-procEventoCTe.pdf';
       frxPDFExport.FileName := PathWithDelim(DACTEClassOwner.PathPDF) + NomeArq;
 
       if not DirectoryExists(ExtractFileDir(frxPDFExport.FileName)) then
@@ -1387,7 +1414,7 @@ begin
       frxPDFExport.ShowDialog := False;
       NomeArq := Trim(DACTEClassOwner.NomeDocumento);
       if EstaVazio(NomeArq) then
-        NomeArq := OnlyNumber(TACBrCTe(ACBrCTe).InutCTe.RetInutCTe.Id) + '-procInutCTe.pdf';
+        NomeArq := RemoverLiteralChave(TACBrCTe(ACBrCTe).InutCTe.RetInutCTe.Id) + '-procInutCTe.pdf';
       frxPDFExport.FileName := PathWithDelim(DACTEClassOwner.PathPDF) + NomeArq;
 
 
@@ -2152,7 +2179,7 @@ begin
 
       with FInutilizacao do
       begin
-         FieldByName('ID').AsString         := OnlyNumber(ID);
+         FieldByName('ID').AsString         := RemoverLiteralChave(ID);
          FieldByName('CNPJ').AsString       := FormatarCNPJ(CNPJ);
          FieldByName('nProt').AsString      := nProt;
          FieldByName('Modelo').AsInteger    := Modelo;
@@ -2472,7 +2499,7 @@ begin
     Append;
     with FCTe.infCTe do
     begin
-      FieldByName('Id').AsString    := OnlyNumber(Id);
+      FieldByName('Id').AsString    := RemoverLiteralChave(Id);
       FieldByName('Chave').AsString := FormatarChaveAcesso(Id);
     end;
 

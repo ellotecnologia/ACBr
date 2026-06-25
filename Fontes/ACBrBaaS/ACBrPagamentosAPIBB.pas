@@ -57,9 +57,11 @@ const
   cPagamentoConsultaIDBBURLProducao = 'https://api-ip.bb.com.br/pagamentos-lote/v1';
   cPagamentoBBURLAuthSandbox = 'https://oauth.hm.bb.com.br/oauth/token';
   cPagamentoBBURLAuthProducao = 'https://oauth.bb.com.br/oauth/token';
+  cPagamentoBBPathLotesTransferencias = 'lotes-transferencias';
   cPagamentoBBPathLotesPix = 'lotes-transferencias-pix';
-  cPagamentoBBPathLotesDARF = 'lotes-darf-preto-normal';
-  cPagamentoBBPathLotesBoletos = 'lotes-boletos'; 
+  cPagamentoBBPathLotesDARF = 'lotes-darf-normal-preto';
+  cPagamentoBBPathLotesDARFGET = 'lotes-darf-preto-normal';
+  cPagamentoBBPathLotesBoletos = 'lotes-boletos';
   cPagamentoBBPathLotesGRU = 'lotes-gru';
   cPagamentoBBPathLotesGPS = 'lotes-gps';
   cPagamentoBBPathLotesGuias = 'lotes-guias-codigo-barras';
@@ -70,6 +72,9 @@ const
   cPagamentoBBPathGPS = 'gps';
   cPagamentoBBPathDARFPreto = 'darf-preto';
   cPagamentoBBPathBoletos = 'boletos';
+  cPagamentoBBPathTransferencias = 'transferencias';
+  cPagamentoBBPathCancelarPagtos = 'cancelar-pagamentos';
+  cPagamentoBBPathPix = 'pix';
 
 type
 
@@ -81,6 +86,14 @@ type
   private
     function BB: TACBrPagamentosAPIBB;
   public
+    function TransferenciaSolicitarLote: Boolean; override;
+    function TransferenciaConsultarLote(const aId: String): Boolean; override;
+    function TransferenciaConsultar(const aId: String): Boolean; override;
+
+    function TransferenciaPixSolicitarLote: Boolean; override;
+    function TransferenciaPixConsultarLote(const aId: String): Boolean; override;
+    function TransferenciaPixConsultar(const aId: String): Boolean; override;
+
     function BoletoSolicitarLotePagamentos: Boolean; override;
     function BoletoConsultarLotePagamentos(const aId: String): Boolean; override;
     function BoletoConsultarPagamentoEspecifico(const aId: String): Boolean; override;
@@ -100,6 +113,8 @@ type
     function GPSSolicitarPagamentos: Boolean; override;
     function GPSConsultarLotePagamentos(const aId: String): Boolean; override;
     function GPSConsultarPagamentoEspecifico(const aId: String): Boolean; override;
+
+    function PagamentosCancelar: Boolean; override;
   end;
 
   { TACBrPagamentosAPIBB }
@@ -114,7 +129,6 @@ type
     function ScopeToString(aScope: TACBrPagamentosBBScope): String;
     function ScopesToString(aScopes: TACBrPagamentosBBScopes): String;
   protected
-    constructor Create(AOwner: TComponent); override;
     function CalcularURL: String; override;
     function GetPagamentos: TACBrPagamentosAPIClass; override;
 
@@ -142,12 +156,234 @@ begin
   Result := TACBrPagamentosAPIBB(fpBanco);
 end;
 
+function TACBrPagamentosAPIBBPagamentos.TransferenciaSolicitarLote: Boolean;
+var
+  Body: String;
+begin
+  RegistrarLog('TransferenciaSolicitarLote');
+
+  BB.Scopes := [pscTransferenciasRequisicao];
+
+  Body := Trim(LoteTransferenciasSolicitado.AsJSON);
+  if EstaVazio(Body) then
+    raise EACBrPagamentosAPIException.CreateFmt(ACBrStr(sErroObjetoNaoPrenchido), ['LoteTransferenciasSolicitado']);
+
+  BB.PrepararHTTP;
+  WriteStrToStream(BB.HTTPSend.Document, Body);
+  BB.HTTPSend.MimeType := CContentTypeApplicationJSon;
+  BB.HTTPSend.Headers.Insert(0, ChttpHeaderAuthorization + cHTTPAuthorizationBearer +' '+ Token);
+  BB.URLQueryParams.Values['gw-dev-app-key'] := BB.developerApplicationKey;
+  BB.URLPathParams.Add(cPagamentoBBPathLotesTransferencias);
+  RegistrarLog('  Req.Body: ' + sLineBreak + Body, 3);
+
+  try
+    BB.HTTPMethod(cHTTPMethodPOST, BB.CalcularURL);
+  except
+    on e: Exception do
+    if not (e is EACBrHTTPError) then
+      raise e;
+  end;
+
+  RegistrarLog('  Response: ' + sLineBreak + BB.HTTPResponse, 3);
+  Result := (BB.HTTPResultCode = HTTP_CREATED);
+  case BB.HTTPResultCode of
+    HTTP_CREATED: LoteTransferenciasCriado.AsJSON := BB.HTTPResponse;
+    HTTP_UNAUTHORIZED: RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+  else
+    begin
+      RespostaErros.AsJSON := BB.HTTPResponse;
+      if (RespostaErros.Count = 0) and (BB.HTTPResultCode >= 400) then
+        RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+    end;
+  end;
+end;
+
+function TACBrPagamentosAPIBBPagamentos.TransferenciaConsultarLote(const aId: String): Boolean;
+begin
+  RegistrarLog('TransferenciaConsultarLote(' + aId + ')');
+
+  BB.Scopes := [pscLotesInfo];
+
+  BB.PrepararHTTP;
+  BB.HTTPSend.Headers.Insert(0, ChttpHeaderAuthorization + cHTTPAuthorizationBearer +' '+ Token);
+  BB.URLPathParams.Add(aId);
+  BB.URLPathParams.Add(cPagamentoBBPathsolicitacao);
+  BB.URLQueryParams.Values['gw-dev-app-key'] := BB.developerApplicationKey;
+
+  try
+    BB.HTTPMethod(cHTTPMethodGET, BB.CalcularURL);
+  except
+    on e: Exception do
+    if not (e is EACBrHTTPError) then
+      raise e;
+  end;
+
+  RegistrarLog('  Response: ' + sLineBreak + BB.HTTPResponse, 3);
+  Result := (BB.HTTPResultCode = HTTP_OK);
+  case BB.HTTPResultCode of
+    HTTP_OK: LoteTransferenciasConsultado.AsJSON := BB.HTTPResponse;
+    HTTP_UNAUTHORIZED: RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+  else
+    begin
+      RespostaErros.AsJSON := BB.HTTPResponse;
+      if (RespostaErros.Count = 0) and (BB.HTTPResultCode >= 400) then
+        RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+    end;
+  end;
+end;
+
+function TACBrPagamentosAPIBBPagamentos.TransferenciaConsultar(const aId: String): Boolean;
+begin
+  RegistrarLog('TransferenciaConsultar(' + aId + ')');
+
+  BB.Scopes := [pscPagamentosInfo];
+
+  BB.PrepararHTTP;
+  BB.HTTPSend.Headers.Insert(0, ChttpHeaderAuthorization + cHTTPAuthorizationBearer +' '+ Token);
+  BB.URLPathParams.Add(cPagamentoBBPathTransferencias);
+  BB.URLPathParams.Add(aId);
+  BB.URLQueryParams.Values['gw-dev-app-key'] := BB.developerApplicationKey;
+
+  try
+    BB.HTTPMethod(cHTTPMethodGET, BB.CalcularURL);
+  except
+    on e: Exception do
+    if not (e is EACBrHTTPError) then
+      raise e;
+  end;
+
+  RegistrarLog('  Response: ' + sLineBreak + BB.HTTPResponse, 3);
+  Result := (BB.HTTPResultCode = HTTP_OK);
+  case BB.HTTPResultCode of
+    HTTP_OK: TransferenciaConsultada.AsJSON := BB.HTTPResponse;
+    HTTP_UNAUTHORIZED: RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+  else
+    begin
+      RespostaErros.AsJSON := BB.HTTPResponse;
+      if (RespostaErros.Count = 0) and (BB.HTTPResultCode >= 400) then
+        RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+    end;
+  end;
+end;
+
+function TACBrPagamentosAPIBBPagamentos.TransferenciaPixSolicitarLote: Boolean;
+var
+  Body: String;
+begin
+  RegistrarLog('TransferenciaPixSolicitarLote');
+
+  BB.Scopes := [pscTransferenciasPixRequisicao];
+
+  Body := Trim(LoteTransferenciaPixSolicitado.AsJSON);
+  if EstaVazio(Body) then
+    raise EACBrPagamentosAPIException.CreateFmt(ACBrStr(sErroObjetoNaoPrenchido), ['LoteTransferenciaPixSolicitado']);
+
+  BB.PrepararHTTP;
+  WriteStrToStream(BB.HTTPSend.Document, Body);
+  BB.HTTPSend.MimeType := CContentTypeApplicationJSon;
+  BB.HTTPSend.Headers.Insert(0, ChttpHeaderAuthorization + cHTTPAuthorizationBearer +' '+ Token);
+  BB.URLQueryParams.Values['gw-dev-app-key'] := BB.developerApplicationKey;
+  BB.URLPathParams.Add(cPagamentoBBPathLotesPix);
+  RegistrarLog('  Req.Body: ' + sLineBreak + Body, 3);
+
+  try
+    BB.HTTPMethod(cHTTPMethodPOST, BB.CalcularURL);
+  except
+    on e: Exception do
+    if not (e is EACBrHTTPError) then
+      raise e;
+  end;
+
+  RegistrarLog('  Response: ' + sLineBreak + BB.HTTPResponse, 3);
+  Result := (BB.HTTPResultCode = HTTP_CREATED);
+  case BB.HTTPResultCode of
+    HTTP_CREATED: LoteTransferenciaPixCriado.AsJSON := BB.HTTPResponse;
+    HTTP_UNAUTHORIZED: RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+  else
+    begin
+      RespostaErros.AsJSON := BB.HTTPResponse;
+      if (RespostaErros.Count = 0) and (BB.HTTPResultCode >= 400) then
+        RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+    end;
+  end;
+end;
+
+function TACBrPagamentosAPIBBPagamentos.TransferenciaPixConsultarLote(const aId: String): Boolean;
+begin
+  RegistrarLog('TransferenciaPixConsultarLote(' + aId + ')');
+
+  BB.Scopes := [pscTransferenciasPixInfo];
+
+  BB.PrepararHTTP;
+  BB.HTTPSend.Headers.Insert(0, ChttpHeaderAuthorization + cHTTPAuthorizationBearer +' '+ Token);
+  BB.URLPathParams.Add(cPagamentoBBPathLotesPix);
+  BB.URLPathParams.Add(aId);
+  BB.URLPathParams.Add(cPagamentoBBPathsolicitacao);
+  BB.URLQueryParams.Values['gw-dev-app-key'] := BB.developerApplicationKey;
+
+  try
+    BB.HTTPMethod(cHTTPMethodGET, BB.CalcularURL);
+  except
+    on e: Exception do
+    if not (e is EACBrHTTPError) then
+      raise e;
+  end;
+
+  RegistrarLog('  Response: ' + sLineBreak + BB.HTTPResponse, 3);
+  Result := (BB.HTTPResultCode = HTTP_OK);
+  case BB.HTTPResultCode of
+    HTTP_OK: LoteTransferenciaPixConsultado.AsJSON := BB.HTTPResponse;
+    HTTP_UNAUTHORIZED: RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+  else
+    begin
+      RespostaErros.AsJSON := BB.HTTPResponse;
+      if (RespostaErros.Count = 0) and (BB.HTTPResultCode >= 400) then
+        RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+    end;
+  end;
+end;
+
+function TACBrPagamentosAPIBBPagamentos.TransferenciaPixConsultar(const aId: String): Boolean;
+begin
+  RegistrarLog('TransferenciaPixConsultar(' + aId + ')');
+
+  BB.Scopes := [pscPixInfo];
+
+  BB.PrepararHTTP;
+  BB.HTTPSend.Headers.Insert(0, ChttpHeaderAuthorization + cHTTPAuthorizationBearer +' '+ Token);
+  BB.URLPathParams.Add(cPagamentoBBPathPix);
+  BB.URLPathParams.Add(aId);
+  BB.URLQueryParams.Values['gw-dev-app-key'] := BB.developerApplicationKey;
+
+  try
+    BB.HTTPMethod(cHTTPMethodGET, BB.CalcularURL);
+  except
+    on e: Exception do
+    if not (e is EACBrHTTPError) then
+      raise e;
+  end;
+
+  RegistrarLog('  Response: ' + sLineBreak + BB.HTTPResponse, 3);
+  Result := (BB.HTTPResultCode = HTTP_OK);
+  case BB.HTTPResultCode of
+    HTTP_OK: TransferenciaPixConsultada.AsJSON := BB.HTTPResponse;
+    HTTP_UNAUTHORIZED: RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+  else
+    begin
+      RespostaErros.AsJSON := BB.HTTPResponse;
+      if (RespostaErros.Count = 0) and (BB.HTTPResultCode >= 400) then
+        RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+    end;
+  end;
+end;
+
 function TACBrPagamentosAPIBBPagamentos.BoletoSolicitarLotePagamentos: Boolean;
 var
   Body: String;
 begin 
-  Result := False;
   RegistrarLog('BoletoSolicitarLotePagamentos');
+
+  BB.Scopes := [pscBoletosRequisicao];
 
   Body := Trim(LoteBoletosSolicitado.AsJSON);
   if EstaVazio(Body) then
@@ -157,10 +393,10 @@ begin
   WriteStrToStream(BB.HTTPSend.Document, Body);
   BB.HTTPSend.MimeType := CContentTypeApplicationJSon;
   BB.HTTPSend.Headers.Insert(0, ChttpHeaderAuthorization + cHTTPAuthorizationBearer +' '+ Token);
-
   BB.URLQueryParams.Values['gw-dev-app-key'] := BB.developerApplicationKey;
   BB.URLPathParams.Add(cPagamentoBBPathLotesBoletos);
   RegistrarLog('  Req.Body: ' + sLineBreak + Body, 3);
+
   try
     BB.HTTPMethod(cHTTPMethodPOST, BB.CalcularURL);
   except
@@ -169,12 +405,17 @@ begin
       raise e;
   end;
 
+  RegistrarLog('  Response: ' + sLineBreak + BB.HTTPResponse, 3);
   Result := (BB.HTTPResultCode = HTTP_CREATED);
   case BB.HTTPResultCode of
     HTTP_CREATED: LoteBoletosCriado.AsJSON := BB.HTTPResponse;
     HTTP_UNAUTHORIZED: RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
   else
-    RespostaErros.AsJSON := BB.HTTPResponse;
+    begin
+      RespostaErros.AsJSON := BB.HTTPResponse;
+      if (RespostaErros.Count = 0) and (BB.HTTPResultCode >= 400) then
+        RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+    end;
   end;
 end;
 
@@ -182,6 +423,8 @@ function TACBrPagamentosAPIBBPagamentos.BoletoConsultarPagamentoEspecifico(
   const aId: String): Boolean;
 begin
   RegistrarLog('BoletoConsultarPagamentoEspecifico(' + aId + ')');
+
+  BB.Scopes := [pscPagamentosInfo];
 
   BB.PrepararHTTP;
   BB.HTTPSend.Headers.Insert(0, ChttpHeaderAuthorization + cHTTPAuthorizationBearer +' '+ Token);
@@ -191,18 +434,23 @@ begin
 
   try
     BB.HTTPMethod(cHTTPMethodGET, BB.CalcularURL);
-  except 
+  except
     on e: Exception do
     if not (e is EACBrHTTPError) then
       raise e;
   end;
 
+  RegistrarLog('  Response: ' + sLineBreak + BB.HTTPResponse, 3);
   Result := (BB.HTTPResultCode = HTTP_OK);
   case BB.HTTPResultCode of
     HTTP_OK: PagamentoBoletoConsultado.AsJSON := BB.HTTPResponse;
     HTTP_UNAUTHORIZED: RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
   else
-    RespostaErros.AsJSON := BB.HTTPResponse;
+    begin
+      RespostaErros.AsJSON := BB.HTTPResponse;
+      if (RespostaErros.Count = 0) and (BB.HTTPResultCode >= 400) then
+        RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+    end;
   end;
 end;
 
@@ -210,8 +458,9 @@ function TACBrPagamentosAPIBBPagamentos.GuiaCodigoBarrasSolicitarLotePagamentos:
 var
   Body: String;
 begin
-  Result := False;
   RegistrarLog('GuiaCodigoBarrasSolicitarLotePagamentos');
+
+  BB.Scopes := [pscGuiasCodigoBarrasRequisicao];
 
   Body := Trim(LoteGuiasCodigoBarrasSolicitado.AsJSON);
   if EstaVazio(Body) then
@@ -233,19 +482,25 @@ begin
       raise e;
   end;
 
+  RegistrarLog('  Response: ' + sLineBreak + BB.HTTPResponse, 3);
   Result := (BB.HTTPResultCode = HTTP_CREATED);
   case BB.HTTPResultCode of
     HTTP_CREATED: LoteGuiasCodigoBarrasCriado.AsJSON := BB.HTTPResponse;
     HTTP_UNAUTHORIZED: RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
   else
-    RespostaErros.AsJSON := BB.HTTPResponse;
+    begin
+      RespostaErros.AsJSON := BB.HTTPResponse;
+      if (RespostaErros.Count = 0) and (BB.HTTPResultCode >= 400) then
+        RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+    end;
   end;
 end;
 
 function TACBrPagamentosAPIBBPagamentos.GuiaCodigoBarrasConsultarLotePagamentos(const aId: String): Boolean;
 begin
-  Result := False;
   RegistrarLog('GuiaCodigoBarrasConsultarLotePagamentos(' + aId + ')');
+
+  BB.Scopes := [pscGuiasCodigoBarrasInfo];
 
   BB.PrepararHTTP;
   BB.HTTPSend.Headers.Insert(0, ChttpHeaderAuthorization + cHTTPAuthorizationBearer +' '+ Token);
@@ -253,6 +508,7 @@ begin
   BB.URLPathParams.Add(aId);
   BB.URLPathParams.Add(cPagamentoBBPathsolicitacao);
   BB.URLQueryParams.Values['gw-dev-app-key'] := BB.developerApplicationKey;
+
   try
     BB.HTTPMethod(cHTTPMethodGET, BB.CalcularURL);
   except
@@ -261,18 +517,25 @@ begin
       raise e;
   end;
                                                        
+  RegistrarLog('  Response: ' + sLineBreak + BB.HTTPResponse, 3);
   Result := (BB.HTTPResultCode = HTTP_OK);
   case BB.HTTPResultCode of
     HTTP_OK: LoteGuiasCodigoBarrasConsultado.AsJSON := BB.HTTPResponse;
     HTTP_UNAUTHORIZED: RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
   else
-    RespostaErros.AsJSON := BB.HTTPResponse;
+    begin
+      RespostaErros.AsJSON := BB.HTTPResponse;
+      if (RespostaErros.Count = 0) and (BB.HTTPResultCode >= 400) then
+        RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+    end;
   end;
 end;
 
 function TACBrPagamentosAPIBBPagamentos.GuiaCodigoBarrasConsultarPagamentoEspecifico(const aId: String): Boolean;
 begin
   RegistrarLog('GuiaCodigoBarrasConsultarPagamentoEspecifico(' + aId + ')');
+
+  BB.Scopes := [pscGuiasCodigoBarrasInfo];
 
   BB.PrepararHTTP;
   BB.HTTPSend.Headers.Insert(0, ChttpHeaderAuthorization + cHTTPAuthorizationBearer +' '+ Token);
@@ -288,12 +551,17 @@ begin
       raise e;
   end;
 
+  RegistrarLog('  Response: ' + sLineBreak + BB.HTTPResponse, 3);
   Result := (BB.HTTPResultCode = HTTP_OK);
   case BB.HTTPResultCode of
     HTTP_OK: PagamentoGuiaCodigoBarrasConsultado.AsJSON := BB.HTTPResponse;
     HTTP_UNAUTHORIZED: RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
   else
-    RespostaErros.AsJSON := BB.HTTPResponse;
+    begin
+      RespostaErros.AsJSON := BB.HTTPResponse;
+      if (RespostaErros.Count = 0) and (BB.HTTPResultCode >= 400) then
+        RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+    end;
   end;
 end;
 
@@ -301,8 +569,9 @@ function TACBrPagamentosAPIBBPagamentos.GRUSolicitarPagamentos: Boolean;
 var
   Body: String;
 begin
-  Result := False;
   RegistrarLog('GRUSolicitarPagamentos');
+
+  BB.Scopes := [pscLotesRequisicao];
 
   Body := Trim(LoteGRUSolicitado.AsJSON);
   if EstaVazio(Body) then
@@ -324,19 +593,25 @@ begin
       raise e;
   end;
 
+  RegistrarLog('  Response: ' + sLineBreak + BB.HTTPResponse, 3);
   Result := (BB.HTTPResultCode = HTTP_CREATED);
   case BB.HTTPResultCode of
     HTTP_CREATED: LoteGRUCriado.AsJSON := BB.HTTPResponse;
     HTTP_UNAUTHORIZED: RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
   else
-    RespostaErros.AsJSON := BB.HTTPResponse;
+    begin
+      RespostaErros.AsJSON := BB.HTTPResponse;
+      if (RespostaErros.Count = 0) and (BB.HTTPResultCode >= 400) then
+        RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+    end;
   end;
 end;
 
 function TACBrPagamentosAPIBBPagamentos.GRUConsultarLotePagamentos(const aId: String): Boolean;
 begin
-  Result := False;
   RegistrarLog('GRUConsultarLotePagamentos(' + aId + ')');
+
+  BB.Scopes := [pscGuiasSemCodigoBarrasInfo];
 
   BB.PrepararHTTP;
   BB.HTTPSend.Headers.Insert(0, ChttpHeaderAuthorization + cHTTPAuthorizationBearer +' '+ Token);
@@ -353,18 +628,25 @@ begin
       raise e;
   end;
 
+  RegistrarLog('  Response: ' + sLineBreak + BB.HTTPResponse, 3);
   Result := (BB.HTTPResultCode = HTTP_OK);
   case BB.HTTPResultCode of
     HTTP_OK: LoteGRUConsultado.AsJSON := BB.HTTPResponse;
     HTTP_UNAUTHORIZED: RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
   else
-    RespostaErros.AsJSON := BB.HTTPResponse;
+    begin
+      RespostaErros.AsJSON := BB.HTTPResponse;
+      if (RespostaErros.Count = 0) and (BB.HTTPResultCode >= 400) then
+        RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+    end;
   end;
 end;
 
 function TACBrPagamentosAPIBBPagamentos.GRUConsultarPagamentoEspecifico(const aId: String): Boolean;
 begin
   RegistrarLog('GRUConsultarPagamentoEspecifico(' + aId + ')');
+
+  BB.Scopes := [pscPagamentosInfo];
 
   BB.PrepararHTTP;
   BB.HTTPSend.Headers.Insert(0, ChttpHeaderAuthorization + cHTTPAuthorizationBearer +' '+ Token);
@@ -380,12 +662,17 @@ begin
       raise e;
   end;
 
+  RegistrarLog('  Response: ' + sLineBreak + BB.HTTPResponse, 3);
   Result := (BB.HTTPResultCode = HTTP_OK);
   case BB.HTTPResultCode of
     HTTP_OK: PagamentoGRUConsultado.AsJSON := BB.HTTPResponse;
     HTTP_UNAUTHORIZED: RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
   else
-    RespostaErros.AsJSON := BB.HTTPResponse;
+    begin
+      RespostaErros.AsJSON := BB.HTTPResponse;
+      if (RespostaErros.Count = 0) and (BB.HTTPResultCode >= 400) then
+        RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+    end;
   end;
 end;
 
@@ -393,19 +680,20 @@ function TACBrPagamentosAPIBBPagamentos.DARFSolicitarPagamentos: Boolean;
 var
   Body: String;
 begin
-  Result := False;
   RegistrarLog('DARFSolicitarPagamentos');
+
+  BB.Scopes := [pscGuiasSemCodigoBarrasRequisicao];
 
   Body := Trim(LoteDARFSolicitado.AsJSON);
   if EstaVazio(Body) then
-    raise EACBrPagamentosAPIException.CreateFmt(ACBrStr(sErroObjetoNaoPrenchido), ['LoteGRUSolicitado']);
+    raise EACBrPagamentosAPIException.CreateFmt(ACBrStr(sErroObjetoNaoPrenchido), ['LoteDARFSolicitado']);
 
   BB.PrepararHTTP;
   WriteStrToStream(BB.HTTPSend.Document, Body);
   BB.HTTPSend.MimeType := CContentTypeApplicationJSon;
   BB.HTTPSend.Headers.Insert(0, ChttpHeaderAuthorization + cHTTPAuthorizationBearer +' '+ Token);
   BB.URLQueryParams.Values['gw-dev-app-key'] := BB.developerApplicationKey;
-  BB.URLPathParams.Add(cPagamentoBBPathPagamentosGRU);
+  BB.URLPathParams.Add(cPagamentoBBPathLotesDARF);
   RegistrarLog('  Req.Body: ' + sLineBreak + Body, 3);
 
   try
@@ -416,23 +704,29 @@ begin
       raise e;
   end;
 
+  RegistrarLog('  Response: ' + sLineBreak + BB.HTTPResponse, 3);
   Result := (BB.HTTPResultCode = HTTP_CREATED);
   case BB.HTTPResultCode of
     HTTP_CREATED: LoteDARFCriado.AsJSON := BB.HTTPResponse;
     HTTP_UNAUTHORIZED: RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
   else
-    RespostaErros.AsJSON := BB.HTTPResponse;
+    begin
+      RespostaErros.AsJSON := BB.HTTPResponse;
+      if (RespostaErros.Count = 0) and (BB.HTTPResultCode >= 400) then
+        RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+    end;
   end;
 end;
 
 function TACBrPagamentosAPIBBPagamentos.DARFConsultarLotePagamentos(const aId: String): Boolean;
 begin
-  Result := False;
   RegistrarLog('DARFConsultarLotePagamentos(' + aId + ')');
+
+  BB.Scopes := [pscGuiasSemCodigoBarrasInfo];
 
   BB.PrepararHTTP;
   BB.HTTPSend.Headers.Insert(0, ChttpHeaderAuthorization + cHTTPAuthorizationBearer +' '+ Token);
-  BB.URLPathParams.Add(cPagamentoBBPathLotesDARF);
+  BB.URLPathParams.Add(cPagamentoBBPathLotesDARFGET);
   BB.URLPathParams.Add(aId);
   BB.URLPathParams.Add(cPagamentoBBPathsolicitacao);
   BB.URLQueryParams.Values['gw-dev-app-key'] := BB.developerApplicationKey;
@@ -445,18 +739,25 @@ begin
       raise e;
   end;
 
+  RegistrarLog('  Response: ' + sLineBreak + BB.HTTPResponse, 3);
   Result := (BB.HTTPResultCode = HTTP_OK);
   case BB.HTTPResultCode of
     HTTP_OK: LoteDARFConsultado.AsJSON := BB.HTTPResponse;
     HTTP_UNAUTHORIZED: RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
   else
-    RespostaErros.AsJSON := BB.HTTPResponse;
+    begin
+      RespostaErros.AsJSON := BB.HTTPResponse;
+      if (RespostaErros.Count = 0) and (BB.HTTPResultCode >= 400) then
+        RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+    end;
   end;
 end;
 
 function TACBrPagamentosAPIBBPagamentos.DARFConsultarPagamentoEspecifico(const aId: String): Boolean;
 begin
   RegistrarLog('DARFConsultarPagamentoEspecifico(' + aId + ')');
+
+  BB.Scopes := [pscPagamentosInfo];
 
   BB.PrepararHTTP;
   BB.HTTPSend.Headers.Insert(0, ChttpHeaderAuthorization + cHTTPAuthorizationBearer +' '+ Token);
@@ -472,12 +773,17 @@ begin
       raise e;
   end;
 
+  RegistrarLog('  Response: ' + sLineBreak + BB.HTTPResponse, 3);
   Result := (BB.HTTPResultCode = HTTP_OK);
   case BB.HTTPResultCode of
-    //HTTP_OK: PagamentoDARFConsultado.AsJSON := BB.HTTPResponse;
+    HTTP_OK: PagamentoDARFConsultado.AsJSON := BB.HTTPResponse;
     HTTP_UNAUTHORIZED: RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
   else
-    RespostaErros.AsJSON := BB.HTTPResponse;
+    begin
+      RespostaErros.AsJSON := BB.HTTPResponse;
+      if (RespostaErros.Count = 0) and (BB.HTTPResultCode >= 400) then
+        RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+    end;
   end;
 end;
 
@@ -485,8 +791,9 @@ function TACBrPagamentosAPIBBPagamentos.GPSSolicitarPagamentos: Boolean;
 var
   Body: String;
 begin
-  Result := False;
   RegistrarLog('GPSSolicitarPagamentos');
+
+  BB.Scopes := [pscGuiasSemCodigoBarrasRequisicao];
 
   Body := Trim(LoteGPSSolicitado.AsJSON);
   if EstaVazio(Body) then
@@ -508,19 +815,25 @@ begin
       raise e;
   end;
 
+  RegistrarLog('  Response: ' + sLineBreak + BB.HTTPResponse, 3);
   Result := (BB.HTTPResultCode = HTTP_CREATED);
   case BB.HTTPResultCode of
     HTTP_CREATED: LoteGPSCriado.AsJSON := BB.HTTPResponse;
     HTTP_UNAUTHORIZED: RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
   else
-    RespostaErros.AsJSON := BB.HTTPResponse;
+    begin
+      RespostaErros.AsJSON := BB.HTTPResponse;
+      if (RespostaErros.Count = 0) and (BB.HTTPResultCode >= 400) then
+        RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+    end;
   end;
 end;
 
 function TACBrPagamentosAPIBBPagamentos.GPSConsultarLotePagamentos(const aId: String): Boolean;
 begin
-  Result := False;
   RegistrarLog('GPSConsultarLotePagamentos(' + aId + ')');
+
+  BB.Scopes := [pscGuiasSemCodigoBarrasInfo];
 
   BB.PrepararHTTP;
   BB.HTTPSend.Headers.Insert(0, ChttpHeaderAuthorization + cHTTPAuthorizationBearer +' '+ Token);
@@ -536,18 +849,25 @@ begin
       raise e;
   end;
 
+  RegistrarLog('  Response: ' + sLineBreak + BB.HTTPResponse, 3);
   Result := (BB.HTTPResultCode = HTTP_OK);
   case BB.HTTPResultCode of
     HTTP_OK: LoteGPSConsultado.AsJSON := BB.HTTPResponse;
     HTTP_UNAUTHORIZED: RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
   else
-    RespostaErros.AsJSON := BB.HTTPResponse;
+    begin
+      RespostaErros.AsJSON := BB.HTTPResponse;
+      if (RespostaErros.Count = 0) and (BB.HTTPResultCode >= 400) then
+        RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+    end;
   end;
 end;
 
 function TACBrPagamentosAPIBBPagamentos.GPSConsultarPagamentoEspecifico(const aId: String): Boolean;
 begin
   RegistrarLog('GPSConsultarPagamentoEspecifico(' + aId + ')');
+
+  BB.Scopes := [pscPagamentosInfo];
 
   BB.PrepararHTTP;
   BB.HTTPSend.Headers.Insert(0, ChttpHeaderAuthorization + cHTTPAuthorizationBearer +' '+ Token);
@@ -563,12 +883,59 @@ begin
       raise e;
   end;
 
+  RegistrarLog('  Response: ' + sLineBreak + BB.HTTPResponse, 3);
   Result := (BB.HTTPResultCode = HTTP_OK);
   case BB.HTTPResultCode of
     HTTP_OK: PagamentoGPSConsultado.AsJSON := BB.HTTPResponse;
     HTTP_UNAUTHORIZED: RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
   else
-    RespostaErros.AsJSON := BB.HTTPResponse;
+    begin
+      RespostaErros.AsJSON := BB.HTTPResponse;
+      if (RespostaErros.Count = 0) and (BB.HTTPResultCode >= 400) then
+        RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+    end;
+  end;
+end;
+
+function TACBrPagamentosAPIBBPagamentos.PagamentosCancelar: Boolean;
+var
+  Body: String;
+begin
+  RegistrarLog('PagamentosCancelar');
+
+  BB.Scopes := [pscCancelarRequisicao];
+
+  Body := Trim(PagamentosCancelarSolicitado.AsJSON);
+  if EstaVazio(Body) then
+    raise EACBrPagamentosAPIException.CreateFmt(ACBrStr(sErroObjetoNaoPrenchido), ['PagamentosCancelarSolicitado']);
+
+  BB.PrepararHTTP;
+  WriteStrToStream(BB.HTTPSend.Document, Body);
+  BB.HTTPSend.MimeType := CContentTypeApplicationJSon;
+  BB.HTTPSend.Headers.Insert(0, ChttpHeaderAuthorization + cHTTPAuthorizationBearer +' '+ Token);
+  BB.URLQueryParams.Values['gw-dev-app-key'] := BB.developerApplicationKey;
+  BB.URLPathParams.Add(cPagamentoBBPathCancelarPagtos);
+  RegistrarLog('  Req.Body: ' + sLineBreak + Body, 3);
+
+  try
+    BB.HTTPMethod(cHTTPMethodPOST, BB.CalcularURL);
+  except
+    on e: Exception do
+    if not (e is EACBrHTTPError) then
+      raise e;
+  end;
+
+  RegistrarLog('  Response: ' + sLineBreak + BB.HTTPResponse, 3);
+  Result := (BB.HTTPResultCode = HTTP_OK);
+  case BB.HTTPResultCode of
+    HTTP_OK: PagamentosCancelarResposta.AsJSON := BB.HTTPResponse;
+    HTTP_UNAUTHORIZED: RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+  else
+    begin
+      RespostaErros.AsJSON := BB.HTTPResponse;
+      if (RespostaErros.Count = 0) and (BB.HTTPResultCode >= 400) then
+        RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+    end;
   end;
 end;
 
@@ -576,6 +943,8 @@ function TACBrPagamentosAPIBBPagamentos.BoletoConsultarLotePagamentos(
   const aId: String): Boolean;
 begin
   RegistrarLog('BoletoConsultarLotePagamentos(' + aId + ')');
+
+  BB.Scopes := [pscBoletosInfo];
 
   BB.PrepararHTTP;
   BB.HTTPSend.Headers.Insert(0, ChttpHeaderAuthorization + cHTTPAuthorizationBearer +' '+ Token);
@@ -592,12 +961,17 @@ begin
       raise e;
   end;
 
+  RegistrarLog('  Response: ' + sLineBreak + BB.HTTPResponse, 3);
   Result := (BB.HTTPResultCode = HTTP_OK);
   case BB.HTTPResultCode of
     HTTP_OK: LoteBoletosConsultado.AsJSON := BB.HTTPResponse;
     HTTP_UNAUTHORIZED: RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
   else
-    RespostaErros.AsJSON := BB.HTTPResponse;
+    begin
+      RespostaErros.AsJSON := BB.HTTPResponse;
+      if (RespostaErros.Count = 0) and (BB.HTTPResultCode >= 400) then
+        RespostaErros.OAuthError.AsJSON := BB.HTTPResponse;
+    end;
   end;
 end;
 
@@ -636,12 +1010,6 @@ begin
   for i := Low(TACBrPagamentosBBScope) to High(TACBrPagamentosBBScope) do
     if i in aScopes then
       Result := Result + IfThen(NaoEstaVazio(Result), ' ') + ScopeToString(i);
-end;
-
-constructor TACBrPagamentosAPIBB.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-  fScopes := [pscBoletosRequisicao, pscBoletosInfo];
 end;
 
 function TACBrPagamentosAPIBB.CalcularURL: String;

@@ -455,12 +455,9 @@ begin
             LLogoStringStream.Free;
           end;
         end;
-        if IsPNG(LStream, false) then
-        begin
-          //SetLength(FLogo, LStream.Size);
+          SetLength(FLogo, LStream.Size);
           LStream.Position := 0;
           LStream.Read(FLogo[0], LStream.Size);
-        end;
       finally
         LStream.Free;
       end;
@@ -577,12 +574,12 @@ begin
         Engine.Compressed := True;
         if Assigned(FStream) then
         begin
-          FPArquivoPDF := OnlyNumber(LMDFe.infMDFe.Id) + '-mdfe.pdf';
+          FPArquivoPDF := RemoverLiteralChave(LMDFe.infMDFe.Id) + '-mdfe.pdf';
           Engine.SaveToStream(FStream);
         end else
         begin
           LPath := DefinirNomeArquivo(TACBrMDFe(ACBrMDFe).DAMDFE.PathPDF,
-                 OnlyNumber(LMDFe.infMDFe.Id) + '-mdfe.pdf',
+                 RemoverLiteralChave(LMDFe.infMDFe.Id) + '-mdfe.pdf',
                  TACBrMDFe(ACBrMDFe).DAMDFE.NomeDocumento);
 
           ForceDirectories(ExtractFilePath(LPath));
@@ -624,6 +621,7 @@ var
   x1, y1: double;
   DadosQRCode: string;
   LTexto: string;
+  Stream: TMemoryStream;
 begin
   inherited OnDraw(Args);
 
@@ -635,9 +633,22 @@ begin
   y := - 20;
 
   // Cabeçalho - Logo
-  LPDF.SetFont('Arial', 'B', 10);
-  LPDF.Rect(x, y, 40, 30); // Logo
-  LPDF.Text(x + 2, y + 15, 'LOGO EMPRESA');
+  if Length(FLogo) > 0 then
+  begin
+    Stream := TMemoryStream.Create;
+    try
+      Stream.Write(FLogo[0], Length(FLogo));
+      LPDF.Image(x, y, 40, 30, Stream);
+    finally
+      Stream.Free;
+    end;
+  end
+  else
+  begin
+    LPDF.SetFont('Arial', 'B', 10);
+    LPDF.Rect(x, y, 40, 30);
+    LPDF.Text(x + 2, y + 15, '');
+  end;
 
   // Cabeçalho - Emitente
   LPDF.SetFont('Arial', 'B', 12);
@@ -866,7 +877,7 @@ begin
   bW := 100;
   bH := 18;
   //codigo de barras
-  LPDF.Code128(OnlyNumber(LMDFE.infMDFe.Id), x1 , y1, bH, bW);
+  LPDF.Code128(RemoverLiteralChave(LMDFE.infMDFe.Id), x1 , y1, bH, bW);
   //linhas divisorias
   LPDF.SetFont(6, '');
 
@@ -957,7 +968,7 @@ begin
   bW := 100;
   bH := 18;
   //codigo de barras
-  LPDF.Code128(OnlyNumber(LMDFE.infMDFe.Id), x1 , y1, bH, bW);
+  LPDF.Code128(RemoverLiteralChave(LMDFE.infMDFe.Id), x1 , y1, bH, bW);
   //linhas divisorias
   LPDF.SetFont(6, '');
 
@@ -1061,7 +1072,7 @@ begin
   bW := 100;
   bH := 18;
   //codigo de barras
-  LPDF.Code128(OnlyNumber(LMDFE.infMDFe.Id), x1 , y1, bH, bW);
+  LPDF.Code128(RemoverLiteralChave(LMDFE.infMDFe.Id), x1 , y1, bH, bW);
   //linhas divisorias
   LPDF.SetFont(6, '');
 
@@ -1230,7 +1241,7 @@ begin
   bW := 100;
   bH := 18;
   //codigo de barras
-  LPDF.Code128(OnlyNumber(LMDFE.infMDFe.Id), x1 , y1, bH, bW);
+  LPDF.Code128(RemoverLiteralChave(LMDFE.infMDFe.Id), x1 , y1, bH, bW);
   //linhas divisorias
   LPDF.SetFont(6, '');
 
@@ -1446,6 +1457,7 @@ begin
   x1 := x;
   y1 := y - 106;
   LPDF.SetFont('Arial', '', 9);
+  LTexto := '';
   for i := 0 to LMDFE.seg.Count - 1 do
     begin
       LTexto := FormatarCNPJ(LMDFE.seg.Items[i].CNPJ);
@@ -1461,6 +1473,7 @@ begin
   x1 := x + 34;
   y1 := y - 106;
   LPDF.SetFont('Arial', '', 9);
+  LTexto := '';
   for i := 0 to LMDFE.rodo.infANTT.infCIOT.Count - 1 do
     begin
       LTexto := FormatarCNPJouCPF(LMDFE.rodo.infANTT.infCIOT[i].CNPJCPF);
@@ -1476,6 +1489,7 @@ begin
   x1 := x + 70;
   y1 := y - 106;
   LPDF.SetFont('Arial', '', 9);
+  LTexto := '';
   for i := 0 to LMDFE.seg.Count - 1 do
     begin
       LTexto := LMDFE.seg.Items[i].nApol;
@@ -1785,7 +1799,21 @@ var
   x, y: double;
   x1, y1: double;
   i: Integer;
+  j: Integer;
+  k: Integer;
   LTexto: string;
+
+  function AdicionarChave(ATexto: string): boolean;
+  begin
+    Result := (y1 <= -40);
+
+    if not Result then
+      exit;
+
+    LPDF.TextBox(x1, y1, 90, 5, Trim(ATexto), 'T', 'L', 0, '');
+    y1 := y1 + 4;
+  end;
+
 begin
   LPDF := Args.PDF;
   LMDFE := FMDFeUtils.MDFe;
@@ -1810,11 +1838,25 @@ begin
   x1 := x;
   y1 := y - 80;
   LPDF.SetFont('Arial', '', 9);
+  LTexto := '';
+
   for i := 0 to LMDFE.rodo.veicTracao.condutor.Count - 1 do
     begin
-      LTexto := 'CTe - ' + FormatarChaveAcesso(LMDFE.infMDFe.Id);
+      for j:=0 to LMDFE.infDoc.infMunDescarga.Count - 1 do
+      begin
+        for k:=0 to LMDFE.infDoc.infMunDescarga.Items[j].infNFe.Count - 1 do
+        begin
+          if not AdicionarChave('NFe - ' + FormatarChaveAcesso(LMDFE.infDoc.infMunDescarga.Items[j].infNFe.Items[k].chNFe)) then
+            break;
+        end;
+
+        for k:=0 to LMDFE.infDoc.infMunDescarga.Items[j].infCTe.Count - 1 do
+        begin
+          if not AdicionarChave('CTe - ' + FormatarChaveAcesso(LMDFE.infDoc.infMunDescarga.Items[j].infCTe.Items[k].chCTe)) then
+            break;
+        end;
+      end;
     end;
-  LPDF.TextBox(x1, y1, 90, 5, Trim(LTexto), 'T', 'L', 0, '');
 
   x1 := x + 90;
   y1 := y - 84;
@@ -1825,6 +1867,7 @@ begin
   x1 := x + 90;
   y1 := y - 80;
   LPDF.SetFont('Arial', '', 9);
+  LTexto := '';
   for i := 0 to LMDFE.rodo.veicTracao.condutor.Count - 1 do
     begin
       LTexto := 'Rodoviário Tração';
@@ -1840,6 +1883,7 @@ begin
   x1 := x + 145;
   y1 := y - 80;
   LPDF.SetFont('Arial', '', 9);
+  LTexto := '';
   for i := 0 to LMDFE.rodo.veicTracao.condutor.Count - 1 do
     begin
       LTexto := 'Container';

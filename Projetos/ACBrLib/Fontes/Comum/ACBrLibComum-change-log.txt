@@ -42,6 +42,31 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+19/05/2026
+-- ACBrLibComum --
+[-] Corrige possível Access Violation em falha de inicialização.
+[*] Em caso de falha de inicialização pLibHandle apontava para uma região de memória inválida.
+  Por: doszapro
+  
+14/04/2026
+-- ACBrLibComum --
+[+] Adiciona o endereço de pLibHandle no log da lib em versões MT da lib.
+[*] Visa melhorar a depuração de erros na lib MT.
+ Por: doszapro.
+
+10/04/2026
+-- ACBrLibComum --
+[+] Adiciona a informação de ThreadID no método TACBRLib.GravarLog para versões MT da ACBrLib.
+[*] Essa informação visa facilitar o Debug em ambiente Multi-Thread
+ Por: doszapro
+
+02/02/2026
+
+-- ACBrLibComum --
+[-] Previne a inicialização da biblioteca quando a exceção EACBrConversaoEnumeradoException for lançada
+[*] Esse erro indica que há configuração de enumerado inválidas no ACBrLib.ini 
+  Por:doszapro
+  
 07/01/2026
 -- ACBrLibComum --
 [-] Previne vazamento de tamanho da eChaveCrypt no log da lib.

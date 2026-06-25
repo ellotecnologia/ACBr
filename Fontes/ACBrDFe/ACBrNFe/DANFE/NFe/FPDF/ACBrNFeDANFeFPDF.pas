@@ -295,7 +295,7 @@ type
   end;
 
 
-  type
+type
   TNFeDANFeEventoFPDF = class(TFPDFReport)
   private
     FNFe: TNFe;
@@ -824,7 +824,7 @@ begin
   bW := 75;
   bH := 12;
   //codigo de barras
-  PDF.Code128(OnlyNumber(NFe.infNFe.Id), x +((w-bW)/2), y + 2, bH, bW);
+  PDF.Code128(RemoverLiteralChave(NFe.infNFe.Id), x +((w-bW)/2), y + 2, bH, bW);
   //linhas divisorias
   PDF.Line(x, y+4+bH, x+w, y+4+bH);
   PDF.Line(x, y+12+bH, x+w, y+12+bH);
@@ -2154,7 +2154,7 @@ begin
   //$this->wAdic com a largura do campo
   //$this->textoAdic com o texto completo do campo
   y := y + 1;
-  PDF.SetFont(7, '');
+  PDF.SetFont(6, '');
   PDF.TextBox(x, y+2, w-2, h-3, FNFeUtils.GetTextoAdicional, 'T', 'L', 0, '', false);
   //RESERVADO AO FISCO
   texto := 'RESERVADO AO FISCO';
@@ -2698,6 +2698,9 @@ begin
     end;
 
 
+    if FDANFEClassOwner.LogoemCima then
+       FLogoAlign := laCenter
+    else
     if FDANFEClassOwner.ExpandeLogoMarca then
       FLogoAlign := laFull
     else
@@ -2785,12 +2788,12 @@ begin
 
         if Assigned(FStream) then
         begin
-          FPArquivoPDF := OnlyNumber(LNFe.infNFe.ID) + '-nfe.pdf';
+          FPArquivoPDF := RemoverLiteralChave(LNFe.infNFe.ID) + '-nfe.pdf';
           Engine.SaveToStream(FStream);
         end else
         begin
           LPath := DefinirNomeArquivo(TACBrNFe(ACBrNFe).DANFE.PathPDF,
-                 OnlyNumber(LNFe.infNFe.ID) + '-nfe.pdf',
+                 RemoverLiteralChave(LNFe.infNFe.ID) + '-nfe.pdf',
                  TACBrNFe(ACBrNFe).DANFE.NomeDocumento);
 
           ForceDirectories(ExtractFilePath(LPath));
@@ -2849,7 +2852,7 @@ begin
         Engine.Compressed := True;
         if Assigned(FStream) then
         begin
-          FPArquivoPDF := OnlyNumber(LNFe.infNFe.ID) + '-nfe.pdf';
+          FPArquivoPDF := RemoverLiteralChave(LNFe.infNFe.ID) + '-nfe.pdf';
           Engine.SaveToStream(FStream);
         end else
         begin
@@ -2858,7 +2861,7 @@ begin
 
           LPath := DefinirNomeArquivo(TACBrNFe(ACBrNFe).DANFE.PathPDF,
                       TpEventoToStr(TACBrNFe(ACBrNFe).EventoNFe.Evento[I].InfEvento.tpEvento)
-                        + OnlyNumber(LNFe.infNFe.ID)
+                        + RemoverLiteralChave(LNFe.infNFe.ID)
                         + '-nfe.pdf',
                     TACBrNFe(ACBrNFe).DANFE.NomeDocumento);
 
@@ -3187,7 +3190,7 @@ begin
   bW := 75;
   bH := 12;
   //codigo de barras
-  PDF.Code128(OnlyNumber(NFe.infNFe.Id), x +((w-bW)/2), y + 2, bH, bW);
+  PDF.Code128(RemoverLiteralChave(NFe.infNFe.Id), x +((w-bW)/2), y + 2, bH, bW);
 
 
   x := oldX;
@@ -3196,7 +3199,7 @@ begin
   texto := 'CHAVE DE ACESSO';
   SetFontBoxHeader(PDF);
   PDF.TextBox(x, y, w, h, texto, 'T', 'L', 1, '');
-  texto := FormatarChaveAcesso(OnlyNumber(NFe.infNFe.ID));
+  texto := FormatarChaveAcesso(RemoverLiteralChave(NFe.infNFe.ID));
   SetFontBoxContentBold(PDF);
   PDF.TextBox(x, y, w, h, texto, 'B', 'C', 0, '');
 end;

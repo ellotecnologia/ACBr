@@ -37,6 +37,26 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+27/05/2026
+-- ACBrSchemasPagamentosAPI, ACBrSchemasTransferenciasAPIBB, uPagamentos, uTransferencias --
+[*] Alteração dos tipos de campos de CPF/CNPJ para string nos PagamentosAPI
+    por: Renato Rubinho
+
+14/05/2026
+-- ACBrPagamentosAPIBB --
+[*] Preenchimento dos scopes específicos por requisição de PagamentosAPI do Banco do Brasil
+    por: Renato Rubinho
+
+06/05/2026
+-- ACBrPagamentosAPI, ACBrPagamentosAPIBB, ACBrSchemasPagamentosAPI, ACBrSchemasTransferenciasAPIBB --
+[+] Implementação dos métodos para Transferência e PIX do Banco do Brasil.
+    por: Elias César
+
+10/04/2026
+-- ACBrPagamentosAPI, ACBrPagamentosAPIBB, ACBrSchemasPagamentosAPI, ACBrSchemasPagamentosAPIBB --
+[*] Correções e implementações nos PagamentosAPI
+  Por: Renato Rubinho
+
 27/02/2025
 -- ACBrExtratoAPI --
 [+] Implementação do banco Sicoob, com adição das propriedades "Identificador" e "CPFCNPJ".

@@ -2441,12 +2441,9 @@ begin
             LLogoStringStream.Free;
           end;
         end;
-        if IsPNG(LStream, false) then
-        begin
-          SetLength(FLogo, LStream.Size);
-          LStream.Position := 0;
-          LStream.Read(FLogo[0], LStream.Size);
-        end;
+        SetLength(FLogo, LStream.Size);
+        LStream.Position := 0;
+        LStream.Read(FLogo[0], LStream.Size);
       finally
         LStream.Free;
       end;
@@ -2530,12 +2527,12 @@ begin
 
         if Assigned(FStream) then
         begin
-          FPArquivoPDF := OnlyNumber(LNFe.infNFe.ID) + '-nfe.pdf';
+          FPArquivoPDF := RemoverLiteralChave(LNFe.infNFe.ID) + '-nfe.pdf';
           Engine.SaveToStream(FStream);
         end else
         begin
           LPath := DefinirNomeArquivo(TACBrNFe(ACBrNFe).DANFE.PathPDF,
-                 OnlyNumber(LNFe.infNFe.ID) + '-nfe.pdf',
+                 RemoverLiteralChave(LNFe.infNFe.ID) + '-nfe.pdf',
                  TACBrNFe(ACBrNFe).DANFE.NomeDocumento);
 
           Engine.SaveToFile(LPath);
@@ -2589,7 +2586,7 @@ begin
         LEngine.Compressed := True;
         if Assigned(FStream) then
         begin
-          FPArquivoPDF := OnlyNumber(LNFe.infNFe.ID) + '-nfe.pdf';
+          FPArquivoPDF := RemoverLiteralChave(LNFe.infNFe.ID) + '-nfe.pdf';
           LEngine.SaveToStream(FStream);
         end else
         begin
@@ -2598,7 +2595,7 @@ begin
 
           LPath := DefinirNomeArquivo(TACBrNFe(ACBrNFe).DANFE.PathPDF,
                       TpEventoToStr(TACBrNFe(ACBrNFe).EventoNFe.Evento[I].InfEvento.tpEvento)
-                        + OnlyNumber(LNFe.infNFe.ID)
+                        + RemoverLiteralChave(LNFe.infNFe.ID)
                         + '-nfe.pdf',
                     TACBrNFe(ACBrNFe).DANFE.NomeDocumento);
 
@@ -2764,7 +2761,7 @@ begin
   PrintColuna('SEQUENCIAL NO ANO', Format('%.*d', [10, FProcEvento.InfEvento.nSeqEvento]));
   PrintColuna('ÓRGÃO', CUFtoUF(FProcEvento.InfEvento.cOrgao), False, True);
 
-  if FProcEvento.InfEvento.tpEvento = teCancelamento then
+  if FProcEvento.InfEvento.tpEvento in [teCancelamento, teCancSubst] then
   begin
     PrintColuna('DESCRIÇÃO', Format('%s', [FProcEvento.InfEvento.detEvento.descEvento]));
     PrintColuna('PROTOCOLO DE AUTORIZAÇÃO', Format('%s', [FProcEvento.InfEvento.detEvento.nProt]), False, True);
@@ -2884,7 +2881,7 @@ begin
   h := PDF.GetStringHeight(Texto, Args.Band.Width);
   y := y + PDF.TextBox(0, y, Args.Band.Width, h, Texto, 'T', 'C', False);
   y := y + 0.5;
-  Texto := FormatarChaveAcesso(OnlyNumber(FNFe.infNFe.ID));
+  Texto := FormatarChaveAcesso(RemoverLiteralChave(FNFe.infNFe.ID));
   PDF.SetFont(FontSize2, '');
   h := PDF.GetStringHeight(Texto, Args.Band.Width);
   y := y + PDF.TextBox(0, y, Args.Band.Width, h, Texto, 'T', 'C', False);

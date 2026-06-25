@@ -49,8 +49,10 @@ uses
   ACBrBase,
   pcnConversao,
   pmdfeConversaoMDFe,
-  pcnSignature,
-//  ACBrDFeComum.SignatureClass,
+  ACBrXmlBase,
+  {$IFNDEF USE_ACBr_XMLDOCUMENT}
+   pcnSignature,
+  {$ENDIF}
   ACBrDFeComum.Proc;
 
 type
@@ -2526,6 +2528,7 @@ begin
   FinfPrazo := TInfPrazoCollection.Create;
   FinfBanc  := TinfBanc.Create;
   FindAntecipaAdiant := tiNao;
+  FindAltoDesemp := tiNao;
 end;
 
 destructor TinfPagCollectionItem.Destroy;

@@ -368,8 +368,11 @@ implementation
 uses 
   synacode,
   StrUtils,
+  ACBrDFeUtil,
   ACBrDFeException,
-  ACBrUtil.Strings, ACBrUtil.XMLHTML, ACBrUtil.FilesIO;
+  ACBrUtil.Strings,
+  ACBrUtil.XMLHTML,
+  ACBrUtil.FilesIO;
 
 { TitensAverbadosCollection }
 
@@ -636,6 +639,9 @@ begin
 
     if AuxNode = nil then
       AuxNode := ANode.Childrens.FindAnyNs(FptpDFe + 'OS');
+
+    if AuxNode = nil then
+      AuxNode := ANode.Childrens.FindAnyNs(FptpDFe + 'Simp');
   end
   else
     AuxNode := ANode.Childrens.FindAnyNs(FptpDFe);
@@ -990,6 +996,7 @@ begin
     schprocNFe,
     schprocCTe,
     schprocCTeOS,
+    schprocCTeSimp,
     schprocGTVe,
     schprocMDFe:
       Result := FOwner.Configuracoes.Arquivos.GetPathDownload(AItem.resDFe.xNome,
@@ -1015,21 +1022,22 @@ begin
       Result := AItem.resDFe.chDFe + '-nfe.xml';
 
     schprocEventoNFe:
-      Result := OnlyNumber(AItem.procEvento.Id) + '-procEventoNFe.xml';
+      Result := RemoverLiteralChave(AItem.procEvento.Id) + '-procEventoNFe.xml';
 
     schprocCTe,
     schprocCTeOS,
+    schprocCTeSimp,
     schprocGTVe:
       Result := AItem.resDFe.chDFe + '-cte.xml';
 
     schprocEventoCTe:
-      Result := OnlyNumber(AItem.procEvento.Id) + '-procEventoCTe.xml';
+      Result := RemoverLiteralChave(AItem.procEvento.Id) + '-procEventoCTe.xml';
 
     schprocMDFe:
       Result := AItem.resDFe.chDFe + '-mdfe.xml';
 
     schprocEventoMDFe:
-      Result := OnlyNumber(AItem.procEvento.Id) + '-procEventoMDFe.xml';
+      Result := RemoverLiteralChave(AItem.procEvento.Id) + '-procEventoMDFe.xml';
   end;
 end;
 

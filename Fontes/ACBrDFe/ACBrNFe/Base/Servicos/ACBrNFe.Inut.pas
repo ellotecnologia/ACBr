@@ -38,13 +38,15 @@ interface
 
 uses
   SysUtils, Classes,
+  ACBrXmlBase,
+  {$IFNDEF USE_ACBr_XMLDOCUMENT}
+  pcnSignature,
+  {$ENDIF}
   pcnConversao,
   ACBrNFe.Consts,
   ACBrNFe.RetInut,
-  pcnSignature,
-//  ACBrDFeComum.SignatureClass,
   ACBrDFe.Conversao,
-  ACBrXmlBase;
+  ACBrDFeUtil;
 
 type
 
@@ -119,14 +121,14 @@ end;
 
 function TinutNFe.ObterNomeArquivo: string;
 begin
-  Result := OnlyNumber(FIDInutilizacao) + '-ped-inu.xml';
+  Result := RemoverLiteralChave(FIDInutilizacao) + '-ped-inu.xml';
 end;
 
 function TinutNFe.GerarXML: string;
 var
   xCNPJ, ACNPJ: string;
 begin
-  ACNPJ := OnlyNumber(FCNPJ);
+  ACNPJ := OnlyCPFCNPJAlphaNum(FCNPJ);
 
   if (cUF in [51]) and (Length(ACNPJ) = 11) then
     ACNPJ := '000' + ACNPJ;
@@ -144,7 +146,7 @@ begin
   if ano > 2000 then
     ano := ano - 2000;
 
-  ACNPJ := OnlyNumber(FCNPJ);
+  ACNPJ := OnlyCPFCNPJAlphaNum(FCNPJ);
 
   if cUF in [51] then
   begin
@@ -181,9 +183,12 @@ begin
 
   if signature.URI <> '' then
   begin
-    signature.GerarXML;
-    Result := Result + signature.Gerador.ArquivoFormatoXML;
-//    Result := Result + signature.GerarXML;
+    {$IFNDEF USE_ACBr_XMLDOCUMENT}
+     signature.GerarXML;
+     Result := Result + signature.Gerador.ArquivoFormatoXML;
+    {$Else}
+     Result := Result + signature.GerarXML;
+    {$ENDIF}
   end;
 end;
 

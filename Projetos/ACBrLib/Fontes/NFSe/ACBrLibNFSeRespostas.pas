@@ -40,7 +40,8 @@ interface
 uses
   SysUtils, Classes, contnrs, ACBrLibResposta, ACBrNFSeXNotasFiscais,
   ACBrNFSeX, ACBrNFSeXWebservicesResponse, ACBrNFSeXWebserviceBase,
-  ACBrNFSeXConversao, ACBrNFSeXConfiguracoes, ACBrBase, ACBrLibConfig;
+  ACBrDFe.Conversao,ACBrNFSeXConversao, ACBrNFSeXConfiguracoes,
+  ACBrBase, ACBrLibConfig, ACBrLibComum;
 
 type
 
@@ -100,6 +101,11 @@ type
     FAlertas: TACBrObjectList;
     FResumos: TACBrObjectList;
 
+  protected
+    procedure ListarErros(const Response: TNFSeWebserviceResponse); virtual;
+    procedure ListarAlertas(const Response: TNFSeWebserviceResponse);
+    procedure ListarResumos(const Response: TNFSeWebserviceResponse);
+
   public
     constructor Create(const ASessao: String; const ATipo: TACBrLibRespostaTipo; const AFormato: TACBrLibCodificacao);
     destructor Destroy; override;
@@ -128,6 +134,7 @@ type
     FCodigoVerificacao : string;
     FLink : string;
     FSituacao: string;
+    FDescSituacao: String;
 
   public
     constructor Create(const ATipo: TACBrLibRespostaTipo; const AFormato: TACBrLibCodificacao); reintroduce;
@@ -146,6 +153,7 @@ type
     property CodigoVerificacao: string read FCodigoVerificacao write FCodigoVerificacao;
     property Link: string read FLink write FLink;
     property Situacao: string read FSituacao write FSituacao;
+    property DescSituacao: string read FDescSituacao write FDescSituacao;
   end;
 
   { TConsultaSituacaoResposta }
@@ -275,6 +283,7 @@ type
   private
     FMetodo: TMetodo;
     FInfConsultaNFSe: TInfConsultaNFSe;
+    FSituacao: string;
 
   public 
     constructor Create(const ATipo: TACBrLibRespostaTipo; const AFormato: TACBrLibCodificacao); reintroduce;
@@ -285,6 +294,7 @@ type
   published
     property Metodo: TMetodo read FMetodo write FMetodo;
     property InfConsultaNFSe: TInfConsultaNFSe read FInfConsultaNFSe write FInfConsultaNFSe;
+    property Situacao: string read FSituacao write FSituacao;
   end;
 
   { TConsultarLinkNFSeResposta }
@@ -407,6 +417,8 @@ type
     FModoEnvio: TmodoEnvio;
     FNomeArq: string;
 
+  protected
+    procedure ListarErros(const Response: TNFSeWebserviceResponse); override;
   public
     constructor Create(const ATipo: TACBrLibRespostaTipo; const AFormato: TACBrLibCodificacao); reintroduce;
     destructor Destroy; override;
@@ -426,6 +438,8 @@ type
       FToken: string;
       FDataExpiracao: TDateTime;
       FInfEvento: TInfEvento;
+      FSucessoCanc: boolean;
+      FDescSituacao: string;
 
     public
       constructor Create(const ATipo: TACBrLibRespostaTipo; const AFormato: TACBrLibCodificacao); reintroduce;
@@ -437,6 +451,8 @@ type
       property Token: string read FToken write FToken;
       property DataExpiracao: TDateTime read FDataExpiracao write FDataExpiracao;
       property InfEvento: TInfEvento read FInfEvento write FInfEvento;
+      property SucessoCanc: boolean read FSucessoCanc write FSucessoCanc;
+      property DescSituacao: string read FDescSituacao write FDescSituacao;
   end;
 
   { TConsultaEventoResposta }
@@ -536,7 +552,7 @@ type
 implementation
 
 uses
-  pcnAuxiliar, pcnConversao, ACBrUtil, ACBrLibNFSeConsts, ACBrLibConsts;
+  pcnAuxiliar, ACBrUtil, ACBrLibNFSeConsts, ACBrLibConsts;
 
 { TObterInformacoesProvedorResposta }
 
@@ -557,17 +573,14 @@ end;
 procedure TObterInformacoesProvedorResposta.Processar(const Response: TGeralConfNFSe);
 begin
   FIdentificacaoProvedor := 'Nome:'+ Response.xProvedor +
-                            '|Versão:' + VersaoNFSeToStr(Response.Versao);
-  if Response.Layout = loABRASF then
-    FIdentificacaoProvedor := FIdentificacaoProvedor + '|Layout: ABRASF'
-  else
-    FIdentificacaoProvedor := FIdentificacaoProvedor + '|Layout: Próprio';
+                            '|Versão:' + VersaoNFSeToStr(Response.Versao) +
+                            '|Layout:' + ACBrStr(LayoutToStr(Response.Layout));
 
   if Response.Autenticacao.RequerCertificado then
     FAutenticacoesRequeridas := FAutenticacoesRequeridas + 'RequerCertificado|';
 
   if Response.Autenticacao.RequerLogin then
-    FAutenticacoesRequeridas := FAutenticacoesRequeridas + 'RequerLogin|';
+    FAutenticacoesRequeridas := FAutenticacoesRequeridas + 'RequerLoginSenha|';
 
   if Response.Autenticacao.RequerChaveAcesso then
     FAutenticacoesRequeridas := FAutenticacoesRequeridas + 'RequerChaveAcesso|';
@@ -642,10 +655,19 @@ begin
     FServicosDisponibilizados := FServicosDisponibilizados + 'TestarEnvio|';
 
   if Response.Particularidades.PermiteMaisDeUmServico then
-    FParticularidades := FParticularidades + 'PermiteMaisDeUmServico|';
+    FParticularidades := FParticularidades + 'PermiteMaisDeUmServico|'
+  else
+    FParticularidades := FParticularidades + 'NãoPermiteMaisDeUmServico|';
 
   if Response.Particularidades.PermiteTagOutrasInformacoes then
-    FParticularidades := FParticularidades + 'PermiteTagOutrasInformacoes|';
+    FParticularidades := FParticularidades + 'PermiteTagOutrasInformacoes|'
+  else
+    FParticularidades := FParticularidades + 'NãoPermiteTagOutrasInformacoes|';
+
+  if Response.Particularidades.AtendeReformaTributaria then
+    FParticularidades := FParticularidades + 'AtendeReformaTributaria'
+  else
+    FParticularidades := FParticularidades + 'NãoAtendeReformaTributaria';
 
 end;
 
@@ -696,6 +718,58 @@ begin
   inherited Create(ASessao, ATipo, AFormato);
 end;
 
+procedure TLibNFSeServiceResposta.ListarErros(const Response: TNFSeWebserviceResponse);
+var
+  Item: TNFSeEventoItem;
+  i: integer;
+begin
+  if Response.Erros.Count > 0 then
+  begin
+    for i := 0 to Response.Erros.Count -1 do
+    begin
+      Item := TNFSeEventoItem.Create(CSessaoRespErro + IntToStr(i + 1), Tipo, Codificacao);
+      Item.Processar(Response.Erros.Items[i]);
+      FErros.Add(Item);
+    end;
+  end;
+end;
+
+procedure TLibNFSeServiceResposta.ListarAlertas(
+  const Response: TNFSeWebserviceResponse);
+var
+  i: integer;
+  Item: TNFSeEventoItem;
+begin
+  if Response.Alertas.Count > 0 then
+  begin
+    for i := 0 to Response.Alertas.Count -1 do
+    begin
+      Item := TNFSeEventoItem.Create(CSessaoRespAlerta + IntToStr(i + 1), Tipo, Codificacao);
+      Item.Processar(Response.Alertas.Items[i]);
+      FAlertas.Add(Item);
+    end;
+  end;
+
+end;
+
+procedure TLibNFSeServiceResposta.ListarResumos(
+  const Response: TNFSeWebserviceResponse);
+var
+  i : integer;
+  Arq: TNFSeArquivoItem;
+
+begin
+  if Response.Resumos.Count > 0 then
+  begin
+    for i := 0 to Response.Resumos.Count - 1 do
+    begin
+      Arq := TNFSeArquivoItem.Create(CSessaoRespArquivo + IntToStr(i + 1), Tipo, Codificacao);
+      Arq.Processar(Response.Resumos.Items[i]);
+      InformacoesArquivo.Add(Arq);
+    end;
+  end;
+end;
+
 { TLibNFSeServiceResposta }
 constructor TLibNFSeServiceResposta.Create(const ASessao: String; const ATipo: TACBrLibRespostaTipo; const AFormato: TACBrLibCodificacao);
 begin
@@ -715,43 +789,13 @@ begin
 end;
 
 procedure TLibNFSeServiceResposta.Processar(const Response: TNFSeWebserviceResponse);
-var
-  i: Integer;
-  Item: TNFSeEventoItem;
-  Arq: TNFSeArquivoItem;
 begin
   XmlEnvio := Response.XmlEnvio;
   XmlRetorno := Response.XmlRetorno;
 
-  if Response.Erros.Count > 0 then
-  begin
-    for i := 0 to Response.Erros.Count -1 do
-    begin
-      Item := TNFSeEventoItem.Create(CSessaoRespErro + IntToStr(i + 1), Tipo, Codificacao);
-      Item.Processar(Response.Erros.Items[i]);
-      FErros.Add(Item);
-    end;
-  end;
-
-  if Response.Alertas.Count > 0 then
-  begin
-    for i := 0 to Response.Alertas.Count -1 do
-    begin
-      Item := TNFSeEventoItem.Create(CSessaoRespAlerta + IntToStr(i + 1), Tipo, Codificacao);
-      Item.Processar(Response.Alertas.Items[i]);
-      FAlertas.Add(Item);
-    end;
-  end;
-
-  if Response.Resumos.Count > 0 then
-  begin
-    for i := 0 to Response.Resumos.Count - 1 do
-    begin
-      Arq := TNFSeArquivoItem.Create(CSessaoRespArquivo + IntToStr(i + 1), Tipo, Codificacao);
-      Arq.Processar(Response.Resumos.Items[i]);
-      InformacoesArquivo.Add(Arq);
-    end;
-  end;
+  ListarErros(Response);
+  ListarAlertas(Response);
+  ListarResumos(Response);
 end;
 
 { TEmiteResposta }
@@ -779,6 +823,7 @@ begin
   CodigoVerificacao := Response.CodigoVerificacao;
   Link := Response.Link;
   Situacao := Response.Situacao;
+  DescSituacao := Response.DescSituacao;
 end;
 
 { TConsultaSituacaoResposta }
@@ -911,6 +956,7 @@ begin
 
   Metodo:= Response.Metodo;
   InfConsultaNFSe:= Response.InfConsultaNFSe;
+  Situacao:= Response.Situacao;
 end;
 
 { TConsultarLinkNFSeResposta }
@@ -1008,6 +1054,15 @@ begin
   FLinkNFSe:= LinkNFSe;
 end;
 
+
+procedure TGerarLoteResposta.ListarErros(const Response: TNFSeWebserviceResponse
+  );
+begin
+  inherited ListarErros(Response);
+  if ( Erros.Count > 0 ) then
+    raise EACBrException.Create(self.Gerar);
+end;
+
 { TGerarLoteResposta }
 constructor TGerarLoteResposta.Create(const ATipo: TACBrLibRespostaTipo; const AFormato: TACBrLibCodificacao);
 begin
@@ -1021,10 +1076,12 @@ end;
 
 procedure TGerarLoteResposta.Processar(const Response: TNFSeEmiteResponse);
 begin
+  Inherited Processar(Response);
   FLote:= Response.NumeroLote;
   FQtdMaxRps:= Response.MaxRps;
   FModoEnvio:= Response.ModoEnvio;
   FNomeArq:= Response.NomeArq;
+
 end;
 
 { TEnviarEventoResposta }
@@ -1045,6 +1102,18 @@ begin
   Token:= Response.Token;
   DataExpiracao:= Response.DataExpiracao;
   InfEvento:= Response.InfEvento;
+  case Response.tpEvento of
+    teCancelamento:
+      begin
+        SucessoCanc:= Response.SucessoCanc;
+        DescSituacao:= Response.DescSituacao;
+      end;
+  else
+    begin
+      SucessoCanc:= False;
+      DescSituacao:= '';
+    end;
+  end;
 end;
 
 { TConsultaEventoResposta }

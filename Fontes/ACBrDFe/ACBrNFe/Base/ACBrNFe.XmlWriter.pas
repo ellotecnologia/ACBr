@@ -294,6 +294,8 @@ procedure TNFeXmlWriter.AjustarMunicipioUF(out xUF: string; out xMun: string;
 var
   PaisBrasil: boolean;
 begin
+  if EstaZerado(cPais) then
+    cPais := CODIGO_BRASIL;
   PaisBrasil := cPais = CODIGO_BRASIL;
   cMun := IfThen(PaisBrasil, vcMun, CMUN_EXTERIOR);
   xMun := IfThen(PaisBrasil, vxMun, XMUN_EXTERIOR);
@@ -304,12 +306,11 @@ begin
       cMun := ObterCodigoMunicipio(xMun, xUF, Opcoes.FPathArquivoMunicipios)
     else if ((EstaVazio(xMun)) and (cMun <> CMUN_EXTERIOR)) then
       xMun := ObterNomeMunicipio(cMun, xUF, Opcoes.FPathArquivoMunicipios);
-
 end;
 
 function TNFeXmlWriter.ObterNomeArquivo: string;
 begin
-  Result := OnlyNumber(FNFe.infNFe.ID) + '-nfe.xml';
+  Result := RemoverLiteralChave(FNFe.infNFe.ID) + '-nfe.xml';
 end;
 
 function TNFeXmlWriter.GerarXml: boolean;
@@ -407,7 +408,7 @@ begin
 
   if Gerar then
   begin
-    FNFe.signature.URI := '#NFe' + OnlyNumber(NFe.infNFe.ID);
+    FNFe.signature.URI := '#NFe' + RemoverLiteralChave(NFe.infNFe.ID);
     xmlNode := GerarSignature(FNFe.signature);
     nfeNode.AppendChild(xmlNode);
   end;
@@ -666,14 +667,14 @@ begin
   if NFe.ide.NFref[i].refNFe <> '' then
   begin
     Result := AddNode(tcEsp, 'B13', 'refNFe', 44, 44, 1,
-      OnlyNumber(NFe.ide.NFref[i].refNFe), DSC_REFNFE);
+      RemoverLiteralChave(NFe.ide.NFref[i].refNFe), DSC_REFNFE);
 
     if not ValidarChave(NFe.ide.NFref[i].refNFe) then
       wAlerta('B13', 'refNFe', DSC_REFNFE, ERR_MSG_INVALIDO);
   end
   else
     Result := AddNode(tcEsp, 'B13', 'refNFeSig', 44, 44, 1,
-      OnlyNumber(NFe.ide.NFref[i].refNFeSig), DSC_REFNFE);
+      RemoverLiteralChave(NFe.ide.NFref[i].refNFeSig), DSC_REFNFE);
 end;
 
 function TNFeXmlWriter.GerarIdeNFrefRefNF(const i: integer): TACBrXmlNode;
@@ -733,7 +734,7 @@ end;
 function TNFeXmlWriter.GerarIdeNFrerefCTe(const i: integer): TACBrXmlNode;
 begin
   Result := AddNode(tcEsp, 'B20i', 'refCTe', 44, 44, 1,
-    OnlyNumber(NFe.ide.NFref[i].refCTe), DSC_REFCTE);
+    RemoverLiteralChave(NFe.ide.NFref[i].refCTe), DSC_REFCTE);
   if not ValidarChave(NFe.ide.NFref[i].refCTe) then
     wAlerta('B20i', 'refCTe', DSC_REFCTE, ERR_MSG_INVALIDO);
 end;
@@ -981,10 +982,7 @@ begin
 
     Result := FDocument.CreateElement('retirada');
 
-    if NFe.Retirada.CNPJCPF <> '' then
-      Result.AppendChild(AddNodeCNPJCPF('F02', 'F02a',
-                                            NFe.Retirada.CNPJCPF, True, False));
-
+    Result.AppendChild(AddNodeCNPJCPF('F02', 'F02a', NFe.Retirada.CNPJCPF, True, False));
     Result.AppendChild(AddNode(tcStr, 'F02b', 'xNome', 02, 60, 0,
       NFe.Retirada.xNome, DSC_XNOME));
     Result.AppendChild(AddNode(tcStr, 'F03', 'xLgr', 02, 60, 1,
@@ -993,7 +991,7 @@ begin
       ExecutarAjusteTagNro(Opcoes.FAjustarTagNro, NFe.Retirada.nro), DSC_NRO));
     Result.AppendChild(AddNode(tcStr, 'F05', 'xCpl', 01, 60, 0,
       NFe.Retirada.xCpl, DSC_XCPL));
-    Result.AppendChild(AddNode(tcStr, 'F06', 'xBairro', 01, 60, 1,
+    Result.AppendChild(AddNode(tcStr, 'F06', 'xBairro', 02, 60, 1,
       NFe.Retirada.xBairro, DSC_XBAIRRO));
     Result.AppendChild(AddNode(tcInt, 'F07', 'cMun', 01, 07, 1, cMun, DSC_CMUN));
     if not ValidarMunicipio(cMun) then
@@ -1005,7 +1003,7 @@ begin
 
     Result.AppendChild(AddNode(tcInt, 'F10', 'CEP', 08, 08, 0,
       NFe.Retirada.CEP, DSC_CEP));
-    Result.AppendChild(AddNode(tcInt, 'F11', 'cPais', 02, 04, 0,
+    Result.AppendChild(AddNode(tcInt, 'F11', 'cPais', 01, 04, 0,
       NFe.Retirada.cPais, DSC_CPAIS));
     if not ValidarCodigoPais(NFe.Retirada.cPais) = -1 then
       wAlerta('F11', 'cPais', DSC_CPAIS, ERR_MSG_INVALIDO);
@@ -1034,11 +1032,8 @@ begin
 
     Result := FDocument.CreateElement('entrega');
 
-    if NFe.Entrega.CNPJCPF <> '' then
-      Result.AppendChild(AddNodeCNPJCPF('G02', 'G02a',
-                                             NFe.Entrega.CNPJCPF, True, False));
-
-    Result.AppendChild(AddNode(tcStr, 'G02b', 'xNome', 02, 60, 0,
+    Result.AppendChild(AddNodeCNPJCPF('G02', 'G02a', NFe.Entrega.CNPJCPF, True, False));
+	Result.AppendChild(AddNode(tcStr, 'G02b', 'xNome', 02, 60, 0,
       NFe.Entrega.xNome, DSC_XNOME));
     Result.AppendChild(AddNode(tcStr, 'G03', 'xLgr', 02, 60, 1,
       NFe.Entrega.xLgr, DSC_XLGR));
@@ -1046,7 +1041,7 @@ begin
       ExecutarAjusteTagNro(Opcoes.FAjustarTagNro, NFe.Entrega.nro), DSC_NRO));
     Result.AppendChild(AddNode(tcStr, 'G05', 'xCpl', 01, 60, 0,
       NFe.Entrega.xCpl, DSC_XCPL));
-    Result.AppendChild(AddNode(tcStr, 'G06', 'xBairro', 01, 60, 1,
+    Result.AppendChild(AddNode(tcStr, 'G06', 'xBairro', 02, 60, 1,
       NFe.Entrega.xBairro, DSC_XBAIRRO));
     Result.AppendChild(AddNode(tcInt, 'G07', 'cMun', 01, 07, 1, cMun, DSC_CMUN));
     if not ValidarMunicipio(NFe.Entrega.cMun) then
@@ -1058,7 +1053,7 @@ begin
 
     Result.AppendChild(AddNode(tcInt, 'G10', 'CEP', 08, 08, 0,
       NFe.Entrega.CEP, DSC_CEP));
-    Result.AppendChild(AddNode(tcInt, 'G11', 'cPais', 02, 04, 0,
+    Result.AppendChild(AddNode(tcInt, 'G11', 'cPais', 01, 04, 0,
       NFe.Entrega.cPais, DSC_CPAIS));
     if not ValidarCodigoPais(NFe.Entrega.cPais) = -1 then
       wAlerta('G11', 'cPais', DSC_CPAIS, ERR_MSG_INVALIDO);
@@ -1506,7 +1501,7 @@ begin
       if not ValidaRE(NFe.Det[i].Prod.detExport[j].nRE) then
         wAlerta('I53', 'nRE', DSC_NRE, ERR_MSG_INVALIDO);
       xmlNode.AppendChild(AddNode(tcEsp, 'I54', 'chNFe', 44, 44,
-        1, OnlyNumber(NFe.Det[i].Prod.detExport[j].chNFe), DSC_REFNFE));
+        1, RemoverLiteralChave(NFe.Det[i].Prod.detExport[j].chNFe), DSC_REFNFE));
       if not ValidarChave(NFe.Det[i].Prod.detExport[j].chNFe) then
         wAlerta('I54', 'chNFe', DSC_REFNFE, ERR_MSG_INVALIDO);
       xmlNode.AppendChild(AddNode(tcDe4, 'I55', 'qExport', 00, 15,
@@ -1881,9 +1876,9 @@ begin
   Result.AppendChild(AddNode(tcDe2, 'M02', 'vTotTrib', 01, 15, 0,
     NFe.Det[i].Imposto.vTotTrib, DSC_VTOTTRIB));
 
-  if (not (nfe.Ide.finNFe in [fnCredito, fnDebito])) or (nfe.ide.tpNFCredito = tcRetorno) then
+  if (((not (nfe.Ide.finNFe in [fnCredito, fnDebito])) or (nfe.ide.tpNFCredito = tcRetorno)) and
+   (nfe.Ide.gCompraGov.tpOperGov <> togRecebimentoPag)) then
   begin
-
     if ((NFe.Det[i].Imposto.ISSQN.cSitTrib <> ISSQNcSitTribVazio) or
       ((NFe.infNFe.Versao > 3) and (NFe.Det[i].Imposto.ISSQN.cListServ <> ''))) then
     begin
@@ -1907,16 +1902,10 @@ begin
   end;
 
   // Reforma Tributária
-  {
-    As linhas abaixo vão ficar comentados até que for publicado uma nova NT
-    que trata sobre o Imposto Seletivo que a principio só vai passar a ser
-    aceito a partir de 2027 e somente para produtos nocivos ao meio
-    ambiente e a saúde.
-
-  if (NFe.Det[i].Imposto.ISel.CSTIS <> cstisNenhum) and
+  if (NFe.Det[i].Imposto.ISel.CSTIS <> '') and
      (NFe.Det[i].Imposto.ISel.vBCIS > 0) then
     Result.AppendChild(Gerar_ISel(NFe.Det[i].Imposto.ISel));
-  }
+
   Result.AppendChild(Gerar_IBSCBS(NFe.Det[i].Imposto.IBSCBS));
 end;
 
@@ -2191,9 +2180,24 @@ begin
                   motDesICMSToStr(nfe.Det[i].Imposto.ICMS.motDesICMSST), DSC_MOTDESICMSST));
               end;
             end;
+
+            if (NFe.infNFe.Versao >= 4) and
+              (NFe.Det[i].Imposto.ICMS.vICMSDeson > 0) and
+              (NFe.Det[i].Imposto.ICMS.CST = cstPart10) then
+            begin
+              xmlNode.AppendChild(AddNode(tcDe2, 'N27a', 'vICMSDeson',
+                01, 15, 1, NFe.Det[i].Imposto.ICMS.vICMSDeson, DSC_VICMSDESON));
+              xmlNode.AppendChild(AddNode(tcStr, 'N28', 'motDesICMS',
+                01, 02, 1, motDesICMSToStr(NFe.Det[i].Imposto.ICMS.motDesICMS),
+                DSC_MOTDESICMS));
+
+              xmlNode.AppendChild(AddNode(tcStr, 'N28b', 'indDeduzDeson', 1, 1, 0,
+                     TIndicadorExToStr(NFe.Det[i].Imposto.ICMS.indDeduzDeson)));
+            end;
           end;
 
-          cst20:
+          cst20,
+          cstPart20:
           begin
             xmlNode.AppendChild(AddNode(tcStr, 'N13', 'modBC',
               01, 01, 1, modBCToStr(NFe.Det[i].Imposto.ICMS.modBC), DSC_MODBC));
@@ -2207,6 +2211,7 @@ begin
               NFe.Det[i].Imposto.ICMS.pICMS, DSC_PICMS));
             xmlNode.AppendChild(AddNode(tcDe2, 'N17', 'vICMS',
               01, 15, 1, NFe.Det[i].Imposto.ICMS.vICMS, DSC_VICMS));
+
             if (NFe.infNFe.Versao >= 4) then
             begin
               if (NFe.Det[i].Imposto.ICMS.vBCFCP > 0) or
@@ -2222,7 +2227,14 @@ begin
                   01, 15, 1, NFe.Det[i].Imposto.ICMS.vFCP, DSC_VFCP));
               end;
             end;
-            if (NFe.infNFe.Versao >= 3.10) and
+
+            if ((
+                (NFe.infNFe.Versao >= 3.1) and
+                (NFe.Det[i].Imposto.ICMS.CST = cst20)
+              ) or (
+                (NFe.infNFe.Versao >= 4) and
+                (NFe.Det[i].Imposto.ICMS.CST = cstPart20)
+              )) and
               (NFe.Det[i].Imposto.ICMS.vICMSDeson > 0) then
             begin
               xmlNode.AppendChild(AddNode(tcDe2, 'N27a', 'vICMSDeson',
@@ -2234,8 +2246,8 @@ begin
               if (NFe.infNFe.Versao >= 4) then
                 xmlNode.AppendChild(AddNode(tcStr, 'N28b', 'indDeduzDeson', 1, 1, 0, TIndicadorExToStr(NFe.Det[i].Imposto.ICMS.indDeduzDeson)));
             end;
-
           end;
+
           cst30:
           begin
             xmlNode.AppendChild(AddNode(tcStr, 'N18', 'modBCST',
@@ -2542,9 +2554,32 @@ begin
               xmlNode.AppendChild(AddNode(FormatoValor4ou2,
                 'N14', 'pRedBC', 01, IfThen(FpUsar_tcDe4, 07, 05), 0,
                 NFe.Det[i].Imposto.ICMS.pRedBC, DSC_PREDBC));
+
+              xmlNode.AppendChild(AddNode(tcStr, 'N14a', 'cBenefRBC',
+                08, 10, 0, NFe.Det[i].Imposto.ICMS.cBenefRBC, DSC_CBENEFRBC));
+
               xmlNode.AppendChild(AddNode(FormatoValor4ou2,
                 'N16', 'pICMS', 01, IfThen(FpUsar_tcDe4, 07, 05), 1,
                 NFe.Det[i].Imposto.ICMS.pICMS, DSC_PICMS));
+
+              if (NFe.infNFe.Versao >= 4) and (NFe.Det[i].Imposto.ICMS.CST = cst90) then
+              begin
+                if (NFe.Det[i].Imposto.ICMS.vICMSOp > 0) or
+                   (NFe.Det[i].Imposto.ICMS.pDif > 0) or
+                   (NFe.Det[i].Imposto.ICMS.vICMSDif > 0) then
+                begin
+                  xmlNode.AppendChild(AddNode(tcDe2, 'N16b', 'vICMSOp', 1, 15, 1,
+                                     NFe.Det[i].Imposto.ICMS.vICMSOp, DSC_VICMS));
+
+                  xmlNode.AppendChild(AddNode(FormatoValor4ou2,
+                  'N16c', 'pDif', 01, IfThen(FpUsar_tcDe4, 7, 5), 1,
+                                       NFe.Det[i].Imposto.ICMS.pDif, DSC_PDIF));
+
+                  xmlNode.AppendChild(AddNode(tcDe2, 'N16d', 'vICMSDif', 1, 15, 1,
+                                  NFe.Det[i].Imposto.ICMS.vICMSDif, DSC_VICMS));
+                end;
+              end;
+
               xmlNode.AppendChild(AddNode(tcDe2, 'N17', 'vICMS',
                 01, 15, 1, NFe.Det[i].Imposto.ICMS.vICMS, DSC_VICMS));
             end;
@@ -2562,6 +2597,24 @@ begin
                   NFe.Det[i].Imposto.ICMS.pFCP, DSC_PFCP));
                 xmlNode.AppendChild(AddNode(tcDe2, 'N17c', 'vFCP',
                   01, 15, 0, NFe.Det[i].Imposto.ICMS.vFCP, DSC_VFCP));
+              end;
+            end;
+
+            if (NFe.infNFe.Versao >= 4) then
+            begin
+              if (nfe.Det[i].Imposto.ICMS.pFCPDif > 0) or
+                 (nfe.Det[i].Imposto.ICMS.vFCPDif > 0) or
+                 (nfe.Det[i].Imposto.ICMS.vFCPEfet > 0) then
+              begin
+                xmlNode.AppendChild(AddNode(FormatoValor4ou2,
+                  'N17d', 'pFCPDif', 01, IfThen(FpUsar_tcDe4,07,05), 1,
+                                 nfe.Det[i].Imposto.ICMS.pFCPDif, DSC_PFCPDIF));
+
+                xmlNode.AppendChild(AddNode(tcDe2, 'N17e', 'vFCPDif', 1, 15, 1,
+                                 nfe.Det[i].Imposto.ICMS.vFCPDif, DSC_VFCPDIF));
+
+                xmlNode.AppendChild(AddNode(tcDe2, 'N17f', 'vFCPEfet', 1, 15, 0,
+                               nfe.Det[i].Imposto.ICMS.vFCPEfet, DSC_VFCPEFET));
               end;
             end;
 
@@ -2601,8 +2654,7 @@ begin
               end;
             end;
 
-            if (NFe.Det[i].Imposto.ICMS.CST = cst90) and
-               (NFe.infNFe.Versao >= 3.10) and
+            if (NFe.infNFe.Versao >= 3.10) and
                (NFe.Det[i].Imposto.ICMS.vICMSDeson > 0) then
             begin
               xmlNode.AppendChild(AddNode(tcDe2, 'N27a', 'vICMSDeson',
@@ -3461,14 +3513,8 @@ begin
   Result.AppendChild(GerarTotalretTrib);
 
   // Reforma Tributária
-  {
-    A linha abaixo vai ficar comentado até que for publicado uma nova NT
-    que trata sobre o Imposto Seletivo que a principio só vai passar a ser
-    aceito a partir de 2027 e somente para produtos nocivos ao meio
-    ambiente e a saúde.
-
   Result.AppendChild(Gerar_ISTot(NFe.Total.ISTot));
-  }
+
   Result.AppendChild(Gerar_IBSCBSTot(NFe.Total.IBSCBSTot));
 
   Result.AppendChild(AddNode(tcDe2, 'W60', 'vNFTot', 1, 15, 0,

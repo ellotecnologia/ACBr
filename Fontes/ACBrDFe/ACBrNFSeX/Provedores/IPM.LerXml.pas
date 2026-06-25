@@ -183,6 +183,12 @@ begin
         ItemServico[i].ValorIssRetido := ObterConteudo(ANodes[i].Childrens.FindAnyNs('valor_issrf'), tcDe2);
         ItemServico[i].DescontoIncondicionado := ObterConteudo(ANodes[i].Childrens.FindAnyNs('ValorDescontoIncondicional'), tcDe2);
 
+        if ItemServico[i].Quantidade = 0 then
+          ItemServico[i].Quantidade := 1;
+
+        if ItemServico[i].ValorUnitario = 0 then
+          ItemServico[i].ValorUnitario := ItemServico[i].ValorTributavel;
+
         if ItemServico[i].ValorTotal = 0 then
           ItemServico[i].ValorTotal := ItemServico[i].Quantidade * ItemServico[i].ValorUnitario;
 
@@ -254,6 +260,8 @@ begin
 
       if Trim(CodigoVerificacao) = '' then
         CodigoVerificacao := ObterConteudo(AuxNode.Childrens.FindAnyNs('cod_verificador_autenticidade'), tcStr);
+
+      ChaveAcesso := ObterConteudo(AuxNode.Childrens.FindAnyNs('chave_acesso_nfse_nacional'), tcStr);
 
       Link := ObterConteudo(AuxNode.Childrens.FindAnyNs('link_nfse'), tcStr);
       Link := StringReplace(Link, '&amp;', '&', [rfReplaceAll]);
@@ -504,6 +512,8 @@ begin
     Result := LerXmlNfse(XmlNode)
   else
     Result := LerXmlRps(XmlNode);
+
+//  VerificarSeConteudoEhLista(NFSe.Servico.Discriminacao);
 
   FreeAndNil(FDocument);
 end;

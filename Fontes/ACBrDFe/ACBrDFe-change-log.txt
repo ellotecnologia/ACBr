@@ -39,6 +39,107 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+24/06/2026
+-- ACBrDFeOpenSSL --
+[-] Correção para CryOpenSSL funcionar com WinHTTP
+    http://www.projetoacbr.com.br/forum/index.php?showtopic=92704
+
+18/06/2026
+-- ACBrDFeUtil.pas --
+[*] Ajuste para validar chaves com cnpj alfanumerico.
+   Por: Daniel Morais InfoCotidiano
+
+09/06/2026
+-- ACBrDFeConfiguracoes.pas --
+[-] Corrige bug de codificação em EACBrConversaoEnumeradoException.  
+[*] Tópico: https://www.projetoacbr.com.br/forum/topic/92648-caracteres-inv%C3%A1lidos-na-mensagem-de-exception-do-acbrlibnfemt/
+   Por: doszapro
+
+
+01/06/2026
+-- ACBrDFeConfiguracoes.pas, ACBrXmlWriter.pas -- 
+[*] ACBr-9369 - Ajustado CNPJ para alfanumericos
+   Por: Daniel de Morais
+
+26/05/2026
+-- ACBrDFe.Conversao --
+[+] ACBr-9316 - Incluido o enumerado: peProvedorAssinaturaAutorizacao no 
+    tipo: TACBrProcessoEmissao e ajustado as funções de conversão.
+   Por: Italo Giurizzato Junior
+
+21/05/2026
+-- ACBrDFeSSL/ACBrDFeUtil --
+[*] Ajustes nas units para atender o CNPJ Alfa.
+  Por: Italo Giurizzato Junior
+
+19/05/2026
+-- ACBrDFeConfiguracoes --
+[-] ACBr-9168 - Adiciona condição para validar AmbienteDFe
+  Por: doszapro
+
+17/04/2026
+-- ACBrLibXml2 --
+[+] Adicionado o Bind, para o método 'xmlNewText'
+
+-- ACBrXmlDocument --
+[*] Otimização dos métodos, inserindo a diretiva "const" nos parêmtros String
+[*] Remoção de comentários, desnecessários
+{-] Remoção de Warnings, onde o método "Create" não era público
+[*] TACBrXmlDocument.Xml passa a ser AnsiString, para evitar perda de caracteres
+[+] Adicionado o método:  TACBrXmlNode.SetText(const AContent: string);
+    Que permite trocar o Texto de um Nó, sem afetar os demais Filhos dele
+    (por: DSA)
+
+-- ACBrDFeOpenSSL --
+[*] Métodos movidos para ACBrOpenSSLUtils
+    function CertToDERBase64(cert: pX509): AnsiString;
+    function GetCertExt(cert: pX509; const FlagExt: AnsiString): AnsiString;
+    function GetIssuerName(cert: pX509): String;
+    function GetNotAfter(cert: pX509): TDateTime;
+    function GetNotBefore(cert: pX509): TDateTime;
+    function GetSerialNumber(cert: pX509): String;
+    function GetThumbPrint( cert: pX509 ): String;
+    function GetSubjectName(cert: pX509): String;
+    function GetTaxIDFromExtensions(cert: pX509): String;
+    function X509NameToString(AX509Name: PX509_NAME): AnsiString;
+    (por: DSA)
+
+16/04/2026
+-- ACBrDFe.Conversao --
+[+] ACBR-9067 - Inclusão do enumerado cstPart20 para o ICMSPart visando atender a NT 2022/002 versão 1.30a
+   Por: Italo Giurizzato Junior
+
+15/04/2026
+-- ACBrDFeConsts --
+[*] Incluído algumas constantes de mensagens de erro de validação usadas pelos componentes:
+    BP-e, CT-e, NF3-e e NFCom.
+   Por: Italo Giurizzato Junior
+
+10/04/2026
+-- ACBrDFe.Conversao --
+[+] ACBR-9136 - Inclusão dos eventos: Vinculação de Pagamento e Cancelamento de Vinculação de Pagamento.
+   Por: Italo Giurizzato Junior
+
+25/02/2026
+-- ACBrXmlBase --
+[*] ACBR-8925: Alterada a função: RemoverPrefixosDesnecessarios para remover também o prefixo s01.
+   Por: Italo Giurizzato Junior
+
+11/02/2026
+-- ACBrDFeUtil/ACBrDFeSSL/ACBrDFeXsLibXml2/ACBrDFeXsXmlSec --
+[*] ACBR-8782: Adiciona possibilidade de usar canonicalização exclusiva ao assinar arquivos XML.
+   Por: Diego Folieni
+
+02/02/2026
+-- ACBrDFeConfiguracoes --
+[-] Corrige erro de conversão de Enumerado para TpcnTipoAmbiente
+ Por: doszapro
+
+23/01/2026
+-- ACBrDFeWebService --
+[-] ACBR-8847: Ajuste visando a correta geração do fuso horário no envio de eventos.
+  Por: Diego Folieni
+
 21/11/2025
 -- ACBrDFe.Conversao --
 [+] ACBR-5451 - Inclusão do evento Atualização da Data de Previsão de Entrega para Reforma Tributária

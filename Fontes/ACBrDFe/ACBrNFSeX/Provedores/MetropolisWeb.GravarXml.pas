@@ -81,8 +81,6 @@ end;
 
 function TNFSeW_MetropolisWeb.GerarServico: TACBrXmlNode;
 var
-  nodeArray: TACBrXmlNodeArray;
-  i: Integer;
   item: string;
 begin
   Result := CreateElement('Servico');
@@ -113,8 +111,8 @@ begin
     StringReplace(NFSe.Servico.Discriminacao, Opcoes.QuebraLinha,
                FpAOwner.ConfigGeral.QuebradeLinha, [rfReplaceAll]), DSC_DISCR));
 
-  Result := AddNode(tcStr, '#33', 'CodigoMunicipio', 1, 7, 1,
-                            OnlyNumber(NFSe.Servico.CodigoMunicipio), DSC_CMUN);
+  Result.AppendChild(AddNode(tcStr, '#33', 'CodigoMunicipio', 1, 7, 1,
+                            OnlyNumber(NFSe.Servico.CodigoMunicipio), DSC_CMUN));
 end;
 
 end.

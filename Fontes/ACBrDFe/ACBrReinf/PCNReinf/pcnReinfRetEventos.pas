@@ -37,15 +37,19 @@ unit pcnReinfRetEventos;
 interface
 
 uses
-  SysUtils, Classes,
+  SysUtils,
+  Classes,
   {$IF DEFINED(HAS_SYSTEM_GENERICS)}
-   System.Generics.Collections, System.Generics.Defaults,
+  System.Generics.Collections,
+  System.Generics.Defaults,
   {$ELSEIF DEFINED(DELPHICOMPILER16_UP)}
-   System.Contnrs,
+  System.Contnrs,
   {$IFEND}
   ACBrBase,
-  pcnConversao, pcnLeitor,
-  pcnCommonReinf, pcnConversaoReinf,
+  pcnConversao,
+  pcnLeitor,
+  pcnCommonReinf,
+  pcnConversaoReinf,
   pcnReinfR9005;
 
 type
@@ -401,7 +405,10 @@ type
 implementation
 
 uses
-  IniFiles, ACBrUtil.Base, ACBrUtil.Strings, DateUtils;
+  IniFiles,
+  ACBrUtil.Base,
+  ACBrUtil.Strings,
+  DateUtils;
 
 { TRRecRepADCollection }
 
@@ -693,7 +700,7 @@ begin
     while Leitor.rExtrai(3, 'evento', '', i + 1) <> '' do
     begin
       evento.New;
-      evento.Items[i].Id           := FLeitor.rAtributo('id', 'evento');
+      evento.Items[i].Id           := FLeitor.rAtributo('Id', 'evento');
       evento.Items[i].ArquivoReinf := RetornarConteudoEntre(Leitor.Grupo, '>', '</evento');
 
       if leitor.rExtrai(4, 'evtRet') <> '' then

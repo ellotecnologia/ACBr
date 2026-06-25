@@ -385,7 +385,7 @@ begin
 
          wLinha:= '1'                                                     +  // ID Registro
                   TipoCedente                                             +  // Identificação do Tipo de Inscrição do Sacado 01 - CPF 02 - CNPJ
-                  PadLeft(onlyNumber(Cedente.CNPJCPF),14,' ')             +  // Número de Inscrição do Cedente
+                  PadLeft(OnlyCPFCNPJAlphaNum(Cedente.CNPJCPF),14,' ')             +  // Número de Inscrição do Cedente
                   PadLeft(OnlyNumber(Cedente.Agencia), 4, '0')            +  // Agência
                   PadLeft( Cedente.AgenciaDigito, 1, '0')                 +  // Agência digito
                   PadLeft( RightStr(OnlyNumber(Cedente.Conta),8), 8, '0') +  // Conta Corrente
@@ -427,7 +427,7 @@ begin
                   IntToStrZero( 0, 12)                                    +  // Valor IOF / Quantidade Monetária: "0000000000000"
                   IntToStrZero( 0, 13)                                    +  // Valor Abatimento
                   TipoSacado                                              +  // Tipo de Inscrição do Sacado: 01 - CPF 02 - CNPJ
-                  PadLeft(onlyNumber(Sacado.CNPJCPF),14,'0')              +  // Número de Inscrição do Sacado
+                  PadLeft(OnlyCPFCNPJAlphaNum(Sacado.CNPJCPF),14,'0')              +  // Número de Inscrição do Sacado
                   PadRight( Sacado.NomeSacado, 40, ' ')                   +  // Nome do Sacado
                   PadRight( Sacado.Logradouro +' '+ Sacado.Numero,37,' ') +  // Endereço Completo
                   PadRight( Sacado.Bairro,15,' ')                         +  // Endereço Bairro
@@ -515,7 +515,7 @@ begin
      end;
 
 
-     if ( (not LeCedenteRetorno) and (rCNPJCPF <> OnlyNumber(Cedente.CNPJCPF)) ) then
+     if ( (not LeCedenteRetorno) and (rCNPJCPF <> OnlyCPFCNPJAlphaNum(Cedente.CNPJCPF)) ) then
        raise Exception.Create(ACBrStr('CNPJ\CPF do arquivo inválido'));
 
      if ( (not LeCedenteRetorno) and (StrToInt(rAgencia) <> StrToInt(Cedente.Agencia)) ) then
@@ -788,7 +788,7 @@ begin
                '0'                                      + // 8 - Tipo de registro - Registro header de arquivo
                space(9)                                 + // 9 a 17 Uso exclusivo FEBRABAN/CNAB
                ATipoInscricao                           + // 18 - Tipo de inscrição do cedente
-               PadLeft(OnlyNumber(CNPJCPF), 14, '0')    + // 19 a 32 -Número de inscrição do cedente
+               PadLeft(OnlyCPFCNPJAlphaNum(CNPJCPF), 14, '0')    + // 19 a 32 -Número de inscrição do cedente
                PadRight(Convenio, 20, ' ')              + // 33 a 52 - Brancos - Alteração para passar no validador
                '0'                                      + // 53 - Zeros
                PadLeft(OnlyNumber(Agencia), 4, '0')     + // 54 a 57 - Código da agência do cedente
@@ -820,7 +820,7 @@ begin
                PadLeft(IntToStr(fpLayoutVersaoLote), 3, '0')     + //14 a 16 - Número da versão do layout do lote
                ' '                                     + //17 - Uso exclusivo FEBRABAN/CNAB
                ATipoInscricao                          + //18 - Tipo de inscrição do cedente
-               PadLeft(OnlyNumber(CNPJCPF), 15, '0')   + //19 a 33 -Número de inscrição do cedente
+               PadLeft(OnlyCPFCNPJAlphaNum(CNPJCPF), 15, '0')   + //19 a 33 -Número de inscrição do cedente
                space(20)                               + //34 a 53 - Brancos
                '0'                                     + // 54 - Zeros
                PadLeft(OnlyNumber(Agencia), 4, '0')    + //55 a 58 - Código da agência do cedente
@@ -890,6 +890,7 @@ begin
         toRemessaAlterarDadosPagador           : ATipoOcorrencia := '23';
         toRemessaOutrasOcorrencias,
           toRemessaAlterarOutrosDados          : ATipoOcorrencia := '31';
+        toRemessaNegativacaoSemProtesto        : ATipoOcorrencia := '45';
       else
        ATipoOcorrencia := '01';
       end;
@@ -909,7 +910,7 @@ begin
       end;
 
       {Pegando Tipo de Sacado}
-      if Length(OnlyNumber(Sacado.CNPJCPF)) > 11 then
+      if Length(OnlyCPFCNPJAlphaNum(Sacado.CNPJCPF)) > 11 then
          Sacado.Pessoa:= pJuridica
       else
          Sacado.Pessoa:= pFisica;
@@ -1146,7 +1147,7 @@ begin
                ATipoOcorrencia                                            + // 16 a 17 - Código de movimento
               {Dados do sacado}
                ATipoInscricao                                             + // 18 a 18 Tipo inscricao
-               PadLeft(OnlyNumber(Sacado.CNPJCPF), 15, '0')               + // 19 a 33
+               PadLeft(OnlyCPFCNPJAlphaNum(Sacado.CNPJCPF), 15, '0')               + // 19 a 33
                PadRight(Sacado.NomeSacado, 40, ' ')                       + // 34 a 73
                PadRight(Sacado.Logradouro + ' ' + Sacado.Numero + ' ' +
                         Sacado.Complemento, 40, ' ')                      + // 74 a 113
@@ -1156,7 +1157,7 @@ begin
                PadRight(Sacado.UF, 2, ' ')                                + // 152 a 153
                         {Dados do sacador/avalista}
                ATipoInscricaoAvalista                                     + // Tipo de inscrição: Não informado
-               PadLeft(OnlyNumber(Sacado.SacadoAvalista.CNPJCPF),15, '0') + // Número de inscrição
+               PadLeft(OnlyCPFCNPJAlphaNum(Sacado.SacadoAvalista.CNPJCPF),15, '0') + // Número de inscrição
                PadRight(Sacado.SacadoAvalista.NomeAvalista, 30, ' ')      + // Nome do sacador/avalista
                space(10)                                                  + // Uso exclusivo FEBRABAN/CNAB
                PadRight('0',3, '0')                                       + // Uso exclusivo FEBRABAN/CNAB

@@ -138,7 +138,7 @@ type
 
     procedure ProcessarMensagemDeErros(LJson: TACBrJSONObject;
                                      Response: TNFSeWebserviceResponse;
-                                     const AListTag: string = 'Erros'); virtual;
+                                     const AListTag: string = 'Erros'); override;
 
     function PrepararArquivoEnvio(const aXml: string; aMetodo: TMetodo): string; override;
 
@@ -906,7 +906,7 @@ var
   I: Integer;
   ANode: TACBrXmlNode;
   ANodeArray: TACBrXmlNodeArray;
-  AAlerta: TNFSeEventoCollectionItem;
+  AAlerta, AErro: TNFSeEventoCollectionItem;
   Codigo, Mensagem: string;
 
 procedure ProcessarErro(ErrorNode: TACBrXmlNode; const ACodigo, AMensagem: string);
@@ -1004,18 +1004,18 @@ begin
 
     if Mensagem <> '' then
     begin
-      AAlerta := Response.Alertas.New;
-      AAlerta.Codigo := ObterConteudoTag(RootNode.Childrens.FindAnyNs('codigo'), tcStr);
-      AAlerta.Descricao := Mensagem;
-      AAlerta.Correcao := ObterConteudoTag(RootNode.Childrens.FindAnyNs('correcao'), tcStr);
+      AErro := Response.Erros.New;
+      AErro.Codigo := ObterConteudoTag(RootNode.Childrens.FindAnyNs('codigo'), tcStr);
+      AErro.Descricao := Mensagem;
+      AErro.Correcao := ObterConteudoTag(RootNode.Childrens.FindAnyNs('correcao'), tcStr);
     end
     else
     begin
       if Pos('<return>', Copy(Response.ArquivoRetorno,1,20)) > 0 then
       begin
-        AAlerta := Response.Erros.New;
-        AAlerta.Codigo := Cod201;
-        AAlerta.Descricao := ACBrStr(SeparaDados(Response.ArquivoRetorno, 'return'));
+        AErro := Response.Erros.New;
+        AErro.Codigo := Cod201;
+        AErro.Descricao := ACBrStr(SeparaDados(Response.ArquivoRetorno, 'return'));
       end;
     end;
   end;
@@ -1024,6 +1024,8 @@ end;
 function TACBrNFSeProviderSilTecnologiaAPIPropria.PrepararArquivoEnvio(
   const aXml: string; aMetodo: TMetodo): string;
 begin
+  Result := aXml;
+
   if aMetodo in [tmGerar, tmEnviarEvento] then
     Result := ChangeLineBreak(aXml, '');
 end;
@@ -1169,8 +1171,11 @@ begin
 
     ID := chNFSe + OnlyNumber(tpEventoToStr(tpEvento));
 
+    if (nPedRegEvento <= 0) or (nPedRegEvento > 1) then
+      nPedRegEvento := 1;
+
     IdAttrPRE := 'Id="' + 'PRE' + ID + '"';
-    IdAttrEVT := 'Id="' + 'EVT' + ID + '"';
+    IdAttrEVT := 'Id="' + 'EVT' + ID + FormatFloat('000', nPedRegEvento)+ '"';
 
     case tpEvento of
       teCancelamento:
@@ -1237,7 +1242,7 @@ begin
                      FormatDateTime('yyyy-mm-dd"T"hh:nn:ss', dhEvento) +
                      GetUTC(xUF, dhEvento) +
                    '</dhProc>' +
-                   '<nDFSe>' + '0' + '</nDFSe>' +
+                   '<nDFSe>' + '1' + '</nDFSe>' +
                     xEvento +
                  '</infEvento>' +
                '</evento>';
