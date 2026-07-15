@@ -1031,7 +1031,7 @@ begin
   else
     rllValorTotalIBSCBS.Caption := '-';
 
-  LValor := fpNFSe.Servico.Valores.ValorServicos +
+  LValor := fpNFSe.Servico.Valores.ValorLiquidoNfse +
             fpNFSe.infNFSe.IBSCBS.totCIBS.gIBS.vIBSTot +
             fpNFSe.infNFSe.IBSCBS.totCIBS.gCBS.vCBS;
 
