@@ -155,6 +155,8 @@ type
 
     FGerarAtividadeEventoAposConstrucaoCivil : Boolean;
     FGerarAtividadeEventoAposIncentivoFiscal : Boolean;
+    FNrOcorrCodigoServicoNacional: Integer;
+    FNrOcorrTpImunidade: Integer;
   protected
     procedure Configuracao; override;
 
@@ -307,6 +309,7 @@ type
     property NrOcorrIdCidade: Integer     read FNrOcorrIdCidade     write FNrOcorrIdCidade;
     property NrOcorrRespRetencao: Integer read FNrOcorrRespRetencao write FNrOcorrRespRetencao;
     property NrOcorrMunIncid: Integer     read FNrOcorrMunIncid     write FNrOcorrMunIncid;
+    property NrOcorrTpImunidade: Integer  read FNrOcorrTpImunidade  write FNrOcorrTpImunidade;
     property NrOcorrValTotTrib: Integer   read FNrOcorrValTotTrib   write FNrOcorrValTotTrib;
     property NrOcorrCodTribMun_1: Integer read FNrOcorrCodTribMun_1 write FNrOcorrCodTribMun_1;
     property NrOcorrCodTribMun_2: Integer read FNrOcorrCodTribMun_2 write FNrOcorrCodTribMun_2;
@@ -337,6 +340,7 @@ type
     property NrOcorrDataPagamento: Integer read FNrOcorrDataPagamento write FNrOcorrDataPagamento;
     property NrOcorrInfAdicional: Integer read FNrOcorrInfAdicional write FNrOcorrInfAdicional;
     property NrOcorrCidadeNome: Integer read FNrOcorrCidadeNome write FNrOcorrCidadeNome;
+    property NrOcorrCodigoServicoNacional: Integer read FNrOcorrCodigoServicoNacional write FNrOcorrCodigoServicoNacional;
 
     property GerarTagServicos: Boolean read FGerarTagServicos write FGerarTagServicos;
     property GerarIDDeclaracao: Boolean read FGerarIDDeclaracao write FGerarIDDeclaracao;
@@ -415,6 +419,7 @@ begin
   FNrOcorrCodigoMunic_1 := 1;
 
   // Por padrão as tags abaixo não devem ser geradas
+  FNrOcorrTpImunidade := -1;
   FNrOcorrCodTribMun_2 := -1;
   FNrOcorrDiscriminacao_2 := -1;
   FNrOcorrNaturezaOperacao := -1;
@@ -473,6 +478,7 @@ begin
   FNrOcorrRetidoCpp := -1;
   FNrOcorrInfAdicional := -1;
   FNrOcorrCidadeNome := -1;
+  FNrOcorrCodigoServicoNacional := 0;
 
   FGerarTagServicos := True;
   FGerarIDDeclaracao := True;
@@ -749,6 +755,9 @@ begin
     Result.AppendChild(AddNode(tcStr, '#31', 'CodigoTributacaoMunicipio', 1, 20, NrOcorrCodTribMun_1,
                      NFSe.Servico.CodigoTributacaoMunicipio, DSC_CSERVTRIBMUN));
 
+    Result.AppendChild(AddNode(tcStr, '#32', 'CodigoNbs', 1, 9, NrOcorrCodigoNBS,
+                                             NFSe.Servico.CodigoNBS, DSC_CMUN));
+
     Result.AppendChild(AddNode(tcStr, '#32', 'Discriminacao', 1, 2000, NrOcorrDiscriminacao_1,
       StringReplace(NFSe.Servico.Discriminacao, Opcoes.QuebraLinha,
                FpAOwner.ConfigGeral.QuebradeLinha, [rfReplaceAll]), DSC_DISCR));
@@ -759,11 +768,8 @@ begin
     Result.AppendChild(AddNode(tcStr, '#31', 'CodigoTributacaoMunicipio', 1, 20, NrOcorrCodTribMun_2,
                      NFSe.Servico.CodigoTributacaoMunicipio, DSC_CSERVTRIBMUN));
 
-    Result.AppendChild(AddNode(tcStr, '#31', 'CodigoServicoNacional', 1, 20, 0,
+    Result.AppendChild(AddNode(tcStr, '#31', 'CodigoServicoNacional', 1, 20, NrOcorrCodigoServicoNacional,
                                        NFSe.Servico.CodigoServicoNacional, ''));
-
-    Result.AppendChild(AddNode(tcStr, '#32', 'CodigoNbs', 1, 9, NrOcorrCodigoNBS,
-                                             NFSe.Servico.CodigoNBS, DSC_CMUN));
 
     Result.AppendChild(AddNode(tcStr, '#33', 'Discriminacao', 1, 2000, NrOcorrDiscriminacao_2,
       StringReplace(NFSe.Servico.Discriminacao, Opcoes.QuebraLinha,
@@ -781,6 +787,9 @@ begin
     Result.AppendChild(AddNode(tcStr, '#9', 'OutrasInformacoes', 0, 255, NrOcorrOutrasInformacoes_2,
       StringReplace(NFSe.OutrasInformacoes, Opcoes.QuebraLinha,
            FpAOwner.ConfigGeral.QuebradeLinha, [rfReplaceAll]), DSC_OUTRASINF));
+
+    Result.AppendChild(AddNode(tcStr, '#40', 'TpImunidade', 1, 1, NrOcorrTpImunidade,
+                                             tpImunidadeToStr(NFSe.Servico.Valores.tribMun.tpImunidade), ''));
 
     Result.AppendChild(AddNode(tcInt, '#37', 'MunicipioIncidencia', 7, 7, NrOcorrMunIncid,
                                 NFSe.Servico.MunicipioIncidencia, DSC_MUNINCI));

@@ -190,6 +190,7 @@ const
   CChavePSP = 'PSP';
   CChaveTipoChave = 'TipoChave';
   CChaveTimeOut = 'TimeOut';
+  CChaveValidarCopiaECola = 'ValidarCopiaECola';
   CChaveNivelLog = 'NivelLog';
   CChaveArqLogPixCD = 'ArqLog';
   CChaveCNPJSoftwareHouse = 'CNPJSoftwareHouse';
@@ -206,6 +207,8 @@ const
   CChaveNomeRecebedor = 'NomeRecebedor';
   CChaveUFRecebedor = 'UFRecebedor';
   CChaveScopes = 'Scopes';
+  CChaveURLProducao = 'URLProducao';
+  CChaveURLSandBox = 'URLSandBox';
 
   CSessaoPIXCDBradescoConfig = 'Bradesco';
   CChavePIXBradesco = 'ChavePIX';
@@ -324,6 +327,7 @@ const
   CChavePIXBanrisul = 'ChavePIX';
   CChaveClientIDBanrisul = 'ClientID';
   CChaveClientSecretBanrisul = 'ClientSecret';
+  CChaveArquivoPFXBanrisul = 'ArquivoPFX';
   CChaveArquivoCertificadoBanrisul = 'ArquivoCertificado';
   CChaveSenhaPFXBanrisul = 'SenhaPFX';
 
@@ -343,6 +347,13 @@ const
   CChavePIXQQPag = 'ChavePIX';
   CChaveClientIDQQPag = 'ClientID';
   CChaveClientSecretQQPag = 'ClientSecret';
+
+  CSessaoPIXCDCrediSISConfig = 'CrediSIS';
+  CChavePIXCrediSIS = 'ChavePIX';
+  CChaveClientIDCrediSIS = 'ClientID';
+  CChaveClientSecretCrediSIS = 'ClientSecret';
+  CChaveAgenciaCrediSIS = 'Agencia';
+  CChaveContaCrediSIS = 'Conta';
 
 implementation
 

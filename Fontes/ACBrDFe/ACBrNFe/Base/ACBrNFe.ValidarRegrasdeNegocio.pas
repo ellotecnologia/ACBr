@@ -41,7 +41,6 @@ uses
   ACBrNFe.Classes,
   ACBrXmlBase,
   ACBrDFe.Conversao,
-  pcnConversao,
   pcnConversaoNFe;
 //  ACBrNFe.Conversao;
 
@@ -55,7 +54,7 @@ type
 
     FNFe: TNFe;
     FVersaoDF: TpcnVersaoDF;
-    FAmbiente: TpcnTipoAmbiente;
+    FAmbiente: TACBrTipoAmbiente;
     FtpEmis: Integer;
     FCodigoUF: Integer;
     FUF: string;
@@ -64,10 +63,16 @@ type
     procedure ValidarRegra226;
     procedure ValidarRegra228;
     procedure ValidarRegra321;
+    procedure ValidarRegra504;
+    procedure ValidarRegra505;
+    procedure ValidarRegra506;
     procedure ValidarRegra512;
     procedure ValidarRegra701;
     procedure ValidarRegra703;
+    procedure ValidarRegra710;
+    procedure ValidarRegra711;
     procedure ValidarRegra789;
+    procedure ValidarRegra794;
     procedure ValidarRegra897;
 
     procedure RegrasValidasParaAmbosModelos;
@@ -84,7 +89,7 @@ type
 
     property NFe: TNFe read FNFe write FNFe;
     property VersaoDF: TpcnVersaoDF read FVersaoDF write FVersaoDF;
-    property Ambiente: TpcnTipoAmbiente read FAmbiente write FAmbiente;
+    property Ambiente: TACBrTipoAmbiente read FAmbiente write FAmbiente;
     property tpEmis: Integer read FtpEmis write FtpEmis;
     property CodigoUF: Integer read FCodigoUF write FCodigoUF;
     property UF: string read FUF write FUF;
@@ -137,342 +142,323 @@ var
   I: Integer;
 begin
   ValidarRegra321;
+  ValidarRegra504;
+  ValidarRegra505;
+  ValidarRegra506;
+  ValidarRegra710;
+  ValidarRegra711;
 
-    GravaLog('Validar: 504-Saida > 30');
-    if ((NFe.Ide.dSaiEnt - FpAgora) > 30) then  //B10-20  - Facultativo
-      AdicionaErro('504-Rejeição: Data de Entrada/Saída posterior ao permitido');
+  GravaLog('Validar: 254-NFe complementar sem referenciada');
+  if (NFe.Ide.finNFe = fnComplementar) and (NFe.Ide.NFref.Count = 0) then  //B25-30
+    AdicionaErro('254-Rejeição: NF-e complementar não possui NF referenciada');
 
-    GravaLog('Validar: 505-Saida < 30');
-    if (NFe.Ide.dSaiEnt <> 0) and ((FpAgora - NFe.Ide.dSaiEnt) > 30) then  //B10-30  - Facultativo
-      AdicionaErro('505-Rejeição: Data de Entrada/Saída anterior ao permitido');
+  GravaLog('Validar: 255-NFe complementar e muitas referenciada');
+  if (NFe.Ide.finNFe = fnComplementar) and (NFe.Ide.NFref.Count > 1) then  //B25-40
+    AdicionaErro('255-Rejeição: NF-e complementar possui mais de uma NF referenciada');
 
-    GravaLog('Validar: 506-Saida < Emissao');
-    if (NFe.Ide.dSaiEnt <> 0) and (NFe.Ide.dSaiEnt < NFe.Ide.dEmi) then
-      //B10-40  - Facultativo
-      AdicionaErro('506-Rejeição: Data de Saída menor que a Data de Emissão');
+  GravaLog('Validar: 269-CNPJ Emitente NFe complementar');
+  if (NFe.Ide.finNFe = fnComplementar) and (NFe.Ide.NFref.Count = 1) and
+    (((NaoEstaVazio(NFe.Ide.NFref.Items[0].RefNF.CNPJ)) and
+    (not SameText(NFe.Ide.NFref.Items[0].RefNF.CNPJ, NFe.Emit.CNPJCPF))) or
+    ((NaoEstaVazio(NFe.Ide.NFref.Items[0].RefNFP.CNPJCPF)) and
+    (not SameText(NFe.Ide.NFref.Items[0].RefNFP.CNPJCPF, NFe.Emit.CNPJCPF)))) then
+    //B25-50
+    AdicionaErro(
+      '269-Rejeição: CNPJ Emitente da NF Complementar difere do CNPJ da NF Referenciada');
 
-    GravaLog('Validar: 710-Formato DANFE');
-    if (NFe.Ide.tpImp in [tiNFCe, tiMsgEletronica]) then  //B21-20
-      AdicionaErro('710-Rejeição: NF-e com formato de DANFE inválido');
+  GravaLog('Validar: 678-UF NFe referenciada e complementar');
+  if (NFe.Ide.finNFe = fnComplementar) and (NFe.Ide.NFref.Count = 1) and
+    //Testa pelo número para saber se TAG foi preenchida
+    (((NFe.Ide.NFref.Items[0].RefNF.nNF > 0) and
+    (NFe.Ide.NFref.Items[0].RefNF.cUF <> UFparaCodigoUF(
+    NFe.Emit.EnderEmit.UF))) or ((NFe.Ide.NFref.Items[0].RefNFP.nNF > 0) and
+    (NFe.Ide.NFref.Items[0].RefNFP.cUF <> UFparaCodigoUF(
+    NFe.Emit.EnderEmit.UF))))
+  then  //B25-60 - Facultativo
+    AdicionaErro('678-Rejeição: NF referenciada com UF diferente da NF-e complementar');
 
-    GravaLog('Validar: 711-NFe off-line');
-    if (NFe.Ide.tpEmis = teOffLine) then  //B22-10
-      AdicionaErro('711-Rejeição: NF-e com contingência off-line');
-
-    GravaLog('Validar: 254-NFe complementar sem referenciada');
-    if (NFe.Ide.finNFe = fnComplementar) and (NFe.Ide.NFref.Count = 0) then  //B25-30
-      AdicionaErro('254-Rejeição: NF-e complementar não possui NF referenciada');
-
-    GravaLog('Validar: 255-NFe complementar e muitas referenciada');
-    if (NFe.Ide.finNFe = fnComplementar) and (NFe.Ide.NFref.Count > 1) then  //B25-40
-      AdicionaErro('255-Rejeição: NF-e complementar possui mais de uma NF referenciada');
-
-    GravaLog('Validar: 269-CNPJ Emitente NFe complementar');
-    if (NFe.Ide.finNFe = fnComplementar) and (NFe.Ide.NFref.Count = 1) and
-      (((NaoEstaVazio(NFe.Ide.NFref.Items[0].RefNF.CNPJ)) and
-      (not SameText(NFe.Ide.NFref.Items[0].RefNF.CNPJ, NFe.Emit.CNPJCPF))) or
-      ((NaoEstaVazio(NFe.Ide.NFref.Items[0].RefNFP.CNPJCPF)) and
-      (not SameText(NFe.Ide.NFref.Items[0].RefNFP.CNPJCPF, NFe.Emit.CNPJCPF)))) then
-      //B25-50
-      AdicionaErro(
-        '269-Rejeição: CNPJ Emitente da NF Complementar difere do CNPJ da NF Referenciada');
-
-    GravaLog('Validar: 678-UF NFe referenciada e complementar');
-    if (NFe.Ide.finNFe = fnComplementar) and (NFe.Ide.NFref.Count = 1) and
-      //Testa pelo número para saber se TAG foi preenchida
-      (((NFe.Ide.NFref.Items[0].RefNF.nNF > 0) and
-      (NFe.Ide.NFref.Items[0].RefNF.cUF <> UFparaCodigoUF(
-      NFe.Emit.EnderEmit.UF))) or ((NFe.Ide.NFref.Items[0].RefNFP.nNF > 0) and
-      (NFe.Ide.NFref.Items[0].RefNFP.cUF <> UFparaCodigoUF(
-      NFe.Emit.EnderEmit.UF))))
-    then  //B25-60 - Facultativo
-      AdicionaErro('678-Rejeição: NF referenciada com UF diferente da NF-e complementar');
-
-    GravaLog('Validar: 794-NFe e domicício NFCe');
-    if (NFe.Ide.indPres = pcEntregaDomicilio) then //B25b-10
-      AdicionaErro('794-Rejeição: NF-e com indicativo de NFC-e com entrega a domicílio');
+  ValidarRegra794;
 
 //      GravaLog('Validar: 719-NFe sem ident. destinatário');
 //      if (NFe.Dest.CNPJCPF = '') and
 //         (NFe.Dest.idEstrangeiro = '') then
 //        AdicionaErro('719-Rejeição: NF-e sem a identificação do destinatário');
 
-    GravaLog('Validar: 237-CPF destinatário ');
-    if (Trim(OnlyCPFCNPJAlphaNum(NFe.Dest.CNPJCPF)) <> EmptyStr) and
-      (Length(Trim(OnlyCPFCNPJAlphaNum(NFe.Dest.CNPJCPF))) <= 11) and
-      not ValidarCPF(NFe.Dest.CNPJCPF) then
-      AdicionaErro('237-Rejeição: CPF do destinatário inválido');
+  GravaLog('Validar: 237-CPF destinatário ');
+  if (Trim(OnlyCPFCNPJAlphaNum(NFe.Dest.CNPJCPF)) <> EmptyStr) and
+    (Length(Trim(OnlyCPFCNPJAlphaNum(NFe.Dest.CNPJCPF))) <= 11) and
+    not ValidarCPF(NFe.Dest.CNPJCPF) then
+    AdicionaErro('237-Rejeição: CPF do destinatário inválido');
 
 //      GravaLog('Validar: 720-idEstrangeiro');
 //      if (nfe.Ide.idDest = doExterior) and
 //         (EstaVazio(Trim(NFe.Dest.idEstrangeiro))) then
 //        AdicionaErro('720-Rejeição: Na operação com Exterior deve ser informada tag idEstrangeiro');
 
-    GravaLog('Validar: 721-Op.Interstadual sem CPF/CNPJ');
-    if (nfe.Ide.idDest = doInterestadual) and
-       (EstaVazio(Trim(NFe.Dest.CNPJCPF))) then
-      AdicionaErro('721-Rejeição: Operação interestadual deve informar CNPJ ou CPF');
+  GravaLog('Validar: 721-Op.Interstadual sem CPF/CNPJ');
+  if (nfe.Ide.idDest = doInterestadual) and
+     (EstaVazio(Trim(NFe.Dest.CNPJCPF))) then
+    AdicionaErro('721-Rejeição: Operação interestadual deve informar CNPJ ou CPF');
 
-    GravaLog('Validar: 723-Op.interna com idEstrangeiro');
-    if (nfe.Ide.idDest = doInterna) and
-       (NaoEstaVazio(Trim(NFe.Dest.idEstrangeiro))) and
-       (NFe.Ide.indFinal <> cfConsumidorFinal)then
-      AdicionaErro('723-Rejeição: Operação interna com idEstrangeiro informado deve ser para consumidor final');
+  GravaLog('Validar: 723-Op.interna com idEstrangeiro');
+  if (nfe.Ide.idDest = doInterna) and
+     (NaoEstaVazio(Trim(NFe.Dest.idEstrangeiro))) and
+     (NFe.Ide.indFinal <> cfConsumidorFinal)then
+    AdicionaErro('723-Rejeição: Operação interna com idEstrangeiro informado deve ser para consumidor final');
 
-    GravaLog('Validar: 724-Nome destinatário');
-    if EstaVazio(Trim(NFe.Dest.xNome)) then
-      AdicionaErro('724-Rejeição: NF-e sem o nome do destinatário');
+  GravaLog('Validar: 724-Nome destinatário');
+  if EstaVazio(Trim(NFe.Dest.xNome)) then
+    AdicionaErro('724-Rejeição: NF-e sem o nome do destinatário');
 
-    GravaLog('Validar: 726-Sem Endereço destinatário');
-    if EstaVazio(Trim(NFe.Dest.EnderDest.xLgr)) then
-      AdicionaErro('726-Rejeição: NF-e sem a informação de endereço do destinatário');
+  GravaLog('Validar: 726-Sem Endereço destinatário');
+  if EstaVazio(Trim(NFe.Dest.EnderDest.xLgr)) then
+    AdicionaErro('726-Rejeição: NF-e sem a informação de endereço do destinatário');
 
-    GravaLog('Validar: 509-EX e município');
-    if (not SameText(NFe.Dest.EnderDest.UF, 'EX')) and
-       not ValidarMunicipio(NFe.Dest.EnderDest.cMun) then
-      AdicionaErro('509-Rejeição: Informado código de município diferente de "9999999" para operação com o exterior');
+  GravaLog('Validar: 509-EX e município');
+  if (not SameText(NFe.Dest.EnderDest.UF, 'EX')) and
+     not ValidarMunicipio(NFe.Dest.EnderDest.cMun) then
+    AdicionaErro('509-Rejeição: Informado código de município diferente de "9999999" para operação com o exterior');
 
-    GravaLog('Validar: 727-Op exterior e UF');
-    if (nfe.Ide.idDest = doExterior) and
-      (not SameText(NFe.Dest.EnderDest.UF, 'EX')) then
-      AdicionaErro('727-Rejeição: Operação com Exterior e UF diferente de EX');
+  GravaLog('Validar: 727-Op exterior e UF');
+  if (nfe.Ide.idDest = doExterior) and
+    (not SameText(NFe.Dest.EnderDest.UF, 'EX')) then
+    AdicionaErro('727-Rejeição: Operação com Exterior e UF diferente de EX');
 
-    GravaLog('Validar: 771-Op.Interstadual e UF EX');
-    if (nfe.Ide.idDest = doInterestadual) and
-       (SameText(NFe.Dest.EnderDest.UF, 'EX')) then
-      AdicionaErro('771-Rejeição: Operação Interestadual e UF de destino com EX');
+  GravaLog('Validar: 771-Op.Interstadual e UF EX');
+  if (nfe.Ide.idDest = doInterestadual) and
+     (SameText(NFe.Dest.EnderDest.UF, 'EX')) then
+    AdicionaErro('771-Rejeição: Operação Interestadual e UF de destino com EX');
 
-    GravaLog('Validar: 773-Op.Interna e UF diferente');
-    if (nfe.Ide.idDest = doInterna) and
-       (not SameText(NFe.Dest.EnderDest.UF, NFe.Emit.EnderEmit.UF)) and
-       (NFe.Ide.indPres <> pcPresencial) then
-      AdicionaErro('773-Rejeição: Operação Interna e UF de destino difere da UF do emitente - não presencial');
+  GravaLog('Validar: 773-Op.Interna e UF diferente');
+  if (nfe.Ide.idDest = doInterna) and
+     (not SameText(NFe.Dest.EnderDest.UF, NFe.Emit.EnderEmit.UF)) and
+     (NFe.Ide.indPres <> pcPresencial) then
+    AdicionaErro('773-Rejeição: Operação Interna e UF de destino difere da UF do emitente - não presencial');
 
-    GravaLog('Validar: 790-Op.Exterior e Destinatário ICMS');
-    if (NFe.Ide.idDest = doExterior) and
-       (NFe.Dest.indIEDest <> inNaoContribuinte) then
-      AdicionaErro('790-Rejeição: Operação com Exterior para destinatário Contribuinte de ICMS');
+  GravaLog('Validar: 790-Op.Exterior e Destinatário ICMS');
+  if (NFe.Ide.idDest = doExterior) and
+     (NFe.Dest.indIEDest <> inNaoContribuinte) then
+    AdicionaErro('790-Rejeição: Operação com Exterior para destinatário Contribuinte de ICMS');
 
-    if NFe.infNFe.Versao < 4 then
+  if NFe.infNFe.Versao < 4 then
+  begin
+    GravaLog('Validar: 768-NFe < 4.0 com formas de pagamento');
+    if (NFe.pag.Count > 0) then
+      AdicionaErro('768-Rejeição: NF-e não deve possuir o grupo de Formas de Pagamento');
+  end
+  else
+  begin
+    GravaLog('Validar: 769-NFe >= 4.0 sem formas pagamento');
+    if (NFe.pag.Count <= 0) then
+      AdicionaErro('769-Rejeição: NF-e deve possuir o grupo de Formas de Pagamento');
+  end;
+
+  if NFe.infNFe.Versao >= 4 then
+  begin
+    GravaLog('Validar: 864-Operação presencial, fora do estabelecimento e não informada campos refNFe');
+    if (NFe.Ide.indPres = pcPresencialForaEstabelecimento) and
+       (NFe.Ide.NFref.Count <= 0) then
+      AdicionaErro('864-Rejeição: NF-e com indicativo de Operação presencial, fora do estabelecimento e não informada NF referenciada');
+
+    GravaLog('Validar: 868-Se operação interestadual(idDest=2), não informar os Grupos Veiculo Transporte (id:X18; veicTransp) e Grupo Reboque (id: X22)');
+    if (NFe.Ide.idDest = doInterestadual) and
+       (((NaoEstaVazio(trim(NFe.Transp.veicTransp.placa))) or
+        (NaoEstaVazio(trim(NFe.Transp.veicTransp.UF))) or
+        (NaoEstaVazio(trim(NFe.Transp.veicTransp.RNTC)))) or
+        (nfe.Transp.Reboque.Count > 0)) then
+      AdicionaErro('868-Rejeição: Grupos Veiculo Transporte e Reboque não devem ser informados');
+
+    if NFe.Ide.finNFe in [fnNormal, fnComplementar] then
     begin
-      GravaLog('Validar: 768-NFe < 4.0 com formas de pagamento');
-      if (NFe.pag.Count > 0) then
-        AdicionaErro('768-Rejeição: NF-e não deve possuir o grupo de Formas de Pagamento');
-    end
-    else
-    begin
-      GravaLog('Validar: 769-NFe >= 4.0 sem formas pagamento');
-      if (NFe.pag.Count <= 0) then
-        AdicionaErro('769-Rejeição: NF-e deve possuir o grupo de Formas de Pagamento');
-    end;
+      GravaLog('Validar: 895-Valor do Desconto (vDesc, id:Y05) maior que o Valor Original da Fatura (vOrig, id:Y04)');
+      if (ComparaValor(nfe.Cobr.Fat.vDesc, nfe.Cobr.Fat.vOrig, TOLERANCIA_COMPARACAO_001) > 0) then
+        AdicionaErro('895-Rejeição: Valor do Desconto da Fatura maior que Valor Original da Fatura');
 
-    if NFe.infNFe.Versao >= 4 then
-    begin
-      GravaLog('Validar: 864-Operação presencial, fora do estabelecimento e não informada campos refNFe');
-      if (NFe.Ide.indPres = pcPresencialForaEstabelecimento) and
-         (NFe.Ide.NFref.Count <= 0) then
-        AdicionaErro('864-Rejeição: NF-e com indicativo de Operação presencial, fora do estabelecimento e não informada NF referenciada');
-
-      GravaLog('Validar: 868-Se operação interestadual(idDest=2), não informar os Grupos Veiculo Transporte (id:X18; veicTransp) e Grupo Reboque (id: X22)');
-      if (NFe.Ide.idDest = doInterestadual) and
-         (((NaoEstaVazio(trim(NFe.Transp.veicTransp.placa))) or
-          (NaoEstaVazio(trim(NFe.Transp.veicTransp.UF))) or
-          (NaoEstaVazio(trim(NFe.Transp.veicTransp.RNTC)))) or
-          (nfe.Transp.Reboque.Count > 0)) then
-        AdicionaErro('868-Rejeição: Grupos Veiculo Transporte e Reboque não devem ser informados');
-
-      if NFe.Ide.finNFe in [fnNormal, fnComplementar] then
-      begin
-        GravaLog('Validar: 895-Valor do Desconto (vDesc, id:Y05) maior que o Valor Original da Fatura (vOrig, id:Y04)');
-        if (ComparaValor(nfe.Cobr.Fat.vDesc, nfe.Cobr.Fat.vOrig, TOLERANCIA_COMPARACAO_001) > 0) then
-          AdicionaErro('895-Rejeição: Valor do Desconto da Fatura maior que Valor Original da Fatura');
-
-        GravaLog('Validar: 902-Valor Líquido da Fatura (vLiq, id:Y06) difere do Valor Original da Fatura (vOrig; id:Y04) – Valor do Desconto (vDesc, id:Y05)');
-        if (ComparaValor(nfe.Cobr.Fat.vLiq, (nfe.Cobr.Fat.vOrig - nfe.Cobr.Fat.vDesc), TOLERANCIA_COMPARACAO_001) <> 0) then
-          AdicionaErro('902-Rejeição: Valor Liquido da Fatura difere do Valor Original menos o Valor do Desconto');
+      GravaLog('Validar: 902-Valor Líquido da Fatura (vLiq, id:Y06) difere do Valor Original da Fatura (vOrig; id:Y04) – Valor do Desconto (vDesc, id:Y05)');
+      if (ComparaValor(nfe.Cobr.Fat.vLiq, (nfe.Cobr.Fat.vOrig - nfe.Cobr.Fat.vDesc), TOLERANCIA_COMPARACAO_001) <> 0) then
+        AdicionaErro('902-Rejeição: Valor Liquido da Fatura difere do Valor Original menos o Valor do Desconto');
 
 //          GravaLog('Validar: 897-Valor Líquido da Fatura/Valor Original da Fatura maior que o Valor Total da Nota Fiscal');
 //          if (((nfe.Cobr.Fat.vLiq > 0) and (nfe.Cobr.Fat.vLiq > nfe.Total.ICMSTot.vNF)) or
 //              ((nfe.Cobr.Fat.vOrig > nfe.Total.ICMSTot.vNF)))then
 //            AdicionaErro('897-Rejeição: Valor da Fatura maior que Valor Total da NF-e');
 
-        fsvDup := 0;
-        UltVencto := DateOf(NFe.Ide.dEmi);
-        for I:=0 to nfe.Cobr.Dup.Count-1 do
-        begin
-          fsvDup := fsvDup + nfe.Cobr.Dup.Items[I].vDup;
+      fsvDup := 0;
+      UltVencto := DateOf(NFe.Ide.dEmi);
+      for I:=0 to nfe.Cobr.Dup.Count-1 do
+      begin
+        fsvDup := fsvDup + nfe.Cobr.Dup.Items[I].vDup;
 
-          GravaLog('Validar: 857-Se informado o Grupo Parcelas de cobrança (tag:dup, Id:Y07), Número da parcela (nDup, id:Y08) não informado ou inválido.');
-          if EstaVazio(nfe.Cobr.Dup.Items[I].nDup) then
-            AdicionaErro('857-Rejeição: Número da parcela inválido ou não informado');
+        GravaLog('Validar: 857-Se informado o Grupo Parcelas de cobrança (tag:dup, Id:Y07), Número da parcela (nDup, id:Y08) não informado ou inválido.');
+        if EstaVazio(nfe.Cobr.Dup.Items[I].nDup) then
+          AdicionaErro('857-Rejeição: Número da parcela inválido ou não informado');
 
-          //898 - Verificar DATA de autorização
+        //898 - Verificar DATA de autorização
 
-          GravaLog('Validar: 894-Se informado o grupo de Parcelas de cobrança (tag:dup, Id:Y07) e Data de vencimento (dVenc, id:Y09) não informada ou menor que a Data de Emissão (id:B09)');
-          if (nfe.Cobr.Dup.Items[I].dVenc < DateOf(NFe.Ide.dEmi)) then
-            AdicionaErro('894-Rejeição: Data de vencimento da parcela não informada ou menor que Data de Emissão');
+        GravaLog('Validar: 894-Se informado o grupo de Parcelas de cobrança (tag:dup, Id:Y07) e Data de vencimento (dVenc, id:Y09) não informada ou menor que a Data de Emissão (id:B09)');
+        if (nfe.Cobr.Dup.Items[I].dVenc < DateOf(NFe.Ide.dEmi)) then
+          AdicionaErro('894-Rejeição: Data de vencimento da parcela não informada ou menor que Data de Emissão');
 
-          GravaLog('Validar: 867-Se informado o grupo de Parcelas de cobrança (tag:dup, Id:Y07) e Data de vencimento (dVenc, id:Y09) não informada ou menor que a Data de vencimento da parcela anterior (dVenc, id:Y09)');
-          if (nfe.Cobr.Dup.Items[I].dVenc < UltVencto) then
-            AdicionaErro('867-Rejeição: Data de vencimento da parcela não informada ou menor que a Data de vencimento da parcela anterior');
+        GravaLog('Validar: 867-Se informado o grupo de Parcelas de cobrança (tag:dup, Id:Y07) e Data de vencimento (dVenc, id:Y09) não informada ou menor que a Data de vencimento da parcela anterior (dVenc, id:Y09)');
+        if (nfe.Cobr.Dup.Items[I].dVenc < UltVencto) then
+          AdicionaErro('867-Rejeição: Data de vencimento da parcela não informada ou menor que a Data de vencimento da parcela anterior');
 
-          UltVencto := nfe.Cobr.Dup.Items[I].dVenc;
-        end;
-
-        GravaLog('Validar: 851-Se informado o grupo de Parcelas de cobrança (tag:dup, Id:Y07) e a soma do valor das parcelas (vDup, id: Y10) difere do Valor Líquido da Fatura (vLiq, id:Y06).');
-        //porque se não tiver parcela não tem valor para ser verificado
-        if (nfe.Cobr.Dup.Count > 0) and (((ComparaValor(nfe.Cobr.Fat.vLiq, 0, TOLERANCIA_COMPARACAO_001) > 0) and (ComparaValor(fsvDup, nfe.Cobr.Fat.vLiq, TOLERANCIA_COMPARACAO_001) < 0)) or
-           (ComparaValor(fsvDup, (nfe.Cobr.Fat.vOrig-nfe.Cobr.Fat.vDesc), TOLERANCIA_COMPARACAO_001) < 0)) then
-          AdicionaErro('851-Rejeição: Soma do valor das parcelas difere do Valor Líquido da Fatura');
+        UltVencto := nfe.Cobr.Dup.Items[I].dVenc;
       end;
+
+      GravaLog('Validar: 851-Se informado o grupo de Parcelas de cobrança (tag:dup, Id:Y07) e a soma do valor das parcelas (vDup, id: Y10) difere do Valor Líquido da Fatura (vLiq, id:Y06).');
+      //porque se não tiver parcela não tem valor para ser verificado
+      if (nfe.Cobr.Dup.Count > 0) and (((ComparaValor(nfe.Cobr.Fat.vLiq, 0, TOLERANCIA_COMPARACAO_001) > 0) and (ComparaValor(fsvDup, nfe.Cobr.Fat.vLiq, TOLERANCIA_COMPARACAO_001) < 0)) or
+         (ComparaValor(fsvDup, (nfe.Cobr.Fat.vOrig-nfe.Cobr.Fat.vDesc), TOLERANCIA_COMPARACAO_001) < 0)) then
+        AdicionaErro('851-Rejeição: Soma do valor das parcelas difere do Valor Líquido da Fatura');
     end;
+  end;
 end;
 
 procedure TNFeValidarRegras.RegrasValidasSomenteParaNFCe;
 begin
   ValidarRegra789;
 
-    GravaLog('Validar: 704-NFCe Data atrasada');
-    if (NFe.Ide.dEmi < IncMinute(FpAgora,-10)) and
-      (NFe.Ide.tpEmis in [teNormal, teSCAN, teSVCAN, teSVCRS]) then
-      //B09-40
-      AdicionaErro('704-Rejeição: NFC-e com Data-Hora de emissão atrasada');
+  GravaLog('Validar: 704-NFCe Data atrasada');
+  if (NFe.Ide.dEmi < IncMinute(FpAgora,-10)) and
+    (NFe.Ide.tpEmis in [teNormal, teSCAN, teSVCAN, teSVCRS]) then
+    //B09-40
+    AdicionaErro('704-Rejeição: NFC-e com Data-Hora de emissão atrasada');
 
-    GravaLog('Validar: 705-NFCe Data de entrada/saida');
-    if (NFe.Ide.dSaiEnt <> 0) then  //B10-10
-      AdicionaErro('705-Rejeição: NFC-e com data de entrada/saída');
+  GravaLog('Validar: 705-NFCe Data de entrada/saida');
+  if (NFe.Ide.dSaiEnt <> 0) then  //B10-10
+    AdicionaErro('705-Rejeição: NFC-e com data de entrada/saída');
 
-    GravaLog('Validar: 706-NFCe operação entrada');
-    if (NFe.Ide.tpNF = tnEntrada) then  //B11-10
-      AdicionaErro('706-Rejeição: NFC-e para operação de entrada');
+  GravaLog('Validar: 706-NFCe operação entrada');
+  if (NFe.Ide.tpNF = tnEntrada) then  //B11-10
+    AdicionaErro('706-Rejeição: NFC-e para operação de entrada');
 
-    GravaLog('Validar: 707-NFCe operação interestadual');
-    if (NFe.Ide.idDest <> doInterna) then  //B11-10
-      AdicionaErro('707-NFC-e para operação interestadual ou com o exterior');
+  GravaLog('Validar: 707-NFCe operação interestadual');
+  if (NFe.Ide.idDest <> doInterna) then  //B11-10
+    AdicionaErro('707-NFC-e para operação interestadual ou com o exterior');
 
-    GravaLog('Validar: 709-NFCe formato DANFE');
-    if (not (NFe.Ide.tpImp in [tiNFCe, tiMsgEletronica])) then
-      //B21-10
-      AdicionaErro('709-Rejeição: NFC-e com formato de DANFE inválido');
+  GravaLog('Validar: 709-NFCe formato DANFE');
+  if (not (NFe.Ide.tpImp in [tiNFCe, tiMsgEletronica])) then
+    //B21-10
+    AdicionaErro('709-Rejeição: NFC-e com formato de DANFE inválido');
 
-    GravaLog('Validar: 782-NFCe e SCAN');
-    if (NFe.Ide.tpEmis = teSCAN) then //B22-50
-      AdicionaErro('782-Rejeição: NFC-e não é autorizada pelo SCAN');
+  GravaLog('Validar: 782-NFCe e SCAN');
+  if (NFe.Ide.tpEmis = teSCAN) then //B22-50
+    AdicionaErro('782-Rejeição: NFC-e não é autorizada pelo SCAN');
 
-    GravaLog('Validar: 783-NFCe e SVC');
-    if (NFe.Ide.tpEmis in [teSVCAN, teSVCRS]) then  //B22-70
-      AdicionaErro('783-Rejeição: NFC-e não é autorizada pela SVC');
+  GravaLog('Validar: 783-NFCe e SVC');
+  if (NFe.Ide.tpEmis in [teSVCAN, teSVCRS]) then  //B22-70
+    AdicionaErro('783-Rejeição: NFC-e não é autorizada pela SVC');
 
-    GravaLog('Validar: 715-NFCe finalidade');
-    if (NFe.Ide.finNFe <> fnNormal) then  //B25-20
-      AdicionaErro('715-Rejeição: Rejeição: NFC-e com finalidade inválida');
+  GravaLog('Validar: 715-NFCe finalidade');
+  if (NFe.Ide.finNFe <> fnNormal) then  //B25-20
+    AdicionaErro('715-Rejeição: Rejeição: NFC-e com finalidade inválida');
 
-    GravaLog('Validar: 716-NFCe operação');
-    if (NFe.Ide.indFinal = cfNao) then //B25a-10
-      AdicionaErro('716-Rejeição: NFC-e em operação não destinada a consumidor final');
+  GravaLog('Validar: 716-NFCe operação');
+  if (NFe.Ide.indFinal = cfNao) then //B25a-10
+    AdicionaErro('716-Rejeição: NFC-e em operação não destinada a consumidor final');
 
-    GravaLog('Validar: 717-NFCe entrega');
-    if (not (NFe.Ide.indPres in [pcPresencial, pcEntregaDomicilio])) then
-      //B25b-20
-      AdicionaErro('717-Rejeição: NFC-e em operação não presencial');
+  GravaLog('Validar: 717-NFCe entrega');
+  if (not (NFe.Ide.indPres in [pcPresencial, pcEntregaDomicilio])) then
+    //B25b-20
+    AdicionaErro('717-Rejeição: NFC-e em operação não presencial');
 
-    GravaLog('Validar: 785-NFCe entrega e UF');
-    if (NFe.Ide.indPres = pcEntregaDomicilio) and
-      (AnsiIndexStr(NFe.Emit.EnderEmit.UF, ['XX']) <> -1) then
-      //B25b-30  Qual estado não permite entrega a domicílio?
-      AdicionaErro('785-Rejeição: NFC-e com entrega a domicílio não permitida pela UF');
+  GravaLog('Validar: 785-NFCe entrega e UF');
+  if (NFe.Ide.indPres = pcEntregaDomicilio) and
+    (AnsiIndexStr(NFe.Emit.EnderEmit.UF, ['XX']) <> -1) then
+    //B25b-30  Qual estado não permite entrega a domicílio?
+    AdicionaErro('785-Rejeição: NFC-e com entrega a domicílio não permitida pela UF');
 
-    GravaLog('Validar: 708-NFCe referenciada');
-    if (NFe.Ide.NFref.Count > 0) then
-      AdicionaErro('708-Rejeição: NFC-e não pode referenciar documento fiscal');
+  GravaLog('Validar: 708-NFCe referenciada');
+  if (NFe.Ide.NFref.Count > 0) then
+    AdicionaErro('708-Rejeição: NFC-e não pode referenciar documento fiscal');
 
-    GravaLog('Validar: 718-NFCe e IE de ST');
-    if NaoEstaVazio(Trim(NFe.Emit.IEST)) then
-      AdicionaErro('718-Rejeição: NFC-e não deve informar IE de Substituto Tributário');
+  GravaLog('Validar: 718-NFCe e IE de ST');
+  if NaoEstaVazio(Trim(NFe.Emit.IEST)) then
+    AdicionaErro('718-Rejeição: NFC-e não deve informar IE de Substituto Tributário');
 
-    GravaLog('Validar: 787-NFCe entrega e Identificação');
-    if (NFe.Ide.indPres = pcEntregaDomicilio) and
-      EstaVazio(Trim(nfe.Entrega.xLgr)) and
-      EstaVazio(Trim(nfe.Dest.EnderDest.xLgr)) then
-      AdicionaErro('787-Rejeição: NFC-e de entrega a domicílio sem a identificação do destinatário');
+  GravaLog('Validar: 787-NFCe entrega e Identificação');
+  if (NFe.Ide.indPres = pcEntregaDomicilio) and
+    EstaVazio(Trim(nfe.Entrega.xLgr)) and
+    EstaVazio(Trim(nfe.Dest.EnderDest.xLgr)) then
+    AdicionaErro('787-Rejeição: NFC-e de entrega a domicílio sem a identificação do destinatário');
 
-    GravaLog('Validar: 729-NFCe IE destinatário');
-    if NaoEstaVazio(Trim(NFe.Dest.IE)) then
-      AdicionaErro('729-Rejeição: NFC-e com informação da IE do destinatário');
+  GravaLog('Validar: 729-NFCe IE destinatário');
+  if NaoEstaVazio(Trim(NFe.Dest.IE)) then
+    AdicionaErro('729-Rejeição: NFC-e com informação da IE do destinatário');
 
-    GravaLog('Validar: 730-NFCe e SUFRAMA');
-    if NaoEstaVazio(Trim(NFe.Dest.ISUF)) then
-      AdicionaErro('730-Rejeição: NFC-e com Inscrição Suframa');
+  GravaLog('Validar: 730-NFCe e SUFRAMA');
+  if NaoEstaVazio(Trim(NFe.Dest.ISUF)) then
+    AdicionaErro('730-Rejeição: NFC-e com Inscrição Suframa');
 
-    GravaLog('Validar: 753-NFCe e Frete');
-    if (NFe.Transp.modFrete <> mfSemFrete) and
-       (NFe.Ide.indPres <> pcEntregaDomicilio)then
-      AdicionaErro('753-Rejeição: NFC-e com Frete');
+  GravaLog('Validar: 753-NFCe e Frete');
+  if (NFe.Transp.modFrete <> mfSemFrete) and
+     (NFe.Ide.indPres <> pcEntregaDomicilio)then
+    AdicionaErro('753-Rejeição: NFC-e com Frete');
 
-    GravaLog('Validar: 754-NFCe e dados Transporte');
-    if (NFe.Ide.indPres <> pcEntregaDomicilio) and
-       ((NaoEstaVazio(trim(NFe.Transp.Transporta.CNPJCPF))) or
-       (NaoEstaVazio(trim(NFe.Transp.Transporta.xNome))) or
-       (NaoEstaVazio(trim(NFe.Transp.Transporta.IE))) or
-       (NaoEstaVazio(trim(NFe.Transp.Transporta.xEnder))) or
-       (NaoEstaVazio(trim(NFe.Transp.Transporta.xMun))) or
-       (NaoEstaVazio(trim(NFe.Transp.Transporta.UF)))) then
-      AdicionaErro('754-Rejeição: NFC-e com dados do Transportador');
+  GravaLog('Validar: 754-NFCe e dados Transporte');
+  if (NFe.Ide.indPres <> pcEntregaDomicilio) and
+     ((NaoEstaVazio(trim(NFe.Transp.Transporta.CNPJCPF))) or
+     (NaoEstaVazio(trim(NFe.Transp.Transporta.xNome))) or
+     (NaoEstaVazio(trim(NFe.Transp.Transporta.IE))) or
+     (NaoEstaVazio(trim(NFe.Transp.Transporta.xEnder))) or
+     (NaoEstaVazio(trim(NFe.Transp.Transporta.xMun))) or
+     (NaoEstaVazio(trim(NFe.Transp.Transporta.UF)))) then
+    AdicionaErro('754-Rejeição: NFC-e com dados do Transportador');
 
-    GravaLog('Validar: 786-NFCe entrega domicilio e dados Transporte');
-    if (NFe.Ide.indPres = pcEntregaDomicilio) and
-       ((EstaVazio(trim(NFe.Transp.Transporta.CNPJCPF))) or
-       (EstaVazio(trim(NFe.Transp.Transporta.xNome)))) then
-      AdicionaErro('786-Rejeição: NFC-e de entrega a domicílio sem dados do Transportador');
+  GravaLog('Validar: 786-NFCe entrega domicilio e dados Transporte');
+  if (NFe.Ide.indPres = pcEntregaDomicilio) and
+     ((EstaVazio(trim(NFe.Transp.Transporta.CNPJCPF))) or
+     (EstaVazio(trim(NFe.Transp.Transporta.xNome)))) then
+    AdicionaErro('786-Rejeição: NFC-e de entrega a domicílio sem dados do Transportador');
 
-    GravaLog('Validar: 755-NFCe retenção ICMS Transporte');
-    if (ComparaValor(NFe.Transp.retTransp.vServ, 0, TOLERANCIA_COMPARACAO_001) > 0) or
-       (ComparaValor(NFe.Transp.retTransp.vBCRet, 0, TOLERANCIA_COMPARACAO_001) > 0) or
-       (ComparaValor(NFe.Transp.retTransp.pICMSRet, 0, TOLERANCIA_COMPARACAO_001) > 0) or
-       (ComparaValor(NFe.Transp.retTransp.vICMSRet, 0, TOLERANCIA_COMPARACAO_001) > 0) or
-       (NaoEstaVazio(Trim(NFe.Transp.retTransp.CFOP))) or
-       (ComparaValor(NFe.Transp.retTransp.cMunFG, 0, TOLERANCIA_COMPARACAO_001) > 0) then
-      AdicionaErro('755-Rejeição: NFC-e com dados de Retenção do ICMS no Transporte');
+  GravaLog('Validar: 755-NFCe retenção ICMS Transporte');
+  if (ComparaValor(NFe.Transp.retTransp.vServ, 0, TOLERANCIA_COMPARACAO_001) > 0) or
+     (ComparaValor(NFe.Transp.retTransp.vBCRet, 0, TOLERANCIA_COMPARACAO_001) > 0) or
+     (ComparaValor(NFe.Transp.retTransp.pICMSRet, 0, TOLERANCIA_COMPARACAO_001) > 0) or
+     (ComparaValor(NFe.Transp.retTransp.vICMSRet, 0, TOLERANCIA_COMPARACAO_001) > 0) or
+     (NaoEstaVazio(Trim(NFe.Transp.retTransp.CFOP))) or
+     (ComparaValor(NFe.Transp.retTransp.cMunFG, 0, TOLERANCIA_COMPARACAO_001) > 0) then
+    AdicionaErro('755-Rejeição: NFC-e com dados de Retenção do ICMS no Transporte');
 
-    GravaLog('Validar: 756-NFCe dados veiculo Transporte');
-    if (NaoEstaVazio(Trim(NFe.Transp.veicTransp.placa))) or
-       (NaoEstaVazio(Trim(NFe.Transp.veicTransp.UF))) or
-       (NaoEstaVazio(Trim(NFe.Transp.veicTransp.RNTC))) then
-      AdicionaErro('756-Rejeição: NFC-e com dados do veículo de Transporte');
+  GravaLog('Validar: 756-NFCe dados veiculo Transporte');
+  if (NaoEstaVazio(Trim(NFe.Transp.veicTransp.placa))) or
+     (NaoEstaVazio(Trim(NFe.Transp.veicTransp.UF))) or
+     (NaoEstaVazio(Trim(NFe.Transp.veicTransp.RNTC))) then
+    AdicionaErro('756-Rejeição: NFC-e com dados do veículo de Transporte');
 
-    GravaLog('Validar: 757-NFCe dados reboque Transporte');
-    if NFe.Transp.Reboque.Count > 0 then
-      AdicionaErro('757-Rejeição: NFC-e com dados de Reboque do veículo de Transporte');
+  GravaLog('Validar: 757-NFCe dados reboque Transporte');
+  if NFe.Transp.Reboque.Count > 0 then
+    AdicionaErro('757-Rejeição: NFC-e com dados de Reboque do veículo de Transporte');
 
-    GravaLog('Validar: 758-NFCe dados vagão Transporte');
-    if NaoEstaVazio(Trim(NFe.Transp.vagao)) then
-      AdicionaErro('758-Rejeição: NFC-e com dados do Vagão de Transporte');
+  GravaLog('Validar: 758-NFCe dados vagão Transporte');
+  if NaoEstaVazio(Trim(NFe.Transp.vagao)) then
+    AdicionaErro('758-Rejeição: NFC-e com dados do Vagão de Transporte');
 
-    GravaLog('Validar: 759-NFCe dados Balsa Transporte');
-    if NaoEstaVazio(Trim(NFe.Transp.balsa)) then
-      AdicionaErro('759-Rejeição: NFC-e com dados da Balsa de Transporte');
+  GravaLog('Validar: 759-NFCe dados Balsa Transporte');
+  if NaoEstaVazio(Trim(NFe.Transp.balsa)) then
+    AdicionaErro('759-Rejeição: NFC-e com dados da Balsa de Transporte');
 
-    GravaLog('Validar: 760-NFCe entrega dados cobrança');
-    if (NaoEstaVazio(Trim(nfe.Cobr.Fat.nFat))) or
-       (ComparaValor(NFe.Cobr.Fat.vOrig, 0, TOLERANCIA_COMPARACAO_001) > 0) or
-       (ComparaValor(NFe.Cobr.Fat.vDesc, 0, TOLERANCIA_COMPARACAO_001) > 0) or
-       (ComparaValor(NFe.Cobr.Fat.vLiq, 0, TOLERANCIA_COMPARACAO_001) > 0) or
-       (NFe.Cobr.Dup.Count > 0) then
-      AdicionaErro('760-Rejeição: NFC-e com dados de cobrança (Fatura, Duplicata)');
+  GravaLog('Validar: 760-NFCe entrega dados cobrança');
+  if (NaoEstaVazio(Trim(nfe.Cobr.Fat.nFat))) or
+     (ComparaValor(NFe.Cobr.Fat.vOrig, 0, TOLERANCIA_COMPARACAO_001) > 0) or
+     (ComparaValor(NFe.Cobr.Fat.vDesc, 0, TOLERANCIA_COMPARACAO_001) > 0) or
+     (ComparaValor(NFe.Cobr.Fat.vLiq, 0, TOLERANCIA_COMPARACAO_001) > 0) or
+     (NFe.Cobr.Dup.Count > 0) then
+    AdicionaErro('760-Rejeição: NFC-e com dados de cobrança (Fatura, Duplicata)');
 
-    GravaLog('Validar: 769-NFCe formas pagamento');
-    if NFe.pag.Count <= 0 then
-      AdicionaErro('769-Rejeição: NFC-e deve possuir o grupo de Formas de Pagamento');
+  GravaLog('Validar: 769-NFCe formas pagamento');
+  if NFe.pag.Count <= 0 then
+    AdicionaErro('769-Rejeição: NFC-e deve possuir o grupo de Formas de Pagamento');
 
-    GravaLog('Validar: 762-NFCe dados de compra');
-    if Trim(NFe.compra.xNEmp) + Trim(NFe.compra.xPed) + Trim(NFe.compra.xCont) <> '' then
-      AdicionaErro('762-Rejeição: NFC-e com dados de compras (Empenho, Pedido, Contrato)');
+  GravaLog('Validar: 762-NFCe dados de compra');
+  if Trim(NFe.compra.xNEmp) + Trim(NFe.compra.xPed) + Trim(NFe.compra.xCont) <> '' then
+    AdicionaErro('762-Rejeição: NFC-e com dados de compras (Empenho, Pedido, Contrato)');
 
-    GravaLog('Validar: 763-NFCe dados cana');
-    if NaoEstaVazio(Trim(NFe.cana.safra)) or NaoEstaVazio(Trim(NFe.cana.ref)) or
-       (NFe.cana.fordia.Count > 0) or (NFe.cana.deduc.Count > 0) then
-      AdicionaErro('763-Rejeição: NFC-e com dados de aquisição de Cana');
-
+  GravaLog('Validar: 763-NFCe dados cana');
+  if NaoEstaVazio(Trim(NFe.cana.safra)) or NaoEstaVazio(Trim(NFe.cana.ref)) or
+     (NFe.cana.fordia.Count > 0) or (NFe.cana.deduc.Count > 0) then
+    AdicionaErro('763-Rejeição: NFC-e com dados de aquisição de Cana');
 end;
 
 procedure TNFeValidarRegras.AdicionaErro(const Erro: string);
@@ -1085,7 +1071,7 @@ begin
   if (ComparaValor(NFe.Total.ICMSTot.vDesc, fsvDesc, TOLERANCIA_COMPARACAO_001) <> 0) then
     AdicionaErro('537-Rejeição: Total do Desconto difere do somatório dos itens');
 
-GravaLog('Validar: 601-Total II');
+  GravaLog('Validar: 601-Total II');
   if (ComparaValor(NFe.Total.ICMSTot.vII, fsvII, TOLERANCIA_COMPARACAO_001) <> 0) then
     AdicionaErro('601-Rejeição: Total do II difere do somatório dos itens');
 
@@ -1248,7 +1234,6 @@ var
   i: Integer;
   DFeRef: Boolean;
 begin
-  DFeRef := False;
   i := 0;
   repeat
     DFeRef := NaoEstaVazio(NFe.Det[i].DFeReferenciado.chaveAcesso);
@@ -1262,6 +1247,28 @@ begin
       //B25-70
       AdicionaErro('321-Rejeição: NF-e devolução não possui NF referenciada');
   end;
+end;
+
+procedure TNFeValidarRegras.ValidarRegra504;
+begin
+  GravaLog('Validar: 504-Saida > 30');
+  if ((NFe.Ide.dSaiEnt - FpAgora) > 30) then  //B10-20  - Facultativo
+    AdicionaErro('504-Rejeição: Data de Entrada/Saída posterior ao permitido');
+end;
+
+procedure TNFeValidarRegras.ValidarRegra505;
+begin
+  GravaLog('Validar: 505-Saida < 30');
+  if (NFe.Ide.dSaiEnt <> 0) and ((FpAgora - NFe.Ide.dSaiEnt) > 30) then  //B10-30  - Facultativo
+    AdicionaErro('505-Rejeição: Data de Entrada/Saída anterior ao permitido');
+end;
+
+procedure TNFeValidarRegras.ValidarRegra506;
+begin
+  GravaLog('Validar: 506-Saida < Emissao');
+  if (NFe.Ide.dSaiEnt <> 0) and (NFe.Ide.dSaiEnt < NFe.Ide.dEmi) then
+    //B10-40  - Facultativo
+    AdicionaErro('506-Rejeição: Data de Saída menor que a Data de Emissão');
 end;
 
 procedure TNFeValidarRegras.ValidarRegra512;
@@ -1288,11 +1295,32 @@ begin
     AdicionaErro('703-Rejeição: Data-Hora de Emissão posterior ao horário de recebimento');
 end;
 
+procedure TNFeValidarRegras.ValidarRegra710;
+begin
+  GravaLog('Validar: 710-Formato DANFE');
+  if (NFe.Ide.tpImp in [tiNFCe, tiMsgEletronica]) then  //B21-20
+    AdicionaErro('710-Rejeição: NF-e com formato de DANFE inválido');
+end;
+
+procedure TNFeValidarRegras.ValidarRegra711;
+begin
+  GravaLog('Validar: 711-NFe off-line');
+  if (NFe.Ide.tpEmis = teOffLine) and (NFe.Ide.tpImp <> tiSimplificadoTipo2) then  //B22-10
+    AdicionaErro('711-Rejeição: NF-e com contingência off-line em operação não permitida');
+end;
+
 procedure TNFeValidarRegras.ValidarRegra789;
 begin
   GravaLog('Validar: 789-NFCe e destinatário');
   if (NFe.Dest.indIEDest <> inNaoContribuinte) then
     AdicionaErro('789-Rejeição: NFC-e para destinatário contribuinte de ICMS');
+end;
+
+procedure TNFeValidarRegras.ValidarRegra794;
+begin
+  GravaLog('Validar: 794-NFe e domicício NFCe');
+  if (NFe.Ide.indPres = pcEntregaDomicilio) and (NFe.Ide.tpImp <> tiSimplificadoTipo2) then //B25b-10
+    AdicionaErro('794-Rejeição: NF-e com indicativo de NFC-e com entrega a domicílio');
 end;
 
 procedure TNFeValidarRegras.ValidarRegra897;

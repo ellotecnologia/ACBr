@@ -57,6 +57,7 @@ type
     function GerarXMLDestinatario(Dest: TDadosdaPessoa): TACBrXmlNode; override;
     function GerarValores: TACBrXmlNode; override;
     function GerarServico: TACBrXmlNode; override;
+    function GerarEnderecoTomador: TACBrXmlNode; override;
 
     procedure GerarINISecaoServicos(const AINIRec: TMemIniFile); override;
     procedure GerarINISecaoDadosDeducao(const AINIRec: TMemIniFile;
@@ -158,6 +159,23 @@ begin
 
   Result.AppendChild(AddNode(tcDe2, '#', 'ValorADeduzir', 1, 15, 0,
                     NFSe.Servico.ItemServico[Item].DadosDeducao.ValorADeduzir));
+end;
+
+function TNFSeW_Elotech203.GerarEnderecoTomador: TACBrXmlNode;
+var
+  lNrOcorrCodigoPaisTomador: Integer;
+begin
+  lNrOcorrCodigoPaisTomador := NrOcorrCodigoPaisTomador;
+  try
+    if NFSe.Servico.ExigibilidadeISS = exiExportacao then
+      NrOcorrCodigoPaisTomador := 1
+    else
+      NrOcorrCodigoPaisTomador := lNrOcorrCodigoPaisTomador;
+
+    Result := inherited GerarEnderecoTomador;
+  finally
+    NrOcorrCodigoPaisTomador := lNrOcorrCodigoPaisTomador;
+  end;
 end;
 
 function TNFSeW_Elotech203.GerarItemServico: TACBrXmlNodeArray;
@@ -297,6 +315,13 @@ begin
 
   Result.AppendChild(AddNode(tcDe2, '#23', 'OutrasRetencoes', 1, 15, 0,
                     NFSe.Servico.Valores.OutrasRetencoes, DSC_OUTRASRETENCOES));
+
+  if NFSe.Servico.Valores.OutrasRetencoes > 0 then
+    Result.AppendChild(AddNode(tcStr, '#23', 'RetidoOutrasRetencoes', 1, 1, 1,
+                                         FpAOwner.SimNaoToStr(snSim), DSC_VPIS))
+  else
+    Result.AppendChild(AddNode(tcStr, '#23', 'RetidoOutrasRetencoes', 1, 1, 1,
+                                        FpAOwner.SimNaoToStr(snNao), DSC_VPIS));
 
   Result.AppendChild(AddNode(tcDe2, '#23', 'ValTotTributos', 1, 15, 0,
                                   NFSe.Servico.Valores.ValorTotalTributos, ''));

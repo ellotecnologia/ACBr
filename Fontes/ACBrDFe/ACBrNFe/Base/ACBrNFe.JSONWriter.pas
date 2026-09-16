@@ -37,9 +37,17 @@ unit ACBrNFe.JSONWriter;
 interface
 
 uses
-  Classes, SysUtils, ACBrJSON, ACBrNFe.Classes, pcnConversao, pcnConversaoNFe;
+  Classes, SysUtils,
+  ACBrJSON,
+  ACBrDFe.RTC.Classes,
+  ACBrNFe.Classes,
+  ACBrDFe.Conversao,
+  pcnConversaoNFe;
 
 type
+
+  { TNFeJSONWriter }
+
   TNFeJSONWriter = class
   private
     FNFe: TNFe;
@@ -117,33 +125,36 @@ type
 
     // Reforma Tributria
     procedure Gerar_gCompraGov(const AgCompraGov: TgCompraGov; AJSONObject: TACBrJSONObject);
-    procedure Gerar_gPagAntecipado(const AGPagAntecipado: TgPagAntecipadoCollection; AJSONObject: TACBrJSONObject);
+    procedure Gerar_gPagAntecipado(const AGPagAntecipado: TgPagAntecipado; AJSONObject: TACBrJSONObject);
     procedure Gerar_ISel(const AISel: TgIS; AJSONObject: TACBrJSONObject);
     procedure Gerar_IBSCBS(const AIBSCBS: TIBSCBS; AJSONObject: TACBrJSONObject);
     procedure Gerar_IBSCBS_gIBSCBS(const AGIBSCBS: TgIBSCBS; AJSONObject: TACBrJSONObject);
     procedure Gerar_IBSCBS_gIBSCBSMono(const AIBSCBSMono: TgIBSCBSMono; AJSONObject: TACBrJSONObject);
+{
     procedure Gerar_IBSCBS_gIBSCBSMono_gMonoPadrao(const AGMonoPadrao: TgMonoPadrao; AJSONObject: TACBrJSONObject);
     procedure Gerar_IBSCBS_gIBSCBSMono_gMonoReten(const AGMonoReten: TgMonoReten; AJSONObject: TACBrJSONObject);
     procedure Gerar_IBSCBS_gIBSCBSMono_gMonoRet(const AGMonoRet: TgMonoRet; AJSONObject: TACBrJSONObject);
     procedure Gerar_IBSCBS_gIBSCBSMono_gMonoDif(const AGMonoDif: TgMonoDif; AJSONObject: TACBrJSONObject);
+}
     procedure Gerar_IBSCBS_gTransfCred(const AGTransfCred: TgTransfCred; AJSONObject: TACBrJSONObject);
     procedure Gerar_IBSCBS_gCredPresIBSZFM(const AGCredPresIBSZFM: TCredPresIBSZFM; AJSONObject: TACBrJSONObject);
-    procedure Gerar_IBSCBS_gIBSCBS_gIBSUF(const AIBSUF: TgIBSUF; AJSONObject: TACBrJSONObject);
+    procedure Gerar_IBSCBS_gIBSCBS_gIBSUF(const AIBSUF: TgIBSUFValores; AJSONObject: TACBrJSONObject);
     procedure Gerar_IBSCBS_gIBSCBS_gIBSCBSUFMun_gDevTrib(const AGDevTrib: TgDevTrib; AJSONObject: TACBrJSONObject);
     procedure Gerar_IBSCBS_gIBSCBS_gIBSCBSUFMun_gRed(const AGRed: TgRed; AJSONObject: TACBrJSONObject);
-    procedure Gerar_IBSCBS_gIBSCBS_gIBSMun(const AIBSMun: TgIBSMun; AJSONObject: TACBrJSONObject);
-    procedure Gerar_IBSCBS_gIBSCBS_gCBS(const AGCBS: TgCBS; AJSONObject: TACBrJSONObject);
+    procedure Gerar_IBSCBS_gIBSCBS_gIBSMun(const AIBSMun: TgIBSMunValores; AJSONObject: TACBrJSONObject);
+    procedure Gerar_IBSCBS_gIBSCBS_gCBS(const AGCBS: TgCBSValores; AJSONObject: TACBrJSONObject);
     procedure Gerar_IBSCBS_gIBSCBS__gDif(const AGDif: TgDif; AJSONObject: TACBrJSONObject);
     procedure Gerar_IBSCBS_gIBSCBS_gTribRegular(const AGTribRegular: TgTribRegular; AJSONObject: TACBrJSONObject);
     procedure Gerar_IBSCBS_gIBSCBS_gIBSCBSCredPres(const AGIBSCredPres: TgIBSCBSCredPres; const AKeyName: String; AJSONObject: TACBrJSONObject);
     procedure Gerar_IBSCBS_gIBSCBS_gTribCompraGov(const AGTribCompraGov: TgTribCompraGov; AJSONObject: TACBrJSONObject);
+    procedure Gerar_IBSCBS_gIBSCBS_gALCZFMCBS(const AgALCZFMCBS: TgALCZFMCBS; AJSONObject: TACBrJSONObject);
     procedure Gerar_Det_DFeReferenciado(const ADFeReferenciado: TDFeReferenciado; AJSONObject: TACBrJSONObject);
     procedure Gerar_ISTot(const AISTot: TISTot; AJSONObject: TACBrJSONObject);
     procedure Gerar_IBSCBSTot(const AIBSCBSTot: TIBSCBSTot; AJSONObject: TACBrJSONObject);
-    procedure Gerar_IBSCBSTot_gIBS(const AGIBS: TgIBSTot; AJSONObject: TACBrJSONObject);
+    procedure Gerar_IBSCBSTot_gIBS(const AGIBS: TgIBS; AJSONObject: TACBrJSONObject);
     procedure Gerar_IBSCBSTot_gIBS_gIBSUFTot(const AGIBSUFTot: TgIBSUFTot; AJSONObject: TACBrJSONObject);
     procedure Gerar_IBSCBSTot_gIBS_gIBSMunTot(const AGIBSMunTot: TgIBSMunTot; AJSONObject: TACBrJSONObject);
-    procedure Gerar_IBSCBSTot_gCBS(const AGCBS: TgCBSTot; AJSONObject: TACBrJSONObject);
+    procedure Gerar_IBSCBSTot_gCBS(const AGCBS: TgCBS; AJSONObject: TACBrJSONObject);
     procedure Gerar_IBSCBSTot_gMono(const AGMono: TgMono; AJSONObject: TACBrJSONObject);
   public
     constructor Create(AOwner: TNFe); reintroduce;
@@ -157,8 +168,7 @@ type
 implementation
 
 uses
-  ACBrUtil.Base,
-  ACBrDFe.Conversao;
+  ACBrUtil.Base;
 
 { TNFeJSONWriter }
 
@@ -189,7 +199,7 @@ begin
       //lNFeJSONObj.Free; --> lRootJSONObj é Owner e vai liberar
     end;
   finally
-    lRootJSONObj.Free;
+//    lRootJSONObj.Free;
   end;
 end;
 
@@ -243,9 +253,9 @@ begin
   lIdeJSONObj.AddPair('cMunFG', AIde.cMunFG);
   lIdeJSONObj.AddPair('cMunFGIBS', AIde.cMunFGIBS);
   lIdeJSONObj.AddPair('tpImp', TpImpToStr(AIde.tpImp));
-  lIdeJSONObj.AddPair('tpEmis', TpEmisToStr(AIde.tpEmis));
+  lIdeJSONObj.AddPair('tpEmis', TipoEmissaoToStr(AIde.tpEmis));
   lIdeJSONObj.AddPair('cDV', AIde.cDV);
-  lIdeJSONObj.AddPair('tpAmb', TpAmbToStr(AIde.tpAmb));
+  lIdeJSONObj.AddPair('tpAmb', TipoAmbienteToStr(AIde.tpAmb));
   lIdeJSONObj.AddPair('finNFe', FinNFeToStr(AIde.finNFe));
   lIdeJSONObj.AddPair('tpNFDebito', tpNFDebitoToStr(AIde.tpNFDebito));
   lIdeJSONObj.AddPair('tpNFCredito', tpNFCreditoToStr(AIde.tpNFCredito));
@@ -256,6 +266,7 @@ begin
   lIdeJSONObj.AddPair('verProc', AIde.verProc);
   lIdeJSONObj.AddPairISODateTime('dhCont', AIde.dhCont);
   lIdeJSONObj.AddPair('xJust', AIde.xJust);
+  lIdeJSONObj.AddPair('cIndOp', AIde.cIndOp);
 
   GerarIdeNFref(AIde.NFref, lIdeJSONObj);
   Gerar_gCompraGov(AIde.gCompraGov, lIdeJSONObj);
@@ -366,6 +377,7 @@ begin
   lEmitJSONObj.AddPair('IM', AEmit.IM);
   lEmitJSONObj.AddPair('CNAE', AEmit.CNAE);
   lEmitJSONObj.AddPair('CRT', CRTToStr(AEmit.CRT));
+  lEmitJSONObj.AddPair('ISUFEmit', AEmit.ISUFEmit);
 
   GerarEmitEnderEmit(AEmit.enderEmit, lEmitJSONObj);
 
@@ -2513,6 +2525,9 @@ end;
 procedure TNFeJSONWriter.Gerar_gCompraGov(const AgCompraGov: TgCompraGov; AJSONObject: TACBrJSONObject);
 var
   lGCompraGovJSONObj: TACBrJSONObject;
+  lrefDFeAntArray: TACBrJSONArray;
+  lrefDFeAntItem: TACBrJSONObject;
+  i: Integer;
 begin
   if AgCompraGov.tpEnteGov = tcgNenhum then
     exit;
@@ -2523,24 +2538,41 @@ begin
   lGCompraGovJSONObj.AddPair('pRedutor', AgCompraGov.pRedutor);
   lGCompraGovJSONObj.AddPair('tpOperGov', tpOperGovToStr(AgCompraGov.tpOperGov));
 
+  if AgCompraGov.refDFeAnt.Count > 0 then
+  begin
+    lrefDFeAntArray := TACBrJSONArray.Create;
+    for i:= 0 to AgCompraGov.refDFeAnt.Count -1 do
+    begin
+      lrefDFeAntItem := TACBrJSONObject.Create;
+      lrefDFeAntItem.AddPair('refDFeAnt', AgCompraGov.refDFeAnt[i].refDFeChave);
+      lrefDFeAntArray.AddElementJSON(lrefDFeAntItem);
+    end;
+    lGCompraGovJSONObj.AddPair('refDFeAnt', lrefDFeAntArray);
+  end;
+
   AJSONObject.AddPair('gCompraGov', lGCompraGovJSONObj);
 end;
 
-procedure TNFeJSONWriter.Gerar_gPagAntecipado(const AGPagAntecipado: TgPagAntecipadoCollection; AJSONObject: TACBrJSONObject);
+procedure TNFeJSONWriter.Gerar_gPagAntecipado(const AGPagAntecipado: TgPagAntecipado;
+  AJSONObject: TACBrJSONObject);
 var
   i: integer;
-  lGPagAtecipadoJSONArray: TACBrJSONArray;
+  lrefNFeArray: TACBrJSONArray;
+  lrefNFeItem: TACBrJSONObject;
 begin
-  if AGPagAntecipado.Count = 0 then
+  if AGPagAntecipado.refNFe.Count = 0 then
     exit;
 
-  lGPagAtecipadoJSONArray := TACBrJSONArray.Create;
-  for i := 0 to AGPagAntecipado.Count - 1 do
-  begin
-    lGPagAtecipadoJSONArray.AddElement(AGPagAntecipado[i].refNFe);
-  end;
+  lrefNFeArray := TACBrJSONArray.Create;
+  if AGPagAntecipado.refNFe.Count > 0 then
+    for i := 0 to AGPagAntecipado.refNFe.Count - 1 do
+    begin
+      lrefNFeItem := TACBrJSONObject.Create;
+      lrefNFeItem.AddPair('refNFe', AGPagAntecipado.refNFe[i].refDFEChave );
+      lrefNFeArray.AddElementJSON(lrefNFeItem);
+    end;
 
-  AJSONObject.AddPair('gPagAntecipado', lGPagAtecipadoJSONArray);
+  AJSONObject.AddPair('gPagAntecipado', lrefNFeArray);
 end;
 
 procedure TNFeJSONWriter.Gerar_ISel(const AISel: TgIS; AJSONObject: TACBrJSONObject);
@@ -2557,7 +2589,7 @@ begin
   lISelJSONObj.AddPair('cClassTribIS', AISel.cClassTribIS);
   lISelJSONObj.AddPair('vBCIS', AISel.vBCIS);
   lISelJSONObj.AddPair('pIS', AISel.pIS);
-  lISelJSONObj.AddPair('pISEspec', AISel.pISEspec);
+  lISelJSONObj.AddPair('adRemIS', AISel.adRemIS);
   lISelJSONObj.AddPair('uTrib', AISel.uTrib);
   lISelJSONObj.AddPair('qTrib', AISel.qTrib);
   lISelJSONObj.AddPair('vIS', AISel.vIS);
@@ -2590,9 +2622,9 @@ begin
       if (NFe.Ide.modelo = 55) then
         Gerar_IBSCBS_gTransfCred(AIBSCBS.gTransfCred, lIBSCBSJSONObj);
 
-    cst810:
-      if (NFe.Ide.modelo = 55) and (AIBSCBS.gCredPresIBSZFM.tpCredPresIBSZFM <> tcpNenhum) then
-        Gerar_IBSCBS_gCredPresIBSZFM(AIBSCBS.gCredPresIBSZFM, lIBSCBSJSONObj);
+//    cst810:
+//      if (NFe.Ide.modelo = 55) and (AIBSCBS.gCredPresIBSZFM.tpCredPresIBSZFM <> tcpNenhum) then
+//        Gerar_IBSCBS_gCredPresIBSZFM(AIBSCBS.gCredPresIBSZFM, lIBSCBSJSONObj);
   end;
 
   AJSONObject.AddPair('IBSCBS', lIBSCBSJSONObj);
@@ -2622,7 +2654,7 @@ end;
 procedure TNFeJSONWriter.Gerar_IBSCBS_gIBSCBSMono(const AIBSCBSMono: TgIBSCBSMono; AJSONObject: TACBrJSONObject);
 var
   lIBSCBSMonoJSONObj: TACBrJSONObject;
-
+{
   function PossuigMonoPadrao: Boolean;
   begin
     Result := (AIBSCBSMono.gMonoPadrao.adRemIBS > 0) or (AIBSCBSMono.gMonoPadrao.adRemCBS > 0) or
@@ -2654,8 +2686,9 @@ var
               PossuigMonoRet or
               PossuigMonoDif;
   end;
-
+}
 begin
+{
   if not PossuiIBSCBSMono then
     exit;
 
@@ -2671,13 +2704,13 @@ begin
 
   if PossuigMonoDif then
     Gerar_IBSCBS_gIBSCBSMono_gMonoDif(AIBSCBSMono.gMonoDif, lIBSCBSMonoJSONObj);
-
+}
   lIBSCBSMonoJSONObj.AddPair('vTotIBSMonoItem', AIBSCBSMono.vTotIBSMonoItem);
   lIBSCBSMonoJSONObj.AddPair('vTotCBSMonoItem', AIBSCBSMono.vTotCBSMonoItem);
 
   AJSONObject.AddPair('gIBSCBSMono', lIBSCBSMonoJSONObj);
 end;
-
+{
 procedure TNFeJSONWriter.Gerar_IBSCBS_gIBSCBSMono_gMonoDif(const AGMonoDif: TgMonoDif; AJSONObject: TACBrJSONObject);
 var
   lGMonoDifJSONObj: TACBrJSONObject;
@@ -2731,7 +2764,7 @@ begin
   
   AJSONObject.AddPair('gMonoReten', lGMonoRetenJSONObj);
 end;
-
+}
 procedure TNFeJSONWriter.Gerar_IBSCBS_gTransfCred(const AGTransfCred: TgTransfCred; AJSONObject: TACBrJSONObject);
 var
   lGTransfCredJSONObj: TACBrJSONObject;
@@ -2755,12 +2788,12 @@ begin
 
   lGCredPresIBSZFMJSONObj := TACBrJSONObject.Create;
   lGCredPresIBSZFMJSONObj.AddPair('tpCredPresIBSZFM', tpCredPresIBSZFMToStr(AGCredPresIBSZFM.tpCredPresIBSZFM));
-  lGCredPresIBSZFMJSONObj.AddPair('vCredPresIBSZFM', AGCredPresIBSZFM.vCredPresIBSZFM);
+//  lGCredPresIBSZFMJSONObj.AddPair('vCredPresIBSZFM', AGCredPresIBSZFM.vCredPresIBSZFM);
 
   AJSONObject.AddPair('gCredPresIBSZFM', lGCredPresIBSZFMJSONObj);
 end;
 
-procedure TNFeJSONWriter.Gerar_IBSCBS_gIBSCBS_gIBSUF(const AIBSUF: TgIBSUF; AJSONObject: TACBrJSONObject);
+procedure TNFeJSONWriter.Gerar_IBSCBS_gIBSCBS_gIBSUF(const AIBSUF: TgIBSUFValores; AJSONObject: TACBrJSONObject);
 var
   lGIBSUFJSONObj: TACBrJSONObject;
 begin
@@ -2785,6 +2818,7 @@ begin
     exit;
 
   lGDevTribJSONObj := TACBrJSONObject.Create;
+  lGDevTribJSONObj.AddPair('pDevTrib', AGDevTrib.pDevTrib);
   lGDevTribJSONObj.AddPair('vDevTrib', AGDevTrib.vDevTrib);
 
   AJSONObject.AddPair('gDevTrib', lGDevTribJSONObj);
@@ -2804,7 +2838,7 @@ begin
   AJSONObject.AddPair('gRed', lGRedJSONObject);
 end;
 
-procedure TNFeJSONWriter.Gerar_IBSCBS_gIBSCBS_gIBSMun(const AIBSMun: TgIBSMun; AJSONObject: TACBrJSONObject);
+procedure TNFeJSONWriter.Gerar_IBSCBS_gIBSCBS_gIBSMun(const AIBSMun: TgIBSMunValores; AJSONObject: TACBrJSONObject);
 var
   lGIBSMunJSONObject: TACBrJSONObject;
 begin
@@ -2821,7 +2855,7 @@ begin
   AJSONObject.AddPair('gIBSMun', lGIBSMunJSONObject);
 end;
 
-procedure TNFeJSONWriter.Gerar_IBSCBS_gIBSCBS_gCBS(const AGCBS: TgCBS; AJSONObject: TACBrJSONObject);
+procedure TNFeJSONWriter.Gerar_IBSCBS_gIBSCBS_gCBS(const AGCBS: TgCBSValores; AJSONObject: TACBrJSONObject);
 var
   lGCBSJSONObj: TACBrJSONObject;
 begin
@@ -2833,6 +2867,8 @@ begin
   Gerar_IBSCBS_gIBSCBS__gDif(AGCBS.gDif, lGCBSJSONObj);
   Gerar_IBSCBS_gIBSCBS_gIBSCBSUFMun_gDevTrib(AGCBS.gDevTrib, lGCBSJSONObj);
   Gerar_IBSCBS_gIBSCBS_gIBSCBSUFMun_gRed(AGCBS.gRed, lGCBSJSONObj);
+  Gerar_IBSCBS_gIBSCBS_gALCZFMCBS(AGCBS.gALCZFMCBS, lGCBSJSONObj);
+
   lGCBSJSONObj.AddPair('vCBS', AGCBS.vCBS);
 
   AJSONObject.AddPair('gCBS', lGCBSJSONObj);
@@ -2910,6 +2946,21 @@ begin
   AJSONObject.AddPair('gTribCompraGov', lGTribCompraGovJSONObj);
 end;
 
+procedure TNFeJSONWriter.Gerar_IBSCBS_gIBSCBS_gALCZFMCBS(
+  const AgALCZFMCBS: TgALCZFMCBS; AJSONObject: TACBrJSONObject);
+var
+  lgALCZFMCBSJSONObj: TACBrJSONObject;
+begin
+  lgALCZFMCBSJSONObj := TACBrJSONObject.Create;
+
+  lgALCZFMCBSJSONObj.AddPair('tpALCZFMCBS', tpALCZFMCBSToStr(AgALCZFMCBS.tpALCZFMCBS) );
+  lgALCZFMCBSJSONObj.AddPair('nProcSuframa', AgALCZFMCBS.nProcSuframa);
+  lgALCZFMCBSJSONObj.AddPair('pAliqEfetRegCBS', AgALCZFMCBS.pAliqEfetRegCBS);
+  lgALCZFMCBSJSONObj.AddPair('vTribRegCBS', AgALCZFMCBS.vTribRegCBS);
+
+  AJSONObject.AddPair('gALCZFMCBS', lgALCZFMCBSJSONObj);
+end;
+
 procedure TNFeJSONWriter.Gerar_Det_DFeReferenciado(const ADFeReferenciado: TDFeReferenciado; AJSONObject: TACBrJSONObject);
 var
   lDFeReferenciadoJSONObj: TACBrJSONObject;
@@ -2953,7 +3004,7 @@ begin
   AJSONObject.AddPair('IBSCBSTot', lIBSCBSTotJSONObj);
 end;
 
-procedure TNFeJSONWriter.Gerar_IBSCBSTot_gIBS(const AGIBS: TgIBSTot; AJSONObject: TACBrJSONObject);
+procedure TNFeJSONWriter.Gerar_IBSCBSTot_gIBS(const AGIBS: TgIBS; AJSONObject: TACBrJSONObject);
 var
   lGIBSJSONObj: TACBrJSONObject;
 begin
@@ -3002,7 +3053,7 @@ begin
   AJSONObject.AddPair('gIBSMunTot', lGIBSMunTotJSONObj);
 end;
 
-procedure TNFeJSONWriter.Gerar_IBSCBSTot_gCBS(const AGCBS: TgCBSTot; AJSONObject: TACBrJSONObject);
+procedure TNFeJSONWriter.Gerar_IBSCBSTot_gCBS(const AGCBS: TgCBS; AJSONObject: TACBrJSONObject);
 var
   lGCBSJSONObj: TACBrJSONObject;
 begin

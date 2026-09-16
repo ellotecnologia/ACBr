@@ -151,7 +151,10 @@ type
     cobBancoCredisan,
     cobBancoSofisa,
     cobBancoVortx,
-    cobBancoAsaas
+    cobBancoAsaas,
+    cobBancoMultiplicaBradesco,
+    cobBancoPetraBradesco,
+    cobBancoSisprimeAPI
     );
 
   TACBrTitulo = class;
@@ -2168,7 +2171,9 @@ Uses {$IFNDEF NOGUI}Forms,{$ENDIF}
      ACBrBancoCredisan,
      ACBrBancoSofisa,
      ACBrBancoVortx,
-     ACBrBancoAsaas;
+     ACBrBancoAsaas,
+     ACBrBancoMultiplicaBradesco,
+     ACBrBancoPetraBradesco;
 
 {$IFNDEF FPC}
    {$R ACBrBoleto.dcr}
@@ -3441,18 +3446,21 @@ var LTipoJuros, LJurosQuando : String;
 begin
   if (ATitulo.CodigoMora <> '') and
      (ATitulo.CodigoMoraJuros = cjIsento) and
-     (ATitulo.ValorMoraJuros > 0) and
-     (not (ATitulo.CodigoMoraJuros in [cjValorMensal,cjValorDia])) then
+     (ATitulo.ValorMoraJuros > 0) then
   begin
-    if (ATitulo.CodigoMora = '2') or (ATitulo.CodigoMora = 'B')  then
+    if (ATitulo.CodigoMora = '1') or (ATitulo.CodigoMora = 'A') then
+      ATitulo.CodigoMoraJuros := cjValorDia
+
+    else if (ATitulo.CodigoMora = 'B')  then
+      ATitulo.CodigoMoraJuros := cjTaxaDiaria
+
+    else if (ATitulo.CodigoMora = '2') or (ATitulo.CodigoMora = 'C')  then
       ATitulo.CodigoMoraJuros := cjTaxaMensal;
-    if ATitulo.CodigoMora = '1' then
-      ATitulo.CodigoMoraJuros := cjValorDia;
   end;
 
   case ATitulo.CodigoMoraJuros of
-    cjTaxaMensal : LTipoJuros := FloatToStr(ATitulo.ValorMoraJuros) + '% ao mês';
-    cjTaxaDiaria : LTipoJuros := FloatToStr(ATitulo.ValorMoraJuros) + '% ao dia';
+    cjTaxaMensal : LTipoJuros := FormatFloatBr(ATitulo.ValorMoraJuros, ' #,##0.00% ao mês');
+    cjTaxaDiaria : LTipoJuros := FormatFloatBr(ATitulo.ValorMoraJuros, ' #,##0.00% ao dia');
     cjValorMensal: LTipoJuros := FormatFloatBr(ATitulo.ValorMoraJuros, 'R$ #,##0.00 por mês');
     cjValorDia   : LTipoJuros := FormatFloatBr(ATitulo.ValorMoraJuros, 'R$ #,##0.00 por dia');
   end;
@@ -4341,6 +4349,8 @@ begin
             Instrucao1          := IniBoletos.ReadString(Sessao,'Instrucao1',Instrucao1);
             Instrucao2          := IniBoletos.ReadString(Sessao,'Instrucao2',Instrucao2);
             Instrucao3          := IniBoletos.ReadString(Sessao,'Instrucao3',Instrucao3);
+            Instrucao4          := IniBoletos.ReadString(Sessao,'Instrucao4',Instrucao4);
+            Instrucao5          := IniBoletos.ReadString(Sessao,'Instrucao5',Instrucao5);
             TotalParcelas       := IniBoletos.ReadInteger(Sessao,'TotalParcelas',TotalParcelas);
             Parcela             := IniBoletos.ReadInteger(Sessao,'Parcela',Parcela);
             ValorAbatimento     := IniBoletos.ReadFloat(Sessao,'ValorAbatimento',ValorAbatimento);
@@ -4984,6 +4994,8 @@ begin
      cobBancoSofisa          : fBancoClass := TACBRBancoSofisa.create(self);            {637}
      cobBancoVortx           : fBancoClass := TACBRBancoVortx.create(self);             {310}
      cobBancoAsaas           : fBancoClass := TACBrBancoAsaas.Create(Self);             {461}
+     cobBancoMultiplicaBradesco : fBancoClass := TACBrBancoMultiplicaBradesco.Create(Self);    {237} //Lucas 19-01-2026
+     cobBancoPetraBradesco : fBancoClass := TACBrBancoPetraBradesco.Create(Self);    {237}
    else
      fBancoClass := TACBrBancoClass.create(Self);
    end;

@@ -45,13 +45,13 @@ uses
   {$IFEND}
   ACBrDFeConsts,
   ACBrBase,
-  pcnConversao,
   ACBrXmlBase,
   ACBrDFe.Conversao,
   ACBrBPeClass,
   ACBrBPeEventoClass,
   ACBrBPeConsts,
   ACBrXmlWriter,
+  ACBrDFe.RTC.Classes,
   ACBrXmlDocument;
 
 type
@@ -133,7 +133,7 @@ type
 
     function LerXML(const ACaminhoArquivo: string): Boolean;
     function LerXMLFromString(const AXML: string): Boolean;
-    function ObterNomeArquivo(tpEvento: TpcnTpEvento): string;
+    function ObterNomeArquivo(tpEvento: TACBrTipoEvento): string;
     function LerFromIni(const AIniString: string): Boolean;
 
     property idLote: Int64 read FidLote write FidLote;
@@ -177,7 +177,7 @@ begin
   Result := TACBrXmlWriterOptions.Create();
 end;
 
-function TEventoBPe.ObterNomeArquivo(tpEvento: TpcnTpEvento): string;
+function TEventoBPe.ObterNomeArquivo(tpEvento: TACBrTipoEvento): string;
 begin
   case tpEvento of
     teCancelamento: Result := IntToStr(Self.idLote) + '-can-eve.xml';
@@ -612,7 +612,7 @@ begin
                                             IBSCBS.cClassTrib, DSC_CCLASSTRIB));
 
     Result.AppendChild(AddNode(tcStr, '#3', 'indDoacao', 1, 1, 0,
-              pcnConversao.TIndicadorExToStr(IBSCBS.indDoacao), DSC_INDDOACAO));
+                           TIndicadorExToStr(IBSCBS.indDoacao), DSC_INDDOACAO));
 
     if IBSCBS.gIBSCBS.vBC > 0 then
       Result.AppendChild(Gerar_IBSCBS_gIBSCBS(IBSCBS.gIBSCBS));
@@ -641,7 +641,7 @@ begin
   Result := FDocument.CreateElement('gIBSUF');
 
   Result.AppendChild(AddNode(tcDe4, '#6', 'pIBSUF', 1, 7, 1,
-                                                      gIBSUF.pIBS, DSC_PIBSUF));
+                                                    gIBSUF.pIBSUF, DSC_PIBSUF));
 
   if gIBSUF.gDif.pDif > 0 then
     Result.AppendChild(Gerar_IBSCBS_gIBSCBS_gIBSUF_gDif(gIBSUF.gDif));
@@ -653,7 +653,7 @@ begin
     Result.AppendChild(Gerar_IBSCBS_gIBSCBS_gIBSUFMunCBS_gRed(gIBSUF.gRed));
 
   Result.AppendChild(AddNode(tcDe2, '#23', 'vIBSUF', 1, 15, 1,
-                                                      gIBSUF.vIBS, DSC_VIBSUF));
+                                                    gIBSUF.vIBSUF, DSC_VIBSUF));
 end;
 
 function TEventoBPe.Gerar_IBSCBS_gIBSCBS_gIBSUF_gDif(
@@ -695,7 +695,7 @@ begin
   Result := FDocument.CreateElement('gIBSMun');
 
   Result.AppendChild(AddNode(tcDe4, '#6', 'pIBSMun', 1, 7, 1,
-                                                     gIBSMun.pIBS, DSC_PIBSUF));
+                                                  gIBSMun.pIBSMun, DSC_PIBSUF));
 
   if gIBSMun.gDif.pDif > 0 then
     Result.AppendChild(Gerar_IBSCBS_gIBSCBS_gIBSMun_gDif(gIBSMun.gDif));
@@ -707,7 +707,7 @@ begin
     Result.AppendChild(Gerar_IBSCBS_gIBSCBS_gIBSUFMunCBS_gRed(gIBSMun.gRed));
 
   Result.AppendChild(AddNode(tcDe2, '#23', 'vIBSMun', 1, 15, 1,
-                                                      gIBSMun.vIBS, DSC_VIBSUF));
+                                                  gIBSMun.vIBSMun, DSC_VIBSUF));
 end;
 
 function TEventoBPe.Gerar_IBSCBS_gIBSCBS_gIBSMun_gDif(

@@ -698,7 +698,7 @@ begin
   Result.AppendChild(AddNode(tcDe6, 'EP09', 'longitude', 1, 11, 0,
                                    Evento[Idx].FInfEvento.detEvento.longitude));
 
-  Result.AppendChild(AddNode(tcStr, 'EP10', 'hashTentativaEntrega', 28, 28, 1,
+  Result.AppendChild(AddNode(tcStr, 'EP10', 'hashTentativaEntrega', 28, 28, 0,
                         Evento[Idx].FInfEvento.detEvento.hashTentativaEntrega));
 
   Result.AppendChild(AddNode(tcStr, 'EP11', 'dhHashTentativaEntrega', 25, 25, 0,
@@ -756,7 +756,7 @@ begin
   Result.AppendChild(AddNode(tcStr, 'HP09', 'tpAmb', 1, 1, 1,
                            TpAmbToStr(Evento[Idx].InfEvento.tpAmb), DSC_TPAMB));
 
-  sDoc := RemoverLiteralChave(Evento[Idx].InfEvento.CNPJ);
+  sDoc := OnlyCPFCNPJAlphaNum(Evento[Idx].InfEvento.CNPJ);
 
   if EstaVazio(sDoc) then
     sDoc := ExtrairCNPJCPFChaveAcesso(Evento[Idx].InfEvento.chCTe);

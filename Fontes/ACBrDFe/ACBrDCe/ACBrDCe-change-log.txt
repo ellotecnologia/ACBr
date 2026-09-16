@@ -41,6 +41,17 @@ Símbolo : Significado
 [+]     : Novo recurso
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
+
+01/09/2026
+-- Diversos --
+[*] Alterações visando o uso das units especificas para a Reforma Tributária.
+   Por: Italo Giurizzato Junior
+
+25/06/2026
+-- ACBrDCe.XmlWriter --
+[-] Correção do nome da tag do xml chDCe
+   Por: Daniel Morais InfoCotidiano
+
 22/06/2026
 -- Diversas units ACBrDCe  --
 [*] Ajuste das chaves chaves e cnpj alfanumérico.

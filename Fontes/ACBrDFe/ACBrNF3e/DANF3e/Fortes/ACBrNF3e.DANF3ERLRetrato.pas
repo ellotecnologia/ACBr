@@ -244,7 +244,7 @@ uses
   ACBrUtil.Base, ACBrUtil.Strings, ACBrUtil.DateTime,
   ACBrDFeReportFortes, ACBrImage, ACBrDelphiZXingQRCode,
   ACBrXmlBase,
-  ACBrNF3eClass, ACBrNF3eConversao, pcnConversao, ACBrNF3e;
+  ACBrNF3eClass, ACBrNF3eConversao, ACBrDFe.Conversao, ACBrNF3e;
 
 {$IfNDef FPC}
  {$R *.dfm}
@@ -257,7 +257,7 @@ procedure TfrmDANF3eRLRetrato.RLNF3eBeforePrint(Sender: TObject;
 begin
   TDFeReportFortes.AjustarMargem(RLNF3e, fpDANF3e);
 
-  RLNF3e.Title := OnlyNumber(fpNF3e.InfNF3e.Id);
+  RLNF3e.Title := RemoverLiteralChave(fpNF3e.InfNF3e.Id);
 end;
 
 procedure TfrmDANF3eRLRetrato.RLDivisao_01BeforePrint(Sender: TObject;

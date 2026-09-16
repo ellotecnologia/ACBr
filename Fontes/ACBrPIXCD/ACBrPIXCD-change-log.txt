@@ -46,6 +46,47 @@ Símbolo : Significado
 [+]     : Novo recurso
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
+20/08/2026
+--ACBrPIXPSPItau--
+[+] Correção URL conforme notificação https://devportal.itau.com.br/certificados-apis-expiracao-2026#tabela
+  ACBR-9740 - https://www.projetoacbr.com.br/forum/topic/94331-aten%C3%A7%C3%A3o-atualiza%C3%A7%C3%A3o-dos-endpoints-e-da-cadeia-de-certificados-das-apis-do-ita%C3%BA-15092026/
+  Por: Daniel de Morais InfoCotidiano
+
+18/08/2026
+--ACBrPIXCD--
+[+] Adicionado o PSP CrediSis.
+    https://www.projetoacbr.com.br/forum/topic/93717-componente-acbrpspcredisis/
+  Por: gheysiell / BigWings
+
+27/07/2026
+-- ACBrPIXPSPItau --
+[*] Correção da URL de criação das cobranças recorrentes.
+    por: Real Club
+
+24/07/2026
+-- ACBrPIXCD --
+[+] Inclusão das propriedades published URLProducao e URLSandbox.
+    por: Elias Cesar
+
+09/07/2026
+-- ACBrPIXCD --
+[-] Correção em 'ConferirCopiaECola', na verificação do Crc16
+    (por: DSA)
+
+01/07/2026
+-- ACBrPIXBRCode --
+[*] Expor as propriedades e métodos do EMV.
+
+-- ACBrPIXCD --
+[+] Validacao de seguranca do "Copia e Cola" retornado pelo PSP, defendendo de fraudes.
+    Confere: CRC16, coerencia estatico/dinamico, chave do recebedor, dominio da location, txid e valor.
+[+] Nova flag TACBrPSP.ValidarCopiaECola permite desligar a validacao por PSP caso haja efeito colateral.
+    por: Elias Cesar
+
+29/06/2026
+-- Unis diversas -- 
+[*][ACBR-9326] Ajustado para utilizar campo alfa CNPJ
+   Por: Daniel de Morais InfoCotidianos
 
 16/04/2026
 -- ACBrPSPQQPag -- 

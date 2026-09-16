@@ -54,7 +54,7 @@ uses
   RLHTMLFilter, 
   RLFilters, 
   RLPDFFilter,
-  pcnConversao, 
+  ACBrDFe.Conversao,
   ACBrDFeUtil;
 
 type

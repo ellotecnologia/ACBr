@@ -45,6 +45,94 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+11/09/2026
+-- ACBrTEFPayGoRedes --
+[-] Correção de Bug, em leitura da Tabela de Redes em D7 e Itens sem CNPJ
+    (por: DSA)
+
+10/08/2026
+-- ACBrTEFAPITPag, ACBrTEFTPagAPI --
+[*] Refaforação de código em EfetuarAdministrativa
+[+] Implementado o método: function VersaoAPI: String;
+[+] Adicionado suporte a propriedade: DadosAutomacao.MensagemPinPad
+[+] Implementado suporte ao método ExibirMensagemPinPad
+
+-- ACBrTEFAPI --
+[+] Adicionado o método FormatarMensagemPinPad, para formatar previamente
+    a mensagem que a Automação envia ao PinPad e considerar quebras de linhas com  '|'
+
+-- ACBrTEFComum --
+[*] Adicionado enumerados  tefopCargaTabelas, tefopManutencao em TACBrTEFOperacao
+
+-- ACBrTEFPayGoComum --
+[*] Adicionado suporte aos enumerados tefopCargaTabelas e tefopManutencao no
+    método: EfetuarAdministrativa
+    (por: DSA)
+
+05/08/2026
+-- ACBrTEFAPITPag --
+[*] Correção para Perguntar a Parcela, quando não for informado, em transação Parcelada
+    (por: DSA)
+
+04/08/2026
+-- ACBrTEFAPI --
+[-] Correção de A.V. em algumas situações onde o Modelo do TEF ainda não estava
+    instanciado
+
+-- ACBrTEFTPagAPI, ACBrTEFAPITPag --
+[*] Compatibilização com versão 0.0.3 do SDK
+    (por: DSA)
+
+29/07/2026
+-- ACBrTEFAPICliSiTef --
+[-] Correção na forma de montagem dos parâmatros na Inicialização da Biblioteca
+    https://www.projetoacbr.com.br/forum/index.php?showtopic=93761
+    (por: William F.L. e DSA)
+
+27/07/2026
+-- ACBrTEFAPIAuttar --
+[*] Melhorias nos Logs
+
+-- ACBrTEFAPITPag, ACBrTEFTPagAPI --
+[*] Compatibilização com versão 0.0.3 do SDK
+    (por: DSA)
+
+22/07/2026
+-- ACBrTEFAPICliSiTef --
+[-] Correção para confirmação de Cancelamento PIX
+    https://www.projetoacbr.com.br/forum/index.php?showtopic=93651
+    (por: William F.L.)
+
+21/07/2026
+-- ACBrTEFAPIAuttar --
+[-] Correção em Administrativo Consultar e Devoluçao PIX
+[*] Melhorias nos Logs
+[*] Melhorias de mascaras em 'QuandoPerguntarCampoAPI'
+(por: DSA)
+
+16/07/2026
+-- ACBrTEFAPIAuttar, ACBrTEFAuttarAPI --
+[+] Adicionado suporte a novo TEF Auttar
+    (por: Antonio e DSA)
+
+-- ACBrTEFAPICliSiTef --
+[-] Correção para confirmação Pendente de Transação com Backup Temporário (999)
+    (por: DSA)
+[-] Correção na exibição do Num.Cupom, na Msg de Resolução de Pendencia
+    (por: Antonio)
+
+-- ACBrTEFCliSiTefComum --
+[-] Correção para não tentar confirmar Transação administrativa de Reimpressão
+    https://www.projetoacbr.com.br/forum/index.php?showtopic=93526
+    (por: DSA)
+
+26/06/2026
+-- ACBrTEFAPIPayKit --
+[-] Ajuste em 'TACBrTEFRespPayKit.ConteudoToProperty', para considerar que imagem
+    do Cupom, pode já conter Duas Vias separas por pulos de linhas em branco
+    https://www.projetoacbr.com.br/forum/index.php?showtopic=92989
+    (por: DSA)
+
 24/06/2026
 -- ACBrTEFAPITXT --
 [*] Adicionada Sobrecarga ao método 'VerificarPresencaPinPad', para chamar 'ATV'

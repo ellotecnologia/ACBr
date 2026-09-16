@@ -652,6 +652,10 @@ type
     rlb_DivisaoRecibo: TRLBand;
     rliDivisao: TRLDraw;
     rliMarcadAgua: TRLImage;
+    rlsLinhaV7BarCode: TRLDraw;
+    rlsLinhaVertical11: TRLDraw;
+    RLDraw47: TRLDraw;
+    RLDraw71: TRLDraw;
 
     procedure rlb_01_ReciboBeforePrint(Sender: TObject; var PrintIt: boolean);
     procedure rlb_02_CabecalhoBeforePrint(Sender: TObject; var PrintIt: boolean);
@@ -1208,8 +1212,8 @@ begin
     rlmDadosEmitente.Visible := False;
     rliLogo.top := 3;
     rliLogo.Left := 2;
-    rliLogo.Height := 121;
-    rliLogo.Width := 311;
+    rliLogo.Height := 100;
+    rliLogo.Width := 257;
 
     TDFeReportFortes.AjustarLogo(rliLogo, fpDACTe.ExpandeLogoMarcaConfig);
   end
@@ -1247,7 +1251,7 @@ begin
   rllModal.Caption := ACBrStr(TpModalToStrText(fpCTe.Ide.modal));
   rllModelo.Caption := IntToStr(fpCTe.Ide.modelo);
   rllEmissao.Caption := FormatDateTimeBr(fpCTe.Ide.dhEmi);
-  rllChave.Caption := FormatarChaveAcesso(RemoverLiteralChave(fpCTe.InfCTe.Id));
+  rllChave.Caption := FormatarChaveAcesso(OnlyAlphaNum(fpCTe.InfCTe.Id));
 
   rllTipoCte.Caption := ACBrStr(tpCTToStrText(fpCTe.Ide.tpCTe));
   rllTipoServico.Caption := ACBrStr(TpServToStrText(fpCTe.Ide.tpServ));

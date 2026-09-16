@@ -50,11 +50,12 @@ type
   private
     function CodigoTipoTitulo(AEspecieDoc:String): String;
     function TipoDescontoToString(const AValue: TACBrTipoDesconto): String;
-    function TipoJuros(const AValue: String): String;
+    function TipoJuros(const ACBrTitulo: TACBrTitulo): String;
   protected
     function GerarTokenAutenticacao: string; override;
     function DefinirParametros: String;
     function DefinirParametrosDetalhe: String;
+    function DefinirParametrosFrancesinha: String;
     function ValidaAmbiente: Integer;
     function DefinirNossoNumero:string;
     procedure DefinirURL; override;
@@ -96,6 +97,9 @@ const
   C_URL            = 'https://api-parceiro.sicredi.com.br/cobranca/boleto/v1';
   C_URL_HOM        = 'https://api-parceiro.sicredi.com.br/sb/cobranca/boleto/v1';
 
+  C_URL_FRANCESAS = 'https://api-parceiro.sicredi.com.br/cobranca/v1';
+  C_URL_FRANCESAS_HOM = 'https://api-parceiro.sicredi.com.br/sb/cobranca/v1';
+
   C_URL_OAUTH_PROD = 'https://api-parceiro.sicredi.com.br/auth/openapi/token';
   C_URL_OAUTH_HOM  = 'https://api-parceiro.sicredi.com.br/sb/auth/openapi/token';
 
@@ -125,15 +129,34 @@ var
   LId: String;
 begin
   case Boleto.Configuracoes.WebService.Ambiente of
-    tawsProducao   : FPURL.URLProducao    := C_URL;
-    tawsHomologacao: FPURL.URLHomologacao := C_URL_HOM;
+    tawsProducao:
+    begin
+      if Boleto.Configuracoes.WebService.VersaoDF = 'V2' then
+        FPURL.URLProducao := C_URL
+      else
+        FPURL.URLProducao := C_URL_FRANCESAS;
+    end;
+
+    tawsHomologacao:
+    begin
+      if Boleto.Configuracoes.WebService.VersaoDF = 'V2' then
+        FPURL.URLHomologacao := C_URL_HOM
+      else
+        FPURL.URLHomologacao := C_URL_FRANCESAS_HOM;
+    end;
   end;
   if ATitulo <> nil then
 		LId      := DefinirNossoNumero;
 
   case Boleto.Configuracoes.WebService.Operacao of
     tpInclui                : FPURL.SetPathURI( '/boletos' );
-    tpConsulta              : FPURL.SetPathURI( '/boletos/liquidados/dia' + '?' + DefinirParametros );
+    tpConsulta              :
+    begin
+      if Boleto.Configuracoes.WebService.VersaoDF = 'V2' then
+         FPURL.SetPathURI('/boletos/liquidados/dia?' + DefinirParametros)
+      else
+         FPURL.SetPathURI('/cobranca-financeiro/movimentacoes?' + DefinirParametrosFrancesinha);
+    end;
     tpConsultaDetalhe       : FPURL.SetPathURI( '/boletos?' + DefinirParametrosDetalhe );
     tpBaixa                 : FPURL.SetPathURI( '/boletos/'+ LId + '/baixa' );
     tpAltera                :
@@ -323,6 +346,27 @@ begin
   end;
 end;
 
+function TBoletoW_Sicredi_APIV2.DefinirParametrosFrancesinha: String;
+var
+  LConsulta: TStringList;
+begin
+  LConsulta := TStringList.Create;
+  try
+    LConsulta.Delimiter := '&';
+
+    LConsulta.Add('codigoBeneficiario=' + PadLeft(OnlyNumber(Boleto.Cedente.CodigoCedente), 5, '0'));
+    LConsulta.Add('agencia=' + PadLeft(OnlyNumber(Boleto.Cedente.Agencia), 4, '0'));
+    LConsulta.Add('dataLancamento=' + FormatDateBr(Boleto.Configuracoes.WebService.Filtro.dataMovimento.DataInicio, 'DD/MM/YYYY'));
+    LConsulta.Add('tipoMovimento=CREDITO');
+    if Boleto.Configuracoes.WebService.Filtro.indiceContinuidade >= 0 then
+       LConsulta.Add('pagina=' + IntToStr(Trunc(Boleto.Configuracoes.WebService.Filtro.indiceContinuidade)));
+
+    Result := LConsulta.DelimitedText;
+  finally
+    LConsulta.Free;
+  end;
+end;
+
 procedure TBoletoW_Sicredi_APIV2.DefinirParamOAuth;
 begin
   FParamsOAuth := Format( 'username=%s&password=%s&scope=%s&grant_type=password',
@@ -390,7 +434,14 @@ begin
         LJsonObject.AddPair('descontoAtencipado', ATitulo.ValorDescontoAntDia);
       if ATitulo.ValorMoraJuros > 0 then
       begin
-        LJsonObject.AddPair('tipoJuros', Self.TipoJuros(ATitulo.CodigoMora) );
+        LJsonObject.AddPair('tipoJuros', Self.TipoJuros(ATitulo));
+        case ATitulo.CodigoMoraJuros of
+          cjTaxaMensal:
+            LJsonObject.AddPair('tipoJurosPercentual', 'MENSAL');
+
+          cjTaxaDiaria:
+            LJsonObject.AddPair('tipoJurosPercentual', 'DIARIO');
+        end;
         LJsonObject.AddPair('juros', ATitulo.ValorMoraJuros);
       end;
       if ATitulo.PercentualMulta > 0 then
@@ -767,15 +818,38 @@ begin
   end;
 end;
 
-
-function TBoletoW_Sicredi_APIV2.TipoJuros(const AValue: String): String;
+function TBoletoW_Sicredi_APIV2.TipoJuros(const ACBrTitulo: TACBrTitulo): String;
 begin
-  if (AValue = 'A') then
-    Result := 'VALOR'
-  else   if (AValue = 'B') then
-    Result := 'PERCENTUAL'
-  else
-    Result := 'VALOR'
+  with ACBrTitulo do
+  begin
+    if (CodigoMora <> '') then
+    begin
+      if (CodigoMora = 'A') then
+        Result := 'VALOR'
+      else if (CodigoMora = 'B') then
+        Result := 'PERCENTUAL'
+      else if (CodigoMora = 'C') then
+        raise Exception.Create('Tipo de juros C não é previsto até o manual Versão 3.9.1 ')
+      else
+        Result := 'VALOR'
+    end
+    else
+    begin
+      if (ValorMoraJuros > 0) then
+      begin
+        case CodigoMoraJuros of
+          cjValorMensal, cjValorDia   :
+            Result := 'VALOR';
+          cjTaxaMensal, cjTaxaDiaria   :
+            Result := 'PERCENTUAL';
+        else
+          raise Exception.Create('Tipo de CodigoMoraJuros não permitido')
+        end;
+      end
+      else
+        Result := '';
+    end;
+  end;
 end;
 
 end.

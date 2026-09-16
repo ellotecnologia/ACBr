@@ -142,6 +142,7 @@ begin
       Valores.ValorIss := 0;
       Valores.ValorInss := 0;
       Valores.Aliquota := 0;
+      Valores.DescontoIncondicionado := 0;
 
       ANodes := AuxNode.Childrens.FindAllAnyNs('lista');
 
@@ -154,12 +155,7 @@ begin
 
         ItemServico[i].TribMunPrestador := FpAOwner.StrToSimNao(Ok, ObterConteudo(ANodes[i].Childrens.FindAnyNs('tributa_municipio_prestador'), tcStr));
         ItemServico[i].CodMunPrestacao := CodTOMToCodIBGE(ObterConteudo(ANodes[i].Childrens.FindAnyNs('codigo_local_prestacao_servico'), tcStr));
-
-        aValor := ObterConteudo(ANodes[i].Childrens.FindAnyNs('codigo_item_lista_servico'), tcStr);
-
-        ItemServico[i].ItemListaServico := PadLeft(aValor, 4, '0');
-//        ItemServico[i].ItemListaServico := NormatizarItemListaServico(ItemServico[i].ItemListaServico);
-
+        ItemServico[i].ItemListaServico := ObterConteudo(ANodes[i].Childrens.FindAnyNs('codigo_item_lista_servico'), tcStr);
         ItemServico[i].xItemListaServico := ItemListaServicoDescricao(ItemServico[i].ItemListaServico);
 
         aValor := ObterConteudo(ANodes[i].Childrens.FindAnyNs('unidade_codigo'), tcStr);
@@ -181,7 +177,7 @@ begin
         ItemServico[i].ValorDeducoes := ObterConteudo(ANodes[i].Childrens.FindAnyNs('valor_deducao'), tcDe2);
         ItemServico[i].BaseCalculo := ObterConteudo(ANodes[i].Childrens.FindAnyNs('valor_tributavel'), tcDe2);
         ItemServico[i].ValorIssRetido := ObterConteudo(ANodes[i].Childrens.FindAnyNs('valor_issrf'), tcDe2);
-        ItemServico[i].DescontoIncondicionado := ObterConteudo(ANodes[i].Childrens.FindAnyNs('ValorDescontoIncondicional'), tcDe2);
+        ItemServico[i].DescontoIncondicionado := ObterConteudo(ANodes[i].Childrens.FindAnyNs('valor_desconto_incondicional'), tcDe2);
 
         if ItemServico[i].Quantidade = 0 then
           ItemServico[i].Quantidade := 1;
@@ -201,6 +197,7 @@ begin
 
         Valores.BaseCalculo := Valores.BaseCalculo + ItemServico[i].BaseCalculo;
         Valores.ValorIss := Valores.ValorIss + ItemServico[i].ValorISS;
+        Valores.DescontoIncondicionado := Valores.DescontoIncondicionado + ItemServico[i].DescontoIncondicionado;
 
         Valores.ValorInss := Valores.ValorInss +
             ObterConteudo(ANodes[i].Childrens.FindAnyNs('valor_inss'), tcDe2);
@@ -227,16 +224,19 @@ begin
         else
           MunicipioIncidencia := StrToIntDef(NFSe.Tomador.Endereco.CodigoMunicipio, 0);
 
-        MunicipioPrestacaoServico := '';
-        xMunicipioIncidencia := '';
-
-        if MunicipioIncidencia > 0 then
+        if IntToStr(MunicipioIncidencia) = CodigoMunicipio then
+          xMunicipioIncidencia := MunicipioPrestacaoServico
+        else
         begin
-          MunicipioPrestacaoServico := ObterNomeMunicipioUF(MunicipioIncidencia, xUF);
-          MunicipioPrestacaoServico := MunicipioPrestacaoServico + '/' + xUF;
+          xMunicipioIncidencia := '';
 
-          xMunicipioIncidencia := MunicipioPrestacaoServico;
-        end;
+          if MunicipioIncidencia > 0 then
+          begin
+            xUF := '';
+            xMunicipioIncidencia := ObterNomeMunicipioUF(MunicipioIncidencia, xUF);
+            xMunicipioIncidencia := xMunicipioIncidencia + '/' + xUF;
+          end;
+        end;  
       end;
     end;
   end;
@@ -309,7 +309,8 @@ begin
       Servico.Valores.ValorPis      := ObterConteudo(AuxNode.Childrens.FindAnyNs('valor_pis'), tcDe2);
       Servico.Valores.ValorCofins   := ObterConteudo(AuxNode.Childrens.FindAnyNs('valor_cofins'), tcDe2);
 
-      Servico.Valores.DescontoIncondicionado := ObterConteudo(AuxNode.Childrens.FindAnyNs('valor_desconto'), tcDe2);
+      if Servico.Valores.DescontoIncondicionado = 0 then
+        Servico.Valores.DescontoIncondicionado := ObterConteudo(AuxNode.Childrens.FindAnyNs('valor_desconto'), tcDe2);
 
       Servico.Valores.RetencoesFederais := Servico.Valores.ValorPis +
         Servico.Valores.ValorCofins + Servico.Valores.ValorInss +

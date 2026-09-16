@@ -337,7 +337,9 @@ uses
   ACBrUtil.Strings,
   ACBrUtil.FilesIO,
   ACBrUtil.Base,
-  pcnAuxiliar, pcnConversao, ACBrDFe.Conversao,
+  pcnAuxiliar,
+  ACBrDFe.Conversao,
+  pcnConversao,
   ACBrDFeUtil, ACBrDFeSSL,
   Frm_Status, Frm_SelecionarCertificado, Frm_ConfiguraSerial;
 
@@ -369,7 +371,7 @@ begin
     Ide.modelo := 66;
     Ide.serie  := 1;
     Ide.nNF    := StrToIntDef(NumDFe, 0);
-    Ide.cNF    := GerarCodigoDFe(Ide.nNF);
+    Ide.cNF    := GerarCodigoDFe(Ide.nNF, 7);
     Ide.dhEmi  := Now;
     // TACBrTipoEmissao = (teNormal, teOffLine);
     Ide.tpEmis  := teNormal;
@@ -516,21 +518,21 @@ begin
 
               IBSCBS.gIBSCBS.vBC := 100;
 
-              IBSCBS.gIBSCBS.gIBSUF.pIBS := 5;
+              IBSCBS.gIBSCBS.gIBSUF.pIBSUF := 5;
               IBSCBS.gIBSCBS.gIBSUF.gDif.pDif := 5;
               IBSCBS.gIBSCBS.gIBSUF.gDif.vDif := 50;
               IBSCBS.gIBSCBS.gIBSUF.gDevTrib.vDevTrib := 50;
               IBSCBS.gIBSCBS.gIBSUF.gRed.pRedAliq := 5;
               IBSCBS.gIBSCBS.gIBSUF.gRed.pAliqEfet := 5;
-              IBSCBS.gIBSCBS.gIBSUF.vIBS := 50;
+              IBSCBS.gIBSCBS.gIBSUF.vIBSUF := 50;
 
-              IBSCBS.gIBSCBS.gIBSMun.pIBS := 5;
+              IBSCBS.gIBSCBS.gIBSMun.pIBSMun := 5;
               IBSCBS.gIBSCBS.gIBSMun.gDif.pDif := 5;
               IBSCBS.gIBSCBS.gIBSMun.gDif.vDif := 50;
               IBSCBS.gIBSCBS.gIBSMun.gDevTrib.vDevTrib := 50;
               IBSCBS.gIBSCBS.gIBSMun.gRed.pRedAliq := 5;
               IBSCBS.gIBSCBS.gIBSMun.gRed.pAliqEfet := 5;
-              IBSCBS.gIBSCBS.gIBSMun.vIBS := 50;
+              IBSCBS.gIBSCBS.gIBSMun.vIBSMun := 50;
 
               // vIBS = vIBS do IBSUF + vIBS do IBSMun
               IBSCBS.gIBSCBS.vIBS := 100;
@@ -720,7 +722,7 @@ var
 begin
   if not(InputQuery('WebServices Eventos: Cancelamento', 'Chave da NF3-e', Chave)) then
      exit;
-  Chave := Trim(OnlyNumber(Chave));
+  Chave := Trim(RemoverLiteralChave(Chave));
   idLote := '1';
   if not(InputQuery('WebServices Eventos: Cancelamento', 'Identificador de controle do Lote de envio do Evento', idLote)) then
      exit;
@@ -861,7 +863,7 @@ var
 begin
   if not(InputQuery('WebServices Eventos: Carta de Correção', 'Chave da NF3-e', Chave)) then
      exit;
-  Chave := Trim(OnlyNumber(Chave));
+  Chave := Trim(RemoverLiteralChave(Chave));
   idLote := '1';
   if not(InputQuery('WebServices Eventos: Carta de Correção', 'Identificador de controle do Lote de envio do Evento', idLote)) then
      exit;
@@ -1320,7 +1322,7 @@ begin
   Chave:='';
   if not(InputQuery('WebServices Eventos: Manif. Destinatario - Conf. Operacao', 'Chave da NF3-e', Chave)) then
      exit;
-  Chave := Trim(OnlyNumber(Chave));
+  Chave := Trim(RemoverLiteralChave(Chave));
   idLote := '1';
   if not(InputQuery('WebServices Eventos: Manif. Destinatario - Conf. Operacao', 'Identificador de controle do Lote de envio do Evento', idLote)) then
      exit;

@@ -162,7 +162,9 @@ begin
 
   FDocument.Root := NFSeNode;
 
-  ConsolidarVariosItensServicosEmUmSo;
+  if FormatoDiscriminacao <> fdNenhum then
+    ConsolidarVariosItensServicosEmUmSo;
+//    CampoDiscriminacaoFormatado;
 
   if (VersaoNFSe in [ve100, ve101]) and (Ambiente = taHomologacao) then
   begin
@@ -343,7 +345,7 @@ end;
 function TNFSeW_IPM.GerarLista: TACBrXmlNodeArray;
 var
   i: integer;
-  xDescr: string;
+  xDescr, lCodNBS: string;
 begin
   Result := nil;
   SetLength(Result, NFSe.Servico.ItemServico.Count);
@@ -370,8 +372,12 @@ begin
     Result[i].AppendChild(AddNode(tcStr, '#', 'codigo_item_lista_servico', 1, 9, 1,
                  OnlyNumber(NFSe.Servico.ItemServico[I].ItemListaServico), ''));
 
+    lCodNBS := NFSe.Servico.ItemServico[I].CodigoNBS;
+    if Trim(lCodNBS) = '' then
+      lCodNBS := NFSe.Servico.CodigoNBS;
+
     Result[i].AppendChild(AddNode(tcStr, '#', 'codigo_nbs', 1, 9, 0,
-                                       OnlyNumber(NFSe.Servico.CodigoNBS), ''));
+                                       OnlyNumber(lCodNBS), ''));
 
     Result[i].AppendChild(AddNode(tcStr, '#', 'codigo_atividade', 1, 9, FpNrOcorrCodigoAtividade,
                        OnlyNumber(NFSe.Servico.ItemServico[I].CodigoCnae), ''));
@@ -567,8 +573,8 @@ function TNFSeW_IPM.GerarPisCofinsNaoRetido: TACBrXmlNode;
 begin
   result := CreateElement('pis_cofins');
 
-  result.AppendChild(AddNode(tcStr,'#','cst', 1, 2, 1,
-                                  CSTPISToStr(NFSe.Servico.Valores.CSTPis),''));
+  result.AppendChild(AddNode(tcInt,'#','cst', 1, 2, 1,
+                  StrToIntDef(CSTPISToStr(NFSe.Servico.Valores.CSTPis), 1),''));
 
   Result.AppendChild(AddNode(tcStr, '#1', 'tipo_retencao', 1, 1, 1,
          tpRetPisCofinsToStr(NFSe.Servico.Valores.tribFed.tpRetPisCofins), ''));
@@ -712,6 +718,9 @@ begin
 
   Result.AppendChild(AddNode(tcDe2, '#1', 'pRedutor', 1, 2, 1,
                                                  NFSe.infNFSe.IBSCBS.pRedutor));
+
+  Result.AppendChild(AddNode(tcInt, '#2', 'cLocalidadeIncid', 7, 7, 1,
+                                     NFSe.infNFSe.IBSCBS.cLocalidadeIncid, ''));
 
   Result.AppendChild(GerarValoresBrutosIbsCbs);
   Result.AppendChild(GerarTotalizadores);
@@ -857,7 +866,8 @@ begin
 
   // Reforma Tributária
   if (NFSe.infNFSe.IBSCBS.pRedutor > 0) or
-     (NFSe.infNFSe.IBSCBS.valores.vBC > 0) then
+     (NFSe.infNFSe.IBSCBS.valores.vBC > 0) or
+     (NFSe.infNFSe.IBSCBS.cLocalidadeIncid <> 0) then
     Result.AppendChild(GerarXMLIBSCBSServico);
 end;
 
@@ -883,13 +893,13 @@ begin
 
         NrOcorrCodigoMunicInterm := 1;
 
-        NrOcorrCodTribMun_1 := -1;
-        NrOcorrDiscriminacao_1 := -1;
-        NrOcorrCodigoMunic_1 := -1;
+        NrOcorrCodTribMun_1 := 0;
+        NrOcorrDiscriminacao_1 := 0;
+        NrOcorrCodigoMunic_1 := 0;
 
-        NrOcorrCodTribMun_2 := 0;
-        NrOcorrDiscriminacao_2 := 0;
-        NrOcorrCodigoMunic_2 := 0;
+        NrOcorrCodTribMun_2 := -1;
+        NrOcorrDiscriminacao_2 := -1;
+        NrOcorrCodigoMunic_2 := -1;
       end;
   else
     begin
@@ -910,6 +920,7 @@ begin
 
   if FormatoDiscriminacao <> fdNenhum then
     ConsolidarVariosItensServicosEmUmSo;
+//    CampoDiscriminacaoFormatado;
 
   xmlNode := GerarInfDeclaracaoPrestacaoServico;
   NFSeNode.AppendChild(xmlNode);
@@ -935,6 +946,9 @@ begin
 
     Result.AppendChild(AddNode(tcDe2, '#1', 'pRedutor', 1, 2, 1,
                                                  NFSe.infNFSe.IBSCBS.pRedutor));
+
+    Result.AppendChild(AddNode(tcInt, '#2', 'cLocalidadeIncid', 7, 7, 1,
+                                     NFSe.infNFSe.IBSCBS.cLocalidadeIncid, ''));
 
     Result.AppendChild(GerarValoresBrutosIbsCbs);
     Result.AppendChild(GerarTotalizadores);

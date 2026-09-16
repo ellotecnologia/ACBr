@@ -122,7 +122,7 @@ uses
   ACBrUtil.DateTime,
   ACBrDFeUtil,
   ACBrConsts,
-  pcnConversao,
+  ACBrDFe.Conversao,
   ACBrImage;
 
 { TACBrNFeDANFeESCPOS }
@@ -506,7 +506,7 @@ begin
     UrlChave := FpNFe.infNFeSupl.urlChave;
 
   FPosPrinter.Buffer.Add('</ce>'+TagLigaCondensado + QuebraLinhas(UrlChave, ColunasCondensado) );
-  FPosPrinter.Buffer.Add('</ce>'+TagLigaCondensado + QuebraLinhas(FormatarChaveAcesso(RemoverLiteralChave(FpNFe.infNFe.ID)), ColunasCondensado) );
+  FPosPrinter.Buffer.Add('</ce>'+TagLigaCondensado + QuebraLinhas(RemoverLiteralChave(FpNFe.infNFe.ID), ColunasCondensado) );
 end;
 
 procedure TACBrNFeDANFeESCPOS.GerarTotalTributos;

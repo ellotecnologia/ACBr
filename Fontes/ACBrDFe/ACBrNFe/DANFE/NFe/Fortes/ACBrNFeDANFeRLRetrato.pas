@@ -55,7 +55,7 @@ uses
   {$ENDIF}
   ACBrNFeDANFeRL,
   ACBrDFe.Conversao,
-  pcnConversao, RLBarcode, RLFilters, RLPDFFilter;
+  RLBarcode, RLFilters, RLPDFFilter;
 
 type
 
@@ -695,6 +695,8 @@ type
     rliPagamentoReal1: TRLDraw;
     rliPagamentoReal2: TRLDraw;
     rliPagamentoReal3: TRLDraw;
+    rllDocumento3: TRLLabel;
+    rlBarraiCanhoto4: TRLDraw;
 
     procedure rlbContinuacaoInformacoesComplementaresBeforePrint(
       Sender: TObject; var PrintIt: Boolean);
@@ -771,9 +773,9 @@ begin
     if fpDANFe.LogoemCima then
     begin
       rliLogo.Top := 16;
-      rliLogo.Left := 8;
-      rliLogo.Height := 42;
-      rliLogo.Width := 258;
+      rliLogo.Left := 4;
+      rliLogo.Height := 41;
+      rliLogo.Width := 252;
 
       rlmEmitente.Top := 58;
       rlmEmitente.Left := 8;
@@ -1041,8 +1043,8 @@ begin
 
       with rliLogo do
       begin
-        Height := 101;
-        Width := 268;
+        Height := 96;
+        Width := 257;
         Top := 14;
         Left := 2;
 
@@ -1218,8 +1220,11 @@ begin
         sTemp := sTemp + ' - CEP:' + FormatarCEP(CEP) + ' - ' + XMun + ' - ' + UF;
         rlmEndereco.Lines.add(sTemp);
 
-        sTemp := 'TEL: ' + FormatarFone(Fone);
-        rlmEndereco.Lines.add(sTemp);
+        if Trim(Fone) <> '' then
+        begin
+           sTemp := 'TEL: ' + FormatarFone(Fone);
+           rlmEndereco.Lines.add(sTemp);
+        end;
       end;
     end;
 
@@ -1343,8 +1348,11 @@ begin
         sTemp := sTemp + ' - CEP:' + FormatarCEP(CEP) + ' - ' + XMun + ' - ' + UF;
         rlmEndereco.Lines.add(sTemp);
 
-        sTemp := 'TEL: ' + FormatarFone(Fone);
-        rlmEndereco.Lines.add(sTemp);
+        if Trim(Fone) <> '' then
+        begin
+           sTemp := 'TEL: ' + FormatarFone(Fone);
+           rlmEndereco.Lines.add(sTemp);
+        end;
       end;
     end;
 
@@ -2240,11 +2248,16 @@ begin
   RLBarraBarcode.Top            := rlBarraiCanhoto1.Top + 3;
 
   rlBarraiCanhoto1.Width        := rlBarraiCanhoto.Width;
-  rlBarraiCanhoto2.Top          := rlBarraiCanhoto1.Top;
+  rlBarraiCanhoto2.Top          := RLBarraResumo.top + 10;
+  rlBarraiCanhoto4.Top          := RLBarraResumo.top + 10;
   rlBarraiCanhoto2.Height       := (rlBarraiCanhoto.Top + rlBarraiCanhoto.Height) - rlBarraiCanhoto1.Top;
-  rlBarraiCanhoto3.Height       := (rlBarraiCanhoto.Top + rlBarraiCanhoto.Height) - rlBarraiCanhoto3.Top;
+  rlBarraiCanhoto4.Height       := (rlBarraiCanhoto.Top + rlBarraiCanhoto.Height) - rlBarraiCanhoto1.Top;
+  rlBarraiCanhoto3.Height       := rlBarraiCanhoto1.Top ;//(rlBarraiCanhoto.Top + rlBarraiCanhoto.Height) - rlBarraiCanhoto3.Top;
 
-  RLBarraBarcode.Left           := rlBarraiCanhoto3.Left + 3;
+  RLBarraBarcode.Left           := rlbCodigoBarras.Left;
+  RLBarraBarcode.Width          := 367;
+  RLBarraBarcode.AutoSize       := false;
+  RLBarraBarcode.Alignment      := taCenter;
 
   rllBarraNFe.Top               := lIAlimento;
   rllBarraNFe.Left              := lIAlibarra - 80;

@@ -258,6 +258,7 @@ type
     btnEnviarEventoEmail: TButton;
     btnVincPagto: TButton;
     btnCancelarPagVinc: TButton;
+    btnLerArqEventoINI: TButton;
 
     procedure FormCreate(Sender: TObject);
     procedure btnSalvarConfigClick(Sender: TObject);
@@ -317,6 +318,7 @@ type
     procedure btnGerarArqINIClick(Sender: TObject);
     procedure btnVincPagtoClick(Sender: TObject);
     procedure btnCancelarPagVincClick(Sender: TObject);
+    procedure btnLerArqEventoINIClick(Sender: TObject);
   private
     { Private declarations }
     procedure GravarConfiguracao;
@@ -668,21 +670,21 @@ begin
 
       Imp.IBSCBS.gIBSCBS.vBC := 100;
 
-      Imp.IBSCBS.gIBSCBS.gIBSUF.pIBS := 5;
+      Imp.IBSCBS.gIBSCBS.gIBSUF.pIBSUF := 5;
       Imp.IBSCBS.gIBSCBS.gIBSUF.gDif.pDif := 5;
       Imp.IBSCBS.gIBSCBS.gIBSUF.gDif.vDif := 50;
       Imp.IBSCBS.gIBSCBS.gIBSUF.gDevTrib.vDevTrib := 50;
       Imp.IBSCBS.gIBSCBS.gIBSUF.gRed.pRedAliq := 5;
       Imp.IBSCBS.gIBSCBS.gIBSUF.gRed.pAliqEfet := 5;
-      Imp.IBSCBS.gIBSCBS.gIBSUF.vIBS := 50;
+      Imp.IBSCBS.gIBSCBS.gIBSUF.vIBSUF := 50;
 
-      Imp.IBSCBS.gIBSCBS.gIBSMun.pIBS := 5;
+      Imp.IBSCBS.gIBSCBS.gIBSMun.pIBSMun := 5;
       Imp.IBSCBS.gIBSCBS.gIBSMun.gDif.pDif := 5;
       Imp.IBSCBS.gIBSCBS.gIBSMun.gDif.vDif := 50;
       Imp.IBSCBS.gIBSCBS.gIBSMun.gDevTrib.vDevTrib := 50;
       Imp.IBSCBS.gIBSCBS.gIBSMun.gRed.pRedAliq := 5;
       Imp.IBSCBS.gIBSCBS.gIBSMun.gRed.pAliqEfet := 5;
-      Imp.IBSCBS.gIBSCBS.gIBSMun.vIBS := 50;
+      Imp.IBSCBS.gIBSCBS.gIBSMun.vIBSMun := 50;
 
       // vIBS = vIBS do IBSUF + vIBS do IBSMun
       Imp.IBSCBS.gIBSCBS.vIBS := 100;
@@ -879,21 +881,21 @@ begin
 
           Imp.IBSCBS.gIBSCBS.vBC := 100;
 
-          Imp.IBSCBS.gIBSCBS.gIBSUF.pIBS := 5;
+          Imp.IBSCBS.gIBSCBS.gIBSUF.pIBSUF := 5;
           Imp.IBSCBS.gIBSCBS.gIBSUF.gDif.pDif := 5;
           Imp.IBSCBS.gIBSCBS.gIBSUF.gDif.vDif := 50;
           Imp.IBSCBS.gIBSCBS.gIBSUF.gDevTrib.vDevTrib := 50;
           Imp.IBSCBS.gIBSCBS.gIBSUF.gRed.pRedAliq := 5;
           Imp.IBSCBS.gIBSCBS.gIBSUF.gRed.pAliqEfet := 5;
-          Imp.IBSCBS.gIBSCBS.gIBSUF.vIBS := 50;
+          Imp.IBSCBS.gIBSCBS.gIBSUF.vIBSUF := 50;
 
-          Imp.IBSCBS.gIBSCBS.gIBSMun.pIBS := 5;
+          Imp.IBSCBS.gIBSCBS.gIBSMun.pIBSMun := 5;
           Imp.IBSCBS.gIBSCBS.gIBSMun.gDif.pDif := 5;
           Imp.IBSCBS.gIBSCBS.gIBSMun.gDif.vDif := 50;
           Imp.IBSCBS.gIBSCBS.gIBSMun.gDevTrib.vDevTrib := 50;
           Imp.IBSCBS.gIBSCBS.gIBSMun.gRed.pRedAliq := 5;
           Imp.IBSCBS.gIBSCBS.gIBSMun.gRed.pAliqEfet := 5;
-          Imp.IBSCBS.gIBSCBS.gIBSMun.vIBS := 50;
+          Imp.IBSCBS.gIBSCBS.gIBSMun.vIBSMun := 50;
 
           // vIBS = vIBS do IBSUF + vIBS do IBSMun
           Imp.IBSCBS.gIBSCBS.vIBS := 100;
@@ -2058,6 +2060,23 @@ begin
   end;
 end;
 
+procedure TfrmACBrBPe.btnLerArqEventoINIClick(Sender: TObject);
+begin
+  OpenDialog1.Title := 'Selecione INI do Evento';
+  OpenDialog1.DefaultExt := '*.INI';
+  OpenDialog1.Filter := 'Arquivos INI (*.INI)|*.INI|Todos os Arquivos (*.*)|*.*';
+
+  OpenDialog1.InitialDir := ACBrBPe1.Configuracoes.Arquivos.PathSalvar;
+
+  if not OpenDialog1.Execute then
+    Exit;
+
+  ACBrBPe1.EventoBPe.Evento.Clear;
+  ACBrBPe1.EventoBPe.LerFromIni(OpenDialog1.FileName);
+
+  memoLog.Lines.Add('Eventos adicionados: ' + IntToStr(ACBrBPe1.EventoBPe.Evento.Count));
+end;
+
 procedure TfrmACBrBPe.cbCryptLibChange(Sender: TObject);
 begin
   try
@@ -2429,7 +2448,6 @@ end;
 
 procedure TfrmACBrBPe.ConfigurarComponente;
 var
-  Ok: Boolean;
   PathMensal: string;
 begin
   ACBrBPe1.Configuracoes.Certificados.ArquivoPFX  := edtCaminho.Text;

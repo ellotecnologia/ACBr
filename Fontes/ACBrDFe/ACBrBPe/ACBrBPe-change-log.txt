@@ -45,6 +45,34 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+01/09/2026
+-- ACBrBPeIniReader/ACBrBPeIniWriter/ACBrBPeEnvEvento --
+[*] Simplificação na chamada ao grupo de compra governamental e ajuste nos campos
+    de percentual e valor do IBS Estadual e Municipal.
+   Por: Italo Giurizzato Junior
+
+20/07/2026
+-- ACBrBPeConsSit/ACBrBPeDABPeESCPOS --
+[-] Troca da função OnlyCPFCNPJAlphaNum por RemoverLiteralChave ao ler campos
+    que contem a chave do BPe.
+   Por: Italo Giurizzato Junior
+
+14/07/2026
+-- Diversos --
+[*] ACBr-9630 - Remoção da dependência das units PCN e alterações visando a utilização
+    das units especificas para a Reforma Tributária.
+   Por: Italo Giurizzato Junior
+
+02/07/2026
+-- Diversos --
+[*] ACBr-9485 - Ajustes para atender a NT 2026/002 - versão 1.00 da Reforma Tributária.
+   Por: Italo Giurizzato Junior
+
+30/06/2026
+-- ACBrBPeDABPeESCPOS --
+[*] ACBr-9369 - Ajuste no FormatarChaveAcesso, que ele ja remove o literal
+   Por: Daniel de Morais
+   
 01/06/2026
 -- ACBrBPe/ACBrBPeConfiguracoes/ACBrBPeWebServices/ACBrBPeIniReader --
 -- ACBrBPeXmlWriter/ACBrBPeEnvEvento/ACBrBPeDABPeESCPOS --

@@ -57,6 +57,7 @@ resourcestring
   DSC_CCORDEN = 'Código da Cor DENATRAN';
   DSC_TPREST = 'Restrição';
   DSC_CRT = 'Código de Regime Tributário';
+  DSC_ISUFEMIT = 'Inscrição do emitente da Suframa';
   DSC_CODIF = 'Código de autorização / registro do CODIF';
   DSC_CONDVEIC = 'Condições do Veículo';
   DSC_CNPJPROD = 'CNPJ do produtor da mercadoria, quando diferente do emitente';
@@ -192,6 +193,7 @@ resourcestring
   DSC_INDFINAL = 'Indicador de Operação com Consumidor Final';
   DSC_INDPRES = 'Indicador de Presença do Consumidor Final';
   DSC_INDINTERMED = 'Indicador de Intermediador/marketplace';
+  DSC_CINDOP = 'Código indicador do local da operação de fornecimento';
   DSC_IDESTR = 'Documento de Identificação do Estrangeiro';
   DSC_INDIEDEST = 'Indicador da IE do Destinatário';
   DSC_NVE = 'Nomenclatura de Valor Aduaneiro e Estatística';
@@ -280,6 +282,7 @@ resourcestring
   DSC_PREDADREM = 'Percentual de redução do valor da alíquota adrem do ICMS';
   DSC_MOTREDADREM = 'Motivo da redução do adrem';
   DSC_VICMSMONOOP = 'Valor do ICMS da operação';
+  DSC_QBCMONODIF = 'Quantidade tributada diferida';
   DSC_QBCMONORET = 'Quantidade tributada retida anteriormente';
   DSC_PDIF = 'Percentual do diferimento';
 
@@ -289,6 +292,7 @@ resourcestring
   DSC_INDPAG = 'Indicador da forma de pagamento';
   DSC_TPNF = 'Tipo do Documento Fiscal';
   DSC_CMUNFG = 'Código do Município FG';
+  DSC_DFEANT = 'Chave de acesso do documento fiscal anterior';
   DSC_REFNFE = 'Chave de acesso das NF-e referenciadas';
   DSC_REFCTE = 'Chave de acesso do CT-e referenciado';
   DSC_IEST = 'Inscrição Estadual do Substituto tributário';

@@ -39,6 +39,99 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+11/09/2026
+-- ACBrDFe.RTC.XmlWriter --
+[-] ACBR-9844 - Ajuste para que o grupo gIBSCBSMono seja gerado apenas caso tenha valor atribuído.
+   Por: Diego Folieni
+   Veja: https://www.projetoacbr.com.br/forum/topic/94675-acbr-9844rejei%C3%A7%C3%A3o-n%C3%A3o-informada-tributa%C3%A7%C3%A3o-monof%C3%A1sica-ad-valorem-do-ibs-cst-620/
+
+10/09/2026
+-- ACBrDFe.RTC.XmlReader.pas --
+[*] Ajustes para CNPJBasePSP alfanumerico.
+   Por: Daniel de Morais
+
+09/09/2026
+-- ACBrDFe.RTC.IniWriter --
+[*] Corrige a geração do índice das seções de IBSCBS
+   Por: Diego Folieni
+
+04/09/2026
+-- ACBrDFe.RTC.Classes/ACBrDFe.RTC.IniReader/ACBrDFe.RTC.IniWriter --
+-- ACBrDFe.RTC.XmlReader/ACBrDFe.RTC.XmlWriter --
+[*] Alterado o nome da tag de pISEspec para adRemIS conforme consta nos Schemas.
+   Por: Italo Giurizzato Junior
+
+01/09/2026
+-- ACBrDFe.RTC.Classes/ACBrDFe.RTC.IniReader/ACBrDFe.RTC.IniWriter --
+-- ACBrDFe.RTC.XmlReader/ACBrDFe.RTC.XmlWriter --
+[*] Ajustes referente ao novo layout da Tributação Monofásica e ajuste
+    na nomenclatura do percentual e valor do IBS Estadual e Municipal.
+   Por: Italo Giurizzato Junior
+
+05/08/2026
+-- ACBrDFe.RTC.Classes/ACBrDFe.RTC.IniReader/ACBrDFe.RTC.IniWriter --
+-- ACBrDFe.RTC.XmlReader/ACBrDFe.RTC.XmlWriter/ACBrDFeConsts --
+[*] Ajustes referente ao Pagamento Antecipado.
+   Por: Italo Giurizzato Junior
+
+16/07/2026
+-- ACBrDFe.RTC.Classes/ACBrDFe.RTC.IniReader/ACBrDFe.RTC.IniWriter --
+-- ACBrDFe.RTC.XmlReader/ACBrDFe.RTC.XmlWriter --
+[*] Ajustes para a NFe e NFGas referente ao Pagamento Antecipado.
+   Por: Italo Giurizzato Junior
+
+14/07/2026
+-- ACBrNF3e --
+[*] ACBR-9369 - Implementação CNPJ Alfanumérico para a NF3e
+   Por: Larissa Santos / Rev.: Alexandre de Paula
+   
+10/07/2026
+-- ACBrDFe.Conversao --
+[-] ACBR-9625 - Correção nos valores do tipo TtpALCZFMCBS, o correto é 1 e 2 em vez de 0 e 1.
+   Por: Maxuel Santana
+-- ACBrDFe.RTC.Classes/ACBrDFe.RTC.IniReader/ACBrDFe.RTC.IniWriter --
+-- ACBrDFe.RTC.XmlReader/ACBrDFe.RTC.XmlWriter --
+[*] Alterações visando deixar as units prontas para a NT 2025/002 versão 1.50 da NF-e.
+   Por: Italo Giurizzato Junior
+
+09/07/2026
+-- ACBrDFeConversao --
+[*] ACBR-9624 - Revert da alteração que remove o enumerado do evento 211120
+   Por: Diego Folieni
+   Veja: https://www.projetoacbr.com.br/forum/topic/93444-acbr-9624evento-211110-da-nfe-grupo-gcredpresoper/#comment-610686
+
+07/07/2026
+-- ACBrDFeSSL --
+[*] Ajustado para o padrão OnlyCPFCNPJAlphaNum definido em topico interno 
+   Por: Daniel de Morais InfoCotidiano
+
+07/07/2026
+-- ACBrDFe.Conversao --
+[*] Renomeado o enumerado tiSimplificado2 para tiSimplificadoTipo2 visando deixar mais claro a sua utilidade.
+   Por: Italo Giurizzato Junior
+
+02/07/2026
+-- ACBrDFe.RTC.Classes/ACBrDFe.RTC.IniReader/ACBrDFe.RTC.IniWriter/ACBrDFe.RTC.XmlReader/ACBrDFe.RTC.XmlWriter --
+[*] Implementado as units: de classes, leitura e escrita do arquivo INI e leitura e escrita do XML.
+    Units estas especificas para a Reforma Tributária que futuramente serão utilizadas por todos os DF-e com 
+    exceção da NFS-e.
+   Por: Italo Giurizzato Junior
+
+01/07/2026
+-- ACBrDFeUtil --
+[*] Criado o metodo RemoverLiteralIDChave quando prefixo for ID como das chaves com Reinf e eSocial.
+   Por: Italo Giurizzato Junior, Alexandre de Paula, Daniel de Morais InfoCotidiano 
+
+30/06/2026
+-- ACBrDFe.Conversao/ACBrDFeConsts/ACBrXmlWriter --
+[*] Melhorias para atender a Reforma Tibutária.
+   Por: Italo Giurizzato Junior
+
+25/06/2026
+-- ACBrXmlWriter --
+[*] Ajuste da função AddNodeCNPJ com cnpj alfanumerico.
+   Por: Daniel Morais InfoCotidiano
+
 24/06/2026
 -- ACBrDFeOpenSSL --
 [-] Correção para CryOpenSSL funcionar com WinHTTP

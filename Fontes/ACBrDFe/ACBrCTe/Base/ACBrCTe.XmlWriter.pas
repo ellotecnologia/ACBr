@@ -262,6 +262,8 @@ type
     function Gerar_gTribCompraGov(gTribCompraGov: TgTribCompraGov): TACBrXmlNode;
     function Gerar_gEstornoCred(gEstornoCred: TgEstornoCred): TACBrXmlNode;
 
+    function Gerar_IBSCBS_gALCZFMCBS(gALCZFMCBS: TgALCZFMCBS): TACBrXmlNode;
+
     function GetOpcoes: TCTeXmlWriterOptions;
     procedure SetOpcoes(AValue: TCTeXmlWriterOptions);
 
@@ -1033,6 +1035,9 @@ begin
     Result.AppendChild(AddNode(tcStr, '#103', 'CRT', 1, 1, Obrigatorio,
                                         CRTCTeToStr(CTe.Emit.CRT), DSC_CRTCTE));
   end;
+
+  Result.AppendChild(AddNode(tcStr, '#104', 'ISUFEmit', 8, 9, 0,
+                                              CTe.Emit.ISUFEmit, DSC_ISUFEMIT));
 end;
 
 function TCTeXmlWriter.Gerar_EnderEmit: TACBrXmlNode;
@@ -1467,11 +1472,13 @@ begin
   // Reforma Tributária
   if (VersaoDF >= ve400) and (CTe.imp.IBSCBS.CST <> cstNenhum) and
      (CTe.imp.IBSCBS.cClassTrib <> '') then
+  begin
     Result.AppendChild(Gerar_IBSCBS(CTe.imp.IBSCBS));
 
-  if (VersaoDF >= ve400) and (ModeloDF in [moCTe, moCTeOS]) then
-    Result.AppendChild(AddNode(tcDe2, '#250', 'vTotDFe', 1, 15, 0,
+    if (ModeloDF in [moCTe, moCTeOS]) then
+      Result.AppendChild(AddNode(tcDe2, '#250', 'vTotDFe', 1, 15, 1,
                                                  CTe.Imp.vTotDFe, DSC_VTOTDFE));
+  end;
 end;
 
 function TCTeXmlWriter.Gerar_ICMS: TACBrXmlNode;
@@ -4714,7 +4721,7 @@ begin
     if (ModeloDF in [moCTe, moCTeSimp]) and (IBSCBS.CST in [cst000, cst200]) then
         Result.AppendChild(Gerar_IBSCBS_gIBSCBS(IBSCBS.gIBSCBS));
 
-    if (ModeloDF = moCTeOS) and (IBSCBS.CST in [cst000, cst222]) then
+    if (ModeloDF = moCTeOS) and (IBSCBS.CST in [cst000, cst200, cst222]) then
         Result.AppendChild(Gerar_IBSCBS_gIBSCBS(IBSCBS.gIBSCBS));
 
     if (IBSCBS.gEstornoCred.vIBSEstCred > 0) or (IBSCBS.gEstornoCred.vCBSEstCred > 0) then
@@ -4784,6 +4791,9 @@ function TCTeXmlWriter.Gerar_IBSCBS_gIBSCBS_gIBSUFMunCBS_gDevTrib(
 begin
   Result := CreateElement('gDevTrib');
 
+  Result.AppendChild(AddNode(tcDe2, '#12', 'pDevTrib', 1, 15, 0,
+                                               DevTrib.pDevTrib, DSC_PDEVTRIB));
+
   Result.AppendChild(AddNode(tcDe2, '#13', 'vDevTrib', 1, 15, 1,
                                                DevTrib.vDevTrib, DSC_VDEVTRIB));
 end;
@@ -4851,6 +4861,9 @@ begin
   if (gCBS.gRed.pRedAliq > 0) or (gCBS.gRed.pAliqEfet > 0) or
      (CTe.Ide.gCompraGov.pRedutor > 0) then
     Result.AppendChild(Gerar_IBSCBS_gIBSCBS_gIBSUFMunCBS_gRed(gCBS.gRed));
+
+  if (gCBS.gALCZFMCBS.pAliqEfetRegCBS > 0) or (gCBS.gALCZFMCBS.vTribRegCBS > 0) then
+    Result.AppendChild(Gerar_IBSCBS_gALCZFMCBS(gCBS.gALCZFMCBS));
 
   Result.AppendChild(AddNode(tcDe2, '#61', 'vCBS', 1, 15, 1,
                                                           gCBS.vCBS, DSC_VCBS));
@@ -4932,6 +4945,24 @@ begin
 
   Result.AppendChild(AddNode(tcDe2, '#1', 'vCBSEstCred', 1, 15, 1,
                                     gEstornoCred.vCBSEstCred, DSC_VCBSESTCRED));
+end;
+
+function TCTeXmlWriter.Gerar_IBSCBS_gALCZFMCBS(
+  gALCZFMCBS: TgALCZFMCBS): TACBrXmlNode;
+begin
+  Result := FDocument.CreateElement('gALCZFMCBS');
+
+  Result.AppendChild(AddNode(tcStr, 'UB66b', 'tpALCZFMCBS', 1, 1, 1,
+                    tpALCZFMCBSToStr(gALCZFMCBS.tpALCZFMCBS), DSC_TPALCZFMCBS));
+
+  Result.AppendChild(AddNode(tcStr, 'UB66c', 'nProcSuframa', 8, 12, 0,
+                                    gALCZFMCBS.nProcSuframa, DSC_NPROCSUFRAMA));
+
+  Result.AppendChild(AddNode(tcDe4, 'UB66d', 'pAliqEfetRegCBS', 1, 7, 1,
+                              gALCZFMCBS.pAliqEfetRegCBS, DSC_PALIQEFETREGCBS));
+
+  Result.AppendChild(AddNode(tcDe2, 'UB66e', 'vTribRegCBS', 1, 15, 1,
+                                      gALCZFMCBS.vTribRegCBS, DSC_VTRIBREGCBS));
 end;
 
 end.

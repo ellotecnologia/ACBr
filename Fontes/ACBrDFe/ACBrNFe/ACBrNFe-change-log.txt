@@ -43,6 +43,130 @@ Símbolo : Significado
 [+]     : Novo recurso
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
+
+
+04/09/2026
+-- ACBrNFeDANFEFRDM --
+[-] Correções visando utilizar as novas funções da unit ACBrDFe.Conversao
+   Por: Italo Giurizzato Junior
+-- Diversos --
+[+] Diversas implementações e ajustes no componente para que o mesmo passe a utilizar
+    as units padrões para a RTC.
+   Por: Italo Giurizzato Junior
+-- ACBrNFe.XmlWriter --
+[-] Corrigido a posição onde se deve gerar as tags: qBCMonoDif e adRemICMSDif para
+    o CST=53 do ICMS.
+   Por Italo Giurizzato Junior
+
+03/09/2026
+-- ACBrNFe.XmlWriter --
+[*] Alterado as condições para gerar o XML corretamente quando o tipo de débito for
+    Pagamento Antecipado.
+   Por Italo Giurizzato Junior
+
+02/09/2026
+-- ACBrNFeServicos --
+[+] Incluído as URLs deo QR-Code e de consulta para a NF-e quando emitida com o tipo de impressão
+    DANFE Simplificado Tipo 2.
+   Por Italo Giurizzato Junior
+
+31/08/2026
+-- ACBrNFe --
+[*] Incluído uma condição para pesquisar a seção da NFe ou NFCe ao procurar as URLs do QR-Code
+    dependendo do modelo de documento.
+   Por Italo Giurizzato Junior
+-- ACBrNFeServicos --
+[+] Incluído as URLs de QR-Code e de Consulta (Homologação e Produção) a serem utilizadas
+    em uma NF-e com DANFSE Simplificado Tipo 2.
+   Por Italo Giurizzato Junior
+-- ACBrNFe.XmlReader/ACBrNFe.XmlWriter --
+[*] Alterado o tipo de conversão de tcInt por tcStr, pois o campo nGuia é do tipo string.
+   Por Italo Giurizzato Junior
+
+27/08/2026
+-- ACBrNFe.XmlWriter --
+[*] Removido as condições nas chamadas para gerar II, PIS, PISST, COFINS e COFINSST.
+   Por Italo Giurizzato Junior
+
+26/08/2026
+-- ACBrNFe.XmlWriter --
+[*] Aplicado a Exceção 2 da regra B25-80 NT 2025/002 versão 1.51 na geração dos 
+    impostos.
+   Por Italo Giurizzato Junior
+
+19/08/2026
+-- ACBrNFe.XmlWriter --
+[*] Alterado para opcional a geração da tag pDevTrib.
+   Por Italo Giurizzato Junior
+
+30/07/2026
+-- ACBrNFe.IniWriter --
+[*] Adiciona informações faltantes na geração da seção Entrega
+   Por: Diego Folieni
+-- ACBrNFe.pas --
+	Ajuste na função GerarDigito_Contigencia() para chaves alfanumericas.
+   Por Italo Giurizzato Junior, Diego Folieni e  Daniel de Morais InfoCotidiano
+	
+
+28/07/2026
+-- ACBrNFeWebServices/ACBrNFe.EnvEvento/ACBrNFe.EventoClass/ACBrNFe.RetEnvEvento --
+[*] ACBR-9624 - Reintroduz alterações da Rev-46981 feitas por Celso Junior.
+   Reintroduz a mudança de leiaute do 211110 e desfaz a remoção do 211120
+   Por: Diego Folieni
+   Veja: https://www.projetoacbr.com.br/forum/topic/93461-nf-e-revert-das-altera%C3%A7%C3%B5es-da-nt-2025002-reforma-tribut%C3%A1ria-eventos-211110-e-211120/ 
+
+22/07/2026
+-- ACBrNFe.XmlReader --
+[-] Substituição de chamadas a 'ParseText' para 'DecodeHTMLEntities', para evitar erros de Conversão em Encoding de String
+    (por: DSA)
+
+20/07/2026
+-- ACBrNFe.ValidarRegrasdeNegocio --
+[*] ACBR-9651 Ajuste na regra 711.
+   Por: Italo Giurizzato Junior
+
+09/07/2026
+-- ACBrNFeWebServices/ACBrNFe.Conversao/ACBrNFe.EnvEvento/ACBrNFe.EventoClass/ACBrNFe.RetEnvEvento --
+[*] ACBR-9624 - Revert das modificações relacionadas a NT 2025/002 em sua versão 1.40 no que diz respeito aos eventos
+   Por: Diego Folieni
+   Veja: https://www.projetoacbr.com.br/forum/topic/93444-acbr-9624evento-211110-da-nfe-grupo-gcredpresoper/#comment-610686
+
+07/07/2026
+-- ACBrNFe.XmlWriter --
+[*] Ajustes para evitar a rejeição 1001 da regra B25-80.
+   Por: Maxuel Santana
+-- Diversos --
+[*] Ajustes para atender a NT 2026/002 - versão 1.00 DANFE Simplificado Tipo 2.
+   Por: Italo Giurizzato Junior
+
+02/07/2026
+-- Diversos --
+[*] Ajustes para atender a NT 2025/002 - versão 1.00 da Reforma Tributária.
+   Por: Italo Giurizzato Junior
+
+01/07/2026
+-- ACBrNFe.XmlWriter --
+[*] Alteração visando deixar o grupo gALCZFMCBS como opcional.
+   Por: Italo Giurizzato Junior
+
+30/06/2026
+-- ACBrNFe.XmlWriter --
+[-] Correção para gerar o grupo gPagAntecipado somente se a lista de chaves for maior que zero.
+   Por: Italo Giurizzato Junior
+-- Diversos --
+[*] ACBr-9369: Ajustes para CNPJ Alfanuméricos FormatarChaveAcesso
+   Por: Daniel de Morais InfoCotidiano
+30/06/2026
+-- ACBrNFe.JSONWriter --
+[-] Correção para a quebra de compilação.
+   Por: Italo Giurizzato Junior
+
+25/06/2026
+-- ACBrNFe.XmlReader, ACBrNFe.XmlWriter  --
+[*] Ajuste na leitura e gravação XML do alfanumericos
+   ACBr-9369
+   Por: Daniel Morais InfoCotidiano
+
 22/06/2026
 -- Diversas units ACBrNFe  --
 [*] Ajuste das chaves chaves e cnpj alfanumérico

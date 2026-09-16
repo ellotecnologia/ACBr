@@ -159,6 +159,7 @@ resourcestring
   DSC_PDIF = 'Percentual de diferimento';
   DSC_VDIF = 'Valor do Diferimento';
   DSC_VCBSOP = 'Valor da CBS Bruto na operação';
+  DSC_PDEVTRIB = 'Percentual de devolução do IBS';
   DSC_VDEVTRIB = 'Valor do tributo devolvido';
   DSC_PREDALIQ = 'Percentual da redução de alíquota';
   DSC_PALIQEFET = 'Aliquota Efetiva do IBS de competência das UF que será aplicada a Base de Cálculo';
@@ -167,6 +168,7 @@ resourcestring
   DSC_VIBSUF = 'Valor do IBS de competência da UF';
   DSC_PIBSMUN = 'Alíquota do IBS de competência do Município';
   DSC_VIBSMUN = 'Valor do IBS de competência do Município';
+  DSC_VBCIBSCBS = 'Valor da Base de Calculo IBS/CBS';
   DSC_VIBS = 'Valor da IBS';
   DSC_PCBS = 'Alíquota da CBS';
   DSC_VCBS = 'Valor da CBS';
@@ -193,6 +195,59 @@ resourcestring
   DSC_TPMEIOPGTO = 'Meio de pagamento utilizado';
   DSC_CNPJRECEB = 'CNPJ do recebedor do pagamento';
   DSC_CNPJBASEPSP = 'CNPJ base da instituição financeira';
+
+  DSC_TPPAGANT = 'Tipo Pagamento ou Pagamento Antecipado';
+  DSC_ISUFEMIT = 'Inscrição do emitente da Suframa';
+  DSC_CNPJPAA = 'CNPJ do Provedor de Assinatura e Autorização';
+  DSC_REFNFE = 'NFe Referenciada';
+  DSC_VBCIMPSEL = 'Valor da Base de Cálculo do Imposto Seletivo';
+  DSC_PIMPSEL = 'Alíquota do Imposto Seletivo (percentual)';
+  DSC_ADREMIS = 'Alíquota do Imposto Seletivo (por valor)';
+  DSC_VIMPSEL = 'Valor do Imposto Seletivo';
+  DSC_UTRIB = 'Unidade Tributável';
+  DSC_QTRIB = 'Quantidade Tributável';
+  DSC_VTOTIBSMONO = 'Total de IBS Monofásico.';
+  DSC_VTOTCBSMONO = 'Total da CBS Monofásica';
+  DSC_QBCMONO = 'Quantidade tributada';
+  DSC_ADREMIBS = 'Alíquota ad rem do IBS';
+  DSC_ADREMCBS = 'Alíqutoa ad rem da CBS';
+  DSC_VIBSMONO = 'Valor do IBS monofásico';
+  DSC_VCBSMONO = 'Valor da CBS monofásica';
+  DSC_ADREMIBSRETEN = 'Alíquota ad rem do imposto sujeito a retenção';
+  DSC_VIBSMONORETEN = 'Valor do IBS monofásico sujeito a retenção';
+  DSC_QBCMONORETEN = 'Quantidade tributada sujeita a retenção';
+  DSC_PDIFIBS = 'Percentual do diferimento do imposto monofásico';
+  DSC_VIBSMONODIF = 'Valor do IBS mono diferido.';
+  DSC_PDIFCBS = 'Percentual do diferimento do imposto monofásico';
+  DSC_VCBSMONODIF = 'Valor do CBS Mono diferido.';
+  DSC_VBCCREDPRES = 'Valor da Base de Cálculo do Crédito Presumido da Operação ';
+  DSC_TPCREDPRESIBSZFM = 'Classificação de acordo com o art. 450, § 1º, da LC 214/25 para o cálculo do crédito presumido na ZFM';
+  DSC_VCREDPRESIBSZFM = 'Valor do crédito presumido calculado sobre o saldo devedor apurado';
+  DSC_CHAVEACESSO = 'Chave de acesso do DF-e referenciado';
+  DSC_NITEM = 'Numero do item';
+  DSC_VIS = 'Valor Total do Imposto Seletivo';
+  DSC_VCBSMONORETEN = 'Valor total da CBS monofásica sujeita a retenção';
+  DSC_VIBSMONORET = 'Valor do IBS monofásico retido anteriormente';
+  DSC_VCBSMONORET = 'Valor da CBS monofásica retida anteriormente';
+  DSC_QBCBIOCOMB = 'Quantidade de Biocombustível (EAC) a recolher ou a ressarcir';
+  DSC_VIBSDIFERENCA = 'Valor do IBS correspondente a diferença em relação ao pBioObrigatorio';
+  DSC_VBCMONO = 'Valor tributado na monofasia';
+  DSC_PALIQMONOUF = 'Alíquota ad valorem do IBS Estadual';
+  DSC_VIBSMONOUF = 'Valor do IBS monofásico Estadual';
+  DSC_PALIQMONOMUN = 'Alíquota ad valorem do IBS Municipal';
+  DSC_VIBSMONOMUN = 'Valor do IBS monofásico do Municipal';
+  DSC_VBCMONORETEN = 'Valor tributado sujeito à retenção na monofasia';
+  DSC_PALIQMONORETEN = 'Alíquota ad valorem do IBS sujeito à retenção';
+  DSC_ADREMCBSRETEN = 'Alíquota ad rem da CBS sujeita à retenção';
+  DSC_VCBSDIFERENCA = 'Valor da CBS correspondente a diferença em relação ao pBioObrigatorio';
+  DSC_PALIQMONOCBS = 'Alíquota ad valorem da CBS';
+
+  DSC_TPALCZFMCBS = 'Tipo de aplicação da alíquota zero da CBS';
+  DSC_NPROCSUFRAMA = 'Número do processo na Suframa para o item comercializado';
+  DSC_PALIQEFETREGCBS = 'Percentual efetivo sem a redução';
+  DSC_VTRIBREGCBS = 'Valor efetivo sem a redução';
+  DSC_CHDFEPAGANT = 'Chave de acesso do DF-e de antecipação de pagamento';
+  DSC_NITEMPAGANT = 'Nùmero do item do DF-e de antecipação para refência direta a um item';
 
 implementation
 

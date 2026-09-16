@@ -102,6 +102,7 @@ namespace ACBrLibPIXCD.Demo
                 acbr_pixcd.Config.TipoChave = cmbTipoChave.GetSelectedValue<TipoChave>();
                 acbr_pixcd.Config.PSP = cmbPSP.GetSelectedValue<PSP>();
                 acbr_pixcd.Config.Timeout = (int)nudPSPTimeout.Value;
+                acbr_pixcd.Config.ValidarCopiaECola = ckbValidarCopiaECola.Checked;
                 acbr_pixcd.Config.ProxyHost = txtProxyServidor.Text;
                 acbr_pixcd.Config.ProxyPass = txtProxySenha.Text;
                 acbr_pixcd.Config.ProxyPort = (int)nudProxyPorta.Value;
@@ -245,6 +246,7 @@ namespace ACBrLibPIXCD.Demo
                 acbr_pixcd.Config.QQPag.ChavePIX = txtChavePIXQQPag.Text;
                 acbr_pixcd.Config.QQPag.ClientID = txtClientIDQQPag.Text;
                 acbr_pixcd.Config.QQPag.ClientSecret = txtClientSecretQQPag.Text;
+                acbr_pixcd.Config.QQPag.Scopes = txtScopesQQPag.Text;
 
                 acbr_pixcd.ConfigGravar();
 
@@ -275,6 +277,7 @@ namespace ACBrLibPIXCD.Demo
             cmbTipoChave.SetSelectedValue(acbr_pixcd.Config.TipoChave);
             cmbPSP.SetSelectedValue(acbr_pixcd.Config.PSP);
             nudPSPTimeout.Value = acbr_pixcd.Config.Timeout;
+            ckbValidarCopiaECola.Checked = acbr_pixcd.Config.ValidarCopiaECola;
             txtProxyServidor.Text = acbr_pixcd.Config.ProxyHost;
             txtProxySenha.Text = acbr_pixcd.Config.ProxyPass;
             nudProxyPorta.Value = acbr_pixcd.Config.ProxyPort;
@@ -418,6 +421,7 @@ namespace ACBrLibPIXCD.Demo
             txtChavePIXQQPag.Text = acbr_pixcd.Config.QQPag.ChavePIX;
             txtClientIDQQPag.Text = acbr_pixcd.Config.QQPag.ClientID;
             txtClientSecretQQPag.Text = acbr_pixcd.Config.QQPag.ClientSecret;
+            txtScopesQQPag.Text = acbr_pixcd.Config.QQPag.Scopes;
         }
 
         private void btnCertificadoBradesco_Click(object sender, EventArgs e)

@@ -509,6 +509,7 @@ begin
   LerINIIdentificacaoRps(AINIRec);
   LerINIDadosServico(AINIRec);
   LerINIDadosValores(AINIRec);
+  LerINIIdentificacaoPrestador(AINIRec);
   LerINIDadosTomador(AINIRec);
   LerINIIdentificacaoPrestador(AINIRec);
   LerINIListaEmail(AINIRec);
@@ -596,6 +597,7 @@ begin
     NFSe.Servico.CodigoNBS := AINIRec.ReadString(sSecao, 'CodigoNBS', '');
     NFSe.Servico.InfAdicional := AINIRec.ReadString(sSecao, 'InfAdicional', '');
 
+    NFSe.Servico.Endereco.TipoLogradouro := AINIRec.ReadString(sSecao, 'TipoLogradouro', '');
     NFSe.Servico.Endereco.Endereco := AINIRec.ReadString(sSecao, 'Logradouro', '');
     NFSe.Servico.Endereco.Numero := AINIRec.ReadString(sSecao, 'Numero', '');
     NFSe.Servico.Endereco.Bairro := AINIRec.ReadString(sSecao, 'Bairro', '');
@@ -710,6 +712,7 @@ begin
     NFSe.Prestador.Endereco.CEP := AINIRec.ReadString(sSecao, 'CEP', '');
 
     NFSe.OptanteSimplesNacional := FpAOwner.StrToSimNao(Ok, AINIRec.ReadString(sSecao, 'OptanteSN', '1'));
+    NFSe.DataOptanteSimplesNacional := AINIRec.ReadDateTime(sSecao, 'DataOptanteSimplesNacional', 0);
 
     if NFSe.tpXML = txmlNFSe then
     begin
@@ -723,8 +726,6 @@ begin
       NFSe.CodigoVerificacao := AINIRec.ReadString(sSecao, 'CodigoVerificacao', '');
       NFSe.SituacaoNFSe := StrToStatusNFSe(Ok, AINIRec.ReadString(sSecao, 'StatusNFSe', ''));
       NFSe.MotivoCancelamento := AINIRec.ReadString(sSecao, 'MotivoCancelamento', '');
-
-      NFSe.DataOptanteSimplesNacional := AINIRec.ReadDateTime(sSecao, 'DataOptanteSimplesNacional', 0);
     end;
   end;
 end;

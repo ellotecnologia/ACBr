@@ -124,7 +124,7 @@ type
 
   TnfseProvedor = (proNenhum,
                    proPadraoNacional,
-                   proAbaco, proABase, proActcon, proAdm, proADPM, proAEG,
+                   proAbaco, proABase, proActcon, proAdm, proADPM, proAEG, proAgape,
                    proAgili, proAspec, proAssessorPublico, proAsten, proBauhaus,
                    proBetha, proBHISS, proBWSistemas, proCenti, proCIGA, proCitta,
                    proConam, proContass, proCoplan, proCTA, proCTAConsult, proDataSmart,
@@ -142,7 +142,7 @@ type
                    proISSSalvador, proISSSaoPaulo, proISSSJP, proISSVitoria,
                    proKalana, proLexsom, proLibre, proLink3, proMegaSoft,
                    proMetropolisWeb, proMitra, proModernizacaoPublica,
-                   proNEAInformatica, proNFEletronica, proNFSeBrasil,
+                   proNEAInformatica, proNFEletronica, proNFOnline, proNFSeBrasil,
                    proNotaInteligente, proPrescon, proPriMax, proProdata,
                    proPRODAUB, proPronim, proPublica, proPublicSoft, proRLZ,
                    proSam, proSaatri, proSafeWeb, proSH3, proSiam, proSiapNet,
@@ -150,9 +150,10 @@ type
                    proSigISS, proSigISSWeb, proSilTecnologia, proSimple,
                    proSimplISS, proSintese, proSisPMJP, proSistemas4R,
                    proSmarAPD, proSmart4, proSoftPlan, proSpeedGov, proSSInformatica,
-                   proSudoeste, proSysISS, proSystemPro, proTcheInfo, proTecnos,
-                   proThema, proTinus, proTiplan, proTributus, proVersaTecnologia,
-                   proVirtual, proWebFisco, proWebISS, proXTRTecnologia);
+                   proSudoeste, proSysISS, proSystemPro, proTaxTecnologia,
+                   proTcheInfo, proTecnos, proThema, proTinus, proTiplan,
+                   proTributus, proVersaTecnologia, proVirtual, proWebFisco,
+                   proWebISS, proXTRTecnologia);
 
   TnfseSituacaoTributaria = (stRetencao, stNormal, stSubstituicao, stNenhum,
                              stRetidoForaMunicipio, stDevidoForaMunicipioNaoRetido);
@@ -539,22 +540,29 @@ const
 
 type
   TCSTPis = (cstPisVazio, cstPis00, cstPis01, cstPis02, cstPis03, cstPis04,
-             cstPis05, cstPis06, cstPis07, cstPis08, cstPis09, cstPis49);
+             cstPis05, cstPis06, cstPis07, cstPis08, cstPis09, cstPis49,
+             cstPis50, cstPis51, cstPis52, cstPis53, cstPis54, cstPis55, cstPis56,
+             cstPis60, cstPis61, cstPis62, cstPis63, cstPis64, cstPis65, cstPis66,
+             cstPis67, cstPis70, cstPis71, cstPis72, cstPis73, cstPis74, cstPis75,
+             cstPis98, cstPis99);
 
 const
   TCSTPisArrayStrings: array[TCSTPis] of string = ('', '00', '01', '02', '03',
-    '04', '05', '06', '07', '08', '09', '49');
+    '04', '05', '06', '07', '08', '09', '49', '50', '51', '52', '53', '54', '55',
+    '56', '60', '61', '62', '63', '64', '65', '66', '67', '70', '71', '72', '73',
+    '74', '75', '98', '99');
 
 type
   TtpRetPisCofins = (trpiscofinscsllNaoRetido, trpcRetido,
                      trpcNaoRetido, trpiscofinscsllRetido,
                      trpiscofinsRetidocsllNaoRetido, trPisRetidoCofinsCsllNaoRetido,
                      trCofinsRetidoPisCsllNaoRetido, trCofinsCsllRetidoPisNaoRetido,
-                     trCsllRetidoPisCofinsNaoRetido, trPisCsllRetidoCofinsNaoRetido);
+                     trCsllRetidoPisCofinsNaoRetido, trPisCsllRetidoCofinsNaoRetido,
+                     trVazio);
 
 const
   TtpRetPisCofinsArrayStrings: array[TtpRetPisCofins] of string = ('0', '1', '2',
-    '3', '4', '5', '6', '7', '8', '9');
+    '3', '4', '5', '6', '7', '8', '9', '');
 
 type
   TindTotTrib = (indNao, indSim);
@@ -1471,19 +1479,19 @@ const
     7820, 7838, 7889, 7919, 7951, 8001, 8052, 8109, 8150, 8206, 8230, 8249,
     8273, 8281, 8311, 8338, 8451, 8478, 8486, 8508, 8583, 8630, 8664, 8753,
     8702, 8885, 8907);
-
+{
 function StrToEnumerado(out ok: boolean; const s: string; const AString: array of string;
   const AEnumerados: array of variant): variant;
 function EnumeradoToStr(const t: variant; const AString:
   array of string; const AEnumerados: array of variant): variant;
-
+}
 implementation
 
 uses
   ACBrUtil.Strings, ACBrUtil.XMLHTML, ACBrUtil.FilesIO,
   ACBrXmlBase,
   ACBrDFe.Conversao;
-
+{
 function StrToEnumerado(out ok: boolean; const s: string; const AString:
   array of string; const AEnumerados: array of variant): variant;
 var
@@ -1508,7 +1516,7 @@ begin
     if t = AEnumerados[i] then
       result := AString[i];
 end;
-
+}
 function CodIBGEToCodTOM(const ACodigo: Integer): string;
 var
  CodTOM: string;
@@ -13670,39 +13678,55 @@ end;
 function CSTPisToStr(const t: TCSTPis): string;
 begin
   result := EnumeradoToStr(t,
-        ['', '00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '49'],
+        ['', '00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '49',
+         '50', '51', '52', '53', '54', '55', '56', '60', '61', '62',
+         '63', '64', '65', '66', '67', '70', '71', '72', '73', '74', '75',
+         '98', '99'],
         [cstPisVazio, cstPis00, cstPis01, cstPis02, cstPis03, cstPis04,
-         cstPis05, cstPis06, cstPis07, cstPis08, cstPis09, cstPis49]);
+         cstPis05, cstPis06, cstPis07, cstPis08, cstPis09, cstPis49,
+         cstPis50, cstPis51, cstPis52, cstPis53, cstPis54, cstPis55, cstPis56,
+         cstPis60, cstPis61, cstPis62, cstPis63, cstPis64, cstPis65, cstPis66,
+         cstPis67, cstPis70, cstPis71, cstPis72, cstPis73, cstPis74, cstPis75,
+         cstPis98, cstPis99]);
 end;
 
 function StrToCSTPis(out ok: Boolean; const s: string): TCSTPis;
 begin
   result := StrToEnumerado(ok, s,
-        ['', '00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '49'],
+        ['', '00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '49',
+         '50', '51', '52', '53', '54', '55', '56', '60', '61', '62',
+         '63', '64', '65', '66', '67', '70', '71', '72', '73', '74', '75',
+         '98', '99'],
         [cstPisVazio, cstPis00, cstPis01, cstPis02, cstPis03, cstPis04,
-         cstPis05, cstPis06, cstPis07, cstPis08, cstPis09, cstPis49]);
+         cstPis05, cstPis06, cstPis07, cstPis08, cstPis09, cstPis49,
+         cstPis50, cstPis51, cstPis52, cstPis53, cstPis54, cstPis55, cstPis56,
+         cstPis60, cstPis61, cstPis62, cstPis63, cstPis64, cstPis65, cstPis66,
+         cstPis67, cstPis70, cstPis71, cstPis72, cstPis73, cstPis74, cstPis75,
+         cstPis98, cstPis99]);
 end;
 
 function tpRetPisCofinsToStr(const t: TtpRetPisCofins): string;
 begin
   result := EnumeradoToStr(t,
-                           ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+                           ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ''],
               [trpiscofinscsllNaoRetido, trpcRetido,
                trpcNaoRetido, trpiscofinscsllRetido,
                trpiscofinsRetidocsllNaoRetido, trPisRetidoCofinsCsllNaoRetido,
                trCofinsRetidoPisCsllNaoRetido, trCofinsCsllRetidoPisNaoRetido,
-               trCsllRetidoPisCofinsNaoRetido, trPisCsllRetidoCofinsNaoRetido]);
+               trCsllRetidoPisCofinsNaoRetido, trPisCsllRetidoCofinsNaoRetido,
+               trVazio]);
 end;
 
 function StrTotpRetPisCofins(out ok: Boolean; const s: string): TtpRetPisCofins;
 begin
   result := StrToEnumerado(ok, s,
-                           ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+                           ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ''],
               [trpiscofinscsllNaoRetido, trpcRetido,
                trpcNaoRetido, trpiscofinscsllRetido,
                trpiscofinsRetidocsllNaoRetido, trPisRetidoCofinsCsllNaoRetido,
                trCofinsRetidoPisCsllNaoRetido, trCofinsCsllRetidoPisNaoRetido,
-               trCsllRetidoPisCofinsNaoRetido, trPisCsllRetidoCofinsNaoRetido]);
+               trCsllRetidoPisCofinsNaoRetido, trPisCsllRetidoCofinsNaoRetido,
+               trVazio]);
 end;
 
 function tpRetPisCofinsDescricao(const t: TtpRetPisCofins): string;
@@ -13804,8 +13828,12 @@ begin
 end;
 
 function StrTotpEvento(out ok: Boolean; const s: string): TtpEvento;
+var
+  Laux: string;
 begin
-  result := StrToEnumerado(ok, s,
+  Laux := 'e' + OnlyNumber(s);
+
+  result := StrToEnumerado(ok, Laux,
                          ['e101101', 'e105102', 'e101103', 'e105104', 'e105105',
                           'e202201', 'e203202', 'e204203', 'e205204', 'e202205',
                           'e203206', 'e204207', 'e205208', 'e305101', 'e305102',

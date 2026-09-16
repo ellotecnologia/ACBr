@@ -198,7 +198,7 @@ begin
       LNossoNumero := aTitulo.NossoNumero;
       LSeuNumero   := aTitulo.SeuNumero;
       LAgencia     := aTitulo.ACBrBoleto.Cedente.Agencia;
-      LConta       := aTitulo.ACBrBoleto.Cedente.Conta;
+      LConta       := aTitulo.ACBrBoleto.Cedente.Conta+aTitulo.ACBrBoleto.Cedente.ContaDigito;
     end;
 
     try
@@ -241,19 +241,13 @@ end;
 procedure TBoletoW_Safra.RequisicaoJson;
 var
   LJson: TACBrJSONObject;
-  LConta: string;
 begin
   if Assigned(aTitulo) then
   begin
     LJson := TACBrJSONObject.Create;
     try
-      LConta := IfThen(Boleto.Configuracoes.WebService.Ambiente = tawsProducao,
-                          inttostr(StrToIntDef(aTitulo.ACBrBoleto.Cedente.Conta,0))+aTitulo.ACBrBoleto.Cedente.ContaDigito,
-                          inttostr(StrToIntDef(aTitulo.ACBrBoleto.Cedente.Conta,0)));
-
       LJson.AddPair('agencia',aTitulo.ACBrBoleto.Cedente.Agencia);
-      LJson.AddPair('conta', LConta);
-
+      LJson.AddPair('conta', inttostr(StrToIntDef(aTitulo.ACBrBoleto.Cedente.Conta,0))+aTitulo.ACBrBoleto.Cedente.ContaDigito);
       GerarDocumento(LJson);
       FPDadosMsg := LJson.ToJSON;
     finally
@@ -279,7 +273,9 @@ begin
       LJsonDocumento := TACBrJSONObject.Create;
       LJsonDocumento.AddPair('numero', Copy(OnlyNumber(aTitulo.ACBrBoleto.Banco.MontarCampoNossoNumero(aTitulo)), 1, 15));
       LJsonDocumento.AddPair('numeroCliente', Copy(aTitulo.SeuNumero, 1, 10));
-      LJsonDocumento.AddPair('diasDevolucao', 90);
+
+      if Boleto.Cedente.CaracTitulo <> tcVinculada then
+         LJsonDocumento.AddPair('diasDevolucao', 90);
       LJsonDocumento.AddPair('especie', EPC_DUPLICATA_MERCANTIL);
       LJsonDocumento.AddPair('dataVencimento', DateTimeToDateInter(aTitulo.Vencimento));
       LJsonDocumento.AddPair('valor', aTitulo.ValorDocumento);

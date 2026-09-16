@@ -48,6 +48,8 @@ type
       FScopes: TACBrPSPScopes;
     protected
       FSessaoPSP: String;
+      FURLProducao: String;
+      FURLSandBox: String;
     public
       constructor Create;
 
@@ -55,6 +57,29 @@ type
       procedure LerIni(const AIni: TCustomIniFile); virtual;
 
       property Scopes: TACBrPSPScopes read FScopes write FScopes;
+      property URLProducao: String read FURLProducao write FURLProducao;
+      property URLSandBox: String read FURLSandBox write FURLSandBox;
+  end;
+
+  { TPIXCDCrediSISConfig }
+  TPIXCDCrediSISConfig = class (TPIXCDPSPConfig)
+    FChavePIX: String;
+    FClientID: String;
+    FClientSecret: String;
+    FAgencia: String;
+    FConta: String;
+
+    public
+    Constructor Create;
+
+    procedure LerIni(const AIni: TCustomIniFile); override;
+    procedure GravarIni(const AIni: TCustomIniFile); override;
+
+    property ChavePIX: String read FChavePIX write FChavePIX;
+    property ClientID: String read FClientID write FClientID;
+    property ClientSecret: String read FClientSecret write FClientSecret;
+    property Agencia: String read FAgencia write FAgencia;
+    property Conta: String read FConta write FConta;
   end;
 
   { TPIXCDQQPagConfig }
@@ -117,6 +142,7 @@ type
     FChavePIX: String;
     FClientID: String;
     FClientSecret: String;
+    FArquivoPFX: String;
     FArquivoCertificado: String;
     FSenhaPFX: AnsiString;
 
@@ -129,6 +155,7 @@ type
     property ChavePIX: String read FChavePIX write FChavePIX;
     property ClientID: String read FClientID write FClientID;
     property ClientSecret: String read FClientSecret write FClientSecret;
+    property ArquivoPFX: String read FArquivoPFX write FArquivoPFX;
     property ArquivoCertificado: String read FArquivoCertificado write FArquivoCertificado;
     property SenhaPFX: AnsiString read FSenhaPFX write FSenhaPFX;
   end;
@@ -484,6 +511,7 @@ type
     FQuandoGravarLog: TACBrGravarLog;
     FRecebedor: TACBrPixRecebedor;
     FTimeOut: Integer;
+    FValidarCopiaECola: Boolean;
 
     public
     constructor Create;
@@ -502,6 +530,7 @@ type
     property QuandoGravarLog: TACBrGravarLog read FQuandoGravarLog write FQuandoGravarLog;
     property Recebedor: TACBrPixRecebedor read FRecebedor write FRecebedor;
     property TimeOut: Integer read FTimeOut write FTimeOut;
+    property ValidarCopiaECola: Boolean read FValidarCopiaECola write FValidarCopiaECola;
   end;
 
   { TLibPIXCDConfig }
@@ -528,6 +557,7 @@ type
       FPIXCDC6Bank: TPIXCDC6BankConfig;
       FPIXCDAppLess: TPIXCDAppLessConfig;
       FPIXCDQQPag: TPIXCDQQPagConfig;
+      FPIXCDCrediSIS: TPIXCDCrediSISConfig;
 
     protected
 
@@ -565,6 +595,7 @@ type
       property PIXCDC6Bank:        TPIXCDC6BankConfig read FPIXCDC6Bank;
       property PIXCDAppLess:       TPIXCDAppLessConfig read FPIXCDAppLess;
       property PIXCDQQPag:         TPIXCDQQPagConfig read FPIXCDQQPag;
+      property PIXCDCrediSIS:      TPIXCDCrediSISConfig read FPIXCDCrediSIS;
   end;
 
   function StringToSetOfPSPScopes(const AOriginalString: String): TACBrPSPScopes;
@@ -601,6 +632,7 @@ begin
   FPIXCDC6Bank := TPIXCDC6BankConfig.Create;
   FPIXCDAppLess := TPIXCDAppLessConfig.Create;
   FPIXCDQQPag := TPIXCDQQPagConfig.Create;
+  FPIXCDCrediSIS := TPIXCDCrediSISConfig.Create;
 end;
 
 destructor TLibPIXCDConfig.Destroy;
@@ -626,6 +658,7 @@ begin
   FPIXCDC6Bank.Free;
   FPIXCDAppLess.Free;
   FPIXCDQQPag.Free;
+  FPIXCDCrediSIS.Free;
 
   inherited Destroy;
 end;
@@ -664,6 +697,7 @@ begin
   FPIXCDC6Bank.LerIni(Ini);
   FPIXCDAppLess.LerIni(Ini);
   FPIXCDQQPag.LerIni(Ini);
+  FPIXCDCrediSIS.LerIni(Ini);
 end;
 
 procedure TLibPIXCDConfig.ClasseParaINI;
@@ -693,6 +727,7 @@ begin
   FPIXCDC6Bank.GravarIni(Ini);
   FPIXCDAppLess.GravarIni(Ini);
   FPIXCDQQPag.GravarIni(Ini);
+  FPIXCDCrediSIS.GravarIni(Ini);
 end;
 
 procedure TLibPIXCDConfig.ClasseParaComponentes;
@@ -732,6 +767,7 @@ begin
   FQuandoGravarLog := Nil;
   FRecebedor := TACBrPixRecebedor.Create;
   FTimeOut := ChttpTimeOutDef;
+  FValidarCopiaECola := True;
 end;
 
 destructor TPIXCDConfig.Destroy;
@@ -751,6 +787,7 @@ begin
   TipoChave:= TACBrPIXTipoChave(AIni.ReadInteger(CSessaoPixCDConfig, CChaveTipoChave, Integer(TipoChave)));
   PSP := TACBrPIXPSP(AIni.ReadInteger(CSessaoPixCDConfig, CChavePSP, Integer(PSP)));
   TimeOut:= AIni.ReadInteger(CSessaoPixCDConfig, CChaveTimeOut, TimeOut);
+  ValidarCopiaECola := AIni.ReadBool(CSessaoPixCDConfig, CChaveValidarCopiaECola, ValidarCopiaECola);
 
   with DadosAutomacao do
   begin
@@ -786,6 +823,7 @@ begin
   AIni.WriteInteger(CSessaoPixCDConfig, CChaveTipoChave, Integer(TipoChave));
   AIni.WriteInteger(CSessaoPixCDConfig, CChavePSP, Integer(PSP));
   AIni.WriteInteger(CSessaoPixCDConfig, CChaveTimeOut, TimeOut);
+  AIni.WriteBool(CSessaoPixCDConfig, CChaveValidarCopiaECola, ValidarCopiaECola);
 
   with DadosAutomacao do
   begin
@@ -1335,6 +1373,7 @@ begin
   FChavePIX := EmptyStr;
   FClientID := EmptyStr;
   FClientSecret := EmptyStr;
+  FArquivoPFX := EmptyStr;
   FArquivoCertificado := EmptyStr;
   FSenhaPFX := EmptyStr;
   FSessaoPSP := CSessaoPIXCDBanrisulConfig;
@@ -1346,6 +1385,7 @@ begin
   ChavePIX := AIni.ReadString(CSessaoPIXCDBanrisulConfig, CChavePIXBanrisul, ChavePIX);
   ClientID := AIni.ReadString(CSessaoPIXCDBanrisulConfig, CChaveClientIDBanrisul, ClientID);
   ClientSecret := AIni.ReadString(CSessaoPIXCDBanrisulConfig, CChaveClientSecretBanrisul, ClientSecret);
+  ArquivoPFX := AIni.ReadString(CSessaoPIXCDBanrisulConfig, CChaveArquivoPFXBanrisul, ArquivoPFX);
   ArquivoCertificado := AIni.ReadString(CSessaoPIXCDBanrisulConfig, CChaveArquivoCertificadoBanrisul, ArquivoCertificado);
   SenhaPFX := AIni.ReadString(CSessaoPIXCDBanrisulConfig, CChaveSenhaPFXBanrisul, SenhaPFX);
 end;
@@ -1356,6 +1396,7 @@ begin
   AIni.WriteString(CSessaoPIXCDBanrisulConfig, CChavePIXBanrisul, ChavePIX);
   AIni.WriteString(CSessaoPIXCDBanrisulConfig, CChaveClientIDBanrisul, ClientID);
   AIni.WriteString(CSessaoPIXCDBanrisulConfig, CChaveClientSecretBanrisul, ClientSecret);
+  AIni.WriteString(CSessaoPIXCDBanrisulConfig, CChaveArquivoPFXBanrisul, ArquivoPFX);
   AIni.WriteString(CSessaoPIXCDBanrisulConfig, CChaveArquivoCertificadoBanrisul, ArquivoCertificado);
   AIni.WriteString(CSessaoPIXCDBanrisulConfig, CChaveSenhaPFXBanrisul, SenhaPFX);
 end;
@@ -1444,6 +1485,38 @@ begin
   AIni.WriteString(CSessaoPIXCDQQPagConfig, CChaveClientSecretQQPag, ClientSecret);
 end;
 
+{ TPIXCDCrediSISConfig }
+constructor TPIXCDCrediSISConfig.Create;
+begin
+  inherited Create;
+  FChavePIX := EmptyStr;
+  FClientID := EmptyStr;
+  FClientSecret := EmptyStr;
+  FAgencia := EmptyStr;
+  FConta := EmptyStr;
+  FSessaoPSP := CSessaoPIXCDCrediSISConfig;
+end;
+
+procedure TPIXCDCrediSISConfig.LerIni(const AIni: TCustomIniFile);
+begin
+  inherited LerIni(AIni);
+  ChavePIX := AIni.ReadString(CSessaoPIXCDCrediSISConfig, CChavePIXCrediSIS, ChavePIX);
+  ClientID := AIni.ReadString(CSessaoPIXCDCrediSISConfig, CChaveClientIDCrediSIS, ClientID);
+  ClientSecret := AIni.ReadString(CSessaoPIXCDCrediSISConfig, CChaveClientSecretCrediSIS, ClientSecret);
+  Agencia := AIni.ReadString(CSessaoPIXCDCrediSISConfig, CChaveAgenciaCrediSIS, Agencia);
+  Conta := AIni.ReadString(CSessaoPIXCDCrediSISConfig, CChaveContaCrediSIS, Conta);
+end;
+
+procedure TPIXCDCrediSISConfig.GravarIni(const AIni: TCustomIniFile);
+begin
+  inherited GravarIni(AIni);
+  AIni.WriteString(CSessaoPIXCDCrediSISConfig, CChavePIXCrediSIS, ChavePIX);
+  AIni.WriteString(CSessaoPIXCDCrediSISConfig, CChaveClientIDCrediSIS, ClientID);
+  AIni.WriteString(CSessaoPIXCDCrediSISConfig, CChaveClientSecretCrediSIS, ClientSecret);
+  AIni.WriteString(CSessaoPIXCDCrediSISConfig, CChaveAgenciaCrediSIS, Agencia);
+  AIni.WriteString(CSessaoPIXCDCrediSISConfig, CChaveContaCrediSIS, Conta);
+end;
+
 { TPIXCDPSPConfig }
 constructor TPIXCDPSPConfig.Create;
 begin
@@ -1456,6 +1529,8 @@ var
 begin
   LScopesStr := SetOfPSPScopesToString(Scopes);
   AIni.WriteString(FSessaoPSP, CChaveScopes, LScopesStr);
+  AIni.WriteString(FSessaoPSP, CChaveURLProducao, URLProducao);
+  AIni.WriteString(FSessaoPSP, CChaveURLSandBox, URLSandBox);
 end;
 
 procedure TPIXCDPSPConfig.LerIni(const AIni: TCustomIniFile);
@@ -1464,6 +1539,8 @@ var
 begin
   LScopesStr := SetOfPSPScopesToString(Scopes);
   Scopes := StringToSetOfPSPScopes(AIni.ReadString(FSessaoPSP, CChaveScopes, LScopesStr));
+  URLProducao := AIni.ReadString(FSessaoPSP, CChaveURLProducao, URLProducao);
+  URLSandBox := AIni.ReadString(FSessaoPSP, CChaveURLSandBox, URLSandBox);
 end;
 
 function StringToSetOfPSPScopes(const AOriginalString: String): TACBrPSPScopes;

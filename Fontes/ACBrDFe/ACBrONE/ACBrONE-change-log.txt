@@ -42,6 +42,15 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+20/07/2026
+-- Diversos --
+[*] Remoção das units PCN.
+  Por: Italo Giurizzato Junior
+
+07/07/2026
+-- ACBrONEWebServices --
+[*] Alteração visando o CNPJ Alfa seguindo padrão orientado em tópico interno.
+  Por: Daniel de Morais InfoCotidiano
 
 04/06/2026
 -- ACBrONEWebServices --

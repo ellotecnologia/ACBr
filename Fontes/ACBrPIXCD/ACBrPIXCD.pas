@@ -43,8 +43,14 @@ unit ACBrPIXCD;
 interface
 
 uses
-  Classes, SysUtils, httpsend, ssl_openssl,
-  ACBrOpenSSLUtils, ACBrBase, ACBrPIXBase, ACBrPIXBRCode,
+  Classes,
+  SysUtils,
+  httpsend,
+  ssl_openssl,
+  ACBrOpenSSLUtils,
+  ACBrBase,
+  ACBrPIXBase,
+  ACBrPIXBRCode,
   ACBrPIXSchemasPix,
   ACBrPIXSchemasRec,
   ACBrPIXSchemasCob,
@@ -531,6 +537,8 @@ type
     fClientSecret: AnsiString;
     fk1, fk2: String;
     fTipoChave: TACBrPIXTipoChave;
+    fURLProducao: String;
+    fURLSandbox: String;
 
     fepPix: TACBrPixEndPointPix;
     fepRec: TACBrPixEndPointRec;
@@ -574,6 +582,7 @@ type
     property NivelLog: Byte read GetNivelLog;
 
     function ObterURLAmbiente(const Ambiente: TACBrPixCDAmbiente): String; virtual;
+    function ObterURLAmbientePadrao(const Ambiente: TACBrPixCDAmbiente): String; virtual;
     procedure ConfigurarHTTP; virtual;
     procedure ConfigurarProxy; virtual;
     procedure ConfigurarTimeOut; virtual;
@@ -606,6 +615,8 @@ type
     procedure TratarRetornoComErro(ResultCode: Integer; const RespostaHttp: AnsiString;
       Problema: TACBrPIXProblema); virtual;
     procedure AtribuirErroHTTPProblema(Problema: TACBrPIXProblema); virtual;
+
+    procedure ConferirCopiaECola(const aCopiaECola, aLocationEsperada, aTxIdEsperado: String); virtual;
 
     property URLQueryParams: TACBrQueryParams read fURLQueryParams;
     property URLPathParams: TStringList read fURLPathParams;
@@ -646,6 +657,9 @@ type
     property ChavePIX: String read fChavePIX write SetChavePIX;
     property TipoChave: TACBrPIXTipoChave read fTipoChave write SetTipoChave stored false;
     property Scopes: TACBrPSPScopes read fScopes write fScopes;
+
+    property URLProducao: String read fURLProducao write fURLProducao;
+    property URLSandbox: String read fURLSandbox write fURLSandbox;
 
     property QuandoTransmitirHttp: TACBrQuandoTransmitirHttp read fQuandoTransmitirHttp write fQuandoTransmitirHttp;
     property QuandoReceberRespostaHttp: TACBrQuandoReceberRespostaHttp read fQuandoReceberRespostaHttp write fQuandoReceberRespostaHttp;
@@ -782,6 +796,7 @@ type
     fpOnQuandoAlterarPSP: TNotifyEvent;
     fRecebedor: TACBrPixRecebedor;
     fTimeOut: Integer;
+    fpValidarCopiaECola: Boolean;
 
     procedure SetACBrPSP(AValue: TACBrPSP);
     procedure SetDadosAutomacao(AValue: TACBrPixDadosAutomacao);
@@ -817,6 +832,7 @@ type
 
     property ArqLOG: String read fArqLOG write fArqLOG;
     property NivelLog: Byte read fNivelLog write fNivelLog default 1;
+    property ValidarCopiaECola: Boolean read fpValidarCopiaECola write fpValidarCopiaECola default True;
     property QuandoGravarLog: TACBrGravarLog read fQuandoGravarLog write fQuandoGravarLog;
     property OnQuandoAlterarPSP: TNotifyEvent read fpOnQuandoAlterarPSP write fpOnQuandoAlterarPSP;
   end;
@@ -832,12 +848,15 @@ implementation
 
 uses
   StrUtils,
-  synacode, synautil,
+  synacode,
+  synautil,
   ACBrUtil.FilesIO,
   ACBrUtil.Strings,
   ACBrUtil.DateTime,
   ACBrUtil.Base,
-  ACBrCompress, ACBrValidador,
+  ACBrCompress,
+  ACBrValidador,
+  ACBrJSON,
   ACBrPIXUtil;
 
 function StreamToAnsiString(AStream: TStream): AnsiString;
@@ -988,6 +1007,10 @@ begin
   begin
     fCobVGerada.AsJSON := String(RespostaHttp);
     VerificarCopiaECola;
+    if fPSP.IsBacen and fPSP.ACBrPixCD.ValidarCopiaECola then
+    begin
+      fPSP.ConferirCopiaECola(fCobVGerada.pixCopiaECola, fCobVGerada.loc.location, TxId);
+    end;
   end
   else
     fPSP.TratarRetornoComErro(ResultCode, RespostaHttp, Problema);
@@ -1071,7 +1094,7 @@ begin
     Values['inicio'] := DateTimeToIso8601(aInicio);
     Values['fim'] := DateTimeToIso8601(aFim);
 
-    s := OnlyNumber(aCpfCnpj);
+    s := OnlyCPFCNPJAlphaNum(aCpfCnpj);
     if NaoEstaVazio(s) then
     begin
       e := ValidarCNPJouCPF(s);
@@ -1283,7 +1306,7 @@ begin
     Values['inicio'] := DateTimeToIso8601(aInicio);
     Values['fim'] := DateTimeToIso8601(aFim);
 
-    s := OnlyNumber(aCpfCnpj);
+    s := OnlyCPFCNPJAlphaNum(aCpfCnpj);
     if NaoEstaVazio(s) then
     begin
       e := ValidarCNPJouCPF(s);
@@ -1827,7 +1850,7 @@ begin
     if NaoEstaVazio(idRec) then
       Values['idRec'] := idRec;
 
-    s := OnlyNumber(aCpfCnpj);
+    s := OnlyCPFCNPJAlphaNum(aCpfCnpj);
     if NaoEstaVazio(s) then
     begin
       e := ValidarCNPJouCPF(s);
@@ -2486,7 +2509,7 @@ begin
       Values['txIdPresente'] := 'true';
     end;
 
-    s := OnlyNumber(CpfCnpj);
+    s := OnlyCPFCNPJAlphaNum(CpfCnpj);
     if (s <> '') then
     begin
       e := ValidarCNPJouCPF(s);
@@ -2669,6 +2692,12 @@ begin
   begin
     fCobGerada.AsJSON := String(RespostaHttp);
     VerificarCopiaECola;
+    if fPSP.IsBacen and fPSP.ACBrPixCD.ValidarCopiaECola then
+    begin
+      if EstaVazio(fCobGerada.location) then
+        raise EACBrPixException.Create('Falha de seguranca: resposta sem "location". Verifique se a resposta foi adulterada');
+      fPSP.ConferirCopiaECola(fCobGerada.pixCopiaECola, fCobGerada.location, TxId);
+    end;
   end
   else
     fPSP.TratarRetornoComErro(ResultCode, RespostaHttp, Problema);
@@ -2757,7 +2786,7 @@ begin
     Values['inicio'] := DateTimeToIso8601(Inicio);
     Values['fim'] := DateTimeToIso8601(Fim);
 
-    s := OnlyNumber(CpfCnpj);
+    s := OnlyCPFCNPJAlphaNum(CpfCnpj);
     if (s <> '') then
     begin
       e := ValidarCNPJouCPF(s);
@@ -3015,11 +3044,204 @@ begin
   fTipoChave := TipoChave;
 end;
 
+procedure TACBrPSP.ConferirCopiaECola(const aCopiaECola, aLocationEsperada,
+  aTxIdEsperado: String);
+
+  function ValidarCRC(const ACopiaECola, ACRC: String): Boolean;
+  var
+    CRCCalculado: String;
+  begin
+    CRCCalculado := Crc16BRCode(copy(ACopiaECola, 1, Length(ACopiaECola)-4));
+    Result := (ACRC = CRCCalculado);
+  end;
+
+  function Normalizar(const s: String): String;
+  begin
+    Result := UpperCase(Trim(TiraAcentos(s)));
+  end;
+
+  function SemEsquema(const aURL: String): String;
+  begin
+    Result := StringReplace(Trim(aURL), 'https://', '', [rfIgnoreCase]);
+    Result := StringReplace(Result, 'http://', '', [rfIgnoreCase]);
+  end;
+
+  function DecodificarBase64URL(const aBase64URL: String): String;
+  var
+    s: String;
+    pad: Integer;
+  begin
+    s := StringReplace(Trim(aBase64URL), '-', '+', [rfReplaceAll]);
+    s := StringReplace(s, '_', '/', [rfReplaceAll]);
+    pad := (4 - (Length(s) mod 4)) mod 4;
+    if (pad > 0) then
+      s := s + StringOfChar('=', pad);
+    Result := DecodeBase64(s);
+  end;
+
+  function ExtrairChaveDoPIXPayload(const aJSON: String): String;
+  var
+    js: TACBrJSONObject;
+  begin
+    Result := EmptyStr;
+    if EstaVazio(Trim(aJSON)) then
+      Exit;
+    try
+      js := TACBrJSONObject.Parse(aJSON);
+      try
+        if (js <> nil) and js.ValueExists('chave') then
+          Result := Trim(js.AsString['chave']);
+      finally
+        js.Free;
+      end;
+    except
+      Result := EmptyStr;  // payload nao-JSON: nao quebra o fluxo
+    end;
+  end;
+
+  function BuscarPayloadLocation(const aLocation: String): String;
+  var
+    wHttp: THTTPSend;
+    wRespStream: TMemoryStream;
+  begin
+    Result := EmptyStr;
+    wHttp := THTTPSend.Create;
+    wRespStream := TMemoryStream.Create;
+    try
+      wHttp.OutputStream := wRespStream;
+      if Assigned(fPixCD) then
+      begin
+        wHttp.ProxyHost := fPixCD.Proxy.Host;
+        wHttp.ProxyPort := fPixCD.Proxy.Port;
+        wHttp.ProxyUser := fPixCD.Proxy.User;
+        wHttp.ProxyPass := fPixCD.Proxy.Pass;
+        if (fPixCD.TimeOut > 0) then
+          wHttp.Timeout := fPixCD.TimeOut;
+      end;
+      try
+        RegistrarLog('- HTTPMethod(GET): Consultando location');
+        if wHttp.HTTPMethod('GET', aLocation) and (wHttp.ResultCode >= 200) and (wHttp.ResultCode < 300) then
+          Result := String(StreamToAnsiString(wRespStream))
+        else
+          RegistrarLog('ALERTA seguranca: GET na location retornou HTTP ' + IntToStr(wHttp.ResultCode));
+      except
+        on E: Exception do
+          RegistrarLog('ALERTA seguranca: falha no GET da location: ' + E.Message);
+      end;
+    finally
+      wRespStream.Free;
+      wHttp.Free;
+    end;
+  end;
+
+  procedure ValidarChavePixJWT(const aJwtRaw: String);
+  var
+    p1, p2: Integer;
+    PayloadB64, PayloadJSON, ChaveJWT: String;
+  begin
+    p1 := Pos('.', aJwtRaw);
+    p2 := PosEx('.', aJwtRaw, p1 + 1);
+    if (p1 > 0) and (p2 > p1) then
+    begin
+      PayloadB64  := Copy(aJwtRaw, p1 + 1, p2 - p1 - 1);
+      PayloadJSON := DecodificarBase64URL(PayloadB64);
+      ChaveJWT    := ExtrairChaveDoPIXPayload(PayloadJSON);
+      if NaoEstaVazio(ChaveJWT) and (not SameText(ChaveJWT, Trim(fChavePix))) then
+        raise EACBrPixException.Create('Falha de seguranca: chave no JWT da location "' +
+          ChaveJWT + '" difere da chave configurada "' + fChavePix + '"');
+    end
+    else
+      RegistrarLog('ALERTA seguranca: location nao retornou um JWT valido (sem pontos)');
+  end;
+
+var
+  EMV: TACBrPIXQRCodeDinamico;
+  LocationEMV, ChaveEMV, TxIdEMV, NomeEMV, CidadeEMV, JwtRaw: String;
+begin
+  if EstaVazio(Trim(aCopiaECola)) then
+    Exit;
+
+  EMV := TACBrPIXQRCodeDinamico.Create;
+  try
+    // 1) Integridade: CRC16 do payload (campo 63)
+    EMV.AsString := aCopiaECola;
+    if not ValidarCRC(aCopiaECola, EMV.CRC16) then
+      raise EACBrPixException.Create('Falha de seguranca: CRC16 CopiaECola invalido. A resposta do PSP pode ter sido adulterada');
+
+    ChaveEMV    := EMV.PixKey;
+    LocationEMV := EMV.URL;
+    TxIdEMV     := EMV.TxId;
+    NomeEMV     := EMV.MerchantName;
+    CidadeEMV   := EMV.MerchantCity;
+
+    // 2.0) Compara as locations (Response e CopiaECola):
+    if NaoEstaVazio(aLocationEsperada) and NaoEstaVazio(LocationEMV) and
+       (Normalizar(LocationEMV) <> Normalizar(SemEsquema(aLocationEsperada))) then
+      raise EACBrPixException.Create('Falha de seguranca: location "' +
+        LocationEMV + '" difere da location do PSP "' + aLocationEsperada + '"');
+
+    // 2.1) QR dinamico(tem location) nao pode conter chave estatica (26-01)
+    if NaoEstaVazio(aLocationEsperada) and NaoEstaVazio(ChaveEMV) then
+      raise EACBrPixException.Create('Falha de seguranca: QR dinamico com chave estatica("' + ChaveEMV + '"). Possivel substituicao.');
+
+    // 2.2) Compara TxId (ignora curinga *** em ambos os lados)
+    if NaoEstaVazio(aTxIdEsperado) and (Trim(aTxIdEsperado) <> '***') and
+       NaoEstaVazio(TxIdEMV) and (TxIdEMV <> '***') and
+       (not SameText(TxIdEMV, Trim(aTxIdEsperado))) then
+      raise EACBrPixException.Create('Falha de seguranca: txid "' + TxIdEMV + '" difere do esperado "' + aTxIdEsperado + '"');
+
+    // 2.4) Compara Nome/Cidade (APENAS LOG)
+    if Assigned(ACBrPixCD) then
+    begin
+      if NaoEstaVazio(NomeEMV) and NaoEstaVazio(ACBrPixCD.Recebedor.Nome) and
+         (Normalizar(NomeEMV) <> Normalizar(ACBrPixCD.Recebedor.Nome)) then
+        RegistrarLog('seguranca: nome do recebedor "' + NomeEMV + '" difere do configurado "' + ACBrPixCD.Recebedor.Nome + '"', 3);
+      if NaoEstaVazio(CidadeEMV) and NaoEstaVazio(ACBrPixCD.Recebedor.Cidade) and
+         (Normalizar(CidadeEMV) <> Normalizar(ACBrPixCD.Recebedor.Cidade)) then
+        RegistrarLog('seguranca: cidade do recebedor "' + CidadeEMV + '" difere da configurada "' + ACBrPixCD.Recebedor.Cidade + '"', 3);
+    end;
+
+    if NaoEstaVazio(LocationEMV) then
+    begin
+      // Etapa 5) Rejeitar HTTP injetado no EMV (location deve usar HTTPS ou nenhum)
+      if SameText(Copy(LocationEMV, 1, 7), 'http://') then
+        raise EACBrPixException.Create('Falha de seguranca: location usa HTTP(nao HTTPS): ' + LocationEMV);
+
+      // Etapa 4) GET na location -> JWT -> payload Base64URL -> comparar chave
+      if NaoEstaVazio(fChavePix) then
+      begin
+        // LocationEMV vem sem esquema; prefixar https:// para o GET
+        JwtRaw := BuscarPayloadLocation('https://' + LocationEMV);
+        if NaoEstaVazio(JwtRaw) then
+          ValidarChavePixJWT(JwtRaw);
+      end;
+    end;
+  finally
+    EMV.Free;
+  end;
+end;
+
 function TACBrPSP.ObterURLAmbiente(const Ambiente: TACBrPixCDAmbiente): String;
+begin
+  if (Ambiente = ambProducao) and NaoEstaVazio(Trim(fURLProducao)) then
+  begin
+    Result := fURLProducao;
+    RegistrarLog('ObterURLAmbiente: usando URLProducao customizada -> ' + Result, 2);
+  end
+  else if (Ambiente <> ambProducao) and NaoEstaVazio(Trim(fURLSandbox)) then
+  begin
+    Result := fURLSandbox;
+    RegistrarLog('ObterURLAmbiente: usando URLSandbox customizada -> ' + Result, 2);
+  end
+  else
+    Result := ObterURLAmbientePadrao(Ambiente);
+end;
+
+function TACBrPSP.ObterURLAmbientePadrao(const Ambiente: TACBrPixCDAmbiente): String;
 begin
   Result := '';
   raise EACBrPixHttpException.Create(
-    ACBrStr(Format(sErroMetodoNaoImplementado,['ObterURLAmbiente',ClassName])));
+    ACBrStr(Format(sErroMetodoNaoImplementado,['ObterURLAmbientePadrao',ClassName])));
 end;
 
 procedure TACBrPSP.ConfigurarHTTP;
@@ -3804,6 +4026,7 @@ begin
   fArqLOG := '';
   fNivelLog := 1;
   fAmbiente := ambTeste;
+  fpValidarCopiaECola := True;
   fQuandoGravarLog := Nil;
   fpOnQuandoAlterarPSP := Nil;
 end;

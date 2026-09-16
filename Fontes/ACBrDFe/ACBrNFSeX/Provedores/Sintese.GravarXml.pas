@@ -53,7 +53,8 @@ type
 implementation
 
 uses
-  ACBrDFe.Conversao;
+  ACBrDFe.Conversao,
+  ACBrNFSeXConversao;
 
 //==============================================================================
 // Essa unit tem por finalidade exclusiva gerar o XML do RPS do provedor:
@@ -71,6 +72,14 @@ begin
   TagTomador := 'TomadorServico';
 
   NrOcorrCodigoPaisTomador := -1;
+  NrOcorrDiscriminacao_1 := -1;
+  NrOcorrCodigoMunic_1 := -1;
+  NrOcorrCodigoServicoNacional := -1;
+
+  NrOcorrDiscriminacao_2 := 1;
+  NrOcorrCodigoMunic_2 := 1;
+
+  FormatoItemListaServico := filsSemFormatacao;
 end;
 
 end.

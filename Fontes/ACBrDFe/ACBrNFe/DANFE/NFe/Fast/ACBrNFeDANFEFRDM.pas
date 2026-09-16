@@ -41,7 +41,7 @@ interface
 uses
   SysUtils, Classes, Forms, DB, DBClient, Graphics,
   ACBrNFe.EnvEvento,
-  ACBrNFe.RetInut, ACBrNFe.Classes, pcnConversao,
+  ACBrNFe.RetInut, ACBrNFe.Classes, ACBrDFe.Conversao,
   ACBrDFeReport, ACBrDFeDANFeReport, ACBrNFeDANFEClass,
   frxClass, frxExportPDF, frxDBSet, frxBarcode,
   ACBrUtil.FR;
@@ -416,7 +416,12 @@ begin
         FieldDefs.Add('ValorDescontos'  , ftString, 18);
         FieldDefs.Add('xPed'            , ftString, 15);
         FieldDefs.Add('nItemPed'        , ftString, 6);
-
+        
+        FieldDefs.Add('VTribChave' , ftString, 30);
+        FieldDefs.Add('VTribFed'   , ftFloat);
+        FieldDefs.Add('VTribEst'   , ftFloat);
+        FieldDefs.Add('VTribMun'   , ftFloat);
+        
         CreateDataSet;
      end;
    end;
@@ -540,6 +545,12 @@ begin
         FieldDefs.Add('VFCPST'      , ftFloat);
         FieldDefs.Add('VFCPSTRet'   , ftFloat);
         FieldDefs.Add('VIPIDevol'   , ftFloat);
+
+        FieldDefs.Add('VTribChave' , ftString, 30);
+        FieldDefs.Add('VTribFed'   , ftFloat);
+        FieldDefs.Add('VTribEst'   , ftFloat);
+        FieldDefs.Add('VTribMun'   , ftFloat);
+
         CreateDataSet;
      end;
    end;
@@ -955,6 +966,12 @@ begin
 
       if NaoEstaVazio(FDANFEClassOwner.FonteTributos) then
         FieldByName('VTribFonte').AsString := '(Fonte: '+FDANFEClassOwner.FonteTributos+')';
+
+      if NaoEstaVazio(FDANFEClassOwner.ChaveTributos) then
+        FieldByName('VTribChave').AsString := '(Chave: '+FDANFEClassOwner.ChaveTributos+')';
+      FieldByName('VTribFed').AsFloat := FDANFEClassOwner.vTribFed;
+      FieldByName('VTribEst').AsFloat := FDANFEClassOwner.vTribEst;
+      FieldByName('VTribMun').AsFloat := FDANFEClassOwner.vTribMun;
 
       lvTroco := FNFe.pag.vTroco;
       if (lvTroco = 0) and (FDANFEClassOwner is TACBrNFeDANFCEClass) then
@@ -1390,9 +1407,9 @@ begin
     FieldByName('TpNF').AsString    := tpNFToStr( FNFe.Ide.TpNF );
     FieldByName('CMunFG').AsString  := IntToStr(FNFe.Ide.CMunFG);
     FieldByName('TpImp').AsString   := TpImpToStr( FNFe.Ide.TpImp );
-    FieldByName('TpEmis').AsString  := TpEmisToStr( FNFe.Ide.TpEmis );
+    FieldByName('TpEmis').AsString  := TipoEmissaoToStr( FNFe.Ide.TpEmis );
     FieldByName('CDV').AsString     := IntToStr(FNFe.Ide.CDV);
-    FieldByName('TpAmb').AsString   := TpAmbToStr( FNFe.Ide.TpAmb );
+    FieldByName('TpAmb').AsString   := TipoAmbienteToStr( FNFe.Ide.TpAmb );
     FieldByName('FinNFe').AsString  := FinNFeToStr( FNFe.Ide.FinNFe );
     FieldByName('ProcEmi').AsString := procEmiToStr( FNFe.Ide.ProcEmi );
     FieldByName('VerProc').AsString := FNFe.Ide.VerProc;
@@ -1407,10 +1424,10 @@ begin
       FieldByName('DEmi').AsString := FormatDateTimeBr(FNFe.Ide.DEmi);
 
       if (FNFe.Ide.tpEmis <> teNormal) and EstaVazio(FNFe.procNFe.nProt) then
-        FieldByName('MensagemFiscal').AsString := ACBrStr('EMITIDA EM CONTINGÊNCIA'+LineBreak+'Pendente de autorização');
+        FieldByName('MensagemFiscal').AsString := ACBrStr('EMITIDA EM CONTINGÊNCIA'+sLineBreak+'Pendente de autorização');
 
       if FNFe.Ide.TpAmb = taHomologacao then
-        FieldByName('MensagemFiscal').AsString := FieldByName('MensagemFiscal').AsString+LineBreak+LineBreak+ACBrStr('EMITIDA EM AMBIENTE DE HOMOLOGAÇÃO - SEM VALOR FISCAL');
+        FieldByName('MensagemFiscal').AsString := FieldByName('MensagemFiscal').AsString+sLineBreak+sLineBreak+ACBrStr('EMITIDA EM AMBIENTE DE HOMOLOGAÇÃO - SEM VALOR FISCAL');
 
       //if EstaVazio(FieldByName('MensagemFiscal').AsString) then
       //  FieldByName('MensagemFiscal').AsString := ACBrStr('ÁREA DE MENSAGEM FISCAL');
@@ -2034,7 +2051,7 @@ begin
          FieldByName('cStat').AsInteger     := cStat;
          FieldByName('xMotivo').AsString    := xMotivo;
          FieldByName('dhRecbto').AsDateTime := dhRecbto;
-         FieldByName('cUF').AsString        := CUFtoUF(cUF);
+         FieldByName('cUF').AsString        := CodigoUFParaUF(cUF);
 
          case tpAmb of
             taProducao:    FieldByName('tpAmb').AsString := ACBrStr('PRODUÇÃO');
