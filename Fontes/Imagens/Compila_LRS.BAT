@@ -52,7 +52,7 @@ echo "****************************************"
 echo.
 
 :PIXCD
-%1\tools\lazres.exe ACBrPIXCD.lrs TACBrPixCD.png TACBrPSPItau.png TACBrPSPBancoDoBrasil.png TACBrPSPSantander.png TACBrPSPShipay.png TACBrPSPSicredi.png TACBrPSPSicoob.png TACBrPSPPagSeguro.png TACBrPSPGerenciaNet.png TACBrPSPBradesco.png TACBrPSPPixPDV.png TACBrPSPInter.png TACBrPSPAilos.png TACBrPSPMatera.png TACBrPSPCielo.png TACBrPSPMercadoPago.png TACBrPSPGate2All.png TACBrPSPBanrisul.png TACBrPSPC6Bank.png TACBrPSPAppLess.png
+%1\tools\lazres.exe ACBrPIXCD.lrs TACBrPixCD.png TACBrPSPItau.png TACBrPSPBancoDoBrasil.png TACBrPSPSantander.png TACBrPSPShipay.png TACBrPSPSicredi.png TACBrPSPSicoob.png TACBrPSPPagSeguro.png TACBrPSPGerenciaNet.png TACBrPSPBradesco.png TACBrPSPPixPDV.png TACBrPSPInter.png TACBrPSPAilos.png TACBrPSPMatera.png TACBrPSPCielo.png TACBrPSPMercadoPago.png TACBrPSPGate2All.png TACBrPSPBanrisul.png TACBrPSPC6Bank.png TACBrPSPAppLess.png TACBrPSPQQPag.png TACBrPSPCrediSIS.png TACBrPSPCaixa.png
 move ACBrPIXCD.lrs ..\ACBrPIXCD
 echo.
 echo "****************************************"
@@ -361,6 +361,16 @@ echo "****************************************"
 echo "* Arquivo   ACBrBaaS.lrs   gerado   *"
 echo "****************************************"
 echo.
+
+:NFeABI
+%1\tools\lazres.exe ACBrNFeABI.lrs TACBrNFeABI.png
+move ACBrNFeABI.lrs ..\ACBrDFe\ACBrNFEABI
+echo.
+echo "****************************************"
+echo "* Arquivo   ACBrNFeABI.lrs   gerado   *"
+echo "****************************************"
+echo.
+
 
 GOTO fim
 

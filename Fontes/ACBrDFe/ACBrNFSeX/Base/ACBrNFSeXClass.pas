@@ -353,6 +353,85 @@ type
     property pTotTribSN: Double read FpTotTribSN write FpTotTribSN;
   end;
 
+  { TdFeNacional }
+  // PadraoNacional
+  TdFeNacional = class(TObject)
+  private
+    FtipoChaveDFe: TtipoChaveDFe;
+    FxtipoChaveDFe: string;
+    FChaveDFe: string;
+  public
+    property tipoChaveDFe: TtipoChaveDFe read FtipoChaveDFe write FtipoChaveDFe;
+    property xtipoChaveDFe: string read FxtipoChaveDFe write FxtipoChaveDFe;
+    property ChaveDFe: string read FChaveDFe write FChaveDFe;
+  end;
+
+  { TdocFiscalOutro }
+  // PadraoNacional
+  TdocFiscalOutro = class(TObject)
+  private
+    FcMunDocFiscal: Integer;
+    FnDocFiscal: string;
+    FxDocFiscal: string;
+  public
+    property cMunDocFiscal: Integer read FcMunDocFiscal write FcMunDocFiscal;
+    property nDocFiscal: string read FnDocFiscal write FnDocFiscal;
+    property xDocFiscal: string read FxDocFiscal write FxDocFiscal;
+  end;
+
+  { TdocOutro }
+  // PadraoNacional
+  TdocOutro = class(TObject)
+  private
+    FnDoc: string;
+    FxDoc: string;
+  public
+    property nDoc: string read FnDoc write FnDoc;
+    property xDoc: string read FxDoc write FxDoc;
+  end;
+
+  { TdocAjusteBCCollectionItem }
+  // PadraoNacional - NT 009
+  TdocAjusteBCCollectionItem = class(TObject)
+  private
+    FtpAjusteBC: TtpAjusteBC;
+    FxTpAjusteBC: string;
+    FvTotDoc: Double;
+    FvAjusteAplic: Double;
+    FdtEmiDoc: TDateTime;
+    FdtCompDoc: TDateTime;
+    FdFeNacional: TdFeNacional;
+    FdocFiscalOutro: TdocFiscalOutro;
+    FdocOutro: TdocOutro;
+    Ffornec: TInfoPessoa;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    property tpAjusteBC: TtpAjusteBC read FtpAjusteBC write FtpAjusteBC;
+    property xTpAjusteBC: string read FxTpAjusteBC write FxTpAjusteBC;
+    property vTotDoc: Double read FvTotDoc write FvTotDoc;
+    property vAjusteAplic: Double read FvAjusteAplic write FvAjusteAplic;
+    property dtEmiDoc: TDateTime read FdtEmiDoc write FdtEmiDoc;
+    property dtCompDoc: TDateTime read FdtCompDoc write FdtCompDoc;
+    property dFeNacional: TdFeNacional read FdFeNacional write FdFeNacional;
+    property docFiscalOutro: TdocFiscalOutro read FdocFiscalOutro write FdocFiscalOutro;
+    property docOutro: TdocOutro read FdocOutro write FdocOutro;
+    property fornec: TInfoPessoa read Ffornec write Ffornec;
+  end;
+
+  { TdocAjusteBCCollection }
+  // PadraoNacional - NT 009
+  TdocAjusteBCCollection = class(TACBrObjectList)
+  private
+    function GetItem(Index: Integer): TdocAjusteBCCollectionItem;
+    procedure SetItem(Index: Integer; Value: TdocAjusteBCCollectionItem);
+  public
+    function Add: TdocAjusteBCCollectionItem; overload; deprecated {$IfDef SUPPORTS_DEPRECATED_DETAILS} 'Obsoleta: Use a função New'{$EndIf};
+    function New: TdocAjusteBCCollectionItem;
+    property Items[Index: Integer]: TdocAjusteBCCollectionItem read GetItem write SetItem; default;
+  end;
+
   TValores = class(TObject)
   private
     FValorServicos: Double;
@@ -418,8 +497,12 @@ type
     FtpRetPisCofins: TtpRetPisCofins;
     //SpeedGov
     FBaseCalculoPisCofins: Double;
+    FpAjusteBCISSQN: Double;
+    FvAjusteBCISSQN: Double;
+    FdocAjusteBC: TdocAjusteBCCollection;
 
     procedure SetDocDeducao(const Value: TDocDeducaoCollection);
+    procedure SetdocAjusteBC(const Value: TdocAjusteBCCollection);
   public
     constructor Create;
     destructor Destroy; override;
@@ -498,6 +581,11 @@ type
     property tribMun: TtribMun read FtribMun write FtribMun;
     property tribFed: TtribFed read FtribFed write FtribFed;
     property totTrib: TtotTrib read FtotTrib write FtotTrib;
+    property pAjusteBCISSQN: Double read FpAjusteBCISSQN write FpAjusteBCISSQN;
+    property vAjusteBCISSQN: Double read FvAjusteBCISSQN write FvAjusteBCISSQN;
+    // PadraoNacional - NT 009
+    property docAjusteBC: TdocAjusteBCCollection read FdocAjusteBC write SetdocAjusteBC;
+
 
     //provedor CTAConsult
     property TipoDeducao: TTipoDeducao read FTipoDeducao write FTipoDeducao;
@@ -1255,6 +1343,7 @@ type
     FAtualizaTomador: TnfseSimNao;
     FTomadorExterior: TnfseSimNao;
     FTomadorSubstitutoTributario: TnfseSimNao;
+    FaoConsumidor: TnfseSimNao;
   public
     constructor Create;
     destructor Destroy; override;
@@ -1267,6 +1356,9 @@ type
     property AtualizaTomador: TnfseSimNao read FAtualizaTomador write FAtualizaTomador;
     property TomadorExterior: TnfseSimNao read FTomadorExterior write FTomadorExterior;
     property TomadorSubstitutoTributario: TnfseSimNao read FTomadorSubstitutoTributario write FTomadorSubstitutoTributario;
+
+    // Incluido para atender o provedor Balker
+    property aoConsumidor: TnfseSimNao read FaoConsumidor write FaoConsumidor;
   end;
 
   TDadosIntermediario = class(TObject)
@@ -1599,6 +1691,8 @@ type
   private
     FvBC: Double;
     FvCalcReeRepRes: Double;
+    FvCalcAjusteBCIBSCBS: Double;
+    FvCalcAjusteBCLocImoveis: Double;
 
     Fuf: TUF;
     Fmun: TMun;
@@ -1609,6 +1703,9 @@ type
 
     property vBC: Double read FvBC write FvBC;
     property vCalcReeRepRes: Double read FvCalcReeRepRes write FvCalcReeRepRes;
+    // PadraoNacional - NT 009
+    property vCalcAjusteBCIBSCBS: Double read FvCalcAjusteBCIBSCBS write FvCalcAjusteBCIBSCBS;
+    property vCalcAjusteBCLocImoveis: Double read FvCalcAjusteBCLocImoveis write FvCalcAjusteBCLocImoveis;
 
     property uf: TUF read Fuf write Fuf;
     property mun: TMun read Fmun write Fmun;
@@ -1818,6 +1915,7 @@ type
     // Reforma Tributaria
     FIBSCBS: TIBSCBSNfse;
     FUFLocEmi: string;
+    FUFLocIncid: string;
   public
     constructor Create;
     destructor Destroy; override;
@@ -1841,6 +1939,7 @@ type
     property emit: TDadosPessoa read Femit write Femit;
     property valores: TValoresNfse read Fvalores write Fvalores;
     property UFLocEmi: string read FUFLocEmi write FUFLocEmi;
+    property UFLocIncid: string read FUFLocIncid write FUFLocIncid;
     // Reforma Tributaria
     property IBSCBS: TIBSCBSNfse read FIBSCBS write FIBSCBS;
   end;
@@ -1881,10 +1980,12 @@ type
     FcMun: Integer;
     FCEP: string;
     FUF: string;
+    FxMunicipio: string;
   public
     property cMun: Integer read FcMun write FcMun;
     property CEP: string read FCEP write FCEP;
     property UF: string read FUF write FUF;
+    property xMunicipio: string read FxMunicipio write FxMunicipio;
   end;
 
   { TendExt }
@@ -2018,43 +2119,6 @@ type
     property gDif: TgDif read FgDif write FgDif;
   end;
 
-  { TdFeNacional }
-  // PadraoNacional
-  TdFeNacional = class(TObject)
-  private
-    FtipoChaveDFe: TtipoChaveDFe;
-    FxtipoChaveDFe: string;
-    FChaveDFe: string;
-  public
-    property tipoChaveDFe: TtipoChaveDFe read FtipoChaveDFe write FtipoChaveDFe;
-    property xtipoChaveDFe: string read FxtipoChaveDFe write FxtipoChaveDFe;
-    property ChaveDFe: string read FChaveDFe write FChaveDFe;
-  end;
-
-  { TdocFiscalOutro }
-  // PadraoNacional
-  TdocFiscalOutro = class(TObject)
-  private
-    FcMunDocFiscal: Integer;
-    FnDocFiscal: string;
-    FxDocFiscal: string;
-  public
-    property cMunDocFiscal: Integer read FcMunDocFiscal write FcMunDocFiscal;
-    property nDocFiscal: string read FnDocFiscal write FnDocFiscal;
-    property xDocFiscal: string read FxDocFiscal write FxDocFiscal;
-  end;
-
-  { TdocOutro }
-  // PadraoNacional
-  TdocOutro = class(TObject)
-  private
-    FnDoc: string;
-    FxDoc: string;
-  public
-    property nDoc: string read FnDoc write FnDoc;
-    property xDoc: string read FxDoc write FxDoc;
-  end;
-
   { Tfornec }
   // PadraoNacional
   Tfornec = class(TObject)
@@ -2144,6 +2208,7 @@ type
     FValorCbs: Double;
     FValorIbsEstadual: Double;
     FIbsMunicipal: Double;
+    FibsIsento: TnfseSimNao;
   public
     constructor Create;
     destructor Destroy; override;
@@ -2158,6 +2223,9 @@ type
     property ValorIbsEstadual: Double read FValorIbsEstadual write FValorIbsEstadual;
     property Cbs: Double read FCbs write FCbs;
     property ValorCbs: Double read FValorCbs write FValorCbs;
+
+    // Incluido para atender o provedor Balker
+    property ibsIsento: TnfseSimNao read FibsIsento write FibsIsento;
   end;
 
   { TenderImovel }
@@ -2190,13 +2258,58 @@ type
     property CodigoMunicipio: Integer read FCodigoMunicipio write FCodigoMunicipio;
   end;
 
-  { TDadosimovel }
-  // PadraoNacional
-  TDadosimovel = class(TObject)
+  { TgLocacao }
+  // PadraoNacional - NT 009
+  TgLocacao = class(TObject)
+  private
+    FpCopropriedade: Double;
+    FvTotOper: Double;
+    FvDescIncondTot: Double;
+    FvDescCondTot: Double;
+    FdVencOrig: TDateTime;
+  public
+    property pCopropriedade: Double read FpCopropriedade write FpCopropriedade;
+    property vTotOper: Double read FvTotOper write FvTotOper;
+    property vDescIncondTot: Double read FvDescIncondTot write FvDescIncondTot;
+    property vDescCondTot: Double read FvDescCondTot write FvDescCondTot;
+    property dVencOrig: TDateTime read FdVencOrig write FdVencOrig;
+  end;
+
+  { TgAjusteBCLocImoveisCollectionItem }
+  // PadraoNacional - NT 009
+  TgAjusteBCLocImoveisCollectionItem = class(TObject)
+  private
+    FtpAjusteBCLocImoveis: TtpAjusteBCLocImoveis;
+    FxTpAjusteBCLocImoveis: string;
+    FvAjusteBCLocImoveis: Double;
+  public
+    property tpAjusteBCLocImoveis: TtpAjusteBCLocImoveis read FtpAjusteBCLocImoveis write FtpAjusteBCLocImoveis;
+    property xTpAjusteBCLocImoveis: string read FxTpAjusteBCLocImoveis write FxTpAjusteBCLocImoveis;
+    property vAjusteBCLocImoveis: Double read FvAjusteBCLocImoveis write FvAjusteBCLocImoveis;
+  end;
+
+  { TgAjusteBCLocImoveisCollection }
+  // PadraoNacional - NT 009
+  TgAjusteBCLocImoveisCollection = class(TACBrObjectList)
+  private
+    function GetItem(Index: Integer): TgAjusteBCLocImoveisCollectionItem;
+    procedure SetItem(Index: Integer; Value: TgAjusteBCLocImoveisCollectionItem);
+  public
+    function Add: TgAjusteBCLocImoveisCollectionItem; overload; deprecated {$IfDef SUPPORTS_DEPRECATED_DETAILS} 'Obsoleta: Use a função New'{$EndIf};
+    function New: TgAjusteBCLocImoveisCollectionItem;
+    property Items[Index: Integer]: TgAjusteBCLocImoveisCollectionItem read GetItem write SetItem; default;
+  end;
+
+  { TgUnidImobCollectionItem }
+  // PadraoNacional - NT 009
+  TgUnidImobCollectionItem = class(TObject)
   private
     FinscImobFisc: string;
     FcCIB: string;
     Fender: TenderImovel;
+    FgAjusteBCLocImoveis: TgAjusteBCLocImoveisCollection;
+
+    procedure SetgAjusteBCLocImoveis(const Value: TgAjusteBCLocImoveisCollection);
   public
     constructor Create;
     destructor Destroy; override;
@@ -2204,6 +2317,45 @@ type
     property inscImobFisc: string read FinscImobFisc write FinscImobFisc;
     property cCIB: string read FcCIB write FcCIB;
     property ender: TenderImovel read Fender write Fender;
+    property gAjusteBCLocImoveis: TgAjusteBCLocImoveisCollection read FgAjusteBCLocImoveis write SetgAjusteBCLocImoveis;
+  end;
+
+  { TgUnidImobCollection }
+  // PadraoNacional - NT 009
+  TgUnidImobCollection = class(TACBrObjectList)
+  private
+    function GetItem(Index: Integer): TgUnidImobCollectionItem;
+    procedure SetItem(Index: Integer; Value: TgUnidImobCollectionItem);
+  public
+    function Add: TgUnidImobCollectionItem; overload; deprecated {$IfDef SUPPORTS_DEPRECATED_DETAILS} 'Obsoleta: Use a função New'{$EndIf};
+    function New: TgUnidImobCollectionItem;
+    property Items[Index: Integer]: TgUnidImobCollectionItem read GetItem write SetItem; default;
+  end;
+
+  { TDadosimovel }
+  // PadraoNacional
+  TDadosimovel = class(TObject)
+  private
+    FinscImobFisc: string;
+    FcCIB: string;
+    Fender: TenderImovel;
+    FcMun: Integer;
+    FgLocacao: TgLocacao;
+    FgUnidImob: TgUnidImobCollection;
+
+    procedure SetgUnidImob(const Value: TgUnidImobCollection);
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    property inscImobFisc: string read FinscImobFisc write FinscImobFisc;
+    property cCIB: string read FcCIB write FcCIB;
+    property ender: TenderImovel read Fender write Fender;
+
+    // NT 009
+    property cMun: Integer read FcMun write FcMun;
+    property gLocacao: TgLocacao read FgLocacao write FgLocacao;
+    property gUnidImob: TgUnidImobCollection read FgUnidImob write SetgUnidImob;
   end;
 
   { TgPagAntecipadoCollectionItem }
@@ -2227,6 +2379,74 @@ type
     property Items[Index: Integer]: TgRefNFSeCollectionItem read GetItem write SetItem; default;
   end;
 
+  { TbensMoveisCollectionItem }
+  // PadraoNacional - NT 009
+  TbensMoveisCollectionItem = class(TObject)
+  private
+    FcNCMBemMovel: string;
+    FxNCMBemMovel: string;
+    FqtdNCMBemMovel: Integer;
+  public
+    property cNCMBemMovel: string read FcNCMBemMovel write FcNCMBemMovel;
+    property xNCMBemMovel: string read FxNCMBemMovel write FxNCMBemMovel;
+    property qtdNCMBemMovel: Integer read FqtdNCMBemMovel write FqtdNCMBemMovel;
+  end;
+
+  { TbensMoveisCollection }
+  // PadraoNacional - NT 009
+  TbensMoveisCollection = class(TACBrObjectList)
+  private
+    function GetItem(Index: Integer): TbensMoveisCollectionItem;
+    procedure SetItem(Index: Integer; Value: TbensMoveisCollectionItem);
+  public
+    function Add: TbensMoveisCollectionItem; overload; deprecated {$IfDef SUPPORTS_DEPRECATED_DETAILS} 'Obsoleta: Use a função New'{$EndIf};
+    function New: TbensMoveisCollectionItem;
+    property Items[Index: Integer]: TbensMoveisCollectionItem read GetItem write SetItem; default;
+  end;
+
+  { TpgtoCollectionItem }
+  // PadraoNacional - NT 009
+  TpgtoCollectionItem = class(TObject)
+  private
+    FnPag: Integer;
+    FidTransacao: string;
+    FtpMeioPgto: string;
+    FCNPJReceb: string;
+    FCNPJBasePSP: string;
+  public
+    property nPag: Integer read FnPag write FnPag;
+    property idTransacao: string read FidTransacao write FidTransacao;
+    property tpMeioPgto: string read FtpMeioPgto write FtpMeioPgto;
+    property CNPJReceb: string read FCNPJReceb write FCNPJReceb;
+    property CNPJBasePSP: string read FCNPJBasePSP write FCNPJBasePSP;
+  end;
+
+  { TpgtoCollection }
+  // PadraoNacional - NT 009
+  TpgtoCollection = class(TACBrObjectList)
+  private
+    function GetItem(Index: Integer): TpgtoCollectionItem;
+    procedure SetItem(Index: Integer; Value: TpgtoCollectionItem);
+  public
+    function Add: TpgtoCollectionItem; overload; deprecated {$IfDef SUPPORTS_DEPRECATED_DETAILS} 'Obsoleta: Use a função New'{$EndIf};
+    function New: TpgtoCollectionItem;
+    property Items[Index: Integer]: TpgtoCollectionItem read GetItem write SetItem; default;
+  end;
+
+  { TgPgtoVinc }
+  // PadraoNacional - NT 009
+  TgPgtoVinc = class(TObject)
+  private
+    Fpgto: TpgtoCollection;
+
+    procedure Setpgto(const Value: TpgtoCollection);
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    property pgto: TpgtoCollection read Fpgto write Setpgto;
+  end;
+
   { TIBSCBSDPS }
   // PadraoNacional
   TIBSCBSDPS = class(TObject)
@@ -2240,6 +2460,8 @@ type
     FindDest: TindDest;
     Fdest: TDadosdaPessoa;
     Fimovel: TDadosimovel;
+    FbensMoveis: TbensMoveisCollection;
+    FgPgtoVinc: TgPgtoVinc;
     Fvalores: Tvalorestrib;
     FOperExterior: TIndicador;
     FOperUF: string;
@@ -2250,6 +2472,7 @@ type
     FIdLocalIncidencia: TIdLocalIncidencia;
 
     procedure SetgRefNFSe(const Value: TgRefNFSeCollection);
+    procedure SetbensMoveis(const Value: TbensMoveisCollection);
   public
     constructor Create;
     destructor Destroy; override;
@@ -2264,6 +2487,10 @@ type
     property dest: TDadosdaPessoa read Fdest write Fdest;
     property imovel: TDadosimovel read Fimovel write Fimovel;
     property valores: Tvalorestrib read Fvalores write Fvalores;
+
+    // NT 009
+    property bensMoveis: TbensMoveisCollection read FbensMoveis write SetbensMoveis;
+    property gPgtoVinc: TgPgtoVinc read FgPgtoVinc write FgPgtoVinc;
 
     // Incluido para atender o provedor SigISSWeb
     property OperExterior: TIndicador read FOperExterior write FOperExterior;
@@ -2395,6 +2622,7 @@ type
     FQtdReg40: Integer;
     FQtdReg50: Integer;
     FValReg30: Double;
+    FchNFSeRej: string;
 
     procedure Setemail(const Value: TemailCollection);
     procedure SetInformacoesComplementares(const Value: string);
@@ -2532,6 +2760,7 @@ type
     property subst: TSubstituicao read Fsubst write Fsubst;
     property cMotivoEmisTI: TcMotivoEmisTI read FcMotivoEmisTI write FcMotivoEmisTI;
     property cLocEmi: string read FcLocEmi write FcLocEmi;
+    property chNFSeRej: string read FchNFSeRej write FchNFSeRej;
 
     // Reforma Tributaria
     property IBSCBS: TIBSCBSDPS read FIBSCBS write FIBSCBS;
@@ -2697,6 +2926,7 @@ begin
   FContato := TContato.Create;
 
   FTomadorExterior := snNao;
+  FaoConsumidor := snNao;
 end;
 
 destructor TDadosTomador.Destroy;
@@ -3274,6 +3504,7 @@ begin
   FtribMun := TtribMun.Create;
   FtribFed := TtribFed.Create;
   FtotTrib := TtotTrib.Create;
+  FdocAjusteBC := TdocAjusteBCCollection.Create;
   FCSTPis := cstPisVazio;
   FtpRetPisCofins := trpcNaoRetido;
 end;
@@ -3284,6 +3515,7 @@ begin
   FtribMun.Free;
   FtribFed.Free;
   FtotTrib.Free;
+  FdocAjusteBC.Free;
 
   inherited Destroy;
 end;
@@ -3291,6 +3523,11 @@ end;
 procedure TValores.SetDocDeducao(const Value: TDocDeducaoCollection);
 begin
   FDocDeducao := Value;
+end;
+
+procedure TValores.SetdocAjusteBC(const Value: TdocAjusteBCCollection);
+begin
+  FdocAjusteBC := Value;
 end;
 
 { TDocDeducaoCollection }
@@ -3333,6 +3570,53 @@ destructor TDocDeducaoCollectionItem.Destroy;
 begin
   FNFSeMun.Free;
   FNFNFS.Free;
+  Ffornec.Free;
+
+  inherited Destroy;
+end;
+
+{ TdocAjusteBCCollection }
+
+function TdocAjusteBCCollection.Add: TdocAjusteBCCollectionItem;
+begin
+  Result := Self.New;
+end;
+
+function TdocAjusteBCCollection.GetItem(
+  Index: Integer): TdocAjusteBCCollectionItem;
+begin
+  Result := TdocAjusteBCCollectionItem(inherited Items[Index]);
+end;
+
+function TdocAjusteBCCollection.New: TdocAjusteBCCollectionItem;
+begin
+  Result := TdocAjusteBCCollectionItem.Create;
+  Self.Add(Result);
+end;
+
+procedure TdocAjusteBCCollection.SetItem(Index: Integer;
+  Value: TdocAjusteBCCollectionItem);
+begin
+  inherited Items[Index] := Value;
+end;
+
+{ TdocAjusteBCCollectionItem }
+
+constructor TdocAjusteBCCollectionItem.Create;
+begin
+  inherited Create;
+
+  FdFeNacional := TdFeNacional.Create;
+  FdocFiscalOutro := TdocFiscalOutro.Create;
+  FdocOutro := TdocOutro.Create;
+  Ffornec := TInfoPessoa.Create;
+end;
+
+destructor TdocAjusteBCCollectionItem.Destroy;
+begin
+  FdFeNacional.Free;
+  FdocFiscalOutro.Free;
+  FdocOutro.Free;
   Ffornec.Free;
 
   inherited Destroy;
@@ -3447,7 +3731,9 @@ begin
   FgRefNFSe := TgRefNFSeCollection.Create;
   Fdest := TDadosdaPessoa.Create;
   Fimovel := TDadosimovel.Create;
+  FbensMoveis := TbensMoveisCollection.Create;
   Fvalores := Tvalorestrib.Create;
+  FgPgtoVinc := TgPgtoVinc.Create;;
 end;
 
 destructor TIBSCBSDPS.Destroy;
@@ -3455,9 +3741,16 @@ begin
   FgRefNFSe.Free;
   Fdest.Free;
   Fimovel.Free;
+  FbensMoveis.Free;
   Fvalores.Free;
+  FgPgtoVinc.Free;
 
   inherited Destroy;
+end;
+
+procedure TIBSCBSDPS.SetbensMoveis(const Value: TbensMoveisCollection);
+begin
+  FbensMoveis := Value;
 end;
 
 procedure TIBSCBSDPS.SetgRefNFSe(const Value: TgRefNFSeCollection);
@@ -3507,6 +3800,8 @@ begin
 
   FgReeRepRes := TgReeRepRes.Create;
   Ftrib := Ttrib.Create;
+
+  FibsIsento := snNao;
 end;
 
 destructor Tvalorestrib.Destroy;
@@ -3616,13 +3911,95 @@ begin
   inherited Create;
 
   Fender := TenderImovel.Create;
+  FgLocacao := TgLocacao.Create;
+  FgUnidImob := TgUnidImobCollection.Create;
 end;
 
 destructor TDadosimovel.Destroy;
 begin
   Fender.Free;
+  FgLocacao.Free;
+  FgUnidImob.Free;
 
   inherited Destroy;
+end;
+
+procedure TDadosimovel.SetgUnidImob(const Value: TgUnidImobCollection);
+begin
+  FgUnidImob := Value;
+end;
+
+{ TgUnidImobCollection }
+
+function TgUnidImobCollection.Add: TgUnidImobCollectionItem;
+begin
+  Result := Self.New;
+end;
+
+function TgUnidImobCollection.GetItem(Index: Integer): TgUnidImobCollectionItem;
+begin
+  Result := TgUnidImobCollectionItem(inherited Items[Index]);
+end;
+
+function TgUnidImobCollection.New: TgUnidImobCollectionItem;
+begin
+  Result := TgUnidImobCollectionItem.Create;
+  Self.Add(Result);
+end;
+
+procedure TgUnidImobCollection.SetItem(Index: Integer;
+  Value: TgUnidImobCollectionItem);
+begin
+  inherited Items[Index] := Value;
+end;
+
+{ TgUnidImobCollectionItem }
+
+constructor TgUnidImobCollectionItem.Create;
+begin
+  inherited Create;
+
+  Fender := TenderImovel.Create;
+  FgAjusteBCLocImoveis := TgAjusteBCLocImoveisCollection.Create;
+end;
+
+destructor TgUnidImobCollectionItem.Destroy;
+begin
+  Fender.Free;
+  FgAjusteBCLocImoveis.Free;
+
+  inherited Destroy;
+end;
+
+procedure TgUnidImobCollectionItem.SetgAjusteBCLocImoveis(
+  const Value: TgAjusteBCLocImoveisCollection);
+begin
+  FgAjusteBCLocImoveis := Value;
+end;
+
+{ TgAjusteBCLocImoveisCollection }
+
+function TgAjusteBCLocImoveisCollection.Add: TgAjusteBCLocImoveisCollectionItem;
+begin
+  Result := Self.New;
+end;
+
+function TgAjusteBCLocImoveisCollection.GetItem(
+  Index: Integer): TgAjusteBCLocImoveisCollectionItem;
+begin
+  Result := TgAjusteBCLocImoveisCollectionItem(inherited Items[Index]);
+end;
+
+function TgAjusteBCLocImoveisCollection.New: TgAjusteBCLocImoveisCollectionItem;
+begin
+  Result := TgAjusteBCLocImoveisCollectionItem.Create;
+  Self.Add(Result);
+end;
+
+procedure TgAjusteBCLocImoveisCollection.SetItem(Index: Integer;
+  Value: TgAjusteBCLocImoveisCollectionItem);
+begin
+  inherited Items[Index] := Value;
 end;
 
 { TenderImovel }
@@ -3729,6 +4106,30 @@ end;
 
 procedure TgRefNFSeCollection.SetItem(Index: Integer;
   Value: TgRefNFSeCollectionItem);
+begin
+  inherited Items[Index] := Value;
+end;
+
+{ TbensMoveisCollection }
+
+function TbensMoveisCollection.Add: TbensMoveisCollectionItem;
+begin
+  Result := Self.New;
+end;
+
+function TbensMoveisCollection.GetItem(Index: Integer): TbensMoveisCollectionItem;
+begin
+  Result := TbensMoveisCollectionItem(inherited Items[Index]);
+end;
+
+function TbensMoveisCollection.New: TbensMoveisCollectionItem;
+begin
+  Result := TbensMoveisCollectionItem.Create;
+  Self.Add(Result);
+end;
+
+procedure TbensMoveisCollection.SetItem(Index: Integer;
+  Value: TbensMoveisCollectionItem);
 begin
   inherited Items[Index] := Value;
 end;
@@ -3842,6 +4243,50 @@ begin
   FtpBM := tbNenhum;
   FtpSusp := tsNenhum;
   FtpImunidade := timNenhum;
+end;
+
+{ TgPgtoVinc }
+
+constructor TgPgtoVinc.Create;
+begin
+  inherited Create;
+
+  Fpgto := TpgtoCollection.Create;
+end;
+
+destructor TgPgtoVinc.Destroy;
+begin
+  Fpgto.Free;
+
+  inherited;
+end;
+
+procedure TgPgtoVinc.Setpgto(const Value: TpgtoCollection);
+begin
+  Fpgto := Value;
+end;
+
+{ TpgtoCollection }
+
+function TpgtoCollection.Add: TpgtoCollectionItem;
+begin
+  Result := Self.New;
+end;
+
+function TpgtoCollection.GetItem(Index: Integer): TpgtoCollectionItem;
+begin
+  Result := TpgtoCollectionItem(inherited Items[Index]);
+end;
+
+function TpgtoCollection.New: TpgtoCollectionItem;
+begin
+  Result := TpgtoCollectionItem.Create;
+  Self.Add(Result);
+end;
+
+procedure TpgtoCollection.SetItem(Index: Integer; Value: TpgtoCollectionItem);
+begin
+  inherited Items[Index] := Value;
 end;
 
 end.

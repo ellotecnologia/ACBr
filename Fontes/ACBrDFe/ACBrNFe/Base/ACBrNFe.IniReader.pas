@@ -42,7 +42,7 @@ uses
   ACBrNFe.Classes,
   ACBrXmlBase,
   ACBrDFe.Conversao,
-  pcnConversaoNFe;
+  ACBrNFe.Conversao;
 
 type
   { TNFeIniReader }
@@ -50,7 +50,7 @@ type
   TNFeIniReader = class(TDFeRTCIniReader)
   private
     FNFe: TNFe;
-    FVersaoDF: TpcnVersaoDF;
+    FVersaoDF: TVersaoDF;
     FAmbiente: Integer;
     FtpEmis: Integer;
 
@@ -122,7 +122,7 @@ type
     function LerIni(const AIniString: string): Boolean;
 
     property NFe: TNFe read FNFe write FNFe;
-    property VersaoDF: TpcnVersaoDF read FVersaoDF write FVersaoDF;
+    property VersaoDF: TVersaoDF read FVersaoDF write FVersaoDF;
     property Ambiente: Integer read FAmbiente write FAmbiente;
     property tpEmis: Integer read FtpEmis write FtpEmis;
   end;
@@ -174,6 +174,7 @@ begin
     Ler_Duplicata(INIRec, FNFe.Cobr.Dup);
     Ler_Pagamento(INIRec, FNFe.pag);
     Ler_InfIntermed(INIRec, FNFe.infIntermed);
+    Ler_pgtoVinc(INIRec, FNFe.pgtoVinc.pgto);
     Ler_DadosAdicionais(INIRec, FNFe.InfAdic);
     Ler_ObsContribuinte(INIRec, FNFe.InfAdic.obsCont);
     Ler_ObsFisco(INIRec, FNFe.InfAdic.obsFisco);
@@ -323,6 +324,7 @@ begin
   Emit.IM      := AINIRec.ReadString( sSecao,'IM'  ,'');
   Emit.CNAE    := AINIRec.ReadString( sSecao,'CNAE','');
   Emit.CRT     := StrToCRT(ok, AINIRec.ReadString( sSecao,'CRT','3'));
+  Emit.tpRegimeIBSCBS := StrTotpRegimeIBSCBS(AINIRec.ReadString(sSecao, 'tpRegimeIBSCBS', ''));
   Emit.ISUFEmit:= AINIRec.ReadString( sSecao,'ISUFEmit','');
 
   Emit.EnderEmit.xLgr := AINIRec.ReadString( sSecao, 'xLgr' ,AINIRec.ReadString(  sSecao, 'Logradouro', ''));
@@ -515,6 +517,8 @@ begin
       Prod.qCom     := StringToFloatDef( AINIRec.ReadString(sSecao,'qCom'   ,AINIRec.ReadString(sSecao,'Quantidade'  ,'')) ,0);
       Prod.vUnCom   := StringToFloatDef( AINIRec.ReadString(sSecao,'vUnCom' ,AINIRec.ReadString(sSecao,'ValorUnitario','')) ,0);
       Prod.vProd    := StringToFloatDef( AINIRec.ReadString(sSecao,'vProd'  ,AINIRec.ReadString(sSecao,'ValorTotal' ,'')) ,0);
+      Prod.vUnComLiq := StringToFloatDef(AINIRec.ReadString(sSecao,'vUnComLiq', ''), 0);
+      Prod.vProdLiq := StringToFloatDef(AINIRec.ReadString(sSecao,'vProdLiq', ''), 0);
 
       if Length(AINIRec.ReadString( sSecao,'cEANTrib','')) > 0 then
         Prod.cEANTrib      := AINIRec.ReadString( sSecao,'cEANTrib'      ,'');
@@ -540,6 +544,7 @@ begin
 
       // Reforma Tributária
       Prod.indBemMovelUsado := StrToTIndicadorEx(AINIRec.ReadString(sSecao, 'indBemMovelUsado', ''));
+      Prod.cAtivSN := StrTocAtivSN(AINIRec.ReadString(sSecao, 'cAtivSN', ''));
 
       vItem := StringToFloatDef( AINIRec.ReadString(sSecao,'vItem','') ,0);
 
@@ -1065,6 +1070,7 @@ begin
     ICMS.qBCMonoRet := StringToFloatDef( AINIRec.ReadString(sSecao,'qBCMonoRet','') ,0);
     ICMS.vICMSMonoOp := StringToFloatDef( AINIRec.ReadString(sSecao,'vICMSMonoOp','') ,0);
     ICMS.indDeduzDeson := StrToTIndicadorEx(AINIRec.ReadString(sSecao,'indDeduzDeson', ''));
+    ICMS.vICMSPrevisto := StringToFloatDef( AINIRec.ReadString(sSecao,'vICMSPrevisto','') ,0);
   end;
 end;
 
@@ -1276,6 +1282,7 @@ end;
 
 procedure TNFeIniReader.Ler_Total(AINIRec: TMemIniFile; ICMSTot: TICMSTot);
 begin
+  FNFe.Total.vProdLiqTot := StringToFloatDef( AINIRec.ReadString('Total','vProdLiqTot',''),0);
   ICMSTot.vBC     := StringToFloatDef( AINIRec.ReadString('Total','vBC'       ,AINIRec.ReadString('Total','BaseICMS','')) ,0);
   ICMSTot.vICMS   := StringToFloatDef( AINIRec.ReadString('Total','vICMS'     ,AINIRec.ReadString('Total','ValorICMS','')) ,0);
   ICMSTot.vICMSDeson := StringToFloatDef( AINIRec.ReadString('Total','vICMSDeson',''),0);

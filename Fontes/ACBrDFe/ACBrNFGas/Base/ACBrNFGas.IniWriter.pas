@@ -331,8 +331,10 @@ begin
     AINIRec.WriteFloat(Secao, 'vMedAnt', gMed[Index].vMedAnt);
     AINIRec.WriteString(Secao, 'dMedAtu', DateTimeToIni(gMed[Index].dMedAtu));
     AINIRec.WriteFloat(Secao, 'vMedAtu', gMed[Index].vMedAtu);
+    AINIRec.WriteString(Secao, 'dMedProx', DateTimeToIni(gMed[Index].dMedProx));
     AINIRec.WriteString(Secao, 'tpEqp', tpEqpToStr(gMed[Index].tpEqp));
     AINIRec.WriteString(Secao, 'tpMedidor', tpMedidorToStr(gMed[Index].tpMedidor));
+    AINIRec.WriteString(Secao, 'descPontoCons', gMed[Index].descPontoCons);
   end;
 end;
 
@@ -363,6 +365,8 @@ begin
     AINIRec.WriteFloat(Secao, 'fatorP', Det[Index].gNormal.Prod.fatorP);
     AINIRec.WriteFloat(Secao, 'fatorT', Det[Index].gNormal.Prod.fatorT);
     AINIRec.WriteFloat(Secao, 'vProd', Det[Index].gNormal.Prod.vProd);
+    AINIRec.WriteFloat(Secao, 'vItemLiq', Det[Index].gNormal.Prod.vItemLiq);
+    AINIRec.WriteFloat(Secao, 'vProdLiq', Det[Index].gNormal.Prod.vProdLiq);
     AINIRec.WriteString(Secao, 'indDevolucao', TIndicadorToStr(Det[Index].gNormal.Prod.indDevolucao));
     AINIRec.WriteString(Secao, 'infAdProd', Det[Index].gNormal.infAdProd);
 
@@ -407,7 +411,7 @@ var
 begin
   for TarifIndex := 0 to gTarif.Count - 1 do
   begin
-    Secao := 'gTarif' + IntToStrZero(DetIndex, 3) + IntToStrZero(TarifIndex + 1, 1);
+    Secao := 'gTarif' + IntToStrZero(DetIndex, 3) + IntToStrZero(TarifIndex + 1, 2);
 
     AINIRec.WriteString(Secao, 'dIniTarif', DateTimeToIni(gTarif[TarifIndex].dIniTarif));
     AINIRec.WriteString(Secao, 'dFimTarif', DateTimeToIni(gTarif[TarifIndex].dFimTarif));
@@ -446,6 +450,7 @@ begin
   AINIRec.WriteFloat(Secao, 'vProd', gProcRef.vProd);
   AINIRec.WriteString(Secao, 'indDevolucao', TIndicadorToStr(gProcRef.indDevolucao));
 
+  Gerar_gIBSCBSSemProcJur(AINIRec, gProcRef.gIBSCBS, DetIndex, -1);
   Gerar_gProc(AINIRec, gProcRef.gProc, DetIndex);
 end;
 
@@ -503,6 +508,7 @@ begin
   AINIRec.WriteFloat(Secao, 'vICMSEfet', ICMS.vICMSEfet);
   AINIRec.WriteFloat(Secao, 'pFCP', ICMS.pFCP);
   AINIRec.WriteFloat(Secao, 'vFCP', ICMS.vFCP);
+  AINIRec.WriteFloat(Secao, 'vICMSPrevisto', ICMS.vICMSPrevisto);
 end;
 
 procedure TNFGasIniWriter.Gerar_PIS(AINIRec: TMemIniFile; PIS: TPIS; Index: Integer);
@@ -572,6 +578,7 @@ begin
   Secao := 'total';
 
   AINIRec.WriteFloat(Secao, 'vProd', Total.vProd);
+  AINIRec.WriteFloat(Secao, 'vProdLiq', Total.vProdLiq);
   AINIRec.WriteFloat(Secao, 'vBC', Total.vBC);
   AINIRec.WriteFloat(Secao, 'vICMS', Total.vICMS);
   AINIRec.WriteFloat(Secao, 'vBCST', Total.vBCST);

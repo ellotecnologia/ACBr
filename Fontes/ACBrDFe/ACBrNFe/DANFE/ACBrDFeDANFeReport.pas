@@ -39,13 +39,14 @@ interface
 uses
   Classes, SysUtils,
   ACBrBase, ACBrDFeReport,
-  ACBrDFe.Conversao, ACBrNFe.Classes, pcnConversaoNFe;
+  ACBrDFe.Conversao, ACBrNFe.Classes, ACBrNFe.Conversao;
 
 type
   TpcnTributos = (trbNenhum, trbNormal, trbSeparadamente);
   TinfAdcProd = (infNenhum, infDescricao, infSeparadamente);
   TValorLiquido = (TVLFrete,TVLDesconto, TVLOutros, TVLSeguros);
   TValorLiquidoFlag = Set of TValorLiquido;
+  TLeiauteDANFE = (ldPadrao, ldReformaTributaria);
 
   { TACBrDFeDANFeReport }
   {$IFDEF RTL230_UP}
@@ -59,6 +60,7 @@ type
     FProtocoloNFe: String;
     FNFeCancelada: Boolean;
     FImprimeCodigoEan: Boolean;
+    FImprimeCodigoProduto: Boolean;
     FImprimeInfContr: Boolean;
     FExibeICMSDesoneradoComoDesconto: Boolean;
     FvTribFed: currency;
@@ -72,6 +74,7 @@ type
     FExibeInforAdicProduto: TinfAdcProd;
     FImprimeNomeFantasia: Boolean;
     FTipoDANFE: TACBrTipoImpressao;
+    FLeiauteDANFE: TLeiauteDANFE;
     FImprimeXPedNItemPed : Boolean;
 
     procedure SetACBrNFE(const AValue: TComponent);
@@ -106,6 +109,7 @@ type
 
     function SeparadorDetalhamentos: String; virtual;
     function ManterCodigo(const scEAN, scProd: String): String; virtual;
+    function ManterCodigoXProd(const scProd, sXProd: String): String; virtual;
     function ManterNomeImpresso(const sXNome, sXFant: String): String; virtual;
     function ManterXProd(aNFE: TNFe; const inItem: Integer): String;
     function ManterUnidades(const sUCom, sUTrib: String): String; virtual;
@@ -120,7 +124,7 @@ type
     function ManterObsFisco(ANFe: TNFe): String; virtual;
     function ManterProcreferenciado(ANFe: TNFe): String; virtual;
     function ManterVprod(dVProd, dvDesc: Double): String; virtual;
-    function ManterCst(dCRT: TpcnCRT; dCSOSN: TCSOSNIcms; dCST: TCSTIcms): String; virtual;
+    function ManterCst(dCRT: TCRT; dCSOSN: TCSOSNIcms; dCST: TCSTIcms): String; virtual;
     function ManterdvTotTrib(dvTotTrib: Double): String; virtual;
     function CalcularValorLiquidoItem(const ANFE: TNFe;  const ANItem: Integer; ATipoCalculo: TValorLiquidoFlag): Double; overload;
     function CalcularValorLiquidoItem(const ANFE: TNFe; const ANItem: Integer):Double;overload;
@@ -135,6 +139,7 @@ type
     property vTribMun: currency read FvTribMun write FvTribMun;
     property FonteTributos: String read FFonteTributos write FFonteTributos;
     property ChaveTributos: String read FChaveTributos write FChaveTributos;
+    property LeiauteDANFE: TLeiauteDANFE read FLeiauteDANFE write FLeiauteDANFE default ldPadrao;
 
   published
     property ACBrNFe: TComponent read FACBrNFe write SetACBrNFE;
@@ -146,6 +151,7 @@ type
     property ExibeTotalTributosItem: Boolean read FExibeTotalTributosItem write FExibeTotalTributosItem default False;
     property ExibeInforAdicProduto: TinfAdcProd read FExibeInforAdicProduto write FExibeInforAdicProduto default infDescricao;
     property ImprimeCodigoEan: Boolean read FImprimeCodigoEan write FImprimeCodigoEan default False;
+    property ImprimeCodigoProduto: Boolean read FImprimeCodigoProduto write FImprimeCodigoProduto default True;
     property ImprimeInfContr: Boolean read FImprimeInfContr write FImprimeInfContr default True;
     property ImprimeNomeFantasia: Boolean read FImprimeNomeFantasia write FImprimeNomeFantasia default False;
     property ImprimeXPedNItemPed : Boolean read FImprimeXPedNItemPed write FImprimeXPedNItemPed default False;
@@ -197,6 +203,7 @@ begin
 
   FACBrNFe                    := nil;
   FTipoDANFE                  := tiRetrato;
+  FLeiauteDANFE               := ldPadrao;
   FImprimeTotalLiquido        := False;
   FProtocoloNFe               := '';
   FNFeCancelada               := False;
@@ -208,6 +215,7 @@ begin
   FImprimeTributos            := trbNormal;
   FExibeTotalTributosItem     := False;
   FImprimeCodigoEan           := False;
+  FImprimeCodigoProduto       := True;
   FImprimeInfContr            := True;
   FImprimeNomeFantasia        := False;
   FExibeInforAdicProduto      := infDescricao;
@@ -405,6 +413,14 @@ begin
             ( Result <>  '' )
           ) then
       Result := Trim(scProd);
+end;
+
+function TACBrDFeDANFeReport.ManterCodigoXProd(const scProd, sXProd: String): String;
+begin
+  Result := sXProd;
+
+  if FImprimeCodigoProduto and (Trim(scProd) <> '') then
+    Result := Trim(scProd) + ' - ' + Result;
 end;
 
 function TACBrDFeDANFeReport.ManterNomeImpresso(const sXNome, sXFant: String): String;
@@ -611,7 +627,7 @@ begin
             + ManterXPedNItemPed(aNFE, inItem);
 end;
 
-function TACBrDFeDANFeReport.ManterCst(dCRT: TpcnCRT; dCSOSN: TCSOSNIcms; dCST: TCSTIcms): String;
+function TACBrDFeDANFeReport.ManterCst(dCRT: TCRT; dCSOSN: TCSOSNIcms; dCST: TCSTIcms): String;
 begin
   if (dCRT in [crtSimplesNacional, crtMEI]) and not (dCST in [cst02, cst15, cst53, cst61]) then
     Result := CSOSNIcmsToStr(dCSOSN)

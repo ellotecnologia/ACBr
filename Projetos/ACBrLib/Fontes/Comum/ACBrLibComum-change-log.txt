@@ -41,6 +41,15 @@ Símbolo : Significado
 [+]     : Novo recurso
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
+16/11/2026
+-- ACBrLibConfig --
+[+] [ACBr10091] Ajustado para ler o CNPJ alfa-numérico.
+  Por: Daniel de Morais
+
+05/10/2026
+-- ACBrLibComum --
+[+] Adiciona informação do PID (Process ID) no log da ACBrLib
+  Por: doszapro
 
 04/09/2026
 -- ACBrLibConsReciDFe --

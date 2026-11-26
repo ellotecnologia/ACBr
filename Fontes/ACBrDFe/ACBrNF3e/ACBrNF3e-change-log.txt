@@ -42,6 +42,36 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+25/11/2026
+-- ACBrNF3eWebServices/ACBrNF3eXmlWriter --
+[-] ACBr-10223: Incluído a condição para cStat = 100 para saber se a nota foi autorizada
+    se a chave vier vazia no retorno pegar no protocolo.
+    Correção para destacar os totais com redução de 100% e ajustado a quantidade de casas
+    decimais das tags: vItem, pPISEfet e pCOFINSEfet, corrigido a nomenclatura da tag raiz 
+    que é: nf3eProc
+   Por: Welliton Hideki Tachibana
+
+23/11/2026
+-- ACBrNF3eServicos --
+[-] ACBr-10274: Para as UF: MA e PA o campo Usar estava apontando para NF3e_SVAN 
+    sendo que o correto é NF3e_SVRS.
+   Por: marcos.schmitz
+
+13/10/2026
+-- Diversos --
+[*] ACBr-10169: Alterações visando atender a NT 2026/004 versão 1.01
+   Por: Italo Giurizzato Junior
+
+20/10/2026
+-- ACBrNF3e.DANF3ERLRetrato --
+[*] ACBr-9471: Ajustes para alfanumericos
+   Por: Daniel de Morais
+
+06/10/2026
+-- Diversos --
+[*] ACBr-9967: Alterações visando atender a NT 2026/004 versão 1.00
+   Por: Italo Giurizzato Junior
+
 01/09/2026
 -- Diversos --
 [*] Alterações visando o uso das units especificas para a Reforma Tributária.

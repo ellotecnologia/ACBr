@@ -203,7 +203,7 @@ type
     function PossuiDestinatario: Boolean;
     function DestinatarioEhTomador: Boolean;
     function PossuiIntermediario: Boolean;
-    function PossuiISSQN: Boolean;
+    function OperacaoSujeitaISSQN: Boolean;
 
     procedure DesenharBordaPagina(PDF: IFPDF);
     procedure DesenharRetanguloSombreado(PDF: IFPDF; X, Y, W, H: Double);
@@ -382,11 +382,14 @@ begin
     Result := Ellipsis(AnsiUpperCase(End_.xMunicipio) + ' / ' + End_.UF, 37)
   else if Trim(End_.CodigoMunicipio) <> '' then
   begin
+    Result := Ellipsis(AnsiUpperCase(End_.xMunicipio) + ' / ' + End_.UF, 37);
+    {
     NomeMun := ObterNomeMunicipio(StrToIntDef(End_.CodigoMunicipio, 0), UFMun, '', False);
     if NomeMun <> '' then
       Result := Ellipsis(AnsiUpperCase(NomeMun) + ' / ' + IfThen(End_.UF <> '', End_.UF, UFMun), 37)
     else
       Result := End_.CodigoMunicipio + ' / ' + End_.UF;
+    }
   end;
 end;
 
@@ -444,11 +447,14 @@ begin
     Result := Ellipsis(AnsiUpperCase(End_.DescricaoMunicipio) + ' / ' + End_.UF, 37)
   else if Assigned(End_.endNac) and (End_.endNac.cMun <> 0) then
   begin
+    Result := Ellipsis(AnsiUpperCase(End_.endNac.xMunicipio) + ' / ' + End_.UF, 37);
+    {
     NomeMun := ObterNomeMunicipio(End_.endNac.cMun, UFMun, '', False);
     if NomeMun <> '' then
       Result := Ellipsis(AnsiUpperCase(NomeMun) + ' / ' + IfThen(End_.endNac.UF <> '', End_.endNac.UF, UFMun), 37)
     else
       Result := IntToStr(End_.endNac.cMun) + ' / ' + End_.endNac.UF;
+    }
   end
   else if Assigned(End_.endExt) then
     Result := Ellipsis(End_.endExt.xCidade + ' / ' + End_.endExt.xEstProvReg, 37);
@@ -529,7 +535,7 @@ end;
 
 function TACBrDANFSeFPDFPadraoNacional.GetFinalidadeDescricao: string;
 begin
-  finNFSeToStrText(FNFSe.IBSCBS.finNFSe);
+  Result := finNFSeToStrText(FNFSe.IBSCBS.finNFSe);
 end;
 
 function TACBrDANFSeFPDFPadraoNacional.GetEmitenteDescricao: string;
@@ -716,10 +722,14 @@ begin
                   FNFSe.Intermediario.RazaoSocial) <> '');
 end;
 
-function TACBrDANFSeFPDFPadraoNacional.PossuiISSQN: Boolean;
+function TACBrDANFSeFPDFPadraoNacional.OperacaoSujeitaISSQN: Boolean;
 begin
+  // NT 008, item 2.3.1 e nota 4 do item 2.4.5: o bloco "Tributacao Municipal (ISSQN)"
+  // so se reduz a "Operacao nao sujeita ao ISSQN" quando nao ha incidencia do ISSQN.
+  // Na operacao tributavel (inclusive Simples Nacional, com o ISSQN no DAS e sem
+  // vISSQN) o bloco e impresso completo, entao a condicao e o tribISSQN, nao o ValorIss.
   Result := (FNFSe <> nil) and (FNFSe.Servico <> nil) and
-            (FNFSe.Servico.Valores.ValorIss > 0);
+            (FNFSe.Servico.Valores.tribMun.tribISSQN <> tiNaoIncidencia);
 end;
 
 procedure TACBrDANFSeFPDFPadraoNacional.DesenharBordaPagina(PDF: IFPDF);
@@ -853,7 +863,7 @@ end;
 
 function TACBrDANFSeFPDFPadraoNacional.CalcAlturaTributacaoMunicipal: Double;
 begin
-  if not PossuiISSQN then
+  if not OperacaoSujeitaISSQN then
     Result := cAlturaLinhaVazia
   else
     Result := 4 * 6.3;
@@ -1259,11 +1269,11 @@ begin
   DesenharCampo(PDF, X + 2 * ColW, Y, ColW, LineH, 'Codigo da NBS',
                 NN(S.CodigoNbs));
 
-  NomeMunPrestacao := Trim(FNFSe.infNFSe.xLocPrestacao);
+  NomeMunPrestacao := Trim(S.MunicipioPrestacaoServico);
   if NomeMunPrestacao = '' then
-    NomeMunPrestacao := Trim(S.MunicipioPrestacaoServico);
+    NomeMunPrestacao := Trim(FNFSe.infNFSe.xLocPrestacao);
 
-  UFMunPrestacao := ObterUFPorCodigoMunicipio(S.CodigoMunicipio);
+//  UFMunPrestacao := ObterUFPorCodigoMunicipio(S.CodigoMunicipio);
 
   if (NomeMunPrestacao <> '') and (NomeMunPrestacao <> '/') then
   begin
@@ -1273,6 +1283,7 @@ begin
     else
       PaisISO := AnsiUpperCase(StringReplace(NomeMunPrestacao, '/', ' / ', [])) + ' / BR';
   end
+  {
   else if Trim(S.CodigoMunicipio) <> '' then
   begin
     NomeMunPrestacao := ObterNomeMunicipio(StrToIntDef(S.CodigoMunicipio, 0), UFMunPrestacao, '', False);
@@ -1281,6 +1292,7 @@ begin
     else
       PaisISO := '-';
   end
+  }
   else
     PaisISO := '-';
   DesenharCampo(PDF, X + 3 * ColW, Y, ColW, LineH,
@@ -1326,20 +1338,19 @@ begin
   LineH := 6.3;
   V := FNFSe.Servico.Valores;
 
-  if not PossuiISSQN then
+  // Mesma condicao de CalcAlturaTributacaoMunicipal: desenho e altura da banda
+  // precisam concordar, senao as linhas invadem os blocos seguintes
+  if not OperacaoSujeitaISSQN then
   begin
     DesenharLinhaVazia(PDF, X, Y, W, cMsgISSQNVazio);
     DesenharLinhaSeparadora(PDF, W);
     Exit;
   end;
-
   // Linha 1: Titulo do bloco (1a celula) | Tipo Tributacao | Municipio/UF/Pais Incidencia (2 col)
   DesenharTituloBlocoInline(PDF, X, Y, ColW, LineH, 'Tributacao Municipal (ISSQN)');
   DesenharCampo(PDF, X + 1 * ColW, Y, ColW, LineH,
                 'Tipo de Tributacao do ISSQN',
-                IfThen(Assigned(FDadosAux) and (FDadosAux.NaturezaOperacaoDescricao <> ''),
-                       Ellipsis(FDadosAux.NaturezaOperacaoDescricao, 37),
-                       IfThen(V.IssRetido = stRetencao, 'Operacao Tributavel (Retido)', 'Operacao Tributavel')));
+                Ellipsis(tribISSQNToDescricao(V.tribMun.tribISSQN), 37));
   DesenharCampo(PDF, X + 2 * ColW, Y, 2 * ColW, LineH,
                 'Municipio / Sigla UF / Pais da Incidencia',
                 NN(FNFSe.infNFSe.xLocIncid) + ' / BR');
@@ -1445,13 +1456,14 @@ begin
   DesenharCampo(PDF, X + 1 * ColW, Y, ColW, LineH, 'CST / cClassTrib', CSTcClassTrib);
 
   UFIncidencia := IBSCBSNfse.UFLocalidadeIncid;
+  {
   if Trim(UFIncidencia) = '' then
   begin
     UFIncidencia := ObterUFPorCodigoMunicipio(IntToStr(IBSCBSNfse.cLocalidadeIncid));
     if (UFIncidencia = '') and (IBSCBSNfse.cLocalidadeIncid <> 0) then
       ObterNomeMunicipio(IBSCBSNfse.cLocalidadeIncid, UFIncidencia, '', False);
   end;
-
+  }
   IndOpMunUF := NN(FNFSe.IBSCBS.cIndOp) + ' / ' + NN(IntToStr(IBSCBSNfse.cLocalidadeIncid)) +
     ' / ' + NN(IBSCBSNfse.xLocalidadeIncid) + ' / ' + NN(UFIncidencia);
   DesenharCampo(PDF, X + 2 * ColW, Y, 2 * ColW, LineH,

@@ -39,6 +39,101 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+25/11/2026
+-- ACBrDFe.RTC.XmlWriter --
+[*] Removido a condição que fazia o grupo gIBSCBS não ser gerado se vBC fosse zero.
+    Existem situações onde tem que gerar mesmo com o valores zerados.
+   Por: Italo Giurizzato Junior
+
+23/11/2026
+-- ACBrDFe.RTC.XmlWriter --
+[*] O grupo gIBSCBS agora só é gerado se o valor da tag vBC for diferente de zero.
+   Por: Italo Giurizzato Junior
+
+-- ACBrDFe.RTC.XmlWriter --
+[*] Ajustado o tamanho da tag vIBSSN para 15 em vez de 7 dentro da function gTribSNTot.
+   Por: Renato Ricci
+
+18/11/2026
+-- ACBrDFe.RTC.XmlWriter --
+[-] Ajuste visando a correta geração do elemento gTribSN que tem ordem diferente dependendo do DFe no grupo IBSCBSTot.
+   Por: Diego Folieni
+
+17/11/2026
+-- ACBrDFeXsLibXml2 --
+[-] Correção para aceitar Paths em formato Windows UNC
+    http://www.projetoacbr.com.br/forum/index.php?showtopic=96010
+    (por: Alexandre Scheidt e I.A.)
+
+16/11/2026
+-- ACBrDFeOpenSSL --
+[-] Corrige a grafia do nome da nova função de GenerateCMSDetatechedSignature para GenerateCMSDetachedSignature.
+   Por: Diego Folieni
+
+-- ACBrDFeSSL/ACBrDFeOpenSSL/ACBrDFeWinCrypt/ACBrDFeWinSecCNG --
+[+] ACBR-9729 - Implementa método para gerar assinatura CMS destacada.
+   Por: Diego Folieni
+
+13/11/2026
+-- ACBrDFe.RTC.XmlWriter/ACBrDFeConsts --
+[*] Ajuestes para atender as novas NT.
+   Por: Italo Giurizzato Junior
+
+12/11/2026
+-- ACBrDFe.RTC.IniWriter/ACBrDFe.RTC.XmlWriter --
+[-] ACBR-10207 - Corrigido o local de chamada para gerar o grupo gTribSN, pois onde
+    estava ocorria o erro de Access Violation sem gIBSCBS.
+   Por: Paulo Alexandre Hostert/Italo Giurizzato Junior
+
+11/11/2026
+-- ACBrDFe.RTC.Classes/ACBrDFe.RTC.XmlWriter/ACBrDFeConsts.pas
+[*] Ajustes na geração do gIBSCBS da NFeABI, correções nos Assign, inclusão de novas constantes.
+   Por: Leonardo Gomes/Italo Giurizzato Junior
+
+-- ACBrDFe.Conversao --
+[+] Acrescentado o enumerado tnNenhum ao tipo TTipoNavegacao visando não gerar a tag,
+    uma vez que ela é opcional.
+   Por: Italo Giurizzato Junior
+-- ACBrDFe.RTC.IniWriter/ACBrDFe.RTC.XmlWriter --
+[-] Alteração visando não gerar os campos tpALCZFMCBS e nProcSuframa se o DF-e
+    não for NF-e/NFC-e.
+   Por: Jonathan Gonçalves
+
+10/11/2026
+-- ACBrDFe.Conversao/ACBrDFe.RTC.Classes/ACBrDFe.RTC.IniReader --
+-- ACBrDFe.RTC.IniWriter/ACBrDFe.RTC.XmlReader/ACBrDFe.RTC.XmlWriter --
+-- ACBrDFeConsts --
+[+] Implementado as classes bem como as function e procedure para gerar e
+    ler o novo grupo gTribSN.
+   Por: Italo Giurizzato Junior
+
+26/10/2026
+-- ACBrDFe.Conversao --
+[+] Incluído o enumerado cstICMSPrevisto a ser utilizado pela NFe.
+   Por: Italo Giurizzato Junior
+
+06/10/2026
+-- ACBrDFe.RTC.IniReader/ACBrDFe.RTC.IniWriter --
+[*] Condicionado a geração da seção gIBSCBSSemProcJur, sem nenhum índice, com apenas
+    um ou com dois índices.
+   Por: Italo Giurizzato Junior
+-- ACBrDFe.Conversao/ACBrDFe.RTC.Classes/ACBrDFe.RTC.IniReader/ACBrDFe.RTC.IniWriter --
+-- ACBrDFe.RTC.XmlReader/ACBrDFe.RTC.XmlWriter --
+[+] Alterações visando a NT 2026/004 e para o ACBrNFeABI.
+   Por: Italo Giurizzato Junior
+
+24/09/2026
+-- ACBrDFe.RTC.XmlWriter --
+[-] As tags vCredPres e vCredPresCondSus dos grupos gIBS e gCBS só devem ser geradas se o DF-e
+    for NF-e ou NFC-e.
+   Por: Italo Giurizzato Junior
+
+23/09/2026
+-- ACBrBPeXmlWriter, ACBrDFe.RTC.XmlWriter --
+[-] ACBR-9791 - Bpe - Implementado controle de número de ocorrências para geração dos totais de IBSCBS
+   Por: Paulo Alves N. Júnior/Renato Rubinho
+   Veja: https://www.projetoacbr.com.br/forum/topic/94325-acbr-9791erro-de-schema-no-grupo-ibscbstot-para-cst-400-bpe-tm/
+
 16/09/2026
 -- ACBrDFe.RTC.XmlWriter.pas, ACBrDFe.RTC.XmlReader.pas --
 [-] ACBR-9873 - Ajustado a escrita e a leitura da propriedade pAliqEfet para 4 casas decimais.

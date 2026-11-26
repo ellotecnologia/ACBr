@@ -117,6 +117,8 @@ type
 
     function TrocaEscapeporConchete(const aXml: string): string;
   public
+    function GetSchemaPath: string; override;
+
     function RegimeEspecialTributacaoToStr(const t: TnfseRegimeEspecialTributacao): string; override;
     function StrToRegimeEspecialTributacao(out ok: boolean; const s: string): TnfseRegimeEspecialTributacao; override;
     function RegimeEspecialTributacaoDescricao(const t: TnfseRegimeEspecialTributacao): string; override;
@@ -423,7 +425,7 @@ var
 
         ANode := DocumentXml.Root.Childrens.FindAnyNs('infNFSe');
 
-        CodVerif := OnlyNumber(ObterConteudoTag(ANode.Attributes.Items['Id']));
+        CodVerif := RemoverLiteralChave(ObterConteudoTag(ANode.Attributes.Items['Id']));
         NumNFSe := ObterConteudoTag(ANode.Childrens.FindAnyNs('nNFSe'), tcStr);
         DataAut := ObterConteudoTag(ANode.Childrens.FindAnyNs('dhProc'), tcDatHor);
 
@@ -431,6 +433,7 @@ var
         ANode := ANode.Childrens.FindAnyNs('infDPS');
         NumDps := ObterConteudoTag(ANode.Childrens.FindAnyNs('nDPS'), tcStr);
 
+        Response.CodigoVerificacao := CodVerif;
         Response.NumeroNota := NumNFSe;
         Response.Data := DataAut;
         Response.XmlRetorno := NFSeXml;
@@ -832,7 +835,10 @@ begin
             Response.XmlRetorno := EventoXml;
 
             case Response.tpEvento of
-              teCancelamento:
+              teCancelamento,
+              teCancelamentoSubstituicao,
+              teCancelamentoDeferido,
+              teCancelamentoPorOficio:
                 begin
                   Response.SucessoCanc := True;
                   Response.DescSituacao := 'Nota Cancelada';
@@ -994,7 +1000,10 @@ begin
             Response.XmlRetorno := ArquivoXml;
 
             case Response.tpEvento of
-              teCancelamento:
+              teCancelamento,
+              teCancelamentoSubstituicao,
+              teCancelamentoDeferido,
+              teCancelamentoPorOficio:
                 begin
                   Response.SucessoCanc := True;
                   Response.DescSituacao := 'Nota Cancelada';
@@ -1137,6 +1146,8 @@ begin
 
                 ANota := CarregarXmlNfse(ANota, DocumentXml.Root.OuterXml);
                 SalvarXmlNfse(ANota);
+                AResumo.NomeArq := ANota.NomeArq;
+                AResumo.XmlRetorno := ANota.XMLNFSe;
               except
                 on E:Exception do
                 begin
@@ -1184,6 +1195,8 @@ begin
                 AResumo.idEvento := Response.idEvento;
                 AResumo.tpEvento := Response.tpEvento;
                 AResumo.idNota := Response.idNota;
+                AResumo.NomeArq := nomeArq;
+                AResumo.XmlRetorno := ArquivoXml;
               except
                 on E:Exception do
                 begin
@@ -1555,6 +1568,16 @@ begin
 
     Method := 'POST';
   end;
+end;
+
+function TACBrNFSeProviderPadraoNacional.GetSchemaPath: string;
+begin
+  Result := inherited GetSchemaPath;
+
+  if TACBrNFSeX(FAOwner).Configuracoes.WebServices.Ambiente = taProducao then
+    Result := Result + 'Producao'
+  else
+    Result := Result + 'Homologacao';
 end;
 
 function TACBrNFSeProviderPadraoNacional.RegimeEspecialTributacaoToStr(

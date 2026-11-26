@@ -37,7 +37,7 @@ object ACBrNFeDANFCeFortesFr: TACBrNFeDANFCeFortesFr
     OnDataRecord = rlVendaDataRecord
     object rlbQRCode: TRLBand
       Left = 5
-      Top = 464
+      Top = 503
       Width = 368
       Height = 137
       Margins.LeftMargin = 1.000000000000000000
@@ -303,7 +303,7 @@ object ACBrNFeDANFCeFortesFr: TACBrNFeDANFCeFortesFr
       Left = 5
       Top = 217
       Width = 368
-      Height = 104
+      Height = 143
       Margins.LeftMargin = 2.000000000000000000
       Margins.RightMargin = 2.000000000000000000
       OnDataRecord = rlsbPagamentosDataRecord
@@ -511,9 +511,123 @@ object ACBrNFeDANFCeFortesFr: TACBrNFeDANFCeFortesFr
           ParentFont = False
         end
       end
-      object rlbTotalAPagar: TRLBand
+      object rlbTotalCBS: TRLBand
         Left = 9
         Top = 60
+        Width = 350
+        Height = 12
+        AutoSize = True
+        BandType = btHeader
+        BeforePrint = rlbTotalCBSBeforePrint
+        object lTitTotalCBS: TRLLabel
+          Left = 0
+          Top = 0
+          Width = 306
+          Height = 12
+          Align = faClientTop
+          Caption = '(+) CBS R$'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lTotalCBS: TRLLabel
+          Left = 306
+          Top = 0
+          Width = 44
+          Height = 11
+          Align = faRightTop
+          Alignment = taRightJustify
+          Caption = '99.999,99'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+      end
+      object rlbTotalIBS: TRLBand
+        Left = 9
+        Top = 72
+        Width = 350
+        Height = 12
+        AutoSize = True
+        BandType = btHeader
+        BeforePrint = rlbTotalIBSBeforePrint
+        object lTitTotalIBS: TRLLabel
+          Left = 0
+          Top = 0
+          Width = 306
+          Height = 12
+          Align = faClientTop
+          Caption = '(+) IBS R$'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lTotalIBS: TRLLabel
+          Left = 306
+          Top = 0
+          Width = 44
+          Height = 11
+          Align = faRightTop
+          Alignment = taRightJustify
+          Caption = '99.999,99'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+      end
+      object rlbTotalIS: TRLBand
+        Left = 9
+        Top = 84
+        Width = 350
+        Height = 12
+        AutoSize = True
+        BandType = btHeader
+        BeforePrint = rlbTotalISBeforePrint
+        object lTitTotalIS: TRLLabel
+          Left = 0
+          Top = 0
+          Width = 306
+          Height = 12
+          Align = faClientTop
+          Caption = '(+) IS R$'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lTotalIS: TRLLabel
+          Left = 306
+          Top = 0
+          Width = 44
+          Height = 11
+          Align = faRightTop
+          Alignment = taRightJustify
+          Caption = '99.999,99'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+      end
+      object rlbTotalAPagar: TRLBand
+        Left = 9
+        Top = 96
         Width = 350
         Height = 11
         AutoSize = True
@@ -551,7 +665,7 @@ object ACBrNFeDANFCeFortesFr: TACBrNFeDANFCeFortesFr
       end
       object rlbPagamentoTitulo: TRLBand
         Left = 9
-        Top = 71
+        Top = 107
         Width = 350
         Height = 12
         AutoSize = True
@@ -588,7 +702,7 @@ object ACBrNFeDANFCeFortesFr: TACBrNFeDANFCeFortesFr
       end
       object rlbPagamento: TRLBand
         Left = 9
-        Top = 83
+        Top = 119
         Width = 350
         Height = 12
         AutoSize = True
@@ -625,7 +739,7 @@ object ACBrNFeDANFCeFortesFr: TACBrNFeDANFCeFortesFr
       end
       object rlbTroco: TRLBand
         Left = 9
-        Top = 95
+        Top = 131
         Width = 350
         Height = 12
         AutoSize = True
@@ -852,7 +966,7 @@ object ACBrNFeDANFCeFortesFr: TACBrNFeDANFCeFortesFr
     end
     object rlbChaveDeAcesso: TRLBand
       Left = 5
-      Top = 321
+      Top = 360
       Width = 368
       Height = 39
       Margins.LeftMargin = 1.000000000000000000
@@ -916,7 +1030,7 @@ object ACBrNFeDANFCeFortesFr: TACBrNFeDANFCeFortesFr
     end
     object rlbConsumidor: TRLBand
       Left = 5
-      Top = 360
+      Top = 399
       Width = 368
       Height = 81
       Margins.LeftMargin = 1.000000000000000000
@@ -1043,7 +1157,7 @@ object ACBrNFeDANFCeFortesFr: TACBrNFeDANFCeFortesFr
     end
     object rlbMensagemFiscal: TRLBand
       Left = 5
-      Top = 441
+      Top = 480
       Width = 368
       Height = 23
       Margins.LeftMargin = 2.000000000000000000
@@ -1077,7 +1191,7 @@ object ACBrNFeDANFCeFortesFr: TACBrNFeDANFCeFortesFr
     end
     object rlbRodape: TRLBand
       Left = 5
-      Top = 721
+      Top = 760
       Width = 368
       Height = 72
       Margins.LeftMargin = 2.000000000000000000
@@ -1171,7 +1285,7 @@ object ACBrNFeDANFCeFortesFr: TACBrNFeDANFCeFortesFr
     end
     object rlbQRLateral: TRLBand
       Left = 5
-      Top = 601
+      Top = 640
       Width = 368
       Height = 120
       Margins.LeftMargin = 1.000000000000000000
@@ -1935,6 +2049,638 @@ object ACBrNFeDANFCeFortesFr: TACBrNFeDANFCeFortesFr
         Font.Name = 'Arial'
         Font.Style = []
         ParentFont = False
+      end
+    end
+  end
+  object rlEvento: TRLReport
+    Left = 483
+    Top = 4
+    Width = 378
+    Height = 1890
+    Margins.LeftMargin = 1.000000000000000000
+    Margins.TopMargin = 2.000000000000000000
+    Margins.RightMargin = 1.000000000000000000
+    Margins.BottomMargin = 0.000000000000000000
+    AllowedBands = [btHeader, btDetail, btSummary, btFooter]
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clBlack
+    Font.Height = -9
+    Font.Name = 'Arial'
+    Font.Style = []
+    InsideMargins.LeftMargin = 1.000000000000000000
+    InsideMargins.RightMargin = 1.000000000000000000
+    PageSetup.PaperSize = fpCustom
+    PageSetup.PaperWidth = 80.000000000000000000
+    PageSetup.PaperHeight = 400.000000000000000000
+    PrintDialog = False
+    ShowProgress = False
+    BeforePrint = rlEventoBeforePrint
+    OnDataRecord = rlVendaDataRecord
+    object rlbCabecalhoEvento: TRLBand
+      Left = 10
+      Top = 9
+      Width = 358
+      Height = 38
+      AutoSize = True
+      BandType = btHeader
+      InsideMargins.LeftMargin = 1.000000000000000000
+      InsideMargins.RightMargin = 1.000000000000000000
+      object rlmTitEvento: TRLMemo
+        Left = 5
+        Top = 0
+        Width = 348
+        Height = 14
+        Align = faTop
+        Alignment = taCenter
+        Behavior = [beSiteExpander]
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -11
+        Font.Name = 'Arial'
+        Font.Style = [fsBold]
+        Lines.Strings = (
+          'DOCUMENTO AUXILIAR DE EVENTO DA NFC-E')
+        ParentFont = False
+      end
+      object rlmAvisoEvento: TRLMemo
+        Left = 5
+        Top = 14
+        Width = 348
+        Height = 12
+        Align = faTop
+        Alignment = taCenter
+        Behavior = [beSiteExpander]
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -8
+        Font.Name = 'Arial'
+        Font.Style = []
+        Lines.Strings = (
+          
+            'N'#227'o possui valor fiscal, simples representa'#231#227'o do fato indicado ' +
+            'abaixo.')
+        ParentFont = False
+      end
+      object rlmConsulteEvento: TRLMemo
+        Left = 5
+        Top = 26
+        Width = 348
+        Height = 12
+        Align = faTop
+        Alignment = taCenter
+        Behavior = [beSiteExpander]
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -8
+        Font.Name = 'Arial'
+        Font.Style = []
+        Lines.Strings = (
+          'CONSULTE A AUTENTICIDADE NO SITE DA SEFAZ AUTORIZADORA.')
+        ParentFont = False
+      end
+    end
+    object rlbDadosNotaEvento: TRLBand
+      Left = 10
+      Top = 47
+      Width = 358
+      Height = 44
+      AutoSize = True
+      BandType = btHeader
+      InsideMargins.LeftMargin = 1.000000000000000000
+      InsideMargins.RightMargin = 1.000000000000000000
+      BeforePrint = rlbDadosNotaEventoBeforePrint
+      object rldEvento1: TRLDraw
+        Left = 5
+        Top = 0
+        Width = 348
+        Height = 8
+        Align = faTop
+        DrawKind = dkLine
+        Pen.Width = 2
+      end
+      object rlmDadosNotaEvento: TRLMemo
+        Left = 5
+        Top = 8
+        Width = 348
+        Height = 12
+        Align = faTop
+        Alignment = taCenter
+        Behavior = [beSiteExpander]
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -9
+        Font.Name = 'Arial'
+        Font.Style = []
+        Lines.Strings = (
+          'MODELO: 99  S'#201'RIE: 999  N'#218'MERO: 999999999')
+        ParentFont = False
+      end
+      object rllTitChaveEvento: TRLLabel
+        Left = 5
+        Top = 20
+        Width = 348
+        Height = 12
+        Align = faTop
+        Alignment = taCenter
+        Caption = 'CHAVE DE ACESSO'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -9
+        Font.Name = 'Arial'
+        Font.Style = [fsBold]
+        Layout = tlBottom
+        ParentFont = False
+      end
+      object rlmChaveNFeEvento: TRLMemo
+        Left = 5
+        Top = 32
+        Width = 348
+        Height = 12
+        Align = faTop
+        Alignment = taCenter
+        Behavior = [beSiteExpander]
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -9
+        Font.Name = 'Arial'
+        Font.Style = []
+        Lines.Strings = (
+          '9999 9999 9999 9999 9999 9999 9999 9999 9999 9999 9999')
+        ParentFont = False
+      end
+    end
+    object rlbQRCodeEvento: TRLBand
+      Left = 10
+      Top = 91
+      Width = 358
+      Height = 157
+      AutoSize = True
+      BandType = btHeader
+      InsideMargins.LeftMargin = 1.000000000000000000
+      InsideMargins.RightMargin = 1.000000000000000000
+      BeforePrint = rlbQRCodeEventoBeforePrint
+      object rldEvento2: TRLDraw
+        Left = 5
+        Top = 0
+        Width = 348
+        Height = 8
+        Align = faTop
+        DrawKind = dkLine
+        Pen.Width = 2
+      end
+      object rllConsultaQRCodeEvento: TRLLabel
+        Left = 5
+        Top = 8
+        Width = 348
+        Height = 12
+        Align = faTop
+        Alignment = taCenter
+        Caption = 'CONSULTAR VIA LEITOR DE QR CODE'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -9
+        Font.Name = 'Arial'
+        Font.Style = [fsBold]
+        Layout = tlBottom
+        ParentFont = False
+      end
+      object imgQRCodeEvento: TRLImage
+        Left = 5
+        Top = 20
+        Width = 348
+        Height = 137
+        Align = faTop
+        Center = True
+        Scaled = True
+      end
+    end
+    object rlbDadosEvento: TRLBand
+      Left = 10
+      Top = 248
+      Width = 358
+      Height = 273
+      AutoSize = True
+      BandType = btHeader
+      InsideMargins.LeftMargin = 1.000000000000000000
+      InsideMargins.RightMargin = 1.000000000000000000
+      BeforePrint = rlbDadosEventoBeforePrint
+      object rldEvento3: TRLDraw
+        Left = 5
+        Top = 0
+        Width = 348
+        Height = 8
+        Align = faTop
+        DrawKind = dkLine
+        Pen.Width = 2
+      end
+      object rlmDescEvento: TRLMemo
+        Left = 5
+        Top = 8
+        Width = 348
+        Height = 14
+        Align = faTop
+        Alignment = taCenter
+        Behavior = [beSiteExpander]
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -11
+        Font.Name = 'Arial'
+        Font.Style = [fsBold]
+        Lines.Strings = (
+          'Descri'#231#227'o do evento')
+        ParentFont = False
+      end
+      object rldEvento4: TRLDraw
+        Left = 5
+        Top = 32
+        Width = 348
+        Height = 8
+        Align = faWidth
+        DrawKind = dkLine
+        Pen.Style = psDot
+      end
+      object rlpTipoEvento: TRLPanel
+        Left = 5
+        Top = 40
+        Width = 348
+        Height = 33
+        Align = faWidth
+        object rllTitTipoEvento: TRLLabel
+          Left = 0
+          Top = 0
+          Width = 348
+          Height = 11
+          Align = faTop
+          Caption = 'TIPO DO EVENTO'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+        object rlmTipoEvento: TRLMemo
+          Left = 0
+          Top = 11
+          Width = 348
+          Height = 22
+          Align = faTop
+          Behavior = [beSiteExpander]
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = []
+          Lines.Strings = (
+            '999999 - Descri'#231#227'o do evento')
+          ParentFont = False
+        end
+      end
+      object rlpPedidoEvento: TRLPanel
+        Left = 5
+        Top = 73
+        Width = 348
+        Height = 24
+        Align = faWidth
+        object rllTitDataHoraPedido: TRLLabel
+          Left = 0
+          Top = 0
+          Width = 340
+          Height = 11
+          Caption = 'DATA/HORA PEDIDO'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+        object rllDataHoraPedido: TRLLabel
+          Left = 0
+          Top = 11
+          Width = 340
+          Height = 11
+          Caption = 'DD/MM/AAAA HH:MM:SS'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = []
+          ParentFont = False
+        end
+      end
+      object rlpAmbienteOrgaoEvento: TRLPanel
+        Left = 5
+        Top = 97
+        Width = 348
+        Height = 24
+        Align = faWidth
+        object rllTitAmbienteEvento: TRLLabel
+          Left = 0
+          Top = 0
+          Width = 95
+          Height = 11
+          Caption = 'AMBIENTE'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+        object rllAmbienteEvento: TRLLabel
+          Left = 0
+          Top = 11
+          Width = 95
+          Height = 11
+          Caption = '2 - HOMOLOGA'#199#195'O'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = []
+          ParentFont = False
+        end
+        object rllTitOrgaoEvento: TRLLabel
+          Left = 100
+          Top = 0
+          Width = 60
+          Height = 11
+          Caption = #211'RG'#195'O'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+        object rllOrgaoEvento: TRLLabel
+          Left = 100
+          Top = 11
+          Width = 60
+          Height = 11
+          Caption = 'UF'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = []
+          ParentFont = False
+        end
+      end
+      object rlpAutorEvento: TRLPanel
+        Left = 5
+        Top = 121
+        Width = 348
+        Height = 24
+        Align = faWidth
+        object rllTitAutorEvento: TRLLabel
+          Left = 0
+          Top = 0
+          Width = 340
+          Height = 11
+          Caption = 'AUTOR'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+        object rllAutorEvento: TRLLabel
+          Left = 0
+          Top = 11
+          Width = 340
+          Height = 11
+          Caption = '99.999.999/9999-99'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = []
+          ParentFont = False
+        end
+      end
+      object rlpSeqEvento: TRLPanel
+        Left = 5
+        Top = 145
+        Width = 348
+        Height = 24
+        Align = faWidth
+        object rllTitSeqEvento: TRLLabel
+          Left = 0
+          Top = 0
+          Width = 340
+          Height = 11
+          Caption = 'SEQUENCIAL ANO'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+        object rllSeqEvento: TRLLabel
+          Left = 0
+          Top = 11
+          Width = 340
+          Height = 11
+          Caption = '9999999999'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = []
+          ParentFont = False
+        end
+      end
+      object rlpProtocoloEvento: TRLPanel
+        Left = 5
+        Top = 169
+        Width = 348
+        Height = 32
+        Align = faWidth
+        Borders.Sides = sdAll
+        object rllTitProtocoloEvento: TRLLabel
+          Left = 1
+          Top = 1
+          Width = 346
+          Height = 14
+          Align = faTop
+          Alignment = taCenter
+          Caption = 'N'#218'MERO DO PROTOCOLO'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Layout = tlBottom
+          ParentFont = False
+        end
+        object rlmProtocoloEvento: TRLMemo
+          Left = 1
+          Top = 15
+          Width = 346
+          Height = 16
+          Align = faTop
+          Alignment = taCenter
+          Behavior = [beSiteExpander]
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -12
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Lines.Strings = (
+            '999999999999999')
+          ParentFont = False
+        end
+      end
+      object rlpRegistroEvento: TRLPanel
+        Left = 5
+        Top = 201
+        Width = 348
+        Height = 24
+        Align = faWidth
+        object rllTitDataHoraRegistro: TRLLabel
+          Left = 0
+          Top = 0
+          Width = 340
+          Height = 11
+          Caption = 'DATA/HORA DO REGISTRO'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+        object rllDataHoraRegistro: TRLLabel
+          Left = 0
+          Top = 11
+          Width = 340
+          Height = 11
+          Caption = 'DD/MM/AAAA HH:MM:SS'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = []
+          ParentFont = False
+        end
+      end
+      object rlpOrgaoRecepcaoEvento: TRLPanel
+        Left = 5
+        Top = 225
+        Width = 348
+        Height = 24
+        Align = faWidth
+        object rllTitOrgaoRecepcao: TRLLabel
+          Left = 0
+          Top = 0
+          Width = 340
+          Height = 11
+          Caption = #211'RG'#195'O RECEP'#199#195'O'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+        object rllOrgaoRecepcao: TRLLabel
+          Left = 0
+          Top = 11
+          Width = 340
+          Height = 11
+          Caption = 'UF (verAplic)'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = []
+          ParentFont = False
+        end
+      end
+      object rlpSituacaoEvento: TRLPanel
+        Left = 5
+        Top = 249
+        Width = 348
+        Height = 34
+        Align = faWidth
+        object rllTitSituacaoEvento: TRLLabel
+          Left = 0
+          Top = 0
+          Width = 348
+          Height = 11
+          Align = faTop
+          Caption = 'SITUA'#199#195'O DO EVENTO'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+        object rlmSituacaoEvento: TRLMemo
+          Left = 0
+          Top = 11
+          Width = 348
+          Height = 22
+          Align = faTop
+          Behavior = [beSiteExpander]
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = []
+          Lines.Strings = (
+            '999 - Motivo')
+          ParentFont = False
+        end
+      end
+    end
+    object rlbRodapeEvento: TRLBand
+      Left = 10
+      Top = 521
+      Width = 358
+      Height = 56
+      AutoSize = True
+      BandType = btSummary
+      InsideMargins.LeftMargin = 1.000000000000000000
+      InsideMargins.RightMargin = 1.000000000000000000
+      BeforePrint = rlbRodapeEventoBeforePrint
+      object rldEvento5: TRLDraw
+        Left = 5
+        Top = 0
+        Width = 348
+        Height = 8
+        Align = faTop
+        DrawKind = dkLine
+        Pen.Width = 2
+      end
+      object rllSistemaEvento: TRLLabel
+        Left = 5
+        Top = 8
+        Width = 348
+        Height = 10
+        Align = faTop
+        Alignment = taRightJustify
+        Caption = 'Projeto ACBr'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -8
+        Font.Name = 'Arial'
+        Font.Style = [fsBold, fsItalic]
+        Layout = tlBottom
+        ParentFont = False
+        BeforePrint = lSistemaBeforePrint
+      end
+      object rlpGapEspacoFinalEvento: TRLPanel
+        Left = 5
+        Top = 18
+        Width = 348
+        Height = 38
+        Align = faTop
       end
     end
   end

@@ -530,6 +530,7 @@ var
     ANodeImposto.ICMS.vBCEfet := ObterConteudo(ANodeNivel5.Childrens.Find('vBCEfet'), tcDe2);
     ANodeImposto.ICMS.pICMSEfet := ObterConteudo(ANodeNivel5.Childrens.Find('pICMSEfet'), tcDe2);
     ANodeImposto.ICMS.vICMSEfet := ObterConteudo(ANodeNivel5.Childrens.Find('vICMSEfet'), tcDe2);
+    ANodeImposto.ICMS.vICMSPrevisto := ObterConteudo(ANodeNivel5.Childrens.Find('vICMSPrevisto'), tcDe2);
   end;
 begin
   Item := NF3e.NFDet.New;
@@ -659,6 +660,8 @@ begin
           detItem.Prod.qFaturada    := ObterConteudo(ANodeNivel4.Childrens.Find('qFaturada'), tcDe4);
           detItem.Prod.vItem        := ObterConteudo(ANodeNivel4.Childrens.Find('vItem'), tcDe10);
           detItem.Prod.vProd        := ObterConteudo(ANodeNivel4.Childrens.Find('vProd'), tcDe10);
+          detItem.Prod.vItemLiq     := ObterConteudo(ANodeNivel4.Childrens.Find('vItemLiq'), tcDe10);
+          detItem.Prod.vProdLiq     := ObterConteudo(ANodeNivel4.Childrens.Find('vProdLiq'), tcDe10);
 
           sAux := ObterConteudo(ANodeNivel4.Childrens.Find('indDevolucao'), tcStr);
           detItem.Prod.indDevolucao := tiNao;
@@ -720,6 +723,7 @@ begin
             LerICMS('ICMS51', detItem.Imposto);
             LerICMS('ICMS60', detItem.Imposto);
             LerICMS('ICMS90', detItem.Imposto);
+            LerICMS('gICMSPrevistoPagtoAntecip', detItem.Imposto);
           end;
 
           ANodeNivel5 := ANodeNivel4.Childrens.Find('PIS');
@@ -803,6 +807,8 @@ begin
           detItem.gProcRef.vCOFINS      := ObterConteudo(ANodeNivel4.Childrens.Find('vCOFINS'), tcDe2);
           detItem.gProcRef.vCOFINSEfet  := ObterConteudo(ANodeNivel4.Childrens.Find('vCOFINSEfet'), tcDe2);
 
+          Ler_gIBSCBSSemProcJur(ANodeNivel4.Childrens.Find('gIBSCBS'), detItem.gProcRef.gIBSCBS);
+
           detItem.gProcRef.gProc.Clear;
           ADetChildrensNodes := ANodeNivel4.Childrens.FindAll('gProc');
 
@@ -839,6 +845,7 @@ begin
   if not Assigned(ANode) then Exit;
 
   NF3e.Total.vProd := ObterConteudo(ANode.Childrens.Find('vProd'), tcDe2);
+  NF3e.Total.vProdLiq := ObterConteudo(ANode.Childrens.Find('vProdLiq'), tcDe2);
 
   AuxNode := ANode.Childrens.Find('ICMSTot');
 

@@ -171,6 +171,8 @@ type
        const Hash: AnsiString;
        const Assinado: Boolean =  False): Boolean; virtual;
 
+    function GerarCMSDestacado(const ABody: AnsiString): AnsiString; virtual;
+
     procedure CarregarCertificado;
     procedure DescarregarCertificado; virtual;
     function SelecionarCertificado: String; virtual;
@@ -422,6 +424,8 @@ type
        const Hash: AnsiString;
        const Assinado: Boolean =  False): Boolean; overload;
 
+   function GerarCMSDestacado(const ABody: AnsiString): AnsiString;
+
    function CalcHMAC( const BinaryString: AnsiString;
       const AKey: AnsiString;
       const Digest: TSSLDgst): AnsiString;
@@ -524,7 +528,9 @@ uses
   {$EndIf}
   {$IfDef MSWINDOWS}
    ,ACBrDFeWinCrypt, ACBrDFeHttpWinApi, ACBrDFeCry.WinUtils
+   {$IfNDef DFE_SEM_WINSECCNG}
    ,ACBrDFeWinSecCNG
+   {$EndIf}
    {$IfNDef DFE_SEM_MSXML}
     ,ACBrDFeXsMsXml
    {$EndIf}
@@ -977,6 +983,12 @@ function TDFeSSLCryptClass.GetCertIssuerName: String;
 begin
   CarregarCertificadoSeVazio;
   Result := FpDadosCertificado.IssuerName;
+end;
+
+function TDFeSSLCryptClass.GerarCMSDestacado(const ABody: AnsiString): AnsiString;
+begin
+ {$IfDef FPC}Result := EmptyStr;{$EndIf}
+  raise EACBrDFeException.Create('"GerarCMSDestacado" não suportado em: ' + ClassName);
 end;
 
 function TDFeSSLCryptClass.GetCertCertificadora: String;
@@ -1713,6 +1725,11 @@ begin
   Result := FSSLCryptClass.CertIssuerName;
 end;
 
+function TDFeSSL.GerarCMSDestacado(const ABody: AnsiString): AnsiString;
+begin
+  Result := FSSLCryptClass.GerarCMSDestacado(ABody);
+end;
+
 function TDFeSSL.GetCertCertificadora: String;
 begin
   Result := FSSLCryptClass.CertCertificadora;
@@ -1882,11 +1899,11 @@ begin
 
     cryCNGCrypt:
     begin
-      {$IfDef MSWINDOWS}
+      {$IfNDef DFE_SEM_WINSECCNG}
        FreeSSLCryptLib;
        FSSLCryptClass := TDFeWinSecCNGCrypt.Create(Self);
       {$Else}
-       raise EACBrDFeException.Create('Suporte a libWinCrypt disponível apenas em MSWINDOWS');
+       raise EACBrDFeException.Create('Suporte a WinSecCNGCrypt foi desativado por compilação {$DEFINE DFE_SEM_WINSECCNG} ');
       {$EndIf}
     end;
 

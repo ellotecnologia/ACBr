@@ -42,7 +42,7 @@ uses
   ACBrDFe.RTC.Classes,
   ACBrNFe.Classes,
   ACBrDFe.Conversao,
-  pcnConversaoNFe;
+  ACBrNFe.Conversao;
 
 type
 
@@ -377,6 +377,7 @@ begin
   lEmitJSONObj.AddPair('IM', AEmit.IM);
   lEmitJSONObj.AddPair('CNAE', AEmit.CNAE);
   lEmitJSONObj.AddPair('CRT', CRTToStr(AEmit.CRT));
+  lEmitJSONObj.AddPair('tpRegimeIBSCBS', tpRegimeIBSCBSToStr(AEmit.tpRegimeIBSCBS));
   lEmitJSONObj.AddPair('ISUFEmit', AEmit.ISUFEmit);
 
   GerarEmitEnderEmit(AEmit.enderEmit, lEmitJSONObj);
@@ -655,6 +656,8 @@ begin
   lProdJSONObj.AddPair('qCom', AProd.qCom);
   lProdJSONObj.AddPair('vUnCom', AProd.vUnCom);
   lProdJSONObj.AddPair('vProd', AProd.vProd);
+  lProdJSONObj.AddPair('vUnComLiq', AProd.vUnComLiq);
+  lProdJSONObj.AddPair('vProdLiq', AProd.vProdLiq);
   lProdJSONObj.AddPair('cEANTrib', AProd.cEANTrib);
   lProdJSONObj.AddPair('cBarraTrib', AProd.cBarraTrib);
   lProdJSONObj.AddPair('uTrib', AProd.uTrib);
@@ -671,6 +674,7 @@ begin
   lProdJSONObj.AddPair('nFCI', AProd.nFCI);
   // Reforma Tributria
   lProdJSONObj.AddPair('indBemMovelUsado', TIndicadorExToStr(AProd.indBemMovelUsado));
+  lProdJSONObj.AddPair('cAtivSN', cAtivSNToStr(AProd.cAtivSN));
 
   GerarDetProd_CredPresumido(AProd.CredPresumido, lProdJSONObj);
   GerarDetProd_NVE(AProd.NVE, lProdJSONObj);
@@ -1452,6 +1456,9 @@ begin
                       lICMSCSTJSONObj.AddPair('vICMSEfet', AICMS.vICMSEfet);
                     end;
                   end;
+
+                cstICMSPrevisto:
+                  lICMSCSTJSONObj.AddPair('vICMSPrevisto', AICMS.vICMSPrevisto);
               end;
             end;
           crtSimplesNacional, crtMEI:
@@ -1853,6 +1860,9 @@ var
   lTotalJSONObj: TACBrJSONObject;
 begin
   lTotalJSONObj := TACBrJSONObject.Create;
+
+  lTotalJSONObj.AddPair('vProdLiqTot', ATotal.vProdLiqTot);
+
   GerarTotal_ICMSTot(ATotal.ICMSTot, lTotalJSONObj);
   GerarTotal_ISSQNTot(ATotal.ISSQNtot, lTotalJSONObj);
   GerarTotal_retTrib(ATotal.retTrib, lTotalJSONObj);
@@ -2583,8 +2593,9 @@ begin
     exit;
 
   lISelJSONObj := TACBrJSONObject.Create;
+
   //Usar string até a publicação de uma tabela de CSTs oficial para o IS
-  //lISelJSONObj.AddPair('CSTIS', CSTISToStr(AISel.CSTIS));
+//  lISelJSONObj.AddPair('CSTIS', CSTISToStr(AISel.CSTIS));
   lISelJSONObj.AddPair('CSTIS', AISel.CSTIS);
   lISelJSONObj.AddPair('cClassTribIS', AISel.cClassTribIS);
   lISelJSONObj.AddPair('vBCIS', AISel.vBCIS);

@@ -240,7 +240,7 @@ begin
 
   // Atenção: Neste xml todos os "Ws_" do início das tags devem ter o primeiro "W" em maiúsculo
   Response.ArquivoEnvio := '{"login":"' +
-                           OnlyNumber(Emitente.WSUser) + '","senha":"' +
+                           OnlyCPFCNPJAlphaNum(Emitente.WSUser) + '","senha":"' +
                            Emitente.WSSenha + '"}';
 
   FpPath := 'rest/login';
@@ -654,6 +654,8 @@ procedure TACBrNFSeXWebserviceSigISSWeb.SetHeaders(aHeaderReq: THTTPHeader);
 begin
   if FAjustaSetHeader then
     aHeaderReq.AddHeader('Authorization', TACBrNFSeX(FPDFeOwner).WebService.GerarToken.Token);
+
+  ReqHeaders := aHeaderReq.Text;
 end;
 
 function TACBrNFSeXWebserviceSigISSWeb.GerarToken(const ACabecalho,

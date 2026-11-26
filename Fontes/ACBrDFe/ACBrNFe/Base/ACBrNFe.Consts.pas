@@ -99,7 +99,9 @@ resourcestring
   DSC_NSEQADIC = 'Numero seqüencial do item dentro da adição';
   DSC_NVOL = 'Numeração dos volumes transportados';
   DSC_PESOB = 'Peso Bruto (em kg)';
+  DSC_PESOB_TON = 'Peso Bruto (em toneladas)';
   DSC_PESOL = 'Peso Líquido (em kg)';
+  DSC_PESOL_TON = 'Peso Líquido (em toneladas)';
   DSC_PICMSRET = 'Alíquota da Retenção';
   DSC_PICMSST = 'Alíquota do imposto do ICMS ST';
   DSC_PIPI = 'Alíquota do IPI';
@@ -309,6 +311,9 @@ resourcestring
   DSC_QCOM = 'Quantidade Comercial';
   DSC_VUNCOM = 'Valor Unitário de Comercialização';
   DSC_VPROD = 'Valor Total Bruto dos Produtos ou Serviços';
+  DSC_VUNCOMLIQ = 'Valor Líquido Unitário do Produto ou Serviço (sem tributos)';
+  DSC_VPRODLIQ = 'Valor Líquido do Produto ou Serviço (sem tributos)';
+  DSC_VPRODLIQTOT = 'Valor Total Líquido dos Produtos ou Serviços (sem tributos)';
   DSC_VFRETE = 'Valor Total do Frete';
   DSC_VDESC = 'Valor do desconto';
   DSC_VOUTRO = 'Outras Despesas Acessórias';
@@ -417,6 +422,7 @@ resourcestring
   DSC_INDBEMMOVELUSADO = 'Indicador de fornecimento de bem móvel usado';
   DSC_DPREVENTREGA = 'Data de previsão de entrega';
   DSC_VBCCREDPRES = 'Valor da Base de Cálculo do Crédito Presumido da Operação ';
+  DSC_CATIVSN = 'Código de atividade do Simples Nacional';
 
 implementation
 

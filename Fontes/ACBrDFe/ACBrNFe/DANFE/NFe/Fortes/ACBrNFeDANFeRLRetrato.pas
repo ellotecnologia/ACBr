@@ -582,6 +582,7 @@ type
     RLLabel44: TRLLabel;
     RLLabel45: TRLLabel;
     RLDraw40: TRLDraw;
+    RLLabel10: TRLLabel;
     RLLquadroEntregaNome: TRLLabel;
     RLLquadroEntregaDocumento: TRLLabel;
     RLLquadroEntregaIE: TRLLabel;
@@ -754,7 +755,7 @@ uses
   ACBrNFeDANFeRLClass, ACBrDFeUtil, ACBrValidador,
   ACBrUtil.Base, ACBrUtil.Strings, ACBrUtil.DateTime,
   ACBrDFeDANFeReport, ACBrDFeReportFortes,
-  ACBrNFe.Classes, pcnConversaoNFe, ACBrNFe;
+  ACBrNFe.Classes, ACBrNFe.Conversao, ACBrNFe;
 
 {$IfNDef FPC}
  {$R *.dfm}

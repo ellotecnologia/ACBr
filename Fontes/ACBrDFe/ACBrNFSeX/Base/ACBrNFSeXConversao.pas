@@ -57,6 +57,10 @@ type
                      stNFSeConsultarParam, stNFSeConsultarSeqRps,
                      stNFSeConsultarLinkNFSe, stNFSEObterDANFSE);
 
+  // Revisao da Nota Tecnica do Padrao Nacional, independente de versao XML.
+  // Novas revisoes devem acrescentar valores e regras explicitas neste tipo.
+  TVersaoNTPadraoNacional = (ntPNNenhuma, ntPN009v101);
+
   TStatusRPS = (srNormal, srCancelado);
 
   TtpXML = (txmlRPS, txmlNFSe, txmlEspelho);
@@ -125,7 +129,7 @@ type
   TnfseProvedor = (proNenhum,
                    proPadraoNacional,
                    proAbaco, proABase, proActcon, proAdm, proADPM, proAEG, proAgape,
-                   proAgili, proAspec, proAssessorPublico, proAsten, proBauhaus,
+                   proAgili, proAspec, proAssessorPublico, proAsten, proBalker, proBauhaus,
                    proBetha, proBHISS, proBWSistemas, proCenti, proCIGA, proCitta,
                    proConam, proContass, proCoplan, proCTA, proCTAConsult, proDataSmart,
                    proDBSeller, proDeISS, proDesenvolve, proDigifred, proDSF,
@@ -499,6 +503,8 @@ type
 
 const
   TtribISSQNArrayStrings: array[TtribISSQN] of string = ('1', '2', '3', '4');
+  TtribISSQNArrayDescricaoStrings: array[TtribISSQN] of string =
+    ('Operação Tributável', 'Imunidade', 'Exportação', 'Não Incidência');
 
 type
   TtpImunidade = (timNenhum, timImunidade, timPatrimonio, timTemplos,
@@ -719,6 +725,21 @@ const
     '04', '99');
 
 type
+  TtpAjusteBCLocImoveis = (tabl01, tabl02, tabl03, tabl04, tabl99);
+
+const
+  TtpAjusteBCLocImoveisArrayStrings: array[TtpAjusteBCLocImoveis] of string = ('01',
+    '02', '03', '04', '99');
+
+type
+  TtpAjusteBC = (tajbc2, tajbc5, tajbc6, tajbc7, tajbc8, tajbc9, tajbc99,
+    tajbc101, tajbc102, tajbc103, tajbc104, tajbc105, tajbc199);
+
+const
+  TtpAjusteBCArrayStrings: array[TtpAjusteBC] of string = ('2', '5', '6', '7',
+    '8', '9', '99', '101', '102', '103', '104', '105', '199');
+
+type
   TindCompGov  = (icgNenhum, icgSim, icgNao);
 
 const
@@ -787,6 +808,9 @@ function TipoEmissaoDescricao(const t: TTipoEmissao): string;
 
 function EmpreitadaGlobalToStr(const t: TEmpreitadaGlobal): string;
 function StrToEmpreitadaGlobal(out ok: boolean; const s: string): TEmpreitadaGlobal;
+
+function VersaoNTPadraoNacionalToStr(const t: TVersaoNTPadraoNacional): string;
+function StrToVersaoNTPadraoNacional(out ok: Boolean; const s: string): TVersaoNTPadraoNacional;
 
 function VersaoNFSeToStr(const t: TVersaoNFSe): string;
 function StrToVersaoNFSe(out ok: Boolean; const s: string): TVersaoNFSe;
@@ -864,6 +888,7 @@ function StrTorodagem(out ok: Boolean; const s: string): Trodagem;
 
 function tribISSQNToStr(const t: TtribISSQN): string;
 function StrTotribISSQN(out ok: Boolean; const s: string): TtribISSQN;
+function tribISSQNToDescricao(const t: TtribISSQN): string;
 
 function tpImunidadeToStr(const t: TtpImunidade): string;
 function StrTotpImunidade(out ok: Boolean; const s: string): TtpImunidade;
@@ -958,6 +983,12 @@ function StrTotipoChaveDFe(const s: string): TtipoChaveDFe;
 
 function tpReeRepResToStr(const t: TtpReeRepRes): string;
 function StrTotpReeRepRes(const s: string): TtpReeRepRes;
+
+function tpAjusteBCLocImoveisToStr(const t: TtpAjusteBCLocImoveis): string;
+function StrTotpAjusteBCLocImoveis(const s: string): TtpAjusteBCLocImoveis;
+
+function tpAjusteBCToStr(const t: TtpAjusteBC): string;
+function StrTotpAjusteBC(const s: string): TtpAjusteBC;
 
 function indCompGovToStr(const t: TindCompGov): string;
 function StrToindCompGov(const s: string): TindCompGov;
@@ -13168,6 +13199,16 @@ begin
                            [EgConstrucaoCivil, EgOutros]);
 end;
 
+function VersaoNTPadraoNacionalToStr(const t: TVersaoNTPadraoNacional): string;
+begin
+  Result := EnumeradoToStr(t, ['0', '009.1.01'], [ntPNNenhuma, ntPN009v101]);
+end;
+
+function StrToVersaoNTPadraoNacional(out ok: Boolean; const s: string): TVersaoNTPadraoNacional;
+begin
+  Result := StrToEnumerado(ok, Trim(s), ['0', '009.1.01'], [ntPNNenhuma, ntPN009v101]);
+end;
+
 function VersaoNFSeToStr(const t: TVersaoNFSe): string;
 begin
   Result := EnumeradoToStr(t, ['1.00', '1.01', '1.02', '1.03',
@@ -13589,6 +13630,11 @@ begin
   result := StrToEnumerado(ok, s,
                            ['1', '2', '3', '4'],
             [tiOperacaoTributavel, tiImunidade, tiExportacao, tiNaoIncidencia]);
+end;
+
+function tribISSQNToDescricao(const t: TtribISSQN): string;
+begin
+  Result := TtribISSQNArrayDescricaoStrings[t];
 end;
 
 function tpImunidadeToStr(const t: TtpImunidade): string;
@@ -14269,6 +14315,46 @@ begin
     end;
   end;
   raise EACBrException.CreateFmt('Valor string inválido para TtpReeRepRes: %s', [s]);
+end;
+
+function tpAjusteBCLocImoveisToStr(const t: TtpAjusteBCLocImoveis): string;
+begin
+  Result := TtpAjusteBCLocImoveisArrayStrings[t];
+end;
+
+function StrTotpAjusteBCLocImoveis(const s: string): TtpAjusteBCLocImoveis;
+var
+  idx: TtpAjusteBCLocImoveis;
+begin
+  for idx:= Low(TtpAjusteBCLocImoveisArrayStrings) to High(TtpAjusteBCLocImoveisArrayStrings) do
+  begin
+    if (TtpAjusteBCLocImoveisArrayStrings[idx] = s) then
+    begin
+      Result := idx;
+      exit;
+    end;
+  end;
+  raise EACBrException.CreateFmt('Valor string invalido para TtpAjusteBCLocImoveis: %s', [s]);
+end;
+
+function tpAjusteBCToStr(const t: TtpAjusteBC): string;
+begin
+  Result := TtpAjusteBCArrayStrings[t];
+end;
+
+function StrTotpAjusteBC(const s: string): TtpAjusteBC;
+var
+  idx: TtpAjusteBC;
+begin
+  for idx:= Low(TtpAjusteBCArrayStrings) to High(TtpAjusteBCArrayStrings) do
+  begin
+    if (TtpAjusteBCArrayStrings[idx] = s) then
+    begin
+      Result := idx;
+      exit;
+    end;
+  end;
+  raise EACBrException.CreateFmt('Valor string invalido para TtpAjusteBC: %s', [s]);
 end;
 
 function indCompGovToStr(const t: TindCompGov): string;

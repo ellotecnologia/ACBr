@@ -711,6 +711,10 @@ begin
 
    if ((Bloco_P.Gravado) or (Bloco_0.Registro0145Count = 0)) and
       (Bloco_P.RegistroP001.IND_MOV <> imSemDados) then exit ;    { <= Quando sem movimentação }
+
+   if Self.DT_INI >= EncodeDate(2025, 01, 01) then
+     exit ;
+
    /// BLOCO P
    WriteRegistroP001;
    WriteRegistroP990;
@@ -2337,7 +2341,10 @@ end;
 procedure TACBrSPEDPisCofins.WriteRegistroP001;
 begin
    Bloco_P.WriteRegistroP001;
-   //
+   // Se o bloco não foi gerado, não precisamos contabilizar nos registros do bloco 9.
+   if Self.DT_INI >= EncodeDate(2025, 01, 01) then
+     Exit;
+
    with Bloco_9.Registro9900 do
    begin
       with New do
@@ -2406,6 +2413,10 @@ end;
 
 procedure TACBrSPEDPisCofins.WriteRegistroP990;
 begin
+  // Se o bloco não foi gerado, não precisamos contabilizar nos registros do bloco 9.
+  if Self.DT_INI >= EncodeDate(2025, 01, 01) then
+    Exit;
+
   with Bloco_9.Registro9900.New do
   begin
     REG_BLC := 'P990';
@@ -2462,7 +2473,7 @@ begin
                                                                  Bloco_F.RegistroF990.QTD_LIN_F +
                                                                  ifthen(Self.DT_INI >= EncodeDate(2014,01,01), Bloco_I.RegistroI990.QTD_LIN_I,0) +
                                                                  Bloco_M.RegistroM990.QTD_LIN_M +
-                                                                 Bloco_P.RegistroP990.QTD_LIN_P +
+                                                                 ifthen(Self.DT_INI < EncodeDate(2025,01,01), Bloco_P.RegistroP990.QTD_LIN_P, 0) +
                                                                  Bloco_9.Registro9990.QTD_LIN_9;
   Bloco_9.WriteRegistro9999;
 end;

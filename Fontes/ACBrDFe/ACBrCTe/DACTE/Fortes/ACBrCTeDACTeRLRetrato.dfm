@@ -1,25 +1,26 @@
 inherited frmDACTeRLRetrato: TfrmDACTeRLRetrato
   Left = 256
   Top = 88
+  Width = 835
+  Height = 788
   Caption = 'DACTe - Retrato'
-  ClientHeight = 749
-  ClientWidth = 802
   Font.Height = -8
   Font.Name = 'Arial'
   Font.Style = [fsBold]
+  PixelsPerInch = 96
   TextHeight = 10
   inherited RLCTe: TRLReport
     Left = 0
     Top = 0
-    Margins.LeftMargin = 7.000000000000000000
-    Margins.TopMargin = 7.000000000000000000
-    Margins.RightMargin = 7.000000000000000000
-    Margins.BottomMargin = 7.000000000000000000
     Background.Height = 96
     Background.Width = 175
     DataSource = Datasource1
     Font.Height = -8
     Font.Name = 'Courier New'
+    Margins.LeftMargin = 7.000000000000000000
+    Margins.TopMargin = 7.000000000000000000
+    Margins.RightMargin = 7.000000000000000000
+    Margins.BottomMargin = 7.000000000000000000
     PreviewOptions.FormStyle = fsStayOnTop
     PreviewOptions.ShowModal = True
     PreviewOptions.Caption = 'DACT-e '
@@ -639,11 +640,11 @@ inherited frmDACTeRLRetrato: TfrmDACTeRLRetrato
         Top = 123
         Width = 392
         Height = 26
-        Margins.LeftMargin = 1.000000000000000000
-        Margins.RightMargin = 1.000000000000000000
         Alignment = taCenter
         AutoSize = False
         BarcodeType = bcCode128
+        Margins.LeftMargin = 1.000000000000000000
+        Margins.RightMargin = 1.000000000000000000
       end
       object rlsQuadro01: TRLDraw
         Left = 0
@@ -1246,11 +1247,11 @@ inherited frmDACTeRLRetrato: TfrmDACTeRLRetrato
         Top = 62
         Width = 375
         Height = 26
-        Margins.LeftMargin = 1.000000000000000000
-        Margins.RightMargin = 1.000000000000000000
         Alignment = taCenter
         AutoSize = False
         BarcodeType = bcCode128
+        Margins.LeftMargin = 1.000000000000000000
+        Margins.RightMargin = 1.000000000000000000
         Transparent = False
       end
       object rllVariavel2: TRLLabel
@@ -8653,9 +8654,9 @@ inherited frmDACTeRLRetrato: TfrmDACTeRLRetrato
         Top = 31
         Width = 298
         Height = 38
+        BarcodeType = bcCode128C
         Margins.LeftMargin = 1.000000000000000000
         Margins.RightMargin = 1.000000000000000000
-        BarcodeType = bcCode128C
       end
     end
     object rlb_DivisaoRecibo: TRLBand

@@ -44,6 +44,77 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+25/11/2026
+-- ACBrCTe.IniReader/ACBrCTe.IniWriter --
+[*] ACBr-9224: Alteração visando tanto a leitura quanto a escrita de uma lista de
+    NF (Nota Fiscal comum), Outros (outros tipos de documentos) e DCe (Declaração de
+    Conteúdo Eletrônica) com mais de 999, sendo que conforme as regras de validações
+    essas listas podem conter até 2000 itens.
+   Por: Italo Giurizzato Junior
+
+24/11/2026
+-- ACBrCTe --
+[*] ACBr-10277: Conforme consta na NT 2026/004 versão 1.01 a contingência Offline também
+    exige o parâmetro "sign" na URL do QR-Code.
+   Por: Hélio Neto
+-- ACBrCTeDACTeRLRetrato --
+[*] ACBr-9871: Para o CTe Simplificado alterado a distribuição dos componentes de frete,
+    quando tem uma quantidade grande ficam todos na primeira coluna, agora é distribuído
+    nas 3 colunas.
+   Por: CS Time Com
+-- ACBrCTeWebServices --
+[*] ACBr-9807: Movido para dentro do IF a chamada a função GerarPathDistribuicao para
+    não criar as pastas quando o valor da propriedade Arquivos.Salvar for False.
+   Por: Alex Heinen
+
+23/11/2026
+-- ACBrCTeWebServices --
+[-] ACBR-10263 - O XML de um CT-e simplificado estava sendo montado como se fosse um CT-e
+    normal, correção feita na nomenclatura das tags.
+   Por: vinisted
+
+18/11/2026
+-- ACBrCTe.XmlWriter --
+[-] ACBR-10256 - Correção visando gerar corretamente o grupo IBSCBS para o CTe Simplificado
+   Por: vinisted
+-- ACBrCTe.XmlWriter --
+[*] ACBR-10242 - Alteração visando gerar as tags dhCont e xJust para o tpEmis igual a
+    teContingencia.
+   Por: AltC
+
+12/11/2026
+-- ACBrCTe.XmlWriter --
+[*] ACBR-10208 - Alteração visando gerar a tag vTotDFe mesmo com a ausência do grupo
+    IBSCBS. Conforme consta nos Schemas a tag vTotDFe passa a ser opcional.
+   Por: Paulo Alexandre Hostert
+-- ACBrCTe.IniWriter/ACBrCTe.XmlWriter --
+[*] Alterações visando gerar a tag tpRegimeIBSCBS se for CTe Simpl, CTe e CTe OS.
+   Por: Italo Giurizzato Junior
+
+11/11/2026
+-- Diversos --
+[*] Alterações visando atender a NT 2026/004 versão 1.01 e NT 2026/005 versão 1.00
+   Por: Italo Giurizzato Junior
+
+29/10/2026
+-- ACBrCTeWebServices --
+[-] Correção na geração da tag raiz do CTe OS Protocolado.
+   Por: Italo Giurizzato Junior
+-- ACBrCTeDACTeFPDF --
+[*] ACBR-9912 - Configurada impressão do CNPJ e IE do emitente no DACTeFPDF
+   Por: Rodrigo Cardilo
+   Veja: https://www.projetoacbr.com.br/forum/topic/94582-acbr-9912-impress%C3%A3o-do-dacte-no-acbrctedactefpdf-sem-cnpj-e-inscri%C3%A7%C3%A3o-do-emitente/
+
+26/10/2026
+-- Diversos --
+[*] Alterações visando atender a NT 2026/004 versão 1.00
+   Por: Italo Giurizzato Junior
+
+29/09/2026
+-- ACBrCTe.XmlReader.pas --
+[-] Ajuste visando a correta leitura do campo tpALCZFMCBS
+   Por: Daniel de Morais
+
 04/09/2026
 -- ACBrCTeWebServices --
 [-] Substitui chamada de pcnRetConsReciDFe para ACBrDFeComum.RetConsReciDFe

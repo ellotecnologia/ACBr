@@ -2,7 +2,7 @@ object frmACBrNFe: TfrmACBrNFe
   Left = 252
   Top = 127
   Caption = 'ACBrNFe - Programa Exemplo'
-  ClientHeight = 612
+  ClientHeight = 637
   ClientWidth = 866
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -18,7 +18,7 @@ object frmACBrNFe: TfrmACBrNFe
     Left = 0
     Top = 0
     Width = 297
-    Height = 612
+    Height = 637
     Align = alLeft
     TabOrder = 0
     object PageControl1: TPageControl
@@ -1321,7 +1321,8 @@ object frmACBrNFe: TfrmACBrNFe
           Items.Strings = (
             'Retrato'
             'Paisagem'
-            'Simplificado')
+            'Simplificado'
+            'Simplificado Tipo 2')
           TabOrder = 1
         end
         object gbEscPos: TGroupBox
@@ -1629,12 +1630,12 @@ object frmACBrNFe: TfrmACBrNFe
     Left = 297
     Top = 0
     Width = 569
-    Height = 612
+    Height = 637
     Align = alClient
     TabOrder = 1
     object pgcBotoes: TPageControl
       Left = 1
-      Top = 41
+      Top = 97
       Width = 567
       Height = 197
       ActivePage = tsEnvios
@@ -1826,6 +1827,24 @@ object frmACBrNFe: TfrmACBrNFe
           Caption = 'Administrar CSC'
           TabOrder = 5
           OnClick = btnAdministrarCSCClick
+        end
+        object btnNFCeListagemChaves: TButton
+          Left = 191
+          Top = 100
+          Width = 177
+          Height = 25
+          Caption = 'NFCe ListagemChaves'
+          TabOrder = 6
+          OnClick = btnNFCeListagemChavesClick
+        end
+        object btnNFCeDownloadXML: TButton
+          Left = 375
+          Top = 100
+          Width = 177
+          Height = 25
+          Caption = 'NFCe DownloadXML'
+          TabOrder = 7
+          OnClick = btnNFCeDownloadXMLClick
         end
       end
       object tsEventos: TTabSheet
@@ -2229,9 +2248,9 @@ object frmACBrNFe: TfrmACBrNFe
     end
     object pgRespostas: TPageControl
       Left = 1
-      Top = 238
+      Top = 294
       Width = 567
-      Height = 373
+      Height = 342
       ActivePage = Dados
       Align = alClient
       TabOrder = 1
@@ -2241,7 +2260,7 @@ object frmACBrNFe: TfrmACBrNFe
           Left = 0
           Top = 0
           Width = 559
-          Height = 345
+          Height = 314
           Align = alClient
           ScrollBars = ssVertical
           TabOrder = 0
@@ -2254,11 +2273,11 @@ object frmACBrNFe: TfrmACBrNFe
           Left = 0
           Top = 0
           Width = 559
-          Height = 345
+          Height = 314
           Align = alClient
           TabOrder = 0
           ControlData = {
-            4C000000382E0000871C00000000000000000000000000000000000000000000
+            4C000000382E0000F61900000000000000000000000000000000000000000000
             000000004C000000000000000000000001000000E0D057007335CF11AE690800
             2B2E126200000000000000004C0000000114020000000000C000000000000046
             8000000000000000000000000000000000000000000000000000000000000000
@@ -2272,7 +2291,7 @@ object frmACBrNFe: TfrmACBrNFe
           Left = 0
           Top = 0
           Width = 559
-          Height = 345
+          Height = 314
           Align = alClient
           ScrollBars = ssVertical
           TabOrder = 0
@@ -2285,7 +2304,7 @@ object frmACBrNFe: TfrmACBrNFe
           Left = 0
           Top = 0
           Width = 559
-          Height = 345
+          Height = 314
           Align = alClient
           Indent = 19
           TabOrder = 0
@@ -2298,7 +2317,7 @@ object frmACBrNFe: TfrmACBrNFe
           Left = 0
           Top = 0
           Width = 559
-          Height = 345
+          Height = 314
           Align = alClient
           ScrollBars = ssVertical
           TabOrder = 0
@@ -2311,7 +2330,7 @@ object frmACBrNFe: TfrmACBrNFe
           Left = 0
           Top = 0
           Width = 559
-          Height = 345
+          Height = 314
           Align = alClient
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
@@ -2342,12 +2361,36 @@ object frmACBrNFe: TfrmACBrNFe
       Font.Height = -11
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
-      ItemIndex = 1
+      ItemIndex = 0
       Items.Strings = (
         'Sim'
         'N'#227'o')
       ParentFont = False
       TabOrder = 2
+    end
+    object rgNotasTecnicas: TGroupBox
+      Left = 1
+      Top = 41
+      Width = 567
+      Height = 56
+      Align = alTop
+      Caption = 'Alimentar propriedades das Notas T'#233'cnicas'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+      TabOrder = 3
+      object clbNotasTecnicas: TCheckListBox
+        Left = 2
+        Top = 15
+        Width = 563
+        Height = 39
+        Align = alClient
+        Columns = 3
+        TabOrder = 0
+      end
     end
   end
   object ACBrNFe1: TACBrNFe
@@ -2433,6 +2476,7 @@ object frmACBrNFe: TfrmACBrNFe
     Top = 279
   end
   object ACBrNFeDANFeESCPOS1: TACBrNFeDANFeESCPOS
+    Logo = 'C:\Testes\MonoCromatico\logo_monol.bmp'
     Sistema = 'Projeto ACBr - www.projetoacbr.com.br'
     MargemInferior = 0.800000000000000000
     MargemSuperior = 0.800000000000000000
@@ -2460,6 +2504,7 @@ object frmACBrNFe: TfrmACBrNFe
   object ACBrPosPrinter1: TACBrPosPrinter
     Modelo = ppEscPosEpson
     Porta = 'COM9'
+    PaginaDeCodigo = pc1252
     EspacoEntreLinhas = 30
     ConfigBarras.MostrarCodigo = False
     ConfigBarras.LarguraLinha = 0
@@ -2469,6 +2514,7 @@ object frmACBrNFe: TfrmACBrNFe
     ConfigQRCode.LarguraModulo = 4
     ConfigQRCode.ErrorLevel = 0
     LinhasEntreCupons = 5
+    ArqLOG = 'posprinter.txt'
     Left = 425
     Top = 335
   end

@@ -126,6 +126,7 @@ type
   TTotal = class(TObject)
   private
     FvProd: Double;
+    FvProdLiq: Double;
     FvBC: Double;
     FvICMS: Double;
     FvICMSDeson: Double;
@@ -151,6 +152,7 @@ type
     procedure Assign(Source: TTotal);
 
     property vProd: Double       read FvProd       write FvProd;
+    property vProdLiq: Double    read FvProdLiq    write FvProdLiq;
     property vBC: Double         read FvBC         write FvBC;
     property vICMS: Double       read FvICMS       write FvICMS;
     property vICMSDeson: Double  read FvICMSDeson  write FvICMSDeson;
@@ -392,6 +394,7 @@ type
     FvFCPST: Double;
     FvPISEfet: Double;
     FvCOFINSEfet: Double;
+    FgIBSCBS: TgIBSCBSSemProcJud;
 
     procedure SetgProc(const Value: TgProcCollection);
   public
@@ -419,6 +422,7 @@ type
     property vFCPST: Double           read FvFCPST       write FvFCPST;
     property vPISEfet: Double         read FvPISEfet     write FvPISEfet;
     property vCOFINSEfet: Double      read FvCOFINSEfet  write FvCOFINSEfet;
+    property gIBSCBS: TgIBSCBSSemProcJud read FgIBSCBS   write FgIBSCBS;
   end;
 
   { TCOFINS }
@@ -534,6 +538,7 @@ type
     FvICMSEfet: Double;
     FvBCEfet: Double;
     FpRedBCEfet: Double;
+    FvICMSPrevisto: Currency;
   public
     procedure Assign(Source: TICMS);
 
@@ -563,6 +568,7 @@ type
     property vBCEfet: Double read FvBCEfet write FvBCEfet;
     property pICMSEfet: Double read FpICMSEfet write FpICMSEfet;
     property vICMSEfet: Double read FvICMSEfet write FvICMSEfet;
+    property vICMSPrevisto: Currency read FvICMSPrevisto write FvICMSPrevisto;
   end;
 
   { TImposto }
@@ -641,6 +647,8 @@ type
     FqFaturada: Integer;
     FvItem: Double;
     FvProd: Double;
+    FvProdLiq: Double;
+    FvItemLiq: Double;
     FindDevolucao: TIndicador;
     FindPrecoACL: TIndicador;
     FgPagAntecipado: TgPagAntecipadoProd;
@@ -660,6 +668,8 @@ type
     property qFaturada: Integer          read FqFaturada    write FqFaturada;
     property vItem: Double               read FvItem        write FvItem;
     property vProd: Double               read FvProd        write FvProd;
+    property vItemLiq: Double            read FvItemLiq     write FvItemLiq;
+    property vProdLiq: Double            read FvProdLiq     write FvProdLiq;
     property indDevolucao: TIndicador    read FindDevolucao write FindDevolucao;
     property indPrecoACL: TIndicador     read FindPrecoACL  write FindPrecoACL;
     property gPagAntecipado: TgPagAntecipadoProd read FgPagAntecipado write FgPagAntecipado;
@@ -1570,6 +1580,7 @@ end;
 procedure TTotal.Assign(Source: TTotal);
 begin
   vProd       := Source.vProd;
+  vProdLiq    := Source.vProdLiq;
   vBC         := Source.vBC;
   vICMS       := Source.vICMS;
   vICMSDeson  := Source.vICMSDeson;
@@ -1684,6 +1695,7 @@ begin
   vCOFINSEfet := Source.vCOFINSEfet;
 
   gProc.Assign(Source.gProc);
+  gIBSCBS.Assign(Source.gIBSCBS);
 end;
 
 constructor TgProcRef.Create;
@@ -1691,11 +1703,13 @@ begin
   inherited Create;
 
   FgProc := TgProcCollection.Create;
+  FgIBSCBS := TgIBSCBSSemProcJud.Create;
 end;
 
 destructor TgProcRef.Destroy;
 begin
   FgProc.Free;
+  FgIBSCBS.Free;
 
   inherited Destroy;
 end;
@@ -1772,6 +1786,7 @@ begin
   vICMSEfet  := Source.vICMSEfet;
   pICMSSTRet := Source.pICMSSTRet;
   vICMSSubstituto := Source.vICMSSubstituto;
+  vICMSPrevisto := Source.vICMSPrevisto;
 end;
 
 { TImposto }
@@ -1844,6 +1859,8 @@ begin
   qFaturada    := Source.qFaturada;
   vItem        := Source.vItem;
   vProd        := Source.vProd;
+  vItemLiq     := Source.vItemLiq;
+  vProdLiq     := Source.vProdLiq;
   indDevolucao := Source.indDevolucao;
   indPrecoACL  := Source.indPrecoACL;
 

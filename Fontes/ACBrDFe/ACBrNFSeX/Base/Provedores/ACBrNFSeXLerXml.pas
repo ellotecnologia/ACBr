@@ -65,6 +65,7 @@ type
     FpAOwner: IACBrNFSeXProvider;
     FpQuebradeLinha: string;
     FpIniParamsTabCarregado: Boolean;
+    FpVersaoNT: TVersaoNTPadraoNacional;
 
     procedure Configuracao; virtual;
 
@@ -133,12 +134,18 @@ type
     procedure LerXMLTotgCBS(const ANode: TACBrXmlNode; gCBS: TgCBS);
     procedure LerXMLgCBSCredPres(const ANode: TACBrXmlNode; gCBSCredPres: TgCBSCredPres);
 
+    procedure LerXMLpgtoVinc(const ANode: TACBrXmlNode; gpgtoVinc: TgPgtoVinc);
+    procedure LerXMLpgto(const ANode: TACBrXmlNode; pgto: TpgtoCollection);
+
     //====== Ler o Arquivo INI===========================================
     // Reforma Tributária DPS
     procedure LerINIIBSCBS(AINIRec: TMemIniFile; IBSCBS: TIBSCBSDPS); virtual;
     procedure LerINIgRefNFSe(AINIRec: TMemIniFile; gRefNFSe: TgRefNFSeCollection);
     procedure LerINIDestinatario(AINIRec: TMemIniFile; Dest: TDadosdaPessoa);
     procedure LerINIImovel(AINIRec: TMemIniFile; Imovel: TDadosimovel);
+    procedure LerINIgLocacao(AINIRec: TMemIniFile; gLocacao: TgLocacao);
+    procedure LerINIgUnidImob(AINIRec: TMemIniFile; gUnidImob: TgUnidImobCollection);
+    procedure LerINIbensMoveis(AINIRec: TMemIniFile; bensMoveis: TbensMoveisCollection);
     procedure LerINIIBSCBSValores(AINIRec: TMemIniFile; Valores: Tvalorestrib); virtual;
     procedure LerINIDocumentos(AINIRec: TMemIniFile; Documentos: TdocumentosCollection);
     procedure LerINITributacao(AINIRec: TMemIniFile; Tributacao: Ttrib);
@@ -178,6 +185,7 @@ implementation
 uses
   synautil,
   StrUtils, StrUtilsEx,
+  ACBrNFSeX,
   ACBrJSON,
 //  ACBrNFSeX.LerIni,
   ACBrUtil.Strings,
@@ -375,6 +383,9 @@ begin
      (Pos('{', LDiscriminacao) > 0) and (Pos('}', LDiscriminacao) > 0) then
   begin
     FpAOwner.ConfigGeral.DetalharServico := True;
+    // Limpa a lista para evitar duplicidade ao fazer a leitura do XML com o
+    // componente já carregado.
+    NFSe.Servico.ItemServico.Clear;
 
     if Pos('":', LDiscriminacao) > 0 then
       LerListaJson(LDiscriminacao)
@@ -759,9 +770,15 @@ function TNFSeRClass.LerIni: Boolean;
 var
   INIRec: TMemIniFile;
   TipoXML: string;
+  Ok: Boolean;
 //  RIni: TNFSeIniReader;
 begin
   // Usar o FpAOwner em vez de  FProvider
+  if FpAOwner.ConfigGeral.Ambiente = taProducao then
+    FpVersaoNT := StrToVersaoNTPadraoNacional(Ok, FpAOwner.ConfigWebServices.Producao.VersaoNT)
+  else
+    FpVersaoNT := StrToVersaoNTPadraoNacional(Ok, FpAOwner.ConfigWebServices.Homologacao.VersaoNT);
+
   {
   RIni := TNFSeIniReader.Create(NFSe, FpAOwner);
 
@@ -923,6 +940,10 @@ begin
       DeducaoMateriais := FpAOwner.StrToSimNao(Ok, AINIRec.ReadString(sSecao, 'DeducaoMateriais', ''));
       // Provedor SigISSWeb
       NFSe.verAplic := AINIRec.ReadString(sSecao, 'verAplic', 'ACBrNFSeX-1.00');
+      NFSe.chNFSeRej := AINIRec.ReadString(sSecao, 'chNFSeRej', '');
+
+      if FpVersaoNT = ntPN009v101 then
+        NFSe.IBSCBS.finNFSe := StrTofinNFSe(AINIRec.ReadString(sSecao, 'finNFSe', '0'));
     end;
 
     sSecao := 'RpsSubstituido';
@@ -1510,6 +1531,8 @@ begin
 
       //Padrão Nacional
       Servico.Valores.ValorRecebido := StringToFloatDef(AINIRec.ReadString(sSecao, 'ValorRecebido', ''), 0);
+      Servico.Valores.pAjusteBCISSQN := StringToFloatDef(AINIRec.ReadString(sSecao, 'pAjusteBCISSQN', ''), 0);
+      Servico.Valores.vAjusteBCISSQN := StringToFloatDef(AINIRec.ReadString(sSecao, 'vAjusteBCISSQN', ''), 0);
 
       // Provedor Infisc
       Servico.Valores.totalAproxTrib := StringToFloatDef(AINIRec.ReadString(sSecao, 'totalAproxTrib', ''), 0);
@@ -1659,9 +1682,12 @@ var
 begin
   if not Assigned(ANode) then Exit;
 
-  aValor := ObterConteudo(ANode.Childrens.FindAnyNs('finNFSe'), tcStr);
-  if aValor <> '' then
-    IBSCBS.finNFSe := StrTofinNFSe(aValor);
+  if FpVersaoNT = ntPNNenhuma then
+  begin
+    aValor := ObterConteudo(ANode.Childrens.FindAnyNs('finNFSe'), tcStr);
+    if aValor <> '' then
+      IBSCBS.finNFSe := StrTofinNFSe(aValor);
+  end;
 
   IBSCBS.indFinal := StrToindFinal(ObterConteudo(ANode.Childrens.FindAnyNs('indFinal'), tcStr));
   IBSCBS.cIndOp := ObterConteudo(ANode.Childrens.FindAnyNs('cIndOp'), tcStr);
@@ -1950,6 +1976,12 @@ begin
 
   valores.vBC := ObterConteudo(ANode.Childrens.FindAnyNs('vBC'), tcDe2);
   valores.vCalcReeRepRes := ObterConteudo(ANode.Childrens.FindAnyNs('vCalcReeRepRes'), tcDe2);
+  // PadraoNacional - NT 009
+  valores.vCalcAjusteBCIBSCBS := ObterConteudo(ANode.Childrens.FindAnyNs('vCalcAjusteBCIBSCBS'), tcDe2);
+  valores.vCalcAjusteBCLocImoveis := ObterConteudo(ANode.Childrens.FindAnyNs('vCalcAjusteBCLocImoveis'), tcDe2);
+
+  if valores.vCalcReeRepRes = 0 then
+    valores.vCalcReeRepRes := valores.vCalcAjusteBCIBSCBS;
 
   LerXMLUF(ANode.Childrens.FindAnyNs('uf'), valores.uf);
   LerXMLMun(ANode.Childrens.FindAnyNs('mun'), valores.mun);
@@ -2081,6 +2113,39 @@ begin
   gCBSCredPres.vCredPresCBS := ObterConteudo(ANode.Childrens.FindAnyNs('vCredPresCBS'), tcDe2);
 end;
 
+procedure TNFSeRClass.LerXMLpgtoVinc(const ANode: TACBrXmlNode;
+  gpgtoVinc: TgPgtoVinc);
+var
+  i: Integer;
+  ANodes: TACBrXmlNodeArray;
+begin
+  if not Assigned(ANode) then Exit;
+
+  ANodes := ANode.Childrens.FindAll('pgto');
+
+  for i := 0 to Length(ANodes) - 1 do
+  begin
+    LerXMLpgto(ANodes[i], gpgtoVinc.pgto);
+  end;
+end;
+
+procedure TNFSeRClass.LerXMLpgto(const ANode: TACBrXmlNode;
+  pgto: TpgtoCollection);
+var
+  Item: TpgtoCollectionItem;
+begin
+  if not Assigned(ANode) then Exit;
+
+  Item := pgto.New;
+
+  Item.nPag := StrToInt(ObterConteudoTag(ANode.Attributes.Items['nPag']));
+  Item.idTransacao := ObterConteudoTag(ANode.Attributes.Items['idTransacao']);
+
+  Item.tpMeioPgto := ObterConteudo(ANode.Childrens.Find('tpMeioPgto'), tcStr);
+  Item.CNPJReceb := ObterConteudo(ANode.Childrens.Find('CNPJReceb'), tcStr);
+  Item.CNPJBasePSP := ObterConteudo(ANode.Childrens.Find('CNPJBasePSP'), tcStr);
+end;
+
 // Reforma Tributária
 procedure TNFSeRClass.LerINIIBSCBS(AINIRec: TMemIniFile;
   IBSCBS: TIBSCBSDPS);
@@ -2090,7 +2155,9 @@ begin
   sSecao := 'IBSCBSDPS';
   if AINIRec.SectionExists(sSecao) then
   begin
-    IBSCBS.finNFSe := StrTofinNFSe(AINIRec.ReadString(sSecao, 'finNFSe', '0'));
+    if FpVersaoNT = ntPNNenhuma then
+      IBSCBS.finNFSe := StrTofinNFSe(AINIRec.ReadString(sSecao, 'finNFSe', '0'));
+
     IBSCBS.indFinal := StrToindFinal(AINIRec.ReadString(sSecao, 'indFinal', '1'));
     IBSCBS.cIndOp := AINIRec.ReadString(sSecao, 'cIndOp', '');
     IBSCBS.tpOper := StrTotpOperGovNFSe(AINIRec.ReadString(sSecao, 'tpOper', ''));
@@ -2112,6 +2179,7 @@ begin
     LerINIgRefNFSe(AINIRec, IBSCBS.gRefNFSe);
     LerINIDestinatario(AINIRec, IBSCBS.dest);
     LerINIImovel(AINIRec, IBSCBS.imovel);
+    LerINIbensMoveis(AINIRec, IBSCBS.bensMoveis);
     LerINIIBSCBSValores(AINIRec, IBSCBS.valores);
   end;
 end;
@@ -2194,6 +2262,92 @@ begin
     Imovel.ender.endExt.xCidade := AINIRec.ReadString(sSecao, 'xCidade', '');
     Imovel.ender.endExt.xEstProvReg := AINIRec.ReadString(sSecao, 'xEstProvReg', '');
     Imovel.ender.endExt.cPais := AINIRec.ReadInteger(sSecao, 'cPais', 0);
+
+    // PadraoNacional - NT 009
+    Imovel.cMun := AINIRec.ReadInteger(sSecao, 'cMun', 0);
+
+    LerINIgLocacao(AINIRec, Imovel.gLocacao);
+    LerINIgUnidImob(AINIRec, Imovel.gUnidImob);
+  end;
+end;
+
+procedure TNFSeRClass.LerINIgLocacao(AINIRec: TMemIniFile;
+  gLocacao: TgLocacao);
+var
+  sSecao: string;
+begin
+  sSecao := 'gLocacao';
+  if AINIRec.SectionExists(sSecao) then
+  begin
+    gLocacao.pCopropriedade := StringToFloatDef(AINIRec.ReadString(sSecao, 'pCopropriedade', ''), 0);
+    gLocacao.vTotOper := StringToFloatDef(AINIRec.ReadString(sSecao, 'vTotOper', ''), 0);
+    gLocacao.vDescIncondTot := StringToFloatDef(AINIRec.ReadString(sSecao, 'vDescIncondTot', ''), 0);
+    gLocacao.vDescCondTot := StringToFloatDef(AINIRec.ReadString(sSecao, 'vDescCondTot', ''), 0);
+    gLocacao.dVencOrig := AINIRec.ReadDate(sSecao, 'dVencOrig', 0);
+  end;
+end;
+
+procedure TNFSeRClass.LerINIgUnidImob(AINIRec: TMemIniFile;
+  gUnidImob: TgUnidImobCollection);
+var
+  i, j: Integer;
+  sSecao: string;
+begin
+  i := 1;
+  while AINIRec.SectionExists('gUnidImob' + IntToStrZero(i, 2)) do
+  begin
+    sSecao := 'gUnidImob' + IntToStrZero(i, 2);
+
+    with gUnidImob.New do
+    begin
+      inscImobFisc := AINIRec.ReadString(sSecao, 'inscImobFisc', '');
+      cCIB := AINIRec.ReadString(sSecao, 'cCIB', '');
+
+      ender.CEP := AINIRec.ReadString(sSecao, 'CEP', '');
+      ender.xLgr := AINIRec.ReadString(sSecao, 'Logradouro', '');
+      ender.nro := AINIRec.ReadString(sSecao, 'Numero', '');
+      ender.xCpl := AINIRec.ReadString(sSecao, 'Complemento', '');
+      ender.xBairro := AINIRec.ReadString(sSecao, 'Bairro', '');
+
+      j := 1;
+      while AINIRec.SectionExists('gAjusteBCLocImoveis' + IntToStrZero(i, 2) + IntToStrZero(j, 3)) do
+      begin
+        sSecao := 'gAjusteBCLocImoveis' + IntToStrZero(i, 2) + IntToStrZero(j, 3);
+
+        with gAjusteBCLocImoveis.New do
+        begin
+          tpAjusteBCLocImoveis := StrTotpAjusteBCLocImoveis(AINIRec.ReadString(sSecao, 'tpAjusteBCLocImoveis', ''));
+          xTpAjusteBCLocImoveis := AINIRec.ReadString(sSecao, 'xTpAjusteBCLocImoveis', '');
+          vAjusteBCLocImoveis := StringToFloatDef(AINIRec.ReadString(sSecao, 'vAjusteBCLocImoveis', ''), 0);
+        end;
+
+        inc(j);
+      end;
+    end;
+
+    inc(i);
+  end;
+end;
+
+procedure TNFSeRClass.LerINIbensMoveis(AINIRec: TMemIniFile;
+  bensMoveis: TbensMoveisCollection);
+var
+  i: Integer;
+  sSecao: string;
+begin
+  i := 1;
+  while AINIRec.SectionExists('bensMoveis' + IntToStrZero(i, 3)) do
+  begin
+    sSecao := 'bensMoveis' + IntToStrZero(i, 3);
+
+    with bensMoveis.New do
+    begin
+      cNCMBemMovel := AINIRec.ReadString(sSecao, 'cNCMBemMovel', '');
+      xNCMBemMovel := AINIRec.ReadString(sSecao, 'xNCMBemMovel', '');
+      qtdNCMBemMovel := AINIRec.ReadInteger(sSecao, 'qtdNCMBemMovel', 0);
+    end;
+
+    inc(i);
   end;
 end;
 
@@ -2332,6 +2486,9 @@ begin
   begin
     Valores.vBC := StringToFloatDef(AINIRec.ReadString(sSecao, 'vBC', ''), 0);
     Valores.vCalcReeRepRes := StringToFloatDef(AINIRec.ReadString(sSecao, 'vCalcReeRepRes', ''), 0);
+    // PadraoNacional - NT 009
+    Valores.vCalcAjusteBCIBSCBS := StringToFloatDef(AINIRec.ReadString(sSecao, 'vCalcAjusteBCIBSCBS', ''), 0);
+    Valores.vCalcAjusteBCLocImoveis := StringToFloatDef(AINIRec.ReadString(sSecao, 'vCalcAjusteBCLocImoveis', ''), 0);
 
     Valores.uf.pIBSUF := StringToFloatDef(AINIRec.ReadString(sSecao, 'pIBSUF', ''), 0);
     Valores.uf.pRedAliqUF := StringToFloatDef(AINIRec.ReadString(sSecao, 'pRedAliqUF', ''), 0);

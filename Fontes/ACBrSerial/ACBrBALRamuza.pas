@@ -59,6 +59,7 @@ type
     procedure LeSerial( MillisecTimeOut : Integer = 500) ; override;
     function InterpretarRepostaPeso(const aResposta: AnsiString): Double; override;
     function EnviarPrecoKg(const aValor: Currency; aMillisecTimeOut: Integer = 3000): Boolean; override;
+    procedure SolicitarPeso; override;
   end;
 
 implementation
@@ -170,8 +171,10 @@ function TACBrBALRamuza.InterpretarRepostaPeso(const aResposta: AnsiString): Dou
 var
   wPosIni: Integer;
   wResposta: AnsiString;
+  wSeparator: Char;
 begin
   Result  := 0;
+  wSeparator:={$IFDEF HAS_FORMATSETTINGS} FormatSettings.{$ENDIF}DecimalSeparator;
 
   if (aResposta = EmptyStr) then Exit;
 
@@ -189,12 +192,12 @@ begin
   if  (wResposta = EmptyStr) then Exit;
 
   { Ajustando o separador de Decimal corretamente }
-  wResposta := StringReplace(wResposta, '.', DecimalSeparator, [rfReplaceAll]);
-  wResposta := StringReplace(wResposta, ',', DecimalSeparator, [rfReplaceAll]);
+  wResposta := StringReplace(wResposta, '.', wSeparator, [rfReplaceAll]);
+  wResposta := StringReplace(wResposta, ',', wSeparator, [rfReplaceAll]);
 
   try
     { Já existe ponto decimal ? }
-    if (Pos(DecimalSeparator, wResposta) > 0) then
+    if (Pos(wSeparator, wResposta) > 0) then
       Result := StrToFloat(wResposta)
     else
       Result := (StrToInt(wResposta) / fpDecimais);
@@ -226,6 +229,20 @@ begin
   Sleep(200);
 
   Result := (fpDevice.LeString(aMillisecTimeOut) = ACK);
+end;
+
+procedure TACBrBALRamuza.SolicitarPeso;
+var
+  lComandoLePeso: string;
+begin
+  lComandoLePeso:= #05 + ansichar($5A) +ansichar($5B) +ansichar($06);
+
+  fpDevice.Limpar;
+  ZerarDispositivo;
+  Sleep(100);
+  fpDevice.EnviaString(lComandoLePeso);
+  GravarLog(' - ' + FormatDateTime('hh:nn:ss:zzz', Now) + ' TX -> ' + lComandoLePeso);
+  Sleep(200);
 end;
 
 end.

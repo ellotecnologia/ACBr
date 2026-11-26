@@ -443,6 +443,24 @@ public
   procedure Executar; override;
 end;
 
+{ TMetodoObterListaChaves}
+TMetodoObterListaChaves = class(TACBrMetodo)
+public
+  procedure Executar; override;
+end;
+
+{ TMetodoObterDownloadXml}
+TMetodoObterDownloadXml = class(TACBrMetodo)
+public
+  procedure Executar; override;
+end;
+
+{ TMetodoSetLeiauteDANFE}
+TMetodoSetLeiauteDANFE = class(TACBrMetodo)
+public
+  procedure Executar; override;
+end;
+
 implementation
 
 uses
@@ -519,6 +537,9 @@ begin
   ListaDeMetodos.Add(CMetodoDataVencimentoCertificado);
   ListaDeMetodos.Add(CMetodoSetTipoImpressao);
   ListaDeMetodos.Add(CMetodoSetRespTecnico);
+  ListaDeMetodos.Add(CMetodoObterListaChaves);
+  ListaDeMetodos.Add(CMetodoObterDownloadXml);
+  ListaDeMetodos.Add(CMetodoSetLeiauteDANFE);
 
   // DoACBrUnit
   ListaDeMetodos.Add(CMetodoSavetofile);
@@ -611,6 +632,9 @@ begin
     56 : AMetodoClass := TMetodoCertificadoDataVencimento; // DataVencimentoCertificado
     57 : AMetodoClass := TMetodoSetTipoImpressao;
     58 : AMetodoClass := TMetodoSetRespTecnico;
+    59 : AMetodoClass := TMetodoObterListaChaves;
+    60 : AMetodoClass := TMetodoObterDownloadXml;
+    61 : AMetodoClass := TMetodoSetLeiauteDANFE;
 
     else
       begin
@@ -816,12 +840,9 @@ function TACBrObjetoNFe.GerarNFeIni(XML: string): string;
 begin
   fACBrNFe.NotasFiscais.Clear;
   if FilesExists(XML) then
-    fACBrNFe.NotasFiscais.LoadFromFile(XML)
+    fACBrNFe.NotasFiscais.LoadFromFile(XML, True)
   else
-  begin
-    fACBrNFe.NotasFiscais.LoadFromString(ConvertStrRecived(XML));
-    fACBrNFe.NotasFiscais.GerarNFe;
-  end;
+    fACBrNFe.NotasFiscais.LoadFromString(ConvertStrRecived(XML), True);
 
   Result := fACBrNFe.NotasFiscais.GerarIni();
   WriteToTxt('NFe.ini', Result);
@@ -1617,7 +1638,7 @@ var
   CargaDFe: TACBrCarregarNFe;
   MarcaDagua: String;
   Consumidor: Boolean;
-  Simplificado: Boolean;
+  Simplificado, lSimplificadoTipo2: Boolean;
 begin
   AXML := fpCmd.Params(0);
   AProtocolo := fpCmd.Params(1);
@@ -1632,7 +1653,9 @@ begin
     try
       DoConfiguraDANFe(True, '');
 
-      if (ACBrNFe.NotasFiscais.Items[0].NFe.Ide.modelo = CModeloNFe55) then
+      lSimplificadoTipo2 := ACBrNFe.NotasFiscais.Items[0].NFe.Ide.tpImp = tiSimplificadoTipo2;
+      if (ACBrNFe.NotasFiscais.Items[0].NFe.Ide.modelo = CModeloNFe55) and
+         (not(lSimplificadoTipo2)) then
       begin
         if NaoEstaVazio(MarcaDagua) then
           TACBrNFeDANFeRL(ACBrNFe.DANFE).MarcadAgua:= MarcaDagua
@@ -1642,13 +1665,15 @@ begin
 
       ACBrNFe.DANFe.Protocolo :=  trim( AProtocolo );
 
-      if ACBrNFe.NotasFiscais.Items[0].NFe.Ide.modelo = CModeloNFe65 then
-      begin
+      if (ACBrNFe.NotasFiscais.Items[0].NFe.Ide.modelo = CModeloNFe65) or
+         (lSimplificadoTipo2) then
         TACBrNFeDANFCEClass(ACBrNFe.DANFE).ViaConsumidor := Consumidor;
-      end;
 
       if Simplificado and (ACBrNFe.DANFE is TACBrNFeDANFEClass)  then
         TACBrNFeDANFEClass(ACBrNFe.DANFE).TipoDANFE := tiSimplificado;
+
+      if ((ACBrNFe.DANFE is TACBrNFeDANFCEClass) and (lSimplificadoTipo2)) then
+        TACBrNFeDANFEClass(ACBrNFe.DANFE).TipoDANFE := tiSimplificadoTipo2;
 
       try
         ACBrNFe.NotasFiscais.ImprimirPDF;
@@ -2184,7 +2209,7 @@ var
   APreview: String;
   AMarcaDagua: String;
   AConsumidor: Boolean;
-  ASimplificado: Boolean;
+  ASimplificado, lSimplificadoTipo2: Boolean;
 begin
   AChave := fpCmd.Params(0);
   AImpressora := fpCmd.Params(1);
@@ -2210,7 +2235,10 @@ begin
 
       ACBrNFe.DANFe.Protocolo := trim( AProtocolo );
 
-      if (ACBrNFe.NotasFiscais.Items[0].NFe.Ide.modelo = 55) then
+      lSimplificadoTipo2 := ACBrNFe.NotasFiscais.Items[0].NFe.Ide.tpImp = tiSimplificadoTipo2;
+
+      if (ACBrNFe.NotasFiscais.Items[0].NFe.Ide.modelo = CModeloNFe55) and
+         (not(lSimplificadoTipo2)) then
       begin
         if NaoEstaVazio(AMarcaDagua) then
           TACBrNFeDANFeRL(ACBrNFe.DANFE).MarcadAgua:= AMarcaDagua
@@ -2218,13 +2246,15 @@ begin
           TACBrNFeDANFeRL(ACBrNFe.DANFE).MarcadAgua:= '';
       end;
 
-      if ACBrNFe.NotasFiscais.Items[0].NFe.Ide.modelo = 65 then
-      begin
+      if (ACBrNFe.NotasFiscais.Items[0].NFe.Ide.modelo = CModeloNFe65) or
+         (lSimplificadoTipo2) then
         TACBrNFeDANFCEClass(ACBrNFe.DANFE).ViaConsumidor := AConsumidor;
-      end;
 
       if ASimplificado and (ACBrNFe.DANFE is TACBrNFeDANFEClass) then
           TACBrNFeDANFEClass(ACBrNFe.DANFE).TipoDANFE := tiSimplificado;
+
+      if ((ACBrNFe.DANFE is TACBrNFeDANFCEClass) and (lSimplificadoTipo2)) then
+        TACBrNFeDANFEClass(ACBrNFe.DANFE).TipoDANFE := tiSimplificadoTipo2;
 
       try
         DoAntesDeImprimir(( StrToBoolDef( APreview, False) ) or (MonitorConfig.DFE.Impressao.DANFE.MostrarPreview ));
@@ -3558,6 +3588,94 @@ begin
       CSRT := fpCmd.Params(1);
     end;
 
+    MonitorConfig.SalvarArquivo;
+  end;
+end;
+
+{ TMetodoObterListaChaves }
+
+{ Params: 0 - Data/Hora inicial (ex.: 20/10/2026 08:00)
+          1 - Data/Hora final (opcional; se vazia, consulta ate a data/hora atual)
+  Servico SAE NFC-e da SEFAZ-SP (NFCeListagemChaves)
+}
+procedure TMetodoObterListaChaves.Executar;
+var
+  LIni, LFim: String;
+  LDataIni, LDataFim: TDateTime;
+  LResp: TObterListaChavesResposta;
+begin
+  LIni := Trim(fpCmd.Params(0));
+  LFim := Trim(fpCmd.Params(1));
+
+  if not TryStrToDateTime(LIni, LDataIni) then
+    raise Exception.Create('Data/Hora inicial ' + LIni + ' inválida.');
+
+  LDataFim := 0;
+  if LFim <> '' then
+    if not TryStrToDateTime(LFim, LDataFim) then
+      raise Exception.Create('Data/Hora final ' + LFim + ' inválida.');
+
+  with TACBrObjetoNFe(fpObjetoDono) do
+  begin
+    DoValidarIntegradorNFCe();
+    ACBrNFe.ObterListaChaves(LDataIni, LDataFim);
+    LResp := TObterListaChavesResposta.Create(TpResp, codUTF8);
+    try
+      LResp.Processar(ACBrNFe.WebServices.ObterDFe.retObterDFe,
+                     ACBrNFe.WebServices.ObterDFe.Msg);
+      fpCmd.Resposta := sLineBreak + LResp.Gerar;
+    finally
+      LResp.Free;
+    end;
+  end;
+end;
+
+{ TMetodoObterDownloadXml }
+
+{ Params: 0 - Chave da NFC-e que se deseja baixar (XML completo e eventos)
+  Servico SAE NFC-e da SEFAZ-SP (NFCeDownloadXML)
+}
+procedure TMetodoObterDownloadXml.Executar;
+var
+  LChave: String;
+  LResp: TObterDownloadXmlResposta;
+begin
+  LChave := Trim(fpCmd.Params(0));
+
+  if not ValidarChave(LChave) then
+    raise Exception.Create('Chave ' + LChave + ' inválida.');
+
+  with TACBrObjetoNFe(fpObjetoDono) do
+  begin
+    DoValidarIntegradorNFCe();
+    ACBrNFe.ObterDownloadXml(LChave);
+    LResp := TObterDownloadXmlResposta.Create(TpResp, codUTF8);
+    try
+      LResp.Processar(ACBrNFe.WebServices.ObterDFe.retObterDFe,
+                     ACBrNFe.WebServices.ObterDFe.Msg);
+      fpCmd.Resposta := sLineBreak + LResp.Gerar;
+    finally
+      LResp.Free;
+    end;
+  end;
+end;
+
+{ TMetodoSetLeiauteDANFE }
+
+{ Params: 0 - Leiaute: informar 0-Padrao 1-Reforma Tributaria (RTC)
+}
+procedure TMetodoSetLeiauteDANFE.Executar;
+var
+  Leiaute: Integer;
+begin
+  Leiaute := StrToIntDef(fpCmd.Params(0), -1);
+  if not (Leiaute in [0, 1]) then
+    raise Exception.Create(sLineBreak + SErroLeiauteDANFEInvalido);
+
+  with TACBrObjetoNFe(fpObjetoDono) do
+  begin
+    with MonitorConfig.DFE.Impressao.DANFE do
+      LeiauteDANFE := Leiaute;
     MonitorConfig.SalvarArquivo;
   end;
 end;

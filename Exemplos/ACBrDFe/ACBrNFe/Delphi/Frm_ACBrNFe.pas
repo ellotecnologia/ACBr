@@ -67,8 +67,13 @@ uses
   ACBrDANFCeFortesFrA4,
   Frm_Status,
   Frm_SelecionarCertificado,
-  Frm_ConfiguraSerial;
+  Frm_ConfiguraSerial, CheckLst;
 
+type
+  TNotasTecnicas = (nt2026005, nt2026006, nt2026007, nt2026008);
+  TNotasTecnicasSelecionadas = set of TNotasTecnicas;
+const
+  TNotasTecnicasArrayString: array [TNotasTecnicas] of string = ('NT 2026.005', 'NT 2026.006', 'NT 2026.007', 'NT 2026.008');
 type
   TfrmACBrNFe = class(TForm)
     pnlMenus: TPanel;
@@ -346,6 +351,10 @@ type
     tsDestinatario: TTabSheet;
     Sucessora: TTabSheet;
     btnSolicApropriacaoCredPres: TButton;
+    btnNFCeListagemChaves: TButton;
+    btnNFCeDownloadXML: TButton;
+    rgNotasTecnicas: TGroupBox;
+    clbNotasTecnicas: TCheckListBox;
 
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -435,6 +444,8 @@ type
     procedure btnImobilizacaoItemClick(Sender: TObject);
     procedure btnSolicitacaoApropCredCombustivelClick(Sender: TObject);
     procedure btnSolicitacaoAproCredBensServAdiqClick(Sender: TObject);
+    procedure btnNFCeListagemChavesClick(Sender: TObject);
+    procedure btnNFCeDownloadXMLClick(Sender: TObject);
   private
     FfrmStatus : tfrmstatus;
     procedure GravarConfiguracao;
@@ -448,6 +459,12 @@ type
     procedure AtualizarSSLLibsCombo;
     procedure PrepararImpressao;
 
+    function NotasTecnicasSelecionadas: TNotasTecnicasSelecionadas;
+
+    // Paginacao automatica da lista de chaves (SAE NFC-e): repete a consulta a
+    // partir de dhEmisUltNfce enquanto cStat = 101 (lista incompleta)
+    function ObterListaChavesCompleta(ADataHoraInicial, ADataHoraFinal: TDateTime;
+      AChaves: TStrings; AIntervaloMs: Integer = 1000): Boolean;
   public
     { Public declarations }
   end;
@@ -476,7 +493,9 @@ uses
   ACBrNFe.Classes,
   ACBrNFe.EnvEvento,
   ACBrNFe.EventoClass,
+  ACBrNFe.RetObterDFe,
   ACBrDFe.Conversao,
+  ACBrDFe.RTC.Classes,
   pcnConversao,
   pcnConversaoNFe,
   ACBrDFeConfiguracoes,
@@ -642,7 +661,9 @@ var
   Ok: Boolean;
   BaseCalculo,
   ValorICMS: Double;
+  NTsSelecionadas: TNotasTecnicasSelecionadas;
 begin
+  NTsSelecionadas := NotasTecnicasSelecionadas;
   with ACBrNFe1.NotasFiscais.Add.NFe do
   begin
     Ide.natOp     := 'VENDA';
@@ -723,8 +744,12 @@ begin
         refDFEChave := '12345678901234567890123456789012345678904567';
     end;
 
+    if nt2026005 in NTsSelecionadas then
+      Emit.tpRegimeIBSCBS := trSNRegimeRegular;
+
     Emit.CNPJCPF           := edtEmitCNPJ.Text;
-    Emit.IE                := edtEmitIE.Text;
+    if not(nt2026007 in NTsSelecionadas) then
+      Emit.IE                := edtEmitIE.Text;
     Emit.xNome             := edtEmitRazao.Text;
     Emit.xFant             := edtEmitFantasia.Text;
 
@@ -802,6 +827,9 @@ begin
       Prod.xProd    := 'Descrição do Produto';
       Prod.NCM      := '94051010'; // Tabela NCM disponível em  http://www.receita.fazenda.gov.br/Aliquotas/DownloadArqTIPI.htm
 
+      if nt2026005 in NTsSelecionadas then
+        Prod.cAtivSN := caVendaMercadorias;
+
       // Reforma Tributária
       if rgReformaTributaria.ItemIndex = 0 then
         Prod.tpCredPresIBSZFM := tcpSemCredito;
@@ -812,6 +840,11 @@ begin
       Prod.qCom     := 1;
       Prod.vUnCom   := 100;
       Prod.vProd    := 100;
+      if nt2026008 in NTsSelecionadas then
+      begin
+        Prod.vUnComLiq := 100;
+        Prod.vProdLiq := 100;
+      end;
 
       Prod.cEANTrib  := '7896523206646';
       Prod.uTrib     := 'UN';
@@ -913,8 +946,12 @@ begin
           // Pode variar de um produto para outro.
 
           if Emit.CRT in [crtSimplesExcessoReceita, crtRegimeNormal] then
-            CST := cst00
-          else
+          begin
+            if nt2026008 in NTsSelecionadas then
+              CST := cstICMSPrevisto
+            else
+              CST := cst00;
+          end else
             CSOSN := csosn102;
 
           orig    := oeNacional;
@@ -930,6 +967,7 @@ begin
 
           ValorICMS := vBC * pICMS;
 
+          vICMSPrevisto := ValorICMS;
           vICMS   := ValorICMS;
           modBCST := dbisMargemValorAgregado;
           pMVAST  := 0;
@@ -1254,6 +1292,15 @@ begin
           // Alíquota efetiva de ref. da CBS
           IBSCBS.gIBSCBS.gCBS.gALCZFMCBS.pAliqEfetRegCBS := 1; // Percentual efetivo sem redução
           IBSCBS.gIBSCBS.gCBS.gALCZFMCBS.vTribRegCBS     := 1; // Valor efetivo sem redução
+
+          if nt2026005 in NTsSelecionadas then
+          begin
+            IBSCBS.gTribSN.gIBSSN.pIBSSN := 10;
+            IBSCBS.gTribSN.gIBSSN.vIBSSN := 10;
+
+            IBSCBS.gTribSN.gCBSSN.pCBSSN := 10;
+            IBSCBS.gTribSN.gCBSSN.vCBSSN := 10;
+          end;
         end;
       end;
     end;
@@ -1323,13 +1370,20 @@ begin
       Total.IBSCBSTot.gMono.vCBSMonoReten := 100;
       Total.IBSCBSTot.gMono.vIBSMonoRet := 100;
       Total.IBSCBSTot.gMono.vCBSMonoRet := 100;
-
       Total.IBSCBSTot.gEstornoCred.vIBSEstCred := 100;
       Total.IBSCBSTot.gEstornoCred.vCBSEstCred := 100;
+
+      if nt2026005 in NTsSelecionadas then
+      begin
+        Total.IBSCBSTot.gTribSN.vIBSSN := 10;
+        Total.IBSCBSTot.gTribSN.vCBSSN := 10;
+      end;
 
       // Valor total da NF-e com IBS / CBS / IS
       Total.vNFTot := 100;
     end;
+    if nt2026008 in NTsSelecionadas then
+      Total.vProdLiqTot := 100;
 
     Transp.modFrete := mfSemFrete; // NFC-e não pode ter FRETE
 
@@ -1344,6 +1398,18 @@ begin
       xPag := 'Caderneta';
       }
       vPag := 100;
+    end;
+
+    if nt2026006 in NTsSelecionadas then
+    begin
+      with pgtoVinc.pgto.New do
+      begin
+        tpMeioPgto := '17';
+        CNPJReceb := '05481336000137';
+        CNPJBasePSP := '05481336';
+        nPag := 1;
+        idTransacao := '1234567890123456';
+      end;
     end;
 
     // O grupo infIntermed só deve ser gerado nos casos de operação não presencial
@@ -1420,7 +1486,10 @@ var
 //    ProcReferenciado: TprocRefCollectionItem;
   Defensivo: TdefensivoCollectionItem;
   InfoPgto: TpagCollectionItem;
+  pgtoVinc: TpgtoCollectionItem;
+  NTsSelecionadas: TNotasTecnicasSelecionadas;
 begin
+  NTsSelecionadas := NotasTecnicasSelecionadas;
   NotaF := ACBrNFe1.NotasFiscais.Add;
   NotaF.NFe.Ide.natOp     := 'VENDA PRODUCAO DO ESTAB.';
   NotaF.NFe.Ide.indPag    := ipVista;
@@ -1517,8 +1586,12 @@ begin
   Referenciada.RefECF.nECF    := '';          // |- Cupom Fiscal
   Referenciada.RefECF.nCOO    := '';          // |
   *)
+  if nt2026005 in NTsSelecionadas then
+    NotaF.NFe.Emit.tpRegimeIBSCBS := trSNRegimeRegular;
+
   NotaF.NFe.Emit.CNPJCPF           := edtEmitCNPJ.Text;
-  NotaF.NFe.Emit.IE                := edtEmitIE.Text;
+  if not(nt2026007 in NTsSelecionadas) then
+    NotaF.NFe.Emit.IE                := edtEmitIE.Text;
   NotaF.NFe.Emit.xNome             := edtEmitRazao.Text;
   NotaF.NFe.Emit.xFant             := edtEmitFantasia.Text;
 
@@ -1611,6 +1684,9 @@ begin
   Produto.Prod.xProd    := 'Camisa Polo ACBr';
   Produto.Prod.NCM      := '61051000';
 
+  if nt2026005 in NTsSelecionadas then
+    Produto.Prod.cAtivSN := caVendaMercadorias;
+
   // Reforma Tributária
   if rgReformaTributaria.ItemIndex = 0 then
     Produto.Prod.tpCredPresIBSZFM := tcpSemCredito;
@@ -1621,7 +1697,11 @@ begin
   Produto.Prod.qCom     := 1;
   Produto.Prod.vUnCom   := 100;
   Produto.Prod.vProd    := 100;
-
+  if nt2026008 in NTsSelecionadas then
+  begin
+    Produto.Prod.vUnComLiq := 100;
+    Produto.Prod.vProdLiq := 100;
+  end;
   Produto.Prod.cEANTrib  := '7896523206646';
   Produto.Prod.uTrib     := 'UN';
   Produto.Prod.qTrib     := 1;
@@ -1860,15 +1940,22 @@ begin
         vICMSST := 0;
         pRedBC  := 0;
       }
-        CST := cst20;
-        modBC := dbiMargemValorAgregado;
-        pRedBC := 0;
-        vBC := 100;
-        pICMS := 18;
-        vICMS := 18;
-        vICMSDeson := 8;
-        motDesICMS := mdiOutros;
-        indDeduzDeson := tieSim;
+        if nt2026008 in NTsSelecionadas then
+        begin
+          CST := cstICMSPrevisto;
+          vICMSPrevisto := 18;
+        end else
+        begin
+          CST := cst20;
+          modBC := dbiMargemValorAgregado;
+          pRedBC := 0;
+          vBC := 100;
+          pICMS := 18;
+          vICMS := 18;
+          vICMSDeson := 8;
+          motDesICMS := mdiOutros;
+          indDeduzDeson := tieSim;
+        end;
       end
       else
       begin
@@ -2226,6 +2313,15 @@ begin
       // Alíquota efetiva de ref. da CBS
       IBSCBS.gIBSCBS.gCBS.gALCZFMCBS.pAliqEfetRegCBS := 1; // Percentual efetivo sem redução
       IBSCBS.gIBSCBS.gCBS.gALCZFMCBS.vTribRegCBS     := 1; // Valor efetivo sem redução
+
+      if nt2026005 in NTsSelecionadas then
+      begin
+        IBSCBS.gTribSN.gIBSSN.pIBSSN := 10;
+        IBSCBS.gTribSN.gIBSSN.vIBSSN := 10;
+
+        IBSCBS.gTribSN.gCBSSN.pCBSSN := 10;
+        IBSCBS.gTribSN.gCBSSN.vCBSSN := 10;
+      end;
     end;
   end;
 
@@ -2348,13 +2444,20 @@ begin
     NotaF.NFe.Total.IBSCBSTot.gMono.vCBSMonoReten := 100;
     NotaF.NFe.Total.IBSCBSTot.gMono.vIBSMonoRet := 100;
     NotaF.NFe.Total.IBSCBSTot.gMono.vCBSMonoRet := 100;
-
     NotaF.NFe.Total.IBSCBSTot.gEstornoCred.vIBSEstCred := 100;
     NotaF.NFe.Total.IBSCBSTot.gEstornoCred.vCBSEstCred := 100;
+
+    if nt2026005 in NTsSelecionadas then
+    begin
+      NotaF.NFe.Total.IBSCBSTot.gTribSN.vIBSSN := 10;
+      NotaF.NFe.Total.IBSCBSTot.gTribSN.vCBSSN := 10;
+    end;
 
     // Valor total da NF-e com IBS / CBS / IS
     NotaF.NFe.Total.vNFTot := 100;
   end;
+  if nt2026008 in NTsSelecionadas then
+    NotaF.NFe.Total.vProdLiqTot := 100;
 
   NotaF.NFe.Transp.modFrete := mfContaEmitente;
   NotaF.NFe.Transp.Transporta.CNPJCPF  := '';
@@ -2455,6 +2558,16 @@ begin
   InfoPgto.CNPJ      := '05481336000137';
   InfoPgto.tBand     := bcVisa;
   InfoPgto.cAut      := '1234567890123456';
+
+  if nt2026006 in NTsSelecionadas then
+  begin
+    pgtoVinc := NotaF.NFe.pgtoVinc.pgto.New;
+    pgtoVinc.tpMeioPgto := '17';
+    pgtoVinc.CNPJReceb := '05481336000137';
+    pgtoVinc.CNPJBasePSP := '05481336';
+    pgtoVinc.nPag := 1;
+    pgtoVinc.idTransacao := '1234567890123456';
+  end;
 
 // YA09 Troco
 // Regra opcional: Informar se valor dos pagamentos maior que valor da nota.
@@ -4667,6 +4780,9 @@ begin
   if OpenDialog1.Execute then
   begin
     ACBrNFe1.NotasFiscais.Clear;
+    {Se Escpos e danfe simplificado tipo 2, joga em escpos}
+    if (ACBrNFe1.DANFE = ACBrNFeDANFeESCPOS1) and (ACBrNFe1.DANFE.TipoDANFE = tiSimplificadoTipo2) then
+      PrepararImpressao;
     ACBrNFe1.NotasFiscais.LoadFromFile(OpenDialog1.FileName);
     ACBrNFe1.NotasFiscais.Imprimir;
   end;
@@ -5125,6 +5241,213 @@ begin
     MemoDados.Lines.Add('emailDest..: ' + ACBrNFe1.WebServices.EnvEvento.EventoRetorno.retEvento[0].RetInfEvento.emailDest);
     MemoDados.Lines.Add('dhRegEvento: ' + DateTimeToStr(ACBrNFe1.WebServices.EnvEvento.EventoRetorno.retEvento[0].RetInfEvento.dhRegEvento));
     MemoDados.Lines.Add('Protocolo..: '+ ACBrNFe1.WebServices.EnvEvento.EventoRetorno.retEvento[0].RetInfEvento.nProt);
+  end;
+end;
+
+procedure TfrmACBrNFe.btnNFCeDownloadXMLClick(Sender: TObject);
+var
+  xTitulo, xChave: String;
+  i: Integer;
+begin
+  // Servico SAE NFC-e (SEFAZ-SP): requer UF = SP e certificado e-CNPJ do emitente
+  xTitulo := 'NFCe Download XML (SAE SEFAZ-SP)';
+
+  if ACBrNFe1.Configuracoes.WebServices.UF <> 'SP' then
+    raise Exception.Create('O serviço está disponível apenas para a UF SP. ' +
+      'Ajuste em Configurações > WebServices.');
+
+  xChave := '';
+  if not(InputQuery(xTitulo, 'Chave da NFC-e (44 posições)', xChave)) then
+    Exit;
+
+  xChave := Trim(xChave);
+
+  // Equivale a: ACBrNFe1.ObterDFe(aotDownloadXml, xChave);
+  ACBrNFe1.ObterDownloadXml(xChave);
+
+  MemoResp.Lines.Text := ACBrNFe1.WebServices.ObterDFe.RetWS;
+  memoRespWS.Lines.Text := ACBrNFe1.WebServices.ObterDFe.RetornoWS;
+  LoadXML(ACBrNFe1.WebServices.ObterDFe.RetWS, WBResposta);
+
+  with ACBrNFe1.WebServices.ObterDFe.retObterDFe do
+  begin
+    MemoDados.Lines.Add('');
+    MemoDados.Lines.Add(xTitulo);
+    MemoDados.Lines.Add('versao.....: ' + versao);
+    MemoDados.Lines.Add('tpAmb......: ' + TpAmbToStr(tpAmb));
+    MemoDados.Lines.Add('verAplic...: ' + verAplic);
+    MemoDados.Lines.Add('dhReq......: ' + DateTimeToStr(dhReq));
+    MemoDados.Lines.Add('cStat......: ' + IntToStr(cStat));
+    MemoDados.Lines.Add('xMotivo....: ' + xMotivo);
+    MemoDados.Lines.Add('');
+
+    // Documentos extraidos (NFC-e e eventos), com os XMLs em memoria
+    MemoDados.Lines.Add('Documentos extraidos: ' + IntToStr(Documentos.Count));
+
+    for i := 0 to Documentos.Count - 1 do
+      with Documentos[i] do
+      begin
+        MemoDados.Lines.Add('');
+
+        if Tipo = tdNFCe then
+          MemoDados.Lines.Add('  NFC-e')
+        else
+          MemoDados.Lines.Add('  Evento (' + TpEventoToStr(tpEvento) + ')');
+
+        MemoDados.Lines.Add('    Chave...: ' + Chave);
+        MemoDados.Lines.Add('    Id......: ' + Id);
+        MemoDados.Lines.Add('    versao..: ' + versao);
+        MemoDados.Lines.Add('    nProt...: ' + nProt);
+        MemoDados.Lines.Add('    dhInc...: ' + DateTimeToStr(dhInc));
+        MemoDados.Lines.Add('    dhDoc...: ' + DateTimeToStr(dhDoc));
+        MemoDados.Lines.Add('    NomeArq.: ' + NomeArq);
+        MemoDados.Lines.Add('    XML.....: ' + XML);
+      end;
+  end;
+end;
+
+function TfrmACBrNFe.ObterListaChavesCompleta(ADataHoraInicial,
+  ADataHoraFinal: TDateTime; AChaves: TStrings; AIntervaloMs: Integer): Boolean;
+{ Regras da paginacao:
+  - O servico trabalha com precisao de minutos e devolve no maximo 2000 chaves.
+  - cStat 101 = lista incompleta: a proxima consulta comeca em dhEmisUltNfce
+    (truncado em minutos), por isso o minuto de corte vem repetido e as chaves
+    duplicadas sao descartadas.
+  - Se o periodo nao avancar, ha mais chaves em um unico minuto do que o limite
+    do servico: levanta excecao em vez de repetir indefinidamente.
+  - AIntervaloMs = pausa entre as consultas (limite de acessos por IP).
+  - Em caso de erro (ex.: 656 Consumo indevido) a excecao e levantada, mas
+    AChaves ja contem o que foi obtido ate ali. }
+var
+  Lista: TStringList;
+  DataIni, ProxIni: TDateTime;
+  Continuar: Boolean;
+  I: Integer;
+begin
+  Result := False;
+
+  if not Assigned(AChaves) then
+    raise Exception.Create('Lista de chaves (AChaves) nao informada');
+
+  Lista := TStringList.Create;
+  try
+    Lista.Sorted := True;
+    Lista.Duplicates := dupIgnore;  // periodos consecutivos se sobrepoem
+
+    // O servico trabalha com precisao de minutos
+    DataIni := RecodeMilliSecond(RecodeSecond(ADataHoraInicial, 0), 0);
+
+    repeat
+      ACBrNFe1.ObterListaChaves(DataIni, ADataHoraFinal);
+
+      with ACBrNFe1.WebServices.ObterDFe.retObterDFe do
+      begin
+        for I := 0 to chNFCe.Count - 1 do
+          Lista.Add(chNFCe[I]);
+
+        Continuar := ListaIncompleta;
+        if Continuar then
+        begin
+          ProxIni := RecodeMilliSecond(RecodeSecond(dhEmisUltNfce, 0), 0);
+
+          // Sem avanco = mais chaves no mesmo minuto do que o limite do servico
+          if (dhEmisUltNfce = 0) or (ProxIni <= DataIni) then
+            raise Exception.Create('Nao foi possivel avancar o periodo: o limite ' +
+              'de chaves por resposta foi atingido dentro de um unico minuto');
+
+          DataIni := ProxIni;
+        end;
+      end;
+
+      if Continuar and (AIntervaloMs > 0) then
+        Sleep(AIntervaloMs);
+    until not Continuar;
+
+    Result := True;
+  finally
+    AChaves.Assign(Lista);  // mantem o parcial mesmo se houver excecao
+    Lista.Free;
+  end;
+end;
+
+procedure TfrmACBrNFe.btnNFCeListagemChavesClick(Sender: TObject);
+var
+  xTitulo, xDataIni, xDataFim, xPaginar: String;
+  DataIni, DataFim: TDateTime;
+  Chaves: TStringList;
+  Paginar: Boolean;
+  i: Integer;
+begin
+  // Servico SAE NFC-e (SEFAZ-SP): requer UF = SP e certificado e-CNPJ do emitente
+  xTitulo := 'NFCe Listagem de Chaves (SAE SEFAZ-SP)';
+
+  if ACBrNFe1.Configuracoes.WebServices.UF <> 'SP' then
+    raise Exception.Create('O serviço está disponível apenas para a UF SP. ' +
+      'Ajuste em Configurações > WebServices.');
+
+  xDataIni := FormatDateTime('dd/mm/yyyy hh:nn', IncDay(Now, -1));
+  if not(InputQuery(xTitulo, 'Data/Hora inicial (dd/mm/aaaa hh:nn)', xDataIni)) then
+    Exit;
+
+  xDataFim := '';
+  if not(InputQuery(xTitulo, 'Data/Hora final (dd/mm/aaaa hh:nn) - opcional', xDataFim)) then
+    Exit;
+
+  xPaginar := 'S';
+  if not(InputQuery(xTitulo, 'Paginar automaticamente se a lista vier incompleta? (S/N)', xPaginar)) then
+    Exit;
+
+  if not TryStrToDateTime(Trim(xDataIni), DataIni) then
+    raise Exception.Create('Data/Hora inicial inválida: ' + xDataIni);
+
+  DataFim := 0;  // 0 = não informa dataHoraFinal (até o momento atual)
+  if Trim(xDataFim) <> '' then
+    if not TryStrToDateTime(Trim(xDataFim), DataFim) then
+      raise Exception.Create('Data/Hora final inválida: ' + xDataFim);
+
+  Paginar := UpperCase(Trim(xPaginar)) = 'S';
+
+  Chaves := TStringList.Create;
+  try
+    if Paginar then
+      // Repete a consulta a partir de dhEmisUltNfce enquanto cStat = 101
+      ObterListaChavesCompleta(DataIni, DataFim, Chaves)
+    else
+    begin
+      // Equivale a: ACBrNFe1.ObterDFe(aotListaChaves, '', DataIni, DataFim);
+      ACBrNFe1.ObterListaChaves(DataIni, DataFim);
+      Chaves.Assign(ACBrNFe1.WebServices.ObterDFe.retObterDFe.chNFCe);
+    end;
+
+    MemoResp.Lines.Text := ACBrNFe1.WebServices.ObterDFe.RetWS;
+    memoRespWS.Lines.Text := ACBrNFe1.WebServices.ObterDFe.RetornoWS;
+    LoadXML(ACBrNFe1.WebServices.ObterDFe.RetWS, WBResposta);
+
+    // Dados da última resposta recebida
+    with ACBrNFe1.WebServices.ObterDFe.retObterDFe do
+    begin
+      MemoDados.Lines.Add('');
+      MemoDados.Lines.Add(xTitulo);
+      MemoDados.Lines.Add('versao.........: ' + versao);
+      MemoDados.Lines.Add('tpAmb..........: ' + TpAmbToStr(tpAmb));
+      MemoDados.Lines.Add('verAplic.......: ' + verAplic);
+      MemoDados.Lines.Add('dhReq..........: ' + DateTimeToStr(dhReq));
+      MemoDados.Lines.Add('cStat..........: ' + IntToStr(cStat));
+      MemoDados.Lines.Add('xMotivo........: ' + xMotivo);
+
+      if dhEmisUltNfce <> 0 then
+        MemoDados.Lines.Add('dhEmisUltNfce..: ' + DateTimeToStr(dhEmisUltNfce));
+
+      // 101 = lista incompleta: reduza o período ou use a paginação automática
+      if ListaIncompleta then
+        MemoDados.Lines.Add('ATENÇÃO: lista incompleta, ajuste o período de busca.');
+    end;
+
+    MemoDados.Lines.Add('Total de chaves: ' + IntToStr(Chaves.Count));
+    for i := 0 to Chaves.Count - 1 do
+      MemoDados.Lines.Add('  ' + Chaves[i]);
+  finally
+    Chaves.Free;
   end;
 end;
 
@@ -5923,6 +6246,7 @@ var
   N: TACBrPosPrinterModelo;
   O: TACBrPosPaginaCodigo;
   P: TpcnVersaoQrCode;
+  R: TNotasTecnicas;
 begin
   ffrmstatus := Tfrmstatus.create(self);
 
@@ -5978,6 +6302,10 @@ begin
   for P := Low(TpcnVersaoQrCode) to High(TpcnVersaoQrCode) do
      cbVersaoQRCode.Items.Add( GetEnumName(TypeInfo(TpcnVersaoQrCode), integer(P) ) );
   cbVersaoQRCode.ItemIndex := 0;
+
+  clbNotasTecnicas.Items.Clear;
+  for R := Low(TNotasTecnicas) to High(TNotasTecnicas) do
+    clbNotasTecnicas.Items.Add(TNotasTecnicasArrayString[R]);
 
   cbxPorta.Items.Clear;
   ACBrPosPrinter1.Device.AcharPortasSeriais( cbxPorta.Items );
@@ -6245,6 +6573,12 @@ begin
 end;
 
 procedure TfrmACBrNFe.ConfigurarComponente;
+const
+  // Mapeia o ItemIndex do RadioGroup rgTipoDanfe para o enum TACBrTipoImpressao.
+  // Precisa ser um mapeamento explicito (nao sequencial), pois o enum tem
+  // valores no meio (tiNFCe, tiMsgEletronica) que este exemplo nao expoe na UI.
+  CTipoDanfeMap: array[0..3] of TACBrTipoImpressao =
+    (tiRetrato, tiPaisagem, tiSimplificado, tiSimplificadoTipo2);
 var
   Ok: Boolean;
   PathMensal: string;
@@ -6254,7 +6588,7 @@ begin
   ACBrNFe1.Configuracoes.Certificados.Senha       := edtSenha.Text;
   ACBrNFe1.Configuracoes.Certificados.NumeroSerie := edtNumSerie.Text;
 
-  if cbModeloDF.ItemIndex = 0 then
+  if (cbModeloDF.ItemIndex = 0) and (CTipoDanfeMap[rgTipoDanfe.ItemIndex] <> tiSimplificadoTipo2) then
     ACBrNFe1.DANFE := ACBrNFeDANFeRL1
   else
   begin
@@ -6347,7 +6681,7 @@ begin
 
   if ACBrNFe1.DANFE <> nil then
   begin
-    ACBrNFe1.DANFE.TipoDANFE := StrToTpImp(OK, IntToStr(rgTipoDanfe.ItemIndex + 1));
+    ACBrNFe1.DANFE.TipoDANFE := CTipoDanfeMap[rgTipoDanfe.ItemIndex];
 
     {
       A Configuração abaixo utilizanda em conjunto com o TipoDANFE = tiSimplificado
@@ -6389,6 +6723,16 @@ begin
 
   if ACBrNFe1.NotasFiscais.Count > 0then
     MemoResp.Lines.Add('Empresa: ' + ACBrNFe1.NotasFiscais.Items[0].NFe.Emit.xNome);
+end;
+
+function TfrmACBrNFe.NotasTecnicasSelecionadas: TNotasTecnicasSelecionadas;
+var
+  NT: TNotasTecnicas;
+begin
+  Result := [];
+  for NT := Low(TNotasTecnicas) to High(TNotasTecnicas) do
+    if clbNotasTecnicas.Checked[ord(NT)] then
+      Include(Result, NT);
 end;
 
 procedure TfrmACBrNFe.PathClick(Sender: TObject);

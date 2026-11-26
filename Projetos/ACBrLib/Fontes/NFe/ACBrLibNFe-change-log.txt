@@ -42,6 +42,38 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+24/11/2026
+-- ACBrLibNFeConfig --
+[*] ACBR-10270 - A chave [DANFENFe] ExibeEAN passa a ser aplicada também ao DANFE FPDF, para imprimir o EAN no DANFE da Reforma Tributária (FPDF).
+   Por: Daniel de Morais InfoCotidiano
+
+19/11/2026
+-- ACBrLibNFeConsts, ACBrLibNFeConfig --
+[+] ACBR-10250 - Nova chave [DANFE] ImprimeCodigoProduto (padrão 1) que define a propriedade ImprimeCodigoProduto do DANFE, para imprimir o código do produto antes da descrição no DANFE da Reforma Tributária (Fortes).
+   Por: Daniel de Morais InfoCotidiano
+
+03/11/2026
+-- ACBrLibNFeConsoleMT.lpi, ACBrLibNFeConsoleMTDemo.lpi --
+[+] Adiciona suporte experimental a build Linux/ARM64
+[*] Erros conhecidos: https://gitlab.com/freepascal.org/fpc/source/-/work_items/39492
+   Por: doszapro
+
+30/10/2026
+-- ACBrLibNFeConsts, ACBrLibNFeConfig --
+[+] ACBR-10137 - Nova chave [DANFE] LeiauteDANFE (0 = Padrão, 1 = Reforma Tributária) que define a propriedade LeiauteDANFE do DANFE, para imprimir no leiaute da NT 2026.010 (Fortes e FPDF).
+   Por: Daniel de Morais InfoCotidiano
+
+27/10/2026
+-- Diversos --
+[+] ACBR-9000 - ObterDFe - Implementados métodos SAE NFC-e SEFAZ-SP - NFCeListagemChaves e NFCeDownloadXML
+   Por: Renato Rubinho
+   Veja: https://www.projetoacbr.com.br/forum/topic/90552-sefaz-de-sp-disponibiliza-web-service-para-download-dos-xmls-das-nfc-es
+
+30/09/2026
+-- ACBrLibNFeDataModule --
+[*] ACBR-9941 - Ajuste para que seja impresso o DANFe Simplificado Tipo 2
+   Por: Diego Folieni
+   Veja: https://www.projetoacbr.com.br/forum/topic/95088-acbr-9941n%C3%A3o-estamos-conseguindo-gerar-o-danfe-simplificado-tipo-2-via-lib/ 
 
 09/09/2026
 [-] ACBR-9714 Remove importação de pcnauxiliar de ACBrLibNFeBase.pas

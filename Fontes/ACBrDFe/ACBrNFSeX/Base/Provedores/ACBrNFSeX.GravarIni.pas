@@ -434,6 +434,7 @@ begin
   AINIRec.WriteString(LSecao, 'tpEmit', tpEmitToStr(NFSe.tpEmit));
   AINIRec.WriteString(LSecao, 'cMotivoEmisTI', cMotivoEmisTIToStr(NFSe.cMotivoEmisTI));
   AINIRec.WriteString(LSecao, 'cLocEmi', NFSe.cLocEmi);
+  AINIRec.WriteString(LSecao, 'chNFSeRej', NFSe.chNFSeRej);
 
   AINIRec.WriteString(LSecao, 'SituacaoTrib', FpAOwner.SituacaoTribToStr(NFSe.SituacaoTrib));
   AINIRec.WriteString(LSecao, 'Producao', FpAOwner.SimNaoToStr(NFSe.Producao));
@@ -489,6 +490,9 @@ begin
   AINIRec.WriteInteger(LSecao, 'NumeroParcelas', NFSe.NumeroParcelas);
   AINIRec.WriteInteger(LSecao, 'id_sis_legado', NFSe.id_sis_legado);
   AINIRec.WriteString(LSecao, 'DeducaoMateriais', FpAOwner.SimNaoToStr(NFSe.DeducaoMateriais));
+
+  if FpVersaoNT = ntPN009v101 then
+    AINIRec.WriteString(LSecao, 'finNFSe', finNFSeToStr(NFSe.IBSCBS.finNFSe));
 
   PularLinha(AINIRec, LSecao);
 end;
@@ -854,6 +858,9 @@ begin
     AINIRec.WriteFloat(LSecao, 'ValorIPI', NFSe.Servico.Valores.ValorIPI);
     AINIRec.WriteFloat(LSecao, 'ValorInicialCobrado', NFSe.Servico.Valores.ValorInicialCobrado);
     AINIRec.WriteFloat(LSecao, 'ValorFinalCobrado', NFSe.Servico.Valores.ValorFinalCobrado);
+
+    AINIRec.WriteFloat(LSecao, 'pAjusteBCISSQN', NFSe.Servico.Valores.pAjusteBCISSQN);
+    AINIRec.WriteFloat(LSecao, 'vAjusteBCISSQN', NFSe.Servico.Valores.vAjusteBCISSQN);
 
     PularLinha(AINIRec, LSecao);
 
@@ -1354,6 +1361,9 @@ begin
     AINIRec.WriteFloat(LSecao, 'ValorInicialCobrado', NFSe.Servico.ItemServico[I].ValorInicialCobrado);
     AINIRec.WriteFloat(LSecao, 'ValorFinalCobrado', NFSe.Servico.ItemServico[I].ValorFinalCobrado);
 
+//    AINIRec.WriteFloat(LSecao, 'pAjusteBCISSQN', NFSe.Servico.ItemServico[I].pAjusteBCISSQN);
+//    AINIRec.WriteFloat(LSecao, 'vAjusteBCISSQN', NFSe.Servico.ItemServico[I].vAjusteBCISSQN);
+
     PularLinha(AINIRec, LSecao);
 
     GerarINIEnderecoServico(AINIRec, NFSe.Servico.ItemServico[I].Endereco, I);
@@ -1604,7 +1614,9 @@ procedure TNFSeIniWriter.GerarINIIBSCBS(AINIRec: TMemIniFile;
 begin
   LSecao := 'IBSCBSDPS';
 
-  AINIRec.WriteString(LSecao, 'finNFSe', finNFSeToStr(IBSCBS.finNFSe));
+  if FpVersaoNT = ntPNNenhuma then
+    AINIRec.WriteString(LSecao, 'finNFSe', finNFSeToStr(IBSCBS.finNFSe));
+
   AINIRec.WriteString(LSecao, 'indFinal', indFinalToStr(IBSCBS.indFinal));
   AINIRec.WriteString(LSecao, 'cIndOp', IBSCBS.cIndOp);
   AINIRec.WriteString(LSecao, 'tpOper', tpOperGovNFSeToStr(IBSCBS.tpOper));

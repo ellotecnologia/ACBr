@@ -38,9 +38,12 @@ interface
 
 uses
   SysUtils, Classes, StrUtils, IniFiles,
-  ACBrXmlBase, ACBrXmlDocument,
+  ACBrXmlBase,
+  ACBrXmlDocument,
   ACBrNFSeXClass,
-  ACBrNFSeXConversao, ACBrNFSeXLerXml;
+  ACBrDFe.Conversao,
+  ACBrNFSeXConversao,
+  ACBrNFSeXLerXml;
 
 type
   { TNFSeR_PadraoNacional }
@@ -57,6 +60,9 @@ type
     procedure LerXMLDPS(const ANode: TACBrXmlNode);
 
     procedure LerXMLinfDPS(const ANode: TACBrXmlNode);
+    procedure LerXMLTributos(const ANode: TACBrXmlNode; trib: Ttrib); override;
+    procedure LerXMLImovel(const ANode: TACBrXmlNode; Imovel: TDadosimovel); override;
+    procedure LerXMLIBSCBSDPS(const ANode: TACBrXmlNode; IBSCBS: TIBSCBSDPS); override;
     procedure LerXMLSubstituicao(const ANode: TACBrXmlNode);
 
     procedure LerXMLPrestador(const ANode: TACBrXmlNode);
@@ -81,11 +87,11 @@ type
     procedure LerXMLComercioExterior(const ANode: TACBrXmlNode);
     procedure LerXMLLocacaoSubLocacao(const ANode: TACBrXmlNode);
     procedure LerXMLObra(const ANode: TACBrXmlNode);
-    procedure LerXMLEnderecoObra(const ANode: TACBrXmlNode);
-    procedure LerXMLEnderecoExteriorObra(const ANode: TACBrXmlNode);
+    procedure LerXMLEnderecoObra(const ANode: TACBrXmlNode); virtual;
+    procedure LerXMLEnderecoExteriorObra(const ANode: TACBrXmlNode); virtual;
     procedure LerXMLAtividadeEvento(const ANode: TACBrXmlNode);
-    procedure LerXMLEnderecoEvento(const ANode: TACBrXmlNode);
-    procedure LerXMLEnderecoExteriorEvento(const ANode: TACBrXmlNode);
+    procedure LerXMLEnderecoEvento(const ANode: TACBrXmlNode); virtual;
+    procedure LerXMLEnderecoExteriorEvento(const ANode: TACBrXmlNode); virtual;
     procedure LerXMLExploracaoRodoviaria(const ANode: TACBrXmlNode);
     procedure LerXMLInformacoesComplementares(const ANode: TACBrXmlNode);
     procedure LerXMLInformacoesComplementaresgItemPed(const ANode: TACBrXMLNode);
@@ -94,13 +100,19 @@ type
     procedure LerXMLServicoPrestado(const ANode: TACBrXmlNode);
     procedure LerXMLDescontos(const ANode: TACBrXmlNode);
     procedure LerXMLDeducoes(const ANode: TACBrXmlNode);
+    procedure LerXMLAjusteBC(const ANode: TACBrXmlNode);
     procedure LerXMLDocDeducoes(const ANode: TACBrXmlNode);
+    procedure LerXMLDocAjusteBC(const ANode: TACBrXmlNode);
     procedure LerXMLNFSeMunicipio(const ANode: TACBrXmlNode; Item: Integer);
     procedure LerXMLNFNFS(const ANode: TACBrXmlNode; Item: Integer);
     procedure LerXMLFornecedor(const ANode: TACBrXmlNode; Item: Integer);
     procedure LerXMLEnderecoFornecedor(const ANode: TACBrXmlNode; Item: Integer);
     procedure LerXMLEnderecoNacionalFornecedor(const ANode: TACBrXmlNode; Item: Integer);
     procedure LerXMLEnderecoExteriorFornecedr(const ANode: TACBrXmlNode; Item: Integer);
+    procedure LerXMLFornecAjusteBC(const ANode: TACBrXmlNode; fornec: TInfoPessoa);
+    procedure LerXMLEnderecoFornecAjusteBC(const ANode: TACBrXmlNode; Endereco: TEndereco);
+    procedure LerXMLEnderecoNacionalFornecAjusteBC(const ANode: TACBrXmlNode; Endereco: TEndereco);
+    procedure LerXMLEnderecoExteriorFornecAjusteBC(const ANode: TACBrXmlNode; Endereco: TEndereco);
 
     procedure LerXMLTributacao(const ANode: TACBrXmlNode);
     procedure LerXMLTributacaoMunicipal(const ANode: TACBrXmlNode);
@@ -137,6 +149,9 @@ type
     procedure LerINIDocumentosDeducoes(AINIRec: TMemIniFile);
     procedure LerINIDocumentosDeducoesFornecedor(AINIRec: TMemIniFile;
       fornec: TInfoPessoa; Indice: Integer);
+    procedure LerINIDocAjusteBC(AINIRec: TMemIniFile);
+    procedure LerINIDocAjusteBCFornec(AINIRec: TMemIniFile;
+      fornec: TInfoPessoa; Indice: Integer);
     procedure LerINIValoresTribMun(AINIRec: TMemIniFile);
     procedure LerINIValoresTribFederal(AINIRec: TMemIniFile);
     procedure LerINIValoresTotalTrib(AINIRec: TMemIniFile);
@@ -151,8 +166,8 @@ type
 implementation
 
 uses
+  ACBrNFSeX,
   ACBrDFeUtil,
-  ACBrDFe.Conversao,
   ACBrUtil.Base,
   ACBrUtil.XMLHTML,
   ACBrUtil.DateTime,
@@ -291,6 +306,61 @@ begin
     begin
       DescontoIncondicionado := ObterConteudo(AuxNode.Childrens.FindAnyNs('vDescIncond'), tcDe2);
       DescontoCondicionado := ObterConteudo(AuxNode.Childrens.FindAnyNs('vDescCond'), tcDe2);
+    end;
+  end;
+end;
+
+procedure TNFSeR_PadraoNacional.LerXMLAjusteBC(const ANode: TACBrXmlNode);
+var
+  AuxNode: TACBrXmlNode;
+begin
+  AuxNode := ANode.Childrens.FindAnyNs('vAjusteBC');
+
+  if AuxNode <> nil then
+  begin
+    with NFSe.Servico.Valores do
+    begin
+      pAjusteBCISSQN := ObterConteudo(AuxNode.Childrens.FindAnyNs('pAjusteBCISSQN'), tcDe2);
+      vAjusteBCISSQN := ObterConteudo(AuxNode.Childrens.FindAnyNs('vAjusteBCISSQN'), tcDe2);
+
+      if (ValorDeducoes = 0) and (NFSe.infNFSe.valores.vCalcDR > 0) then
+        ValorDeducoes := NFSe.infNFSe.valores.vCalcDR;
+
+      LerXMLDocAjusteBC(AuxNode);
+    end;
+  end;
+end;
+
+procedure TNFSeR_PadraoNacional.LerXMLDocAjusteBC(const ANode: TACBrXmlNode);
+var
+  AuxNode: TACBrXmlNode;
+  ANodes: TACBrXmlNodeArray;
+  i: Integer;
+begin
+  AuxNode := ANode.Childrens.FindAnyNs('documentos');
+
+  if AuxNode <> nil then
+  begin
+    ANodes := AuxNode.Childrens.FindAllAnyNs('docAjusteBC');
+
+    for i := 0 to Length(ANodes) - 1 do
+    begin
+      NFSe.Servico.Valores.docAjusteBC.New;
+      with NFSe.Servico.Valores.docAjusteBC[i] do
+      begin
+        tpAjusteBC := StrTotpAjusteBC(ObterConteudo(ANodes[i].Childrens.FindAnyNs('tpAjusteBC'), tcStr));
+        xTpAjusteBC := ObterConteudo(ANodes[i].Childrens.FindAnyNs('xTpAjusteBC'), tcStr);
+        vTotDoc := ObterConteudo(ANodes[i].Childrens.FindAnyNs('vTotDoc'), tcDe2);
+        vAjusteAplic := ObterConteudo(ANodes[i].Childrens.FindAnyNs('vAjusteAplic'), tcDe2);
+        dtEmiDoc := ObterConteudo(ANodes[i].Childrens.FindAnyNs('dtEmiDoc'), tcDat);
+        dtCompDoc := ObterConteudo(ANodes[i].Childrens.FindAnyNs('dtCompDoc'), tcDat);
+
+        LerXMLdFeNacional(ANodes[i].Childrens.FindAnyNs('dFeNacional'), dFeNacional);
+        LerXMLdocFiscalOutro(ANodes[i].Childrens.FindAnyNs('docFiscalOutro'), docFiscalOutro);
+        LerXMLdocOutro(ANodes[i].Childrens.FindAnyNs('docOutro'), docOutro);
+
+        LerXMLFornecAjusteBC(ANodes[i].Childrens.FindAnyNs('fornec'), fornec);
+      end;
     end;
   end;
 end;
@@ -603,6 +673,7 @@ procedure TNFSeR_PadraoNacional.LerXMLEnderecoNacionalFornecedor(
   const ANode: TACBrXmlNode; Item: Integer);
 var
   AuxNode: TACBrXmlNode;
+  xUF: string;
 begin
   AuxNode := ANode.Childrens.FindAnyNs('endNac');
 
@@ -612,6 +683,10 @@ begin
     begin
       CodigoMunicipio := ObterConteudo(AuxNode.Childrens.FindAnyNs('cMun'), tcStr);
       CEP := ObterConteudo(AuxNode.Childrens.FindAnyNs('CEP'), tcStr);
+      xMunicipio := ObterNomeMunicipioUF(StrToIntDef(CodigoMunicipio, 0), xUF);
+
+      if UF = '' then
+        UF := xUF;
     end;
   end;
 end;
@@ -828,16 +903,105 @@ begin
   end;
 end;
 
+procedure TNFSeR_PadraoNacional.LerXMLFornecAjusteBC(const ANode: TACBrXmlNode;
+  fornec: TInfoPessoa);
+var
+  Ok: Boolean;
+begin
+  if ANode <> nil then
+  begin
+    with fornec do
+    begin
+      Identificacao.CpfCnpj := ObterCNPJCPF(ANode);
+
+      if Identificacao.CpfCnpj = '' then
+        Identificacao.Nif := ObterConteudo(ANode.Childrens.FindAnyNs('NIF'), tcStr);
+
+      if Identificacao.Nif = '' then
+        Identificacao.cNaoNIF := StrToNaoNIF(Ok, ObterConteudo(ANode.Childrens.FindAnyNs('cNaoNIF'), tcStr));
+
+      Identificacao.CAEPF := ObterConteudo(ANode.Childrens.FindAnyNs('CAEPF'), tcStr);
+      Identificacao.InscricaoMunicipal := ObterConteudo(ANode.Childrens.FindAnyNs('IM'), tcStr);
+
+      RazaoSocial := ObterConteudo(ANode.Childrens.FindAnyNs('xNome'), tcStr);
+
+      LerXMLEnderecoFornecAjusteBC(ANode, Endereco);
+
+      Contato.Telefone := ObterConteudo(ANode.Childrens.FindAnyNs('fone'), tcStr);
+      Contato.Email := ObterConteudo(ANode.Childrens.FindAnyNs('email'), tcStr);
+    end;
+  end;
+end;
+
+procedure TNFSeR_PadraoNacional.LerXMLEnderecoFornecAjusteBC(
+  const ANode: TACBrXmlNode; Endereco: TEndereco);
+var
+  AuxNode: TACBrXmlNode;
+begin
+  AuxNode := ANode.Childrens.FindAnyNs('end');
+
+  if AuxNode <> nil then
+  begin
+    LerXMLEnderecoNacionalFornecAjusteBC(AuxNode, Endereco);
+    LerXMLEnderecoExteriorFornecAjusteBC(AuxNode, Endereco);
+
+    Endereco.Endereco := ObterConteudo(AuxNode.Childrens.FindAnyNs('xLgr'), tcStr);
+    Endereco.Numero := ObterConteudo(AuxNode.Childrens.FindAnyNs('nro'), tcStr);
+    Endereco.Complemento := ObterConteudo(AuxNode.Childrens.FindAnyNs('xCpl'), tcStr);
+    Endereco.Bairro := ObterConteudo(AuxNode.Childrens.FindAnyNs('xBairro'), tcStr);
+  end;
+end;
+
+procedure TNFSeR_PadraoNacional.LerXMLEnderecoNacionalFornecAjusteBC(
+  const ANode: TACBrXmlNode; Endereco: TEndereco);
+var
+  AuxNode: TACBrXmlNode;
+  xUF: string;
+begin
+  AuxNode := ANode.Childrens.FindAnyNs('endNac');
+
+  if AuxNode <> nil then
+  begin
+    Endereco.CodigoMunicipio := ObterConteudo(AuxNode.Childrens.FindAnyNs('cMun'), tcStr);
+    Endereco.CEP := ObterConteudo(AuxNode.Childrens.FindAnyNs('CEP'), tcStr);
+    Endereco.xMunicipio := ObterNomeMunicipioUF(StrToIntDef(Endereco.CodigoMunicipio, 0), xUF);
+
+    if Endereco.UF = '' then
+      Endereco.UF := xUF;
+  end;
+end;
+
+procedure TNFSeR_PadraoNacional.LerXMLEnderecoExteriorFornecAjusteBC(
+  const ANode: TACBrXmlNode; Endereco: TEndereco);
+var
+  AuxNode: TACBrXmlNode;
+begin
+  AuxNode := ANode.Childrens.FindAnyNs('endExt');
+
+  if AuxNode <> nil then
+  begin
+    Endereco.CodigoPais := SiglaISO2ToCodIBGEPais(ObterConteudo(AuxNode.Childrens.FindAnyNs('cPais'), tcStr));
+    Endereco.CEP := ObterConteudo(AuxNode.Childrens.FindAnyNs('cEndPost'), tcStr);
+    Endereco.xMunicipio := ObterConteudo(AuxNode.Childrens.FindAnyNs('xCidade'), tcStr);
+    Endereco.UF := ObterConteudo(AuxNode.Childrens.FindAnyNs('xEstProvReg'), tcStr);
+  end;
+end;
+
 procedure TNFSeR_PadraoNacional.LerXMLinfDPS(const ANode: TACBrXmlNode);
 var
   AuxNode: TACBrXmlNode;
   Ok: Boolean;
+  Lvalor: string;
 begin
   AuxNode := ANode.Childrens.FindAnyNs('infDPS');
 
   if AuxNode <> nil then
   begin
-    NFSe.infID.ID := OnlyNumber(ObterConteudoTag(AuxNode.Attributes.Items['Id']));
+    NFSe.infID.ID := RemoverLiteralChave(ObterConteudoTag(AuxNode.Attributes.Items['Id']));
+
+    if NFSe.infID.ID = '' then
+      NFSe.infID.ID := RemoverLiteralChave(ObterConteudoTag(AuxNode.Attributes.Items['id']));
+
     NFSe.DataEmissaoRPS := ObterConteudo(AuxNode.Childrens.FindAnyNs('dhEmi'), tcDatHor);
     NFSe.verAplic := ObterConteudo(AuxNode.Childrens.FindAnyNs('verAplic'), tcStr);
     NFSe.IdentificacaoRps.Serie := ObterConteudo(AuxNode.Childrens.FindAnyNs('serie'), tcStr);
@@ -846,6 +1010,7 @@ begin
     NFSe.tpEmit := StrTotpEmit(Ok, ObterConteudo(AuxNode.Childrens.FindAnyNs('tpEmit'), tcStr));
     NFSe.cMotivoEmisTI := StrTocMotivoEmisTI(ObterConteudo(AuxNode.Childrens.FindAnyNs('cMotivoEmisTI'), tcStr));
     NFSe.cLocEmi := ObterConteudo(AuxNode.Childrens.FindAnyNs('cLocEmi'), tcStr);
+    NFSe.chNFSeRej := ObterConteudo(AuxNode.Childrens.FindAnyNs('chNFSeRej'), tcStr);
 
     NFSe.Producao := FpAOwner.StrToSimNao(Ok, ObterConteudo(AuxNode.Childrens.FindAnyNs('tpAmb'), tcStr));
 
@@ -858,18 +1023,139 @@ begin
 
     // Reforma Tributária
     LerXMLIBSCBSDPS(AuxNode.Childrens.FindAnyNs('IBSCBS'), NFSe.IBSCBS);
+
+    if FpVersaoNT = ntPN009v101 then
+    begin
+      lvalor := ObterConteudo(AuxNode.Childrens.FindAnyNs('finNFSe'), tcStr);
+
+      if Lvalor = '' then
+        NFSe.IBSCBS.finNFSe := fnfsRegular
+      else
+        NFSe.IBSCBS.finNFSe := StrTofinNFSe(Lvalor);
+    end;
+  end;
+end;
+
+procedure TNFSeR_PadraoNacional.LerXMLImovel(const ANode: TACBrXmlNode;
+  Imovel: TDadosimovel);
+var
+  AuxNode: TACBrXmlNode;
+  ANodes, ANodesAjuste: TACBrXmlNodeArray;
+  i, j: Integer;
+  Unidade: TgUnidImobCollectionItem;
+  Ajuste: TgAjusteBCLocImoveisCollectionItem;
+begin
+  if not Assigned(ANode) then Exit;
+
+  // NT 009: o leiaute e identificado pelo conteudo do grupo
+  if (ANode.Childrens.FindAnyNs('cMun') = nil) and
+     (ANode.Childrens.FindAnyNs('gLocacao') = nil) and
+     (ANode.Childrens.FindAnyNs('gUnidImob') = nil) then
+  begin
+    inherited LerXMLImovel(ANode, Imovel);
+    Exit;
+  end;
+
+  Imovel.cMun := ObterConteudo(ANode.Childrens.FindAnyNs('cMun'), tcInt);
+
+  AuxNode := ANode.Childrens.FindAnyNs('gLocacao');
+
+  if Assigned(AuxNode) then
+  begin
+    Imovel.gLocacao.pCopropriedade := ObterConteudo(AuxNode.Childrens.FindAnyNs('pCopropriedade'), tcDe2);
+    Imovel.gLocacao.vTotOper := ObterConteudo(AuxNode.Childrens.FindAnyNs('vTotOper'), tcDe2);
+    Imovel.gLocacao.vDescIncondTot := ObterConteudo(AuxNode.Childrens.FindAnyNs('vDescIncondTot'), tcDe2);
+    Imovel.gLocacao.vDescCondTot := ObterConteudo(AuxNode.Childrens.FindAnyNs('vDescCondTot'), tcDe2);
+    Imovel.gLocacao.dVencOrig := ObterConteudo(AuxNode.Childrens.FindAnyNs('dVencOrig'), tcDat);
+  end;
+
+  ANodes := ANode.Childrens.FindAllAnyNs('gUnidImob');
+
+  for i := 0 to Length(ANodes) - 1 do
+  begin
+    Unidade := Imovel.gUnidImob.New;
+
+    Unidade.inscImobFisc := ObterConteudo(ANodes[i].Childrens.FindAnyNs('inscImobFisc'), tcStr);
+    Unidade.cCIB := ObterConteudo(ANodes[i].Childrens.FindAnyNs('cCIB'), tcStr);
+
+    LerXMLEnderecoNacionalImovel(ANodes[i].Childrens.FindAnyNs('end'), Unidade.ender);
+
+    ANodesAjuste := ANodes[i].Childrens.FindAllAnyNs('gAjusteBCLocImoveis');
+
+    for j := 0 to Length(ANodesAjuste) - 1 do
+    begin
+      Ajuste := Unidade.gAjusteBCLocImoveis.New;
+
+      Ajuste.tpAjusteBCLocImoveis := StrTotpAjusteBCLocImoveis(
+        ObterConteudo(ANodesAjuste[j].Childrens.FindAnyNs('tpAjusteBCLocImoveis'), tcStr));
+      Ajuste.xTpAjusteBCLocImoveis := ObterConteudo(ANodesAjuste[j].Childrens.FindAnyNs('xTpAjusteBCLocImoveis'), tcStr);
+      Ajuste.vAjusteBCLocImoveis := ObterConteudo(ANodesAjuste[j].Childrens.FindAnyNs('vAjusteBCLocImoveis'), tcDe2);
+    end;
+  end;
+end;
+
+procedure TNFSeR_PadraoNacional.LerXMLIBSCBSDPS(const ANode: TACBrXmlNode;
+  IBSCBS: TIBSCBSDPS);
+var
+  ANodes: TACBrXmlNodeArray;
+  i: Integer;
+  Item: TbensMoveisCollectionItem;
+begin
+  inherited LerXMLIBSCBSDPS(ANode, IBSCBS);
+
+  if not Assigned(ANode) then Exit;
+
+  // NT 009
+  ANodes := ANode.Childrens.FindAllAnyNs('bensMoveis');
+
+  for i := 0 to Length(ANodes) - 1 do
+  begin
+    Item := IBSCBS.bensMoveis.New;
+
+    Item.cNCMBemMovel := ObterConteudo(ANodes[i].Childrens.FindAnyNs('cNCMBemMovel'), tcStr);
+    Item.xNCMBemMovel := ObterConteudo(ANodes[i].Childrens.FindAnyNs('xNCMBemMovel'), tcStr);
+    Item.qtdNCMBemMovel := ObterConteudo(ANodes[i].Childrens.FindAnyNs('qtdNCMBemMovel'), tcInt);
+  end;
+end;
+
+procedure TNFSeR_PadraoNacional.LerXMLTributos(const ANode: TACBrXmlNode; trib: Ttrib);
+begin
+  inherited LerXMLTributos(ANode, trib);
+
+  if not Assigned(ANode) then Exit;
+
+  if Assigned(ANode.Childrens.FindAnyNs('CST')) then
+  begin
+    trib.gIBSCBS.CST := StrToCSTIBSCBS(ObterConteudo(ANode.Childrens.FindAnyNs('CST'), tcStr));
+    trib.gIBSCBS.cClassTrib := ObterConteudo(ANode.Childrens.FindAnyNs('cClassTrib'), tcStr);
   end;
 end;
 
 procedure TNFSeR_PadraoNacional.LerXMLinfNFSe(const ANode: TACBrXmlNode);
 var
   AuxNode: TACBrXmlNode;
-  Ok: Boolean;
+  Ok, Evt: Boolean;
+  lUF: String;
 begin
   AuxNode := ANode.Childrens.FindAnyNs('Nfse');
 
-  if not(Assigned(AuxNode)) then
+  if not (Assigned(AuxNode)) then
     AuxNode := ANode.Childrens.FindAnyNs('NFSe');
+
+  if not (Assigned(AuxNode)) then
+  begin
+    AuxNode := ANode.Childrens.FindAnyNs('CompNfse');
+
+    if AuxNode <> nil then
+      AuxNode := AuxNode.Childrens.FindAnyNs('NFSe');
+
+    Evt := (Pos('<e101101>', ANode.OuterXml) > 0);
+  end
+  else
+  begin
+    if AuxNode <> nil then
+      AuxNode := ANode.Childrens.FindAnyNs('NFSe');
+  end;
 
   if AuxNode <> nil  then
     AuxNode := AuxNode.Childrens.FindAnyNs('infNFSe')
@@ -895,7 +1181,14 @@ begin
     gerado automaticamente pelo sistema gerador da NFS-e.
     }
 
-    NFSe.infNFSe.ID := OnlyNumber(ObterConteudoTag(AuxNode.Attributes.Items['Id']));
+    if Evt then
+      NFSe.SituacaoNfse := snCancelado;
+
+    NFSe.infNFSe.ID := RemoverLiteralChave(ObterConteudoTag(AuxNode.Attributes.Items['Id']));
+
+    if NFSe.infNFSe.ID = '' then
+      NFSe.infNFSe.ID := RemoverLiteralChave(ObterConteudoTag(AuxNode.Attributes.Items['id']));
+
     NFSe.infNFSe.xLocEmi := ObterConteudo(AuxNode.Childrens.FindAnyNs('xLocEmi'), tcStr);
     NFSe.infNFSe.xLocPrestacao := ObterConteudo(AuxNode.Childrens.FindAnyNs('xLocPrestacao'), tcStr);
     NFSe.infNFSe.nNFSe := ObterConteudo(AuxNode.Childrens.FindAnyNs('nNFSe'), tcStr);
@@ -916,9 +1209,22 @@ begin
     NFSe.Servico.xMunicipioIncidencia := NFSe.infNFSe.xLocIncid;
     NFSe.DataEmissao := NFSe.infNFSe.dhProc;
 
+    if NFSe.infNFSe.UFLocIncid = EmptyStr then
+    begin
+      ObterNomeMunicipioUF(NFSe.infNFSe.cLocIncid, lUF);
+      NFSe.infNFSe.UFLocIncid := lUF;
+    end;
+
     LerXMLEmitente(AuxNode);
     LerXMLValoresNFSe(AuxNode);
     LerXMLDPS(AuxNode);
+
+    // PadraoNacional - NT 009: o ADN nao devolve vCalcAjusteBCISSQN no ajuste por valor
+    if (NFSe.infNFSe.valores.vCalcDR = 0) and (NFSe.Servico.Valores.vAjusteBCISSQN > 0) then
+    begin
+      NFSe.infNFSe.valores.vCalcDR := NFSe.Servico.Valores.vAjusteBCISSQN;
+      NFSe.Servico.Valores.ValorDeducoes := NFSe.Servico.Valores.vAjusteBCISSQN;
+    end;
 
     NFSe.Numero := NFSe.infNFSe.nNFSe;
     NFSe.CodigoVerificacao := NFSe.infNFSe.ID;
@@ -991,6 +1297,7 @@ begin
     begin
       NFSe.InfNFSe.IBSCBS.cLocalidadeIncid := NFSe.InfNFSe.cLocIncid;
       NFSe.InfNFSe.IBSCBS.xLocalidadeIncid := NFSe.infNFSe.xLocIncid;
+      NFSe.InfNFSe.IBSCBS.UFLocalidadeIncid := NFSe.infNFSe.UFLocIncid;
     end;
 
     if NFSe.infNFSe.xLocEmi = NFSe.Emitente.Endereco.xMunicipio then
@@ -1004,6 +1311,12 @@ begin
 
     if NFSe.infNFSe.xLocEmi = NFSe.Intermediario.Endereco.xMunicipio then
       NFSe.infNFSe.UFLocEmi := NFSe.Intermediario.Endereco.UF;
+
+    if NFSe.infNFSe.UFLocEmi = EmptyStr then
+    begin
+      ObterNomeMunicipioUF(StrToIntDef(NFSe.cLocEmi, 0), lUF);
+      NFSe.infNFSe.UFLocEmi := lUF;
+    end;
   end;
 end;
 
@@ -1474,7 +1787,11 @@ begin
   begin
     LerXMLServicoPrestado(AuxNode);
     LerXMLDescontos(AuxNode);
+
+    // O grupo e identificado pelo conteudo do XML (vDedRed ou vAjusteBC)
     LerXMLDeducoes(AuxNode);
+    LerXMLAjusteBC(AuxNode);
+
     LerXMLTributacao(AuxNode);
   end;
 end;
@@ -1490,6 +1807,11 @@ begin
     with NFSe.infNFSe.valores do
     begin
       vCalcDR := ObterConteudo(AuxNode.Childrens.FindAnyNs('vCalcDR'), tcDe2);
+
+      // PadraoNacional - NT 009
+      if vCalcDR = 0 then
+        vCalcDR := ObterConteudo(AuxNode.Childrens.FindAnyNs('vCalcAjusteBCISSQN'), tcDe2);
+
       tpBM := ObterConteudo(AuxNode.Childrens.FindAnyNs('tpBM'), tcStr);
       vCalcBM := ObterConteudo(AuxNode.Childrens.FindAnyNs('vCalcBM'), tcDe2);
       BaseCalculo := ObterConteudo(AuxNode.Childrens.FindAnyNs('vBC'), tcDe2);
@@ -1535,6 +1857,7 @@ end;
 function TNFSeR_PadraoNacional.LerXml: Boolean;
 var
   XmlNode: TACBrXmlNode;
+  Ok: Boolean;
 begin
   FpQuebradeLinha := FpAOwner.ConfigGeral.QuebradeLinha;
 
@@ -1542,6 +1865,11 @@ begin
     raise Exception.Create('Arquivo xml não carregado.');
 
   LerParamsTabIni(True);
+
+  if FpAOwner.ConfigGeral.Ambiente = taProducao then
+    FpVersaoNT := StrToVersaoNTPadraoNacional(Ok, FpAOwner.ConfigWebServices.Producao.VersaoNT)
+  else
+    FpVersaoNT := StrToVersaoNTPadraoNacional(Ok, FpAOwner.ConfigWebServices.Homologacao.VersaoNT);
 
   Arquivo := NormatizarXml(Arquivo);
 
@@ -1644,6 +1972,7 @@ begin
   LerINIValores(AINIRec);
   LerINIValoresNFSe(AINIRec);
   LerINIDocumentosDeducoes(AINIRec);
+  LerINIDocAjusteBC(AINIRec);
   LerINIValoresTribMun(AINIRec);
   LerINIValoresTribFederal(AINIRec);
   LerINIValoresTotalTrib(AINIRec);
@@ -1674,6 +2003,7 @@ begin
   LerINIInformacoesComplementares(AINIRec);
   LerINIValores(AINIRec);
   LerINIDocumentosDeducoes(AINIRec);
+  LerINIDocAjusteBC(AINIRec);
   LerINIValoresTribMun(AINIRec);
   LerINIValoresTribFederal(AINIRec);
   LerINIValoresTotalTrib(AINIRec);
@@ -1792,6 +2122,10 @@ begin
     NFSe.tpEmit := StrTotpEmit(Ok, AINIRec.ReadString(sSecao, 'tpEmit', '1'));
     NFSe.cLocEmi := AINIRec.ReadString(sSecao, 'cLocEmi', '');
     NFSe.cMotivoEmisTI := StrTocMotivoEmisTI(AINIRec.ReadString(sSecao, 'cMotivoEmisTI', ''));
+    NFSe.chNFSeRej := AINIRec.ReadString(sSecao, 'chNFSeRej', '');
+
+    if FpVersaoNT = ntPN009v101 then
+      NFSe.IBSCBS.finNFSe := StrTofinNFSe(AINIRec.ReadString(sSecao, 'finNFSe', '0'));
   end;
 end;
 
@@ -2069,6 +2403,7 @@ begin
 
     NFSe.ConstrucaoCivil.Endereco.CEP := AINIRec.ReadString(sSecao, 'CEP', '');
     NFSe.ConstrucaoCivil.Endereco.xMunicipio := AINIRec.ReadString(sSecao, 'xMunicipio', '');
+    NFSe.ConstrucaoCivil.Endereco.CodigoMunicipio := AINIRec.ReadString(sSecao, 'CodigoMunicipio', '');
     NFSe.ConstrucaoCivil.Endereco.UF := AINIRec.ReadString(sSecao, 'UF', '');
     NFSe.ConstrucaoCivil.Endereco.Endereco := AINIRec.ReadString(sSecao, 'Logradouro', '');
     NFSe.ConstrucaoCivil.Endereco.Numero := AINIRec.ReadString(sSecao, 'Numero', '');
@@ -2161,6 +2496,8 @@ begin
     NFSe.Servico.Valores.DescontoCondicionado := StringToFloatDef(AINIRec.ReadString(sSecao, 'DescontoCondicionado', ''), 0);
     NFSe.Servico.Valores.AliquotaDeducoes := StringToFloatDef(AINIRec.ReadString(sSecao, 'AliquotaDeducoes', ''), 0);
     NFSe.Servico.Valores.ValorDeducoes := StringToFloatDef(AINIRec.ReadString(sSecao, 'ValorDeducoes', ''), 0);
+    NFSe.Servico.Valores.pAjusteBCISSQN := StringToFloatDef(AINIRec.ReadString(sSecao, 'pAjusteBCISSQN', ''), 0);
+    NFSe.Servico.Valores.vAjusteBCISSQN := StringToFloatDef(AINIRec.ReadString(sSecao, 'vAjusteBCISSQN', ''), 0);
   end;
 end;
 
@@ -2221,6 +2558,77 @@ begin
     fornec.Identificacao.CAEPF := AINIRec.ReadString(sSecao, 'CAEPF', '');
     fornec.RazaoSocial := AINIRec.ReadString(sSecao, 'RazaoSocial', '');
 
+    fornec.Endereco.CEP := AINIRec.ReadString(sSecao, 'CEP', '');
+    fornec.Endereco.xMunicipio := AINIRec.ReadString(sSecao, 'xMunicipio', '');
+    fornec.Endereco.UF := AINIRec.ReadString(sSecao, 'UF', '');
+    fornec.Endereco.Endereco := AINIRec.ReadString(sSecao, 'Logradouro', '');
+    fornec.Endereco.Numero := AINIRec.ReadString(sSecao, 'Numero', '');
+    fornec.Endereco.Complemento := AINIRec.ReadString(sSecao, 'Complemento', '');
+    fornec.Endereco.Bairro := AINIRec.ReadString(sSecao, 'Bairro', '');
+
+    fornec.Contato.Telefone := AINIRec.ReadString(sSecao, 'Telefone', '');
+    fornec.Contato.Email := AINIRec.ReadString(sSecao, 'Email', '');
+  end;
+end;
+
+procedure TNFSeR_PadraoNacional.LerINIDocAjusteBC(AINIRec: TMemIniFile);
+var
+  i: Integer;
+  sSecao: string;
+  Item: TdocAjusteBCCollectionItem;
+begin
+  i := 1;
+  while true do
+  begin
+    sSecao := 'docAjusteBC' + IntToStrZero(i, 3);
+
+    if not AINIRec.SectionExists(sSecao) then
+      break;
+
+    Item := NFSe.Servico.Valores.docAjusteBC.New;
+
+    Item.tpAjusteBC := StrTotpAjusteBC(AINIRec.ReadString(sSecao, 'tpAjusteBC', ''));
+    Item.xTpAjusteBC := AINIRec.ReadString(sSecao, 'xTpAjusteBC', '');
+    Item.vTotDoc := StringToFloatDef(AINIRec.ReadString(sSecao, 'vTotDoc', ''), 0);
+    Item.vAjusteAplic := StringToFloatDef(AINIRec.ReadString(sSecao, 'vAjusteAplic', ''), 0);
+    Item.dtEmiDoc := AINIRec.ReadDate(sSecao, 'dtEmiDoc', 0);
+    Item.dtCompDoc := AINIRec.ReadDate(sSecao, 'dtCompDoc', 0);
+
+    Item.dFeNacional.tipoChaveDFe := StrTotipoChaveDFe(AINIRec.ReadString(sSecao, 'tipoChaveDFe', '1'));
+    Item.dFeNacional.xTipoChaveDFe := AINIRec.ReadString(sSecao, 'xTipoChaveDFe', '');
+    Item.dFeNacional.chaveDFe := AINIRec.ReadString(sSecao, 'chaveDFe', '');
+
+    Item.docFiscalOutro.cMunDocFiscal := AINIRec.ReadInteger(sSecao, 'cMunDocFiscal', 0);
+    Item.docFiscalOutro.nDocFiscal := AINIRec.ReadString(sSecao, 'nDocFiscal', '');
+    Item.docFiscalOutro.xDocFiscal := AINIRec.ReadString(sSecao, 'xDocFiscal', '');
+
+    Item.docOutro.nDoc := AINIRec.ReadString(sSecao, 'nDoc', '');
+    Item.docOutro.xDoc := AINIRec.ReadString(sSecao, 'xDoc', '');
+
+    LerINIDocAjusteBCFornec(AINIRec, Item.fornec, i);
+
+    Inc(i);
+  end;
+end;
+
+procedure TNFSeR_PadraoNacional.LerINIDocAjusteBCFornec(
+  AINIRec: TMemIniFile; fornec: TInfoPessoa; Indice: Integer);
+var
+  sSecao: string;
+  Ok: Boolean;
+begin
+  sSecao := 'docAjusteBCFornec' + IntToStrZero(Indice, 3);
+  if AINIRec.SectionExists(sSecao) then
+  begin
+    fornec.Identificacao.CpfCnpj := AINIRec.ReadString(sSecao, 'CNPJCPF', '');
+    fornec.Identificacao.InscricaoMunicipal := AINIRec.ReadString(sSecao, 'InscricaoMunicipal', '');
+    fornec.Identificacao.Nif := AINIRec.ReadString(sSecao, 'NIF', '');
+    fornec.Identificacao.cNaoNIF := StrToNaoNIF(Ok, AINIRec.ReadString(sSecao, 'cNaoNIF', '0'));
+    fornec.Identificacao.CAEPF := AINIRec.ReadString(sSecao, 'CAEPF', '');
+    fornec.RazaoSocial := AINIRec.ReadString(sSecao, 'RazaoSocial', '');
+
+    fornec.Endereco.CodigoMunicipio := AINIRec.ReadString(sSecao, 'CodigoMunicipio', '');
+    fornec.Endereco.CodigoPais := AINIRec.ReadInteger(sSecao, 'CodigoPais', 0);
     fornec.Endereco.CEP := AINIRec.ReadString(sSecao, 'CEP', '');
     fornec.Endereco.xMunicipio := AINIRec.ReadString(sSecao, 'xMunicipio', '');
     fornec.Endereco.UF := AINIRec.ReadString(sSecao, 'UF', '');

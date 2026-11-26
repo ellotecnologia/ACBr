@@ -83,6 +83,7 @@ ResourceString
 
   SErroVersaoInvalida = 'Versão Inválida.';
   SErroTipoContribuinteInvalido = 'Tipo de Contribuinte Inválido.';
+  SErroLeiauteDANFEInvalido = 'Leiaute DANFE Inválido. Informe 0-Padrão ou 1-Reforma Tributária.';
 
 const
   CMonitorIni = 'ACBrMonitor.ini';
@@ -107,6 +108,7 @@ const
   CACBreSocialServicosIni =            'ACBreSocialServicos.ini';
   CACBrReinfServicosIni =              'ACBrReinfServicos.ini';
   CACBrBPeServicosIni =                'ACBrBPeServicos.ini';
+  CACBrDeREServicosIni =               'ACBrDeREServicos.ini';
   CACBrNFSeServicosIni =               'ACBrNFSeXServicos.ini';
 
   CMetodoSATAtivar =                   'ativar';
@@ -389,6 +391,9 @@ const
   CMetodoSetformaemissao =             'setformaemissao';
   CMetodoSetTipoImpressao =            'settipoimpressao';
   CMetodoSetRespTecnico =              'setresptecnico';
+  CMetodoObterListaChaves =            'obterlistachaves';
+  CMetodoObterDownloadXml =            'obterdownloadxml';
+  CMetodoSetLeiauteDANFE =             'setleiautedanfe';
   CMetodoSetPathArquivoWebServices =   'SetPathArquivoWebServices';
 
   CMetodoSetversaodf =                 'setversaodf';
@@ -996,9 +1001,11 @@ const
   CKeyVersaoMDFe =                   'VersaoMDFe';
   CKeyVersaoeSocial =                'VersaoeSocial';
   CKeyVersaoReinf =                  'VersaoReinf';
+  CKeyVersaoDeRE =                   'VersaoDeRE';
   CKeyVersaoQRCode =                 'VersaoQRCode';
   CKeyVersaoBPe =                    'VersaoBPe';
   CKeyVersaoGNRe =                   'VersaoGNRe';
+  CKeyVersaoCIOT =                   'VersaoCIOT';
   CKeyFormaEmissaoCTe =              'FormaEmissaoCTe';
   CKeyFormaEmissaoNFe =              'FormaEmissaoNFe';
   CKeyFormaEmissaoMDFe =             'FormaEmissaoMDFe';
@@ -1020,6 +1027,10 @@ const
   CKeyIdTransmissor =                'IdTransmissor';
   CKeyTipoEmpregador =               'TipoEmpregador';
   CKeyIdContribuinte =               'IdContribuinte';
+  CKeyDeREClientID =                 'ClientID';
+  CKeyDeREClientSecret =             'ClientSecret';
+  CKeyDeREToken =                    'Token';
+  CKeyDeRETokenExpira =              'TokenExpira';
   CKeyTipoContribuinte =             'TipoContribuinte';
 
   CSecRespTecnico =                  'RespTecnico';
@@ -1130,6 +1141,8 @@ const
   CKeyDANFEImprimeDescAcrescItemNFe =      'ImprimeDescAcrescItemNFe';
   CKeyDANFEImprimirCampoFormaPagamento =   'ImprimirCampoFormaPagamento';
   CKeyDANFEImprimeXPedNitemPed =           'ImprimeXPedNitemPed';
+  CKeyDANFELeiauteDANFE =                  'LeiauteDANFE';
+  CKeyDANFEImprimeCodigoProduto =          'ImprimeCodigoProduto';
 
 
   CSecDANFCe =                         'DANFCe';
@@ -1190,7 +1203,15 @@ const
 
   CSeceSocial =                             'eSocial';
   CSecReinf =                               'Reinf';
+  CSecDeRE =                                'DeRE';
   CKey =                                    'Host';
+
+  CSecCIOT =                                'CIOT';
+  CKeyIntegradora =                         'Integradora';
+  CKeyHashIntegrador =                      'HashIntegrador';
+  CKeyCIOTUsuario =                         'Usuario';
+  CKeyCNPJEmitente =                        'CNPJEmitente';
+  CKeyToken =                               'Token';
 
   CSecSAT =                                 'SAT';
   CKeySATModelo =                           'Modelo';

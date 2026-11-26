@@ -49,7 +49,7 @@ uses
   ACBr_fpdf_report,
   ACBrNFe.Classes,
   ACBrDFe.Conversao,
-  pcnConversaoNFe,
+  ACBrNFe.Conversao,
   ACBrNFe.EventoClass,
   ACBrNFe.EnvEvento,
   ACBrValidador,
@@ -101,6 +101,8 @@ type
     FFPDFReport: TNFeDANFeFPDF;
     FDANFEClassOwner: TACBrNFeDANFEClass;
     FStream : TStream;
+    FExibeEAN: Boolean;
+    function UsarLeiauteRTC(ANFe: TNFe): Boolean;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -117,8 +119,12 @@ type
     procedure ImprimirINUTILIZACAOPDF(AStream: TStream; ANFe: TNFe = nil); override;
   published
     // Declare propriedades publicamente acessíveis aqui
+    property ExibeEAN: Boolean read FExibeEAN write FExibeEAN default False;
   end;
 implementation
+
+uses
+  ACBrNFeDANFeFPDFRTC;
 
 type
   TBlocoCanhoto = class(TFPDFBand)
@@ -2732,7 +2738,6 @@ constructor TACBrNFeDANFeFPDF.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   // Inicialize outras configurações do seu componente aqui
-
 end;
 
 destructor TACBrNFeDANFeFPDF.Destroy;
@@ -2761,6 +2766,12 @@ begin
   inherited;
 end;
 
+function TACBrNFeDANFeFPDF.UsarLeiauteRTC(ANFe: TNFe): Boolean;
+begin
+  Result := (LeiauteDANFE = ldReformaTributaria) and (ANFe.Ide.tpImp in [tiRetrato, tiPaisagem]) and
+    not Etiqueta;
+end;
+
 procedure TACBrNFeDANFeFPDF.ImprimirDANFEPDF(NFE: TNFe);
 var
   Report: TFPDFReport;
@@ -2772,13 +2783,22 @@ begin
   for I := 0 to TACBrNFe(ACBrNFe).NotasFiscais.Count -1 do
   begin
     LNFe := TACBrNFe(ACBrNFe).NotasFiscais[I].NFe;
-    Report := TNFeDANFeFPDF.Create(LNFe,TACBrNFeDANFEClass(TACBrNFe(ACBrNFe).DANFE));
+    if UsarLeiauteRTC(LNFe) then
+    begin
+      Report := TNFeDANFeFPDFRTC.Create(LNFe, Self);
+      TNFeDANFeFPDFRTC(Report).MensagemRodape := Self.Sistema;
+      TNFeDANFeFPDFRTC(Report).ExibeEAN := Self.ExibeEAN;
+    end
+    else
+    begin
+      Report := TNFeDANFeFPDF.Create(LNFe,TACBrNFeDANFEClass(TACBrNFe(ACBrNFe).DANFE));
+
+      //TNFeDANFeFPDF(Report).PosCanhoto := TNFeDANFeFPDF(TACBrNFe(ACBrNFe).DANFE).PosCanhoto;
+
+      TNFeDANFeFPDF(Report).MensagemRodape := Self.Sistema;
+    end;
 
     FIndexImpressaoIndividual := I;
-
-    //TNFeDANFeFPDF(Report).PosCanhoto := TNFeDANFeFPDF(TACBrNFe(ACBrNFe).DANFE).PosCanhoto;
-
-    TNFeDANFeFPDF(Report).MensagemRodape := Self.Sistema;
 
     try
       Engine := TFPDFEngine.Create(Report, False);

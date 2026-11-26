@@ -130,7 +130,7 @@ begin
 
   if NFComNode <> nil then
   begin
-    infNFComNode := NFComNode.Childrens.Find('infNFCom');
+    infNFComNode := NFComNode.Childrens.FindAnyNs('infNFCom');
 
     if infNFComNode = nil then
       raise Exception.Create('Arquivo xml incorreto.');
@@ -151,9 +151,9 @@ begin
 
     Ler_InfNFCom(infNFComNode);
 
-    Ler_InfNFComSupl(NFComNode.Childrens.Find('infNFComSupl'));
+    Ler_InfNFComSupl(NFComNode.Childrens.FindAnyNs('infNFComSupl'));
 
-    LerSignature(NFComNode.Childrens.Find('Signature'), NFCom.signature);
+    LerSignature(NFComNode.Childrens.FindAnyNs('Signature'), NFCom.signature);
 
     Result := True;
   end;
@@ -188,7 +188,7 @@ var
 begin
   if not Assigned(ANode) then Exit;
 
-  Ler_Ide(ANode.Childrens.Find('ide'));
+  Ler_Ide(ANode.Childrens.FindAnyNs('ide'));
   Ler_Emit(ANode.Childrens.FindAnyNs('emit'));
   Ler_Dest(ANode.Childrens.FindAnyNs('dest'));
   Ler_Assinante(ANode.Childrens.FindAnyNs('assinante'));
@@ -201,7 +201,7 @@ begin
     Ler_det(ANodes[i]);
   end;
 
-  Ler_pgtoVinc(ANode.Childrens.Find('pgtoVinc'), NFCom.pgtoVinc);
+  Ler_pgtoVinc(ANode.Childrens.FindAnyNs('pgtoVinc'), NFCom.pgtoVinc);
   Ler_Total(ANode.Childrens.FindAnyNs('total'));
   Ler_gFidelidade(ANode.Childrens.FindAnyNs('gFidelidade'));
   Ler_gFat(ANode.Childrens.FindAnyNs('gFat'));
@@ -258,7 +258,7 @@ begin
   NFCom.Ide.tpPagAnt := StrTotpPagAnt(ObterConteudo(ANode.Childrens.FindAnyNs('tpPagAnt'), tcStr));
 
   // Reforma Tritutária
-  Ler_gCompraGovReduzido(ANode.Childrens.Find('gCompraGov'), NFCom.Ide.gCompraGov);
+  Ler_gCompraGovReduzido(ANode.Childrens.FindAnyNs('gCompraGov'), NFCom.Ide.gCompraGov);
 end;
 
 procedure TNFComXmlReader.Ler_Emit(const ANode: TACBrXmlNode);
@@ -270,7 +270,8 @@ begin
   NFCom.Emit.xNome := ObterConteudo(ANode.Childrens.FindAnyNs('xNome'), tcStr);
   NFCom.Emit.xFant := ObterConteudo(ANode.Childrens.FindAnyNs('xFant'), tcStr);
   NFCom.Emit.CRT:= StrToCRT(ObterConteudo(ANode.Childrens.FindAnyNs('CRT'),tcStr));
-  NFCom.Emit.ISUFEmit:= ObterConteudo(ANode.Childrens.Find('ISUFEmit'), tcStr);
+  NFCom.Emit.ISUFEmit:= ObterConteudo(ANode.Childrens.FindAnyNs('ISUFEmit'), tcStr);
+  NFCom.Emit.tpRegimeIBSCBS := StrTotpRegimeIBSCBS(ObterConteudo(ANode.Childrens.FindAnyNs('tpRegimeIBSCBS'), tcStr));
 
   Ler_EmitEnderEmit(ANode.Childrens.FindAnyNs('enderEmit'));
 end;
@@ -342,6 +343,7 @@ begin
   NFCom.assinante.dContratoFim := ObterConteudo(ANode.Childrens.FindAnyNs('dContratoFim'), tcDat);
   NFCom.assinante.NroTermPrinc := ObterConteudo(ANode.Childrens.FindAnyNs('NroTermPrinc'), tcStr);
   NFCom.assinante.cUFPrinc := ObterConteudo(ANode.Childrens.FindAnyNs('cUFPrinc'), tcInt);
+  NFCom.assinante.cMunPrinc := ObterConteudo(ANode.Childrens.FindAnyNs('cMunPrinc'), tcInt);
 
   NFCom.assinante.TermAdic.Clear;
   ANodes := ANode.Childrens.FindAllAnyNs('NroTermAdic');
@@ -466,6 +468,8 @@ begin
   Item.Prod.vDesc := ObterConteudo(ANode.Childrens.FindAnyNs('vDesc'), tcDe2);
   Item.Prod.vOutro := ObterConteudo(ANode.Childrens.FindAnyNs('vOutro'), tcDe2);
   Item.Prod.vProd := ObterConteudo(ANode.Childrens.FindAnyNs('vProd'), tcDe8);
+  Item.Prod.vItemLiq := ObterConteudo(ANode.Childrens.FindAnyNs('vItemLiq'), tcDe8);
+  Item.Prod.vProdLiq := ObterConteudo(ANode.Childrens.FindAnyNs('vProdLiq'), tcDe8);
   Item.Prod.dExpiracao := ObterConteudo(ANode.Childrens.FindAnyNs('dExpiracao'), tcDat);
 
   sAux := ObterConteudo(ANode.Childrens.FindAnyNs('indDevolucao'), tcStr);
@@ -498,11 +502,43 @@ var
     Item.Imposto.ICMS.pRedBC := ObterConteudo(AICMSNode.Childrens.FindAnyNs('pRedBC'), tcDe2);
     Item.Imposto.ICMS.vICMSDeson := ObterConteudo(AICMSNode.Childrens.FindAnyNs('vICMSDeson'), tcDe2);
     Item.Imposto.ICMS.cBenef := ObterConteudo(AICMSNode.Childrens.FindAnyNs('cBenef'), tcStr);
+  end;
 
-    sAux := ObterConteudo(ANode.Childrens.FindAnyNs('indSN'), tcStr);
+  procedure LerICMSSN(const AICMSNode: TACBrXmlNode);
+  begin
+    if not Assigned(AICMSNode) then
+      exit;
+    Item.Imposto.ICMS.CST := cstICMSSN;
+    Item.Imposto.ICMS.vBC := 0;
+    Item.Imposto.ICMS.pICMS := 0;
+    Item.Imposto.ICMS.vICMS := 0;
+    Item.Imposto.ICMS.pFCP := 0;
+    Item.Imposto.ICMS.vFCP := 0;
+    Item.Imposto.ICMS.pRedBC := 0;
+    Item.Imposto.ICMS.vICMSDeson := 0;
+    Item.Imposto.ICMS.cBenef := '';
+    Item.Imposto.ICMS.vICMSPrevisto := 0;
+
+    sAux := ObterConteudo(AICMSNode.Childrens.FindAnyNs('indSN'), tcStr);
     Item.Imposto.ICMS.indSN := tiNao;
     if sAux = '1' then
       Item.Imposto.ICMS.indSN := tiSim;
+  end;
+
+  procedure LerICMSPrevisto(const AICMSNode: TACBrXmlNode);
+  begin
+    if not Assigned(AICMSNode) then
+      exit;
+    Item.Imposto.ICMS.CST := cstICMSPrevisto;
+    Item.Imposto.ICMS.vBC := 0;
+    Item.Imposto.ICMS.pICMS := 0;
+    Item.Imposto.ICMS.vICMS := 0;
+    Item.Imposto.ICMS.pFCP := 0;
+    Item.Imposto.ICMS.vFCP := 0;
+    Item.Imposto.ICMS.pRedBC := 0;
+    Item.Imposto.ICMS.vICMSDeson := 0;
+    Item.Imposto.ICMS.cBenef := '';
+    Item.Imposto.ICMS.vICMSPrevisto := ObterConteudo(AICMSNode.Childrens.FindAnyNs('vICMSPrevisto'), tcDe2);
   end;
 begin
   if not Assigned(Item) then Exit;
@@ -520,7 +556,8 @@ begin
     LerICMS(ANode.Childrens.FindAnyNs('ICMS40'));
     LerICMS(ANode.Childrens.FindAnyNs('ICMS51'));
     LerICMS(ANode.Childrens.FindAnyNs('ICMS90'));
-    LerICMS(ANode.Childrens.FindAnyNs('ICMSSN'));
+    LerICMSSN(ANode.Childrens.FindAnyNs('ICMSSN'));
+    LerICMSPrevisto(ANode.Childrens.FindAnyNs('gICMSPrevistoPagtoAntecip'));
 
     Item.Imposto.ICMSUFDest.Clear;
     ANodes := ANode.Childrens.FindAllAnyNs('ICMSUFDest');
@@ -589,7 +626,7 @@ begin
   end;
 
   // Reforma Tributária
-  Ler_IBSCBS(ANode.Childrens.Find('IBSCBS'), Item.Imposto.IBSCBS);
+  Ler_IBSCBS(ANode.Childrens.FindAnyNs('IBSCBS'), Item.Imposto.IBSCBS);
 end;
 
 procedure TNFComXmlReader.Ler_DetgProcRef(const Item: TDetCollectionItem;
@@ -618,6 +655,9 @@ begin
   Item.gProcRef.vICMS := ObterConteudo(ANode.Childrens.FindAnyNs('vICMS'), tcDe2);
   Item.gProcRef.vPIS := ObterConteudo(ANode.Childrens.FindAnyNs('vPIS'), tcDe2);
   Item.gProcRef.vCOFINS := ObterConteudo(ANode.Childrens.FindAnyNs('vCOFINS'), tcDe2);
+  Item.gProcRef.vFCP := ObterConteudo(ANode.Childrens.FindAnyNs('vFCP'), tcDe2);
+
+  Ler_gIBSCBSSemProcJur(ANode.Childrens.FindAnyNs('gIBSCBS'), Item.gProcRef.gIBSCBS);
 
   ANodes := ANode.Childrens.FindAllAnyNs('gProc');
   for i := 0 to Length(ANodes) - 1 do
@@ -660,6 +700,7 @@ begin
   if not Assigned(ANode) then Exit;
 
   NFCom.Total.vProd := ObterConteudo(ANode.Childrens.FindAnyNs('vProd'), tcDe2);
+  NFCom.Total.vProdLiq := ObterConteudo(ANode.Childrens.FindAnyNs('vProdLiq'), tcDe2);
 
   AuxNode2 := ANode.Childrens.FindAnyNs('ICMSTot');
 
@@ -691,8 +732,8 @@ begin
   NFCom.Total.vNF := ObterConteudo(ANode.Childrens.FindAnyNs('vNF'), tcDe2);
 
   // Reforma Tributária
-  Ler_IBSCBSTot(ANode.Childrens.Find('IBSCBSTot'), NFCom.total.IBSCBSTot);
-  NFCom.Total.vTotDFe := ObterConteudo(ANode.Childrens.Find('vTotDFe'), tcDe2);
+  Ler_IBSCBSTot(ANode.Childrens.FindAnyNs('IBSCBSTot'), NFCom.total.IBSCBSTot);
+  NFCom.Total.vTotDFe := ObterConteudo(ANode.Childrens.FindAnyNs('vTotDFe'), tcDe2);
 end;
 
 procedure TNFComXmlReader.Ler_gFidelidade(const ANode: TACBrXmlNode);
@@ -801,7 +842,7 @@ var
 begin
   if not Assigned(ANode) then Exit;
 
-  sQrCode := ObterConteudo(ANode.Childrens.Find('qrCodNFCom'), tcStr);
+  sQrCode := ObterConteudo(ANode.Childrens.FindAnyNs('qrCodNFCom'), tcStr);
   sQrCode := StringReplace(sQrCode, '<![CDATA[', '', []);
   sQrCode := StringReplace(sQrCode, ']]>', '', []);
 

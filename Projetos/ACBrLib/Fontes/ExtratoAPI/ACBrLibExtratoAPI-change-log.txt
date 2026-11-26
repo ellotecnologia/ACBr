@@ -42,6 +42,17 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+13/11/2026
+--- ACBrLibExtratoAPIConfig, ACBrLibExtratoAPIConsts, ACBrLibExtratoAPIDataModule ---
+[+] ACBR-9434 - Adicionada a configuração APIVersao para suporte a API v2 do Extrato do Banco do Brasil
+    Por: Daniel Infocotidiano
+
+03/11/2026
+-- ACBrLibExtratoAPIConsoleMT.lpi, ACBrLibExtratoAPIConsoleMTDemo.lpi --
+[+] Adiciona suporte experimental a build Linux/ARM64
+[*] Erros conhecidos: https://gitlab.com/freepascal.org/fpc/source/-/work_items/39492
+   Por: doszapro
+
 24/11/2025
 --- ACBrLibExtratoAPIConfig ---
 [-] Sem Tarefa - Corrigido erro na criptografia no ClientID e ClientSecret com o Lazarus 4.4

@@ -644,7 +644,11 @@ begin
                            Nota.NFSe.Servico.Valores.ValorIr +
                            Nota.NFSe.Servico.Valores.ValorPis +
                            Nota.NFSe.Servico.Valores.ValorCofins +
-                           Nota.NFSe.Servico.Valores.ValorCsll;
+                           Nota.NFSe.Servico.Valores.ValorCsll +
+                           Nota.NFSe.Servico.Valores.ValorDespesasNaoTributaveis;
+
+    if Nota.NFSe.Servico.Valores.ValorDespesasNaoTributaveis > 0 then
+      Inc(TotalLinhas);
 
     if Nota.NFSe.Servico.Valores.ValorIr > 0 then
       Inc(TotalLinhas);
@@ -700,7 +704,7 @@ procedure TACBrNFSeProviderISSBarueri.PrepararConsultaSituacao(
 var
   AErro: TNFSeEventoCollectionItem;
   Emitente: TEmitenteConfNFSe;
-  XML: String;
+  XML, sProt: String;
 begin
   if EstaVazio(Response.Protocolo) then
   begin
@@ -712,10 +716,16 @@ begin
 
   Emitente := TACBrNFSeX(FAOwner).Configuracoes.Geral.Emitente;
 
+  // O WS requere o prefixo ENV + protocolo
+  if pos('ENV',Response.Protocolo) = 0 then
+    sProt:= 'ENV' + Response.Protocolo
+  else
+    sProt:= Response.Protocolo;
+
   XML := '<NFeLoteStatusArquivo xmlns="http://www.barueri.sp.gov.br/nfe">';
   XML := XML + '<InscricaoMunicipal>' + Emitente.InscMun + '</InscricaoMunicipal>';
   XML := XML + '<CPFCNPJContrib>' + Emitente.CNPJ + '</CPFCNPJContrib>';
-  XML := XML + '<ProtocoloRemessa>' + Response.Protocolo + '</ProtocoloRemessa>';
+  XML := XML + '<ProtocoloRemessa>' + sProt + '</ProtocoloRemessa>';
   XML := XML + '</NFeLoteStatusArquivo>';
 
   Response.ArquivoEnvio := XML;
@@ -912,7 +922,7 @@ procedure TACBrNFSeProviderISSBarueri.PrepararConsultaLoteRps(Response: TNFSeCon
 var
   AErro: TNFSeEventoCollectionItem;
   Emitente: TEmitenteConfNFSe;
-  XML: String;
+  XML, sArq: String;
 begin
   if EstaVazio(Response.Protocolo) then
   begin
@@ -924,10 +934,22 @@ begin
 
   Emitente := TACBrNFSeX(FAOwner).Configuracoes.Geral.Emitente;
 
+  // o WS requer o nome de arquivo com prefixo RET + Protocolo + .TXT
+  if pos('ENV',Response.Protocolo) > 0 then
+    sArq:= StringReplace(Response.Protocolo, 'ENV', 'RET', [rfReplaceAll])
+  else if pos('RET',Response.Protocolo) = 0 then
+    sArq:= 'RET' + Response.Protocolo
+  else
+    sArq:= Response.Protocolo;
+
+  // o protocolo pode ja vir com a extensao (ex.: RET...TXT)
+  if UpperCase(Copy(sArq, Length(sArq) - 3, 4)) <> '.TXT' then
+    sArq:= sArq + '.TXT';
+
   XML := '<NFeLoteBaixarArquivo xmlns="http://www.barueri.sp.gov.br/nfe">';
   XML := XML + '<InscricaoMunicipal>' + Emitente.InscMun + '</InscricaoMunicipal>';
   XML := XML + '<CPFCNPJContrib>' + Emitente.CNPJ + '</CPFCNPJContrib>';
-  XML := XML + '<NomeArqRetorno>' + Response.Protocolo + '</NomeArqRetorno>';
+  XML := XML + '<NomeArqRetorno>' + sArq + '</NomeArqRetorno>';  
   XML := XML + '</NFeLoteBaixarArquivo>';
 
   Response.ArquivoEnvio := XML;

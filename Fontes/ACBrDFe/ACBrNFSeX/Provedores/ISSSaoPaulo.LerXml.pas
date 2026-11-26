@@ -61,7 +61,10 @@ type
     procedure LerEnderecoTomador(const ANode: TACBrXmlNode);
     procedure LerCPFCNPJIntermediario(const ANode: TACBrXmlNode);
     procedure LerRetornoComplementarIBSCBS(const ANode: TACBrXmlNode);
+    procedure LerXMLIBSCBSDPS(const ANode: TACBrXmlNode; IBSCBS: TIBSCBSDPS); override;
     procedure LerXMLDestinatario(const ANode: TACBrXmlNode; Dest: TDadosdaPessoa); override;
+    procedure LerXMLImovel(const ANode: TACBrXmlNode; Imovel: TDadosimovel); override;
+    procedure LerXMLgIBSCBS(const ANode: TACBrXmlNode; gIBSCBS: TgIBSCBS); override;
   public
     function LerXml: Boolean; override;
     function LerXmlRps(const ANode: TACBrXmlNode): Boolean;
@@ -93,6 +96,7 @@ begin
 
     NFSe.Numero := ObterConteudo(LNode.Childrens.FindAnyNs('NumeroNFe'), tcStr);
     NFSe.CodigoVerificacao := ObterConteudo(LNode.Childrens.FindAnyNs('CodigoVerificacao'), tcStr);
+    NFSe.ChaveAcesso := ObterConteudo(LNode.Childrens.FindAnyNs('ChaveNotaNacional'), tcStr);
   end;
 end;
 
@@ -305,10 +309,39 @@ begin
   Dest.email := ObterConteudo(ANode.Childrens.FindAnyNs('email'), tcStr);
 end;
 
+procedure TNFSeR_ISSSaoPaulo.LerXMLIBSCBSDPS(const ANode: TACBrXmlNode;
+  IBSCBS: TIBSCBSDPS);
+begin
+  inherited LerXmlIBSCBSDPS(ANode, IBSCBS);
+
+  if not Assigned(ANode) then Exit;
+
+  LerXMLImovel(ANode.Childrens.FindAnyNs('imovelobra'), IBSCBS.imovel);
+
+  // Falta o campo indDoacao
+
+  NFSe.Servico.Valores.tribMun.cPaisResult := SiglaISO2ToCodIBGEPais(ObterConteudo(ANode.Childrens.FindAnyNs('cPaisResult'), tcStr));
+
+  LerXmlpgtoVinc(ANode.Childrens.FindAnyNs('gPgtoVinc'), IBSCBS.gPgtoVinc);
+end;
+
+procedure TNFSeR_ISSSaoPaulo.LerXMLImovel(const ANode: TACBrXmlNode;
+  Imovel: TDadosimovel);
+begin
+  if not Assigned(ANode) then Exit;
+
+  Imovel.inscImobFisc := ObterConteudo(ANode.Childrens.FindAnyNs('inscImobFisc'), tcStr);
+  Imovel.cCIB := ObterConteudo(ANode.Childrens.FindAnyNs('cCIB'), tcStr);
+  NFSe.ConstrucaoCivil.CodigoObra := ObterConteudo(ANode.Childrens.FindAnyNs('cObra'), tcStr);
+
+  LerXMLEnderecoNacionalImovel(ANode.Childrens.FindAnyNs('end'), Imovel.ender);
+end;
+
 function TNFSeR_ISSSaoPaulo.LerXmlNfse(const ANode: TACBrXmlNode): Boolean;
 var
   LValor: string;
   LOk :Boolean;
+  LUF: string;
 begin
   Result := True;
 
@@ -427,8 +460,25 @@ begin
 
   NFSe.Servico.CodigoMunicipio := ObterConteudo(ANode.Childrens.FindAnyNs('MunicipioPrestacao'), tcStr);
 
+  NFSe.Servico.xMunicipioIncidencia := '';
+  if NFSe.Servico.MunicipioIncidencia > 0 then
+  begin
+    LUF := '';
+    NFSe.Servico.xMunicipioIncidencia := ObterNomeMunicipioUF(NFSe.Servico.MunicipioIncidencia, LUF);
+  end;
+
   if NFSe.Servico.CodigoMunicipio = '' then
     NFSe.Servico.CodigoMunicipio := NFSe.Prestador.Endereco.CodigoMunicipio;
+
+  NFSe.Servico.MunicipioPrestacaoServico := '';
+  if StrToIntDef(NFSe.Servico.CodigoMunicipio, 0) > 0 then
+  begin
+    LUF := '';
+    NFSe.Servico.MunicipioPrestacaoServico := ObterNomeMunicipioUF(StrToIntDef(NFSe.Servico.CodigoMunicipio, 0), LUF);
+
+    if (NFSe.Servico.MunicipioPrestacaoServico <> '') and (LUF <> '') then
+      NFSe.Servico.MunicipioPrestacaoServico := NFSe.Servico.MunicipioPrestacaoServico + '/' + LUF;
+  end;
 
   NFSe.ConstrucaoCivil.nNumeroEncapsulamento := ObterConteudo(ANode.Childrens.FindAnyNs('NumeroEncapsulamento'), tcStr);
   NFSe.Servico.ValorTotalRecebido := ObterConteudo(ANode.Childrens.FindAnyNs('ValorTotalRecebido'), tcDe2);
@@ -532,6 +582,18 @@ begin
   NFSe.Servico.Valores.ValorTotalNotaFiscal := NFSe.Servico.Valores.ValorServicos -
                           NFSe.Servico.Valores.DescontoCondicionado -
                           NFSe.Servico.Valores.DescontoIncondicionado;
+end;
+
+procedure TNFSeR_ISSSaoPaulo.LerXMLgIBSCBS(const ANode: TACBrXmlNode;
+  gIBSCBS: TgIBSCBS);
+begin
+  if not Assigned(ANode) then Exit;
+
+  gIBSCBS.cClassTrib := ObterConteudo(ANode.Childrens.FindAnyNs('cClassTrib'), tcStr);
+
+  LerXMLgTribRegular(ANode.Childrens.FindAnyNs('gTribRegular'), gIBSCBS.gTribRegular);
+
+  // Falta o gEstornoCred
 end;
 
 end.

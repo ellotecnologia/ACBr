@@ -472,7 +472,7 @@ end;
 {$IfDef FPC}
 function GetSysANSIencoding: String;
 begin
-  Result := {$IfDef NOGUI}GetConsoleTextEncoding{$Else}GetDefaultTextEncoding{$EndIf};
+  Result := GetDefaultTextEncoding;
   if (Result = EncodingUTF8) or (Result = EncodingAnsi) then
     Result := 'cp1252';  // Usando página de código ANSI padrão para o Brasil
 end;
@@ -1598,7 +1598,7 @@ begin
        Pi := Pf + 1;  // Pula o Delimiter
      end;
 
-     if (Pi > 1) and (AText[Pi-1] = ADelimiter) then // Termina com Delimiter ?
+     if (Pi > 1) and (Pi-1 <= L) and (AText[Pi-1] = ADelimiter) then // Termina com Delimiter ?
        SL.Add('');                                   // Se SIM, adiciona item vazio
 
     {$EndIf}

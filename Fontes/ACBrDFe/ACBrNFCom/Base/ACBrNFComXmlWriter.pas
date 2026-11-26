@@ -240,6 +240,8 @@ begin
   FpGerarGrupoIBSCBSTot := False;
   ModelosDFe := mdfNFCom;
   tpNFDebito := tdNenhum;
+  NrOcorrgIBSTot := 1;
+  NrOcorrgCBSTot := 1;
 
   ListaDeAlertas.Clear;
 
@@ -483,6 +485,9 @@ begin
 
   Result.AppendChild(AddNode(tcStr, '#104', 'ISUFEmit', 8, 9, 0,
                                             NFCom.Emit.ISUFEmit, DSC_ISUFEMIT));
+
+  Result.AppendChild(AddNode(tcStr, '#104', 'tpRegimeIBSCBS', 1, 1, 0,
+           tpRegimeIBSCBSToStr(NFCom.Emit.tpRegimeIBSCBS), DSC_TPREGIMEIBSCBS));
 end;
 
 function TNFComXmlWriter.Gerar_EmitEnderEmit: TACBrXmlNode;
@@ -657,6 +662,9 @@ begin
 
     Result.AppendChild(AddNode(tcInt, '#69', 'cUFPrinc', 2, 2, 1,
                                             NFCom.assinante.cUFPrinc, DSC_CUF));
+
+    Result.AppendChild(AddNode(tcInt, '#69', 'cMunPrinc', 7, 7, 0,
+                                          NFCom.assinante.cMunPrinc, DSC_CMUN));
   end;
 
   for i := 0 to NFCom.assinante.TermAdic.Count - 1 do
@@ -839,6 +847,12 @@ begin
   Result.AppendChild(AddNode(tcDe8, '#169', 'vProd', 1, 15, 1,
                                         NFCom.Det[aDet].Prod.vProd, DSC_VPROD));
 
+  Result.AppendChild(AddNode(tcDe8, '#169', 'vItemLiq', 1, 15, 0,
+                                  NFCom.Det[aDet].Prod.vItemLiq, DSC_VITEMLIQ));
+
+  Result.AppendChild(AddNode(tcDe8, '#169', 'vProdLiq', 1, 15, 0,
+                                  NFCom.Det[aDet].Prod.vProdLiq, DSC_VPRODLIQ));
+
   Result.AppendChild(AddNode(tcDat, '#169', 'dExpiracao', 10, 10, 0,
                               NFCom.Det[aDet].Prod.dExpiracao, DSC_DEXPIRACAO));
 
@@ -894,6 +908,7 @@ function TNFComXmlWriter.Gerar_det_imposto_ICMS(aDet: Integer): TACBrXmlNode;
       cst41: result := '40';
       cst51: result := '51';
       cst90: result := '90';
+      cstICMSPrevisto: Result := 'IP';
     else
       Result := 'SN';
     end;
@@ -911,9 +926,14 @@ begin
     if sCST = 'SN' then
       sCST := '90';
 
-    Result := FDocument.CreateElement('ICMS' + sTagTemp);
+    if sTagTemp <> 'IP' then
+    begin
+      Result := FDocument.CreateElement('ICMS' + sTagTemp);
 
-    Result.AppendChild(AddNode(tcStr, '#174', 'CST', 2, 2, 1, sCST, DSC_CST));
+      Result.AppendChild(AddNode(tcStr, '#174', 'CST', 2, 2, 1, sCST, DSC_CST));
+    end
+    else
+      Result := FDocument.CreateElement('gICMSPrevistoPagtoAntecip');
 
     case CST of
       cst00:
@@ -1007,6 +1027,9 @@ begin
                                                              vICMS, DSC_VICMS));
         end;
 
+      cstICMSPrevisto:
+        Result.AppendChild(AddNode(tcDe2, 'N31', 'vICMSPrevisto', 01, 15, 1,
+                 vICMSPrevisto, DSC_VICMSPREVISTO));
     else
       begin
         // cstICMSSN
@@ -1219,6 +1242,11 @@ begin
     Result.AppendChild(AddNode(tcDe2, '#243', 'vCOFINS', 1, 15, 0,
                                 NFCom.Det[aDet].gProcRef.vCOFINS, DSC_VCOFINS));
 
+    Result.AppendChild(AddNode(tcDe2, '#243', 'vFCP', 1, 15, 0,
+                                      NFCom.Det[aDet].gProcRef.vFCP, DSC_VFCP));
+
+    Result.AppendChild(Gerar_gIBSCBSSemProcJur(NFCom.Det[aDet].gProcRef.gIBSCBS));
+
     nodeArray := Gerar_det_gProcRef_gProc(aDet);
     for i := 0 to NFCom.Det[aDet].gProcRef.gProc.Count - 1 do
     begin
@@ -1276,11 +1304,21 @@ begin
 end;
 
 function TNFComXmlWriter.Gerar_Total: TACBrXmlNode;
+var
+  NrOcorrvTotDFe: Integer;
 begin
+  if FpGerarGrupoIBSCBSTot then
+    NrOcorrvTotDFe := 1
+  else
+    NrOcorrvTotDFe := 0;
+
   Result := FDocument.CreateElement('total');
 
   Result.AppendChild(AddNode(tcDe2, '#254', 'vProd', 1, 15, 1,
                                                  NFCom.Total.vProd, DSC_VPROD));
+
+  Result.AppendChild(AddNode(tcDe2, '#254', 'vProdLiq', 1, 15, 0,
+                                           NFCom.Total.vProdLiq, DSC_VPRODLIQ));
 
   Result.AppendChild(Gerar_Total_ICMSTotal);
 
@@ -1310,7 +1348,7 @@ begin
   // Reforma Tributária
   Result.AppendChild(Gerar_IBSCBSTot(NFCom.Total.IBSCBSTot));
 
-  Result.AppendChild(AddNode(tcDe2, '#250', 'vTotDFe', 1, 15, 0,
+  Result.AppendChild(AddNode(tcDe2, '#250', 'vTotDFe', 1, 15, NrOcorrvTotDFe,
                                              NFCom.Total.vTotDFe, DSC_VTOTDFE));
 end;
 

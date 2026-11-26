@@ -457,8 +457,10 @@ begin
   Item.vMedAnt := ObterConteudo(ANode.Childrens.FindAnyNs('vMedAnt'), tcDe4);
   Item.dMedAtu := ObterConteudo(ANode.Childrens.FindAnyNs('dMedAtu'), tcDat);
   Item.vMedAtu := ObterConteudo(ANode.Childrens.FindAnyNs('vMedAtu'), tcDe4);
+  Item.dMedProx := ObterConteudo(ANode.Childrens.FindAnyNs('dMedProx'), tcDat);
   Item.tpEqp := StrTotpEqp(ObterConteudo(ANode.Childrens.FindAnyNs('tpEqp'), tcStr));
   Item.tpMedidor := StrTotpMedidor(ObterConteudo(ANode.Childrens.FindAnyNs('tpMedidor'), tcStr));
+  Item.descPontoCons := ObterConteudo(ANode.Childrens.FindAnyNs('descPontoCons'), tcStr);
 end;
 
 procedure TNFGasXmlReader.Ler_Det(const ANode: TACBrXmlNode);
@@ -539,6 +541,8 @@ begin
   Prod.fatorP := ObterConteudo(ANode.Childrens.FindAnyNs('fatorP'), tcDe4);
   Prod.fatorT := ObterConteudo(ANode.Childrens.FindAnyNs('fatorT'), tcDe4);
   Prod.vProd := ObterConteudo(ANode.Childrens.FindAnyNs('vProd'), tcDe10);
+  Prod.vItemLiq := ObterConteudo(ANode.Childrens.FindAnyNs('vItemLiq'), tcDe10);
+  Prod.vProdLiq := ObterConteudo(ANode.Childrens.FindAnyNs('vProdLiq'), tcDe10);
 
   Lvalor := ObterConteudo(ANode.Childrens.FindAnyNs('indDevolucao'), tcStr);
 
@@ -615,6 +619,7 @@ begin
   if not Assigned(ICMSNode) then ICMSNode := ANode.Childrens.FindAnyNs('ICMS60');
   if not Assigned(ICMSNode) then ICMSNode := ANode.Childrens.FindAnyNs('ICMS70');
   if not Assigned(ICMSNode) then ICMSNode := ANode.Childrens.FindAnyNs('ICMS90');
+  if not Assigned(ICMSNode) then ICMSNode := ANode.Childrens.FindAnyNs('gICMSPrevistoPagtoAntecip');
 
   if not Assigned(ICMSNode) then
     Exit;
@@ -652,6 +657,7 @@ begin
   ICMS.vICMSEfet := ObterConteudo(ICMSNode.Childrens.FindAnyNs('vICMSEfet'), tcDe2);
   ICMS.pFCP := ObterConteudo(ICMSNode.Childrens.FindAnyNs('pFCP'), tcDe4);
   ICMS.vFCP := ObterConteudo(ICMSNode.Childrens.FindAnyNs('vFCP'), tcDe2);
+  ICMS.vICMSPrevisto := ObterConteudo(ICMSNode.Childrens.FindAnyNs('vICMSPrevisto'), tcDe2);
 
   Lvalor := ObterConteudo(ANode.Childrens.FindAnyNs('indSemCST'), tcStr);
 
@@ -720,6 +726,8 @@ begin
   if Lvalor <> '' then
     gProcRef.indDevolucao := StrToTIndicador(lValor);
 
+  Ler_gIBSCBSSemProcJur(ANode.Childrens.FindAnyNs('gIBSCBS'), gProcRef.gIBSCBS);
+
   ANodes := ANode.Childrens.FindAllAnyNs('gProc');
   for Index := 0 to Length(ANodes) - 1 do
   begin
@@ -746,6 +754,7 @@ begin
     Exit;
 
   Total.vProd := ObterConteudo(ANode.Childrens.FindAnyNs('vProd'), tcDe2);
+  Total.vProdLiq := ObterConteudo(ANode.Childrens.FindAnyNs('vProdLiq'), tcDe2);
 
   Ler_ICMSTot(ANode.Childrens.FindAnyNs('ICMSTot'), Total);
   Ler_vRetTribTot(ANode.Childrens.FindAnyNs('vRetTribTot'), Total);

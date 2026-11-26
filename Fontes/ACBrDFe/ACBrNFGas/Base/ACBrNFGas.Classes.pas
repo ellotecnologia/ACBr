@@ -308,6 +308,8 @@ type
     FvMedAtu: Double;
     FtpEqp: TtpEqp;
     FtpMedidor: TtpMedidor;
+    FdMedProx: TDateTime;
+    FdescPontoCons: string;
   public
     procedure Assign(Source: TgMedCollectionItem);
 
@@ -319,6 +321,8 @@ type
     property vMedAtu: Double read FvMedAtu write FvMedAtu;
     property tpEqp: TtpEqp read FtpEqp write FtpEqp;
     property tpMedidor: TtpMedidor read FtpMedidor write FtpMedidor;
+    property dMedProx: TDateTime read FdMedProx write FdMedProx;
+    property descPontoCons: string read FdescPontoCons write FdescPontoCons;
   end;
 
   { TgMedCollection }
@@ -417,6 +421,8 @@ type
     FfatorP: Double;
     FfatorT: Double;
     FvProd: Double;
+    FvItemLiq: Double;
+    FvProdLiq: Double;
     FindDevolucao: TIndicador;
     FgPagAntecipado: TgPagAntecipadoProd;
   public
@@ -439,6 +445,8 @@ type
     property fatorP: Double read FfatorP write FfatorP;
     property fatorT: Double read FfatorT write FfatorT;
     property vProd: Double read FvProd write FvProd;
+    property vItemLiq: Double read FvItemLiq write FvItemLiq;
+    property vProdLiq: Double read FvProdLiq write FvProdLiq;
     property indDevolucao: TIndicador read FindDevolucao write FindDevolucao;
     property gPagAntecipado: TgPagAntecipadoProd read FgPagAntecipado write FgPagAntecipado;
   end;
@@ -481,6 +489,7 @@ type
     FpRedBCST: Double;
     FvBCFCPST: Double;
     FindDeduzDeson: TIndicadorEx;
+    FvICMSPrevisto: Double;
   public
     procedure Assign(Source: TICMS);
 
@@ -518,6 +527,7 @@ type
     property pRedBCST: Double read FpRedBCST write FpRedBCST;
     property vBCFCPST: Double read FvBCFCPST write FvBCFCPST;
     property indDeduzDeson: TIndicadorEx read FindDeduzDeson write FindDeduzDeson default tieNenhum;
+    property vICMSPrevisto: Double read FvICMSPrevisto write FvICMSPrevisto;
   end;
 
   { TPIS }
@@ -650,6 +660,7 @@ type
     FqFaturada: Double;
     FvProd: Double;
     FindDevolucao: TIndicador;
+    FgIBSCBS: TgIBSCBSSemProcJud;
     FgProc: TgProcCollection;
 
     procedure SetgProc(const Value: TgProcCollection);
@@ -663,6 +674,7 @@ type
     property qFaturada: Double read FqFaturada write FqFaturada;
     property vProd: Double read FvProd write FvProd;
     property indDevolucao: TIndicador read FindDevolucao write FindDevolucao;
+    property gIBSCBS: TgIBSCBSSemProcJud read FgIBSCBS write FgIBSCBS;
     property gProc: TgProcCollection read FgProc write SetgProc;
   end;
 
@@ -741,6 +753,7 @@ type
   TTotal = class(TObject)
   private
     FvProd: Double;
+    FvProdLiq: Double;
     FvBC: Double;
     FvICMS: Double;
     FvICMSDeson: Double;
@@ -765,6 +778,7 @@ type
     procedure Assign(Source: TTotal);
 
     property vProd: Double       read FvProd       write FvProd;
+    property vProdLiq: Double    read FvProdLiq    write FvProdLiq;
     property vBC: Double         read FvBC         write FvBC;
     property vICMS: Double       read FvICMS       write FvICMS;
     property vICMSDeson: Double  read FvICMSDeson  write FvICMSDeson;
@@ -1353,6 +1367,8 @@ begin
   vMedAtu := Source.vMedAtu;
   tpEqp := Source.tpEqp;
   tpMedidor := Source.tpMedidor;
+  dMedProx := Source.dMedProx;
+  descPontoCons := Source.descPontoCons;
 end;
 
 { TDetCollection }
@@ -1493,6 +1509,8 @@ begin
   fatorP := Source.fatorP;
   fatorT := Source.fatorT;
   vProd := Source.vProd;
+  vItemLiq := Source.vItemLiq;
+  vProdLiq := Source.vProdLiq;
   indDevolucao := Source.indDevolucao;
 
   gMedicao.Assign(Source.gMedicao);
@@ -1618,8 +1636,7 @@ begin
   pRedBCST := Source.pRedBCST;
   vBCFCPST := Source.vBCFCPST;
   indDeduzDeson := Source.indDeduzDeson;
-
-
+  vICMSPrevisto := Source.vICMSPrevisto;
 end;
 
 { TPIS }
@@ -1670,6 +1687,8 @@ begin
   qFaturada := Source.qFaturada;
   vProd := Source.vProd;
   indDevolucao := Source.indDevolucao;
+
+  gIBSCBS.Assign(Source.gIBSCBS);
   gProc.Assign(Source.gProc);
 end;
 
@@ -1678,11 +1697,13 @@ begin
   inherited Create;
 
   FgProc := TgProcCollection.Create;
+  FgIBSCBS := TgIBSCBSSemProcJud.Create;
 end;
 
 destructor TgProcRef.Destroy;
 begin
-  FreeAndNil(FgProc);
+  FgProc.Free;
+  FgIBSCBS.Free;
 
   inherited Destroy;
 end;
@@ -1723,6 +1744,7 @@ end;
 procedure TTotal.Assign(Source: TTotal);
 begin
   vProd := Source.vProd;
+  vProdLiq := Source.vProdLiq;
   vBC := Source.vBC;
   vICMS := Source.vICMS;
   vICMSDeson := Source.vICMSDeson;

@@ -133,17 +133,24 @@ type
                                      const AListTag: string = 'Erros'); override;
 
     function PrepararArquivoEnvio(const aXml: string; aMetodo: TMetodo): string; override;
+    procedure PrepararConsultaNFSeporRps(Response: TNFSeConsultaNFSeporRpsResponse); override;
+  public
+    function GetSchemaPath: string; override;
   end;
 
 implementation
 
 uses
   synacode,
+  ACBrNFSeX,
   ACBrCompress,
   ACBrDFe.Conversao,
   ACBrUtil.Strings,
   ACBrUtil.XMLHTML,
+  ACBrUtil.FilesIO,
+  ACBrUtil.Base,
   ACBrDFeException,
+  ACBrNFSeXConsts,
   DSF.GravarXml,
   DSF.LerXml;
 
@@ -642,6 +649,23 @@ begin
   end;
 end;
 
+function TACBrNFSeProviderDSFAPIPropria.GetSchemaPath: string;
+begin
+  {
+    Usar essa função até que o provedor faça alteração e passa a usar os novos
+    Schemas publicados pela Receita Federal.
+  }
+  with TACBrNFSeX(FAOwner).Configuracoes do
+  begin
+    if Geral.APIPropria then
+      Result := PathWithDelim(Arquivos.PathSchemas + 'PadraoNacional')
+    else
+      Result := PathWithDelim(Arquivos.PathSchemas + Geral.xProvedor);
+
+    Result := PathWithDelim(Result + VersaoNFSeToStr(Geral.Versao));
+  end;
+end;
+
 function TACBrNFSeProviderDSFAPIPropria.PrepararArquivoEnvio(const aXml: string;
   aMetodo: TMetodo): string;
 begin
@@ -656,7 +680,7 @@ begin
       tmGerar:
         begin
           Result := '{"dpsXmlGZipB64":"' + Result + '"}';
-          Path := '/dps';
+          Path := '/nfse';
         end;
 
       tmEnviarEvento:
@@ -673,6 +697,24 @@ begin
 
     Method := 'POST';
   end;
+end;
+
+procedure TACBrNFSeProviderDSFAPIPropria.PrepararConsultaNFSeporRps(
+  Response: TNFSeConsultaNFSeporRpsResponse);
+var
+  AErro: TNFSeEventoCollectionItem;
+begin
+  if EstaVazio(Response.idRps) then
+  begin
+    AErro := Response.Erros.New;
+    AErro.Codigo := Cod126;
+    AErro.Descricao := ACBrStr(Desc126);
+    Exit;
+  end;
+
+  Path := '/api/adn/dps/' + Response.idRps;
+  Response.ArquivoEnvio := Path;
+  Method := 'GET';
 end;
 
 procedure TACBrNFSeProviderDSFAPIPropria.ProcessarMensagemDeErros(

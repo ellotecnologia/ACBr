@@ -702,7 +702,11 @@ begin
     //LJsonObject.AddPair('percentualBonificacao', 0);
     //LJsonObject.AddPair('vlBonificacao', 0);
     //LJsonObject.AddPair('dtLimiteBonificacao', );
-    LJsonObject.AddPair('vlAbatimento',  ATitulo.ValorAbatimento * 100);
+    // Portal Developers: valor em reais com duas casas decimais (ex. 1000.00)
+    if Boleto.Configuracoes.WebService.UseCertificateHTTP and (ATitulo.ValorAbatimento > 0) then
+      LJsonObject.AddPair('vlAbatimento',  ValorNominalFormatadoBradesco(ATitulo.ValorAbatimento))
+    else
+      LJsonObject.AddPair('vlAbatimento',  ATitulo.ValorAbatimento * 100);
     LJsonObject.AddPair('vlIOF', ATitulo.ValorIOF * 100);
 
 
@@ -755,7 +759,11 @@ begin
       LJsonObject.AddPair('digCpfCnpjBenef',  Copy(OnlyCPFCNPJAlphaNum(Boleto.Cedente.CNPJCPF), 10, 2));
     end;
     if ATitulo.DataLimitePagto > 0 then
-       LJsonObject.AddPair('qtdDecurPrz', DaysBetween(ATitulo.Vencimento, ATitulo.DataLimitePagto));
+      LJsonObject.AddPair('qtdDecurPrz', DaysBetween(ATitulo.Vencimento, ATitulo.DataLimitePagto))
+    else
+      if Boleto.Configuracoes.WebService.Ambiente <> tawsProducao then
+        LJsonObject.AddPair('qtdDecurPrz', '00');
+
     LJsonObject.AddPair('tipoAcesso', 2);//FIXO.
     LJsonObject.AddPair('cpssoaJuridContr', 0);//FIXO.
     LJsonObject.AddPair('ctpoContrNegoc', 0);//FIXO.
@@ -787,9 +795,6 @@ begin
     LJsonObject.AddPair('dvctoTitloCobr', DateTimeToDateBradesco(ATitulo.Vencimento));
     LJsonObject.AddPair('cidtfdTpoVcto', 0);//FIXO.
 
-    //data limite pagto
-    if ATitulo.DataLimitePagto > 0 then
-     LJsonObject.AddPair('dataLimitePgt10', DateTimeToDateBradesco(ATitulo.DataLimitePagto));
     // A propriedade cindcdEconmMoeda só existe no boleto com QrCode/Hibrido tanto no legado/portal dev
     // Segundo manual do portal DEV QrCode v1.8.1 e Convencional v1.7.0
 //	if Boleto.Configuracoes.WebService.UseCertificateHTTP then // Portal Developers
@@ -806,7 +811,7 @@ begin
    //ctpoProteTitlo: Tipo de protesto automático do título: 1 = Dias corridos | 2 = Dias úteis.
     LJsonObject.AddPair('ctpoProteTitlo', 0);//NÃO Obrigatório;
     //Quantidade de dias após o vencimento, para protesto automático. Obrigatório? Sim, caso informado ctpoProteTitlo.
-    LJsonObject.AddPair('ctpoPrzProte', 0);
+
     //Tipo decurso de protesto: 1 = Dias corridos | 2 = Dias úteis. Obrigatório? Sim, caso informado ctpoProteTitlo.
     LJsonObject.AddPair('ctpoProteDecurs', 0);
     LJsonObject.AddPair('ctpoPrzDecurs', 0);//FIXO.
@@ -1190,6 +1195,10 @@ end;
 procedure TBoletoW_Bradesco.GerarBenificiarioFinalComum(AJsonObject: TACBrJSONObject);
 begin
   if not Assigned(ATitulo) or not Assigned(AJsonObject) then
+    Exit;
+  // Portal Developers: sacador avalista nao obrigatorio, enviar somente quando utilizado
+  if Boleto.Configuracoes.WebService.UseCertificateHTTP and
+     (OnlyCPFCNPJAlphaNum(ATitulo.Sacado.SacadoAvalista.CNPJCPF) = '') then
     Exit;
   AJsonObject.AddPair('nomeSacadorAvalista', Copy(TiraAcentos(ATitulo.Sacado.SacadoAvalista.NomeAvalista), 1, 40));
   AJsonObject.AddPair('logradouroSacadorAvalista', Copy(TiraAcentos(ATitulo.Sacado.SacadoAvalista.Logradouro) + ' '+ATitulo.Sacado.SacadoAvalista.Numero, 1, 40));
@@ -1591,28 +1600,40 @@ procedure TBoletoW_Bradesco.GerarDesconto(AJsonObject: TACBrJSONObject);
 var
   LPercentual, LValor, LData: string;
   i, TipoDesconto: Integer;
+  LDataDesconto: TDateTime;
+  LValorDesconto: Currency;
 
   procedure AdicionarDescontoJSON(const Sufixo: string; TipoDesconto: Integer);
   begin
-    if (TipoDesconto > 0) and (ATitulo.ValorDesconto > 0) then
+    if (TipoDesconto > 0) and (LValorDesconto > 0) then
     begin
       if TipoDesconto = 1 then
       begin
         AJsonObject.AddPair(LPercentual + Sufixo, 0);
         if Boleto.Cedente.CedenteWS.IndicadorPix then
-          AJsonObject.AddPair(LValor + Sufixo, ATitulo.ValorDesconto)
+          AJsonObject.AddPair(LValor + Sufixo, LValorDesconto)
         else
-          AJsonObject.AddPair(LValor + Sufixo, ATitulo.ValorDesconto * 100);
+        if Boleto.Configuracoes.WebService.UseCertificateHTTP then
+          AJsonObject.AddPair(LValor + Sufixo, ValorNominalFormatadoBradesco(LValorDesconto))
+        else
+          AJsonObject.AddPair(LValor + Sufixo, LValorDesconto * 100);
       end
       else
       begin
       	if Boleto.Cedente.CedenteWS.IndicadorPix then
-      	  AJsonObject.AddPair(LPercentual + Sufixo, ATitulo.ValorDesconto)
+      	  AJsonObject.AddPair(LPercentual + Sufixo, LValorDesconto)
       	else
-          AJsonObject.AddPair(LPercentual + Sufixo, ATitulo.ValorDesconto * 100);
+      	if Boleto.Configuracoes.WebService.UseCertificateHTTP then
+      	  AJsonObject.AddPair(LPercentual + Sufixo, ValorNominalFormatadoBradesco(LValorDesconto))
+      	else
+          AJsonObject.AddPair(LPercentual + Sufixo, LValorDesconto * 100);
         AJsonObject.AddPair(LValor + Sufixo, 0);
       end;
-      AJsonObject.AddPair(LData + Sufixo, DateTimeToDateBradesco(ATitulo.Vencimento));
+      // Portal Developers: data limite de cada desconto
+      if Boleto.Configuracoes.WebService.UseCertificateHTTP and (LDataDesconto > 0) then
+        AJsonObject.AddPair(LData + Sufixo, DateTimeToDateBradesco(LDataDesconto))
+      else
+        AJsonObject.AddPair(LData + Sufixo, DateTimeToDateBradesco(ATitulo.Vencimento));
     end
     else
     begin
@@ -1643,12 +1664,33 @@ begin
   for i := 1 to 3 do
   begin
     case i of
-      1: TipoDesconto := Integer(ATitulo.TipoDesconto);
-      2: TipoDesconto := Integer(ATitulo.TipoDesconto2);
-      3: TipoDesconto := Integer(ATitulo.TipoDesconto3);
+      1: begin
+           TipoDesconto   := Integer(ATitulo.TipoDesconto);
+           LDataDesconto  := ATitulo.DataDesconto;
+           LValorDesconto := ATitulo.ValorDesconto;
+         end;
+      2: begin
+           TipoDesconto   := Integer(ATitulo.TipoDesconto2);
+           LDataDesconto  := ATitulo.DataDesconto2;
+           LValorDesconto := ATitulo.ValorDesconto2;
+         end;
+      3: begin
+           TipoDesconto   := Integer(ATitulo.TipoDesconto3);
+           LDataDesconto  := ATitulo.DataDesconto3;
+           LValorDesconto := ATitulo.ValorDesconto3;
+         end;
       else
-        TipoDesconto := 0;
+        begin
+          TipoDesconto   := 0;
+          LDataDesconto  := 0;
+          LValorDesconto := 0;
+        end;
     end;
+
+    // fora do Portal sem QRCode mantem o comportamento anterior
+    if (not Boleto.Configuracoes.WebService.UseCertificateHTTP) or
+       Boleto.Cedente.CedenteWS.IndicadorPix then
+      LValorDesconto := ATitulo.ValorDesconto;
 
     AdicionarDescontoJSON(IntToStr(i), TipoDesconto);
   end;

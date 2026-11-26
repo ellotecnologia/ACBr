@@ -231,11 +231,13 @@ type
     FTipoDANFE: TpcnTipoImpressao;
     FImprimeTotalLiquido: Boolean;
     FImprimeCodigoEan: Boolean;
+    FImprimeCodigoProduto: Boolean;
     FImprimeTributos: TpcnTributos;
     FQuebraLinhaEmDetalhamentos: Boolean;
     FExibeTotalTributosItem: Boolean;
     FExibeInforAdicProduto: TinfAdcProd;
     FImprimeNomeFantasia: Boolean;
+    FLeiauteDANFE: TLeiauteDANFE;
     FNFeConfig: TDANFeNFeConfig;
     FNFCeConfig: TDANFeNFCeConfig;
 
@@ -263,7 +265,9 @@ type
     property ExibeTotalTributosItem: Boolean read FExibeTotalTributosItem write FExibeTotalTributosItem;
     property ExibeInforAdicProduto: TinfAdcProd read FExibeInforAdicProduto write FExibeInforAdicProduto;
     property ImprimeCodigoEan: Boolean read FImprimeCodigoEan write FImprimeCodigoEan;
+    property ImprimeCodigoProduto: Boolean read FImprimeCodigoProduto write FImprimeCodigoProduto;
     property ImprimeNomeFantasia: Boolean read FImprimeNomeFantasia write FImprimeNomeFantasia;
+    property LeiauteDANFE: TLeiauteDANFE read FLeiauteDANFE write FLeiauteDANFE;
     property NFe: TDANFeNFeConfig read FNFeConfig;
     property NFCe: TDANFeNFCeConfig read FNFCeConfig;
 
@@ -300,7 +304,7 @@ uses
   {$IfNDef NOREPORT}
   ACBrDANFCeFortesFr,
   {$EndIf}
-  ACBrNFeDANFeESCPOS, ACBrDFeConfiguracoes,
+  ACBrNFeDANFeESCPOS, ACBrDFeConfiguracoes, ACBrNFeDANFeFPDF,
   ACBrUtil.FilesIO, ACBrUtil.Strings;
 
 { TDANFeNFeConfig }
@@ -747,9 +751,11 @@ begin
   FImprimeTributos := trbNormal;
   FExibeTotalTributosItem := False;
   FImprimeCodigoEan := False;
+  FImprimeCodigoProduto := True;
   FImprimeNomeFantasia := False;
   FExibeInforAdicProduto := infDescricao;
   FQuebraLinhaEmDetalhamentos := True;
+  FLeiauteDANFE := ldPadrao;
 
   if not Assigned(FNFeConfig) then
     FNFeConfig := TDANFeNFeConfig.Create
@@ -777,9 +783,14 @@ begin
   FImprimeTributos := TpcnTributos(AIni.ReadInteger(CSessaoDANFE, CChaveImprimeTributos, Integer(FImprimeTributos)));
   FExibeTotalTributosItem := AIni.ReadBool(CSessaoDANFE, CChaveExibeTotalTributosItem, FExibeTotalTributosItem);
   FImprimeCodigoEan := AIni.ReadBool(CSessaoDANFE, CChaveImprimeCodigoEan, FImprimeCodigoEan);
+  FImprimeCodigoProduto := AIni.ReadBool(CSessaoDANFE, CChaveImprimeCodigoProduto, FImprimeCodigoProduto);
   FImprimeNomeFantasia := AIni.ReadBool(CSessaoDANFE, CChaveImprimeNomeFantasia, FImprimeNomeFantasia);
   FExibeInforAdicProduto := TinfAdcProd(AIni.ReadInteger(CSessaoDANFE, CChaveExibeInforAdicProduto, Integer(FExibeInforAdicProduto)));
   FQuebraLinhaEmDetalhamentos := AIni.ReadBool(CSessaoDANFE, CChaveQuebraLinhaEmDetalhamentos, FQuebraLinhaEmDetalhamentos);
+  if not AIni.ValueExists(CSessaoDANFE, CChaveLeiauteDANFE) then
+    AIni.WriteInteger(CSessaoDANFE, CChaveLeiauteDANFE, Integer(ldPadrao));
+
+  FLeiauteDANFE := TLeiauteDANFE(AIni.ReadInteger(CSessaoDANFE, CChaveLeiauteDANFE, Integer(FLeiauteDANFE)));
 
   FNFeConfig.LerIni(AIni);
   FNFCeConfig.LerIni(AIni);
@@ -799,9 +810,11 @@ begin
   AIni.WriteInteger(CSessaoDANFE, CChaveImprimeTributos, Integer(FImprimeTributos));
   AIni.WriteBool(CSessaoDANFE, CChaveExibeTotalTributosItem, FExibeTotalTributosItem);
   AIni.WriteBool(CSessaoDANFE, CChaveImprimeCodigoEan, FImprimeCodigoEan);
+  AIni.WriteBool(CSessaoDANFE, CChaveImprimeCodigoProduto, FImprimeCodigoProduto);
   AIni.WriteBool(CSessaoDANFE, CChaveImprimeNomeFantasia, FImprimeNomeFantasia);
   AIni.WriteInteger(CSessaoDANFE, CChaveExibeInforAdicProduto, Integer(FExibeInforAdicProduto));
   AIni.WriteBool(CSessaoDANFE, CChaveQuebraLinhaEmDetalhamentos, FQuebraLinhaEmDetalhamentos);
+  AIni.WriteInteger(CSessaoDANFE, CChaveLeiauteDANFE, Integer(FLeiauteDANFE));
 
   FNFeConfig.GravarIni(AIni);
   FNFCeConfig.GravarIni(AIni);
@@ -823,15 +836,20 @@ begin
     ImprimeTributos := FImprimeTributos;
     ExibeTotalTributosItem := FExibeTotalTributosItem;
     ImprimeCodigoEan := FImprimeCodigoEan;
+    ImprimeCodigoProduto := FImprimeCodigoProduto;
     ImprimeNomeFantasia := FImprimeNomeFantasia;
     ExibeInforAdicProduto := FExibeInforAdicProduto;
     QuebraLinhaEmDetalhamentos := FQuebraLinhaEmDetalhamentos;
+    LeiauteDANFE := FLeiauteDANFE;
   end;
 
   {$IfNDef NOREPORT}
   if DFeReport is TACBrNFeDANFeRL then
     NFe.Apply(TACBrNFeDANFeRL(DFeReport));
   {$EndIf}
+
+  if DFeReport is TACBrNFeDANFeFPDF then
+    TACBrNFeDANFeFPDF(DFeReport).ExibeEAN := NFe.ExibeEAN;
 
   if DFeReport is TACBrNFeDANFCEClass then
     NFCe.Apply(TACBrNFeDANFCEClass(DFeReport));

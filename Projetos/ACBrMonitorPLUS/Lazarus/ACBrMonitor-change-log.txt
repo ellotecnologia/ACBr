@@ -43,6 +43,86 @@ Símbolo : Significado
 [+]     : Novo recurso
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
+23/11/2026
+-- ACBrMonitor1 --
+[*] ACBR-10270 - A opção "Exibir Código GTIN" ([DANFE] ExibirEAN) passa a valer também para o DANFE da Reforma Tributária. Texto da opção alterado para "Exibir Código GTIN(Paisagem/RTC)".
+   Por: Daniel de Morais InfoCotidiano
+--- Diversos ---
+[+] ACBR-10073 - Implementação do DeRE no Monitor (DeRE - Declaracao de Regimes Especificos, IBS/CBS).
+   Por: Renato Rubinho
+
+19/11/2026
+-- ACBrMonitor1, ACBrMonitorConfig, ACBrMonitorConsts --
+[+] ACBR-10250 - Nova opção "Imprimir Código Produto (DANFE RTC)" em DFe Impressão > NFe ([DANFE] ImprimeCodigoProduto, padrão 1) para imprimir o código do produto antes da descrição no DANFE da Reforma Tributária.
+   Por: Daniel de Morais InfoCotidiano
+
+17/11/2026
+-- ACBrMonitor1 --
+[-] ACBR-10091 - CNPJ da Software House e do Usuário (RFD) passam a aceitar somente números e letras, convertendo para maiúsculas na digitação.
+   Por: Daniel de Morais InfoCotidiano
+
+16/11/2026
+-- ACBrMonitor1--
+[+] ACBR-10091 - Ajustes CNPJ Alfanuméricos
+   Por: Daniel de Morais InfoCotidiano
+
+10/11/2026
+-- ACBrMonitor1, ACBrMonitorConfig, ACBrMonitorConsts, DoACBrNFeUnit --
+[+] ACBR-9948 - Nova opção Leiaute DANFE em DFe  Impressão > NFe ([DANFE] LeiauteDANFE: 0 = Padrão, 1 = Reforma Tributária) para imprimir o DANFE no leiaute da NT 2026.010.
+[+] ACBR-9948 - Novo método NFe.SetLeiauteDANFE(nLeiaute) (0 = Padrão, 1 = Reforma Tributária) para alterar a opção Leiaute DANFE.
+   Por: Daniel de Morais InfoCotidiano
+
+27/10/2026
+-- ACBrMonitorConsts, DoACBrNFeUnit --
+[+] ACBR-9000 - ObterDFe - Implementados métodos SAE NFC-e SEFAZ-SP - NFCeListagemChaves e NFCeDownloadXML
+   Por: Renato Rubinho
+   Veja: https://www.projetoacbr.com.br/forum/topic/90552-sefaz-de-sp-disponibiliza-web-service-para-download-dos-xmls-das-nfc-es
+
+26/10/2026
+-- ACBrMonitor1, DoACBrCTeUnit --
+[*] Ajuste visando substituir as ocorrências de pcteConversaoCTe para ACBrCTe.Conversao.
+   Por: Diego Folieni
+   Veja: https://www.projetoacbr.com.br/forum/topic/94539-fim-do-uso-da-unit-pcnconversao-nos-dfe-e-uso-das-units-exclusivas-para-a-rtc/
+
+22/10/2026
+-- DoACBrNFeUnit --
+[-] Melhora condição dos métodos de impressão e PDF para gerar corretamente a ViaConsumidor/ViaEstabelecimento quando DANFe Simplificado Tipo 2
+   Por: Diego Folieni
+
+19/10/2026
+-- DoACBrMDFeUnit --
+[-] ACBR-10070 - MDFe - Corrigido tratamento de erro nos comandos SetFormaEmissao e SetTipoImpressao 
+   Por: Renato Rubinho
+   Veja: https://www.projetoacbr.com.br/forum/topic/95417-acbr-10070-mdfesetformaemissao-forma-de-emiss%C3%A3o-inv%C3%A1lida-1/
+
+16/10/2026
+-- DoBoletoUnit --
+[-] Corrigido a sintaxe de resposta dos metodos: ConsultarTitulosPorPeriodo e EnviarBoleto
+   Por: Daniel de Morais
+   Veja: https://www.projetoacbr.com.br/forum/topic/95387-arquivo-saitxt-retorno-bancodobrasilapi-com-ok-na-primeira-linha/#comment-624187
+
+09/10/2026
+-- ACBrMonitor1 --
+[-] Corrige seleção do componente de impressão quando DANFe Simplificado Tipo 2 para considerar ESCPOS também.
+   Por: Diego Folieni
+   Veja: https://www.projetoacbr.com.br/forum/topic/95129-impress%C3%A3o-de-danfe-simplificada-tipo-2-na-bobina/?&_rid=124795#findComment-623343 
+
+07/10/2026
+--- Diversos ---
+[+] ACBR-9220 - Implementação do CIOT no Monitor
+    Por: Renato Rubinho
+
+02/10/2026
+-- ACBrMonitor1/DoACBrNFeUnit --
+[+] ACBR-9942 - Adiciona a impressão do DANFe Simplificado Tipo 2
+   Por: Diego Folieni
+   Veja: https://www.projetoacbr.com.br/forum/topic/94858-danfe-simplificado-tipo-2-sendo-disponibilizado-nos-motores-de-relat%C3%B3rio-do-acbr/
+
+17/09/2026
+-- ACBrMonitor1/DoACBrMDFeUnit/DoACBrNFeUnit --
+[*] Substituição das units pcnConversao por ACBrDFe.Conversao, pmdfMDFeConversao por ACBrMDFe.Conversao, remoção da unit pcnAuxiliar das rotinas do MDFe e melhoria das rotinas LerINI para os objetos MDFe e NFe.
+   Por: Diego Folieni / Italo Giurizzato Junior
+   Veja: https://www.projetoacbr.com.br/forum/topic/94539-fim-do-uso-da-unit-pcnconversao-nos-dfe-e-uso-das-units-exclusivas-para-a-rtc/
 
 09/09/2026
 -- ACBrMonitor1 --

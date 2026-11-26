@@ -514,6 +514,7 @@ begin
   Result := RemoverIdentacao(Result);
   Result := RemoverPrefixosDesnecessarios(Result);
   Result := RemoverCaracteresDesnecessarios(Result);
+  Result := StringReplace(Result, '&', '&amp;', [rfReplaceAll]);
 end;
 
 { TACBrNFSeXWebserviceISSNet204 }
@@ -1507,7 +1508,7 @@ begin
   with ConfigGeral do
   begin
     Layout := loPadraoNacional;
-    QuebradeLinha := '|';
+    QuebradeLinha := ';';
     ConsultaLote := False;
     FormatoArqEnvio := tfaXml;
     FormatoArqRetorno := tfaXml;
@@ -1557,8 +1558,11 @@ begin
     ConsultarNFSePorFaixa.DocElemento := 'ConsultarNfseFaixaEnvio';
     ConsultarNFSeServicoPrestado.DocElemento := 'ConsultarNfseServicoPrestadoEnvio';
     ConsultarNFSeServicoTomado.DocElemento := 'ConsultarNfseServicoTomadoEnvio';
-    CancelarNFSe.InfElemento := 'InfPedidoCancelamento';
-    CancelarNFSe.DocElemento := 'Pedido';
+//    CancelarNFSe.InfElemento := 'InfPedidoCancelamento';
+//    CancelarNFSe.DocElemento := 'Pedido';
+
+    CancelarNFSe.InfElemento := 'infPedReg';
+    CancelarNFSe.DocElemento := 'pedRegEvento';
   end;
 
   with ConfigAssinar do
@@ -1619,7 +1623,7 @@ var
   DataAut: TDateTime;
   ANota: TNotaFiscal;
   AResumo: TNFSeResumoCollectionItem;
-  AuxNode, InfoNode: TACBrXmlNode;
+  AuxNode, InfoNode, EvtNode: TACBrXmlNode;
 begin
   Result := False;
 
@@ -1648,7 +1652,8 @@ begin
     if AuxNode <> nil then
     begin
       AuxNode := AuxNode.Childrens.FindAnyNs('infDPS');
-      if not Assigned(AuxNode) then
+
+      if AuxNode <> nil then
       begin
         NumRps := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('nDPS'), tcStr);
         SerieRps := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('serie'), tcStr);
@@ -1672,7 +1677,20 @@ begin
     AResumo.NumeroRps := NumRps;
     AResumo.SerieRps := SerieRps;
 
+    EvtNode:= parentNode.Childrens.FindAnyNs('ListaEvento');
+    Response.SucessoCanc:=False;
+
+    if Assigned(EvtNode) then
+    begin
+      Response.idEvento := RetornarConteudoEntre(EvtNode.OuterXml, '<dhEvento>', '</dhEvento>');
+      Response.SucessoCanc := True;
+    end;
+
     ANota := CarregarXmlNfse(ANota, Node.OuterXml);
+
+    if Response.SucessoCanc then
+      ANota.NFSe.SituacaoNfse := snCancelado;
+
     SalvarXmlNfse(ANota);
 
     AResumo.NomeArq := ANota.NomeArq;
@@ -1688,7 +1706,7 @@ var
   DataAut: TDateTime;
   ANota: TNotaFiscal;
   AResumo: TNFSeResumoCollectionItem;
-  NFSeNode: TACBrXmlNode;
+  NFSeNode, EvtNode: TACBrXmlNode;
 begin
   Result := False;
 
@@ -1700,7 +1718,7 @@ begin
     if not Assigned(Node) then Exit;
 
     NumNFSe := ObterConteudoTag(Node.Childrens.FindAnyNs('nNFSe'), tcStr);
-//      CodVerif := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('CodigoVerificacao'), tcStr);
+//      CodVerif := ObterConteudoTag(Node.Childrens.FindAnyNs('CodigoVerificacao'), tcStr);
     DataAut := ObterConteudoTag(Node.Childrens.FindAnyNs('dhProc'), tcDatHor);
 
     with Response do
@@ -1740,7 +1758,20 @@ begin
     Response.NumeroRps := NumRps;
     Response.SerieRps := SerieRps;
 
+    EvtNode:= parentNode.Childrens.FindAnyNs('ListaEvento');
+    Response.SucessoCanc:=False;
+
+    if Assigned(EvtNode) then
+    begin
+      Response.idEvento := RetornarConteudoEntre(EvtNode.OuterXml, '<dhEvento>', '</dhEvento>');
+      Response.SucessoCanc := True;
+    end;
+
     ANota := CarregarXmlNfse(ANota, NFSeNode.OuterXml);
+
+    if Response.SucessoCanc then
+      ANota.NFSe.SituacaoNfse := snCancelado;
+
     SalvarXmlNfse(ANota);
 
     AResumo.NomeArq := ANota.NomeArq;
@@ -1857,10 +1888,17 @@ end;
 begin
   ANode := RootNode.Childrens.FindAnyNs(AListTag);
 
+  //Procura dentro de ValidarXML primeiro
   if not Assigned(ANode) then
   begin
-    ANode := RootNode.Childrens.FindAnyNs('ListaMensagemRetorno');
+    ANode := RootNode.Childrens.FindAnyNs('ValidarXmlResposta');
+    if Assigned(ANode) then
+      ANode := ANode.Childrens.FindAnyNs('ListaMensagemRetorno');
   end;
+
+  //Se não achar ValidarXML procura elemento solto
+  if not Assigned(ANode) then
+    ANode := RootNode.Childrens.FindAnyNs('ListaMensagemRetorno');
 
   ProcessarErros;
 
@@ -2589,7 +2627,7 @@ var
   ANode, AuxNode: TACBrXmlNode;
   AErro: TNFSeEventoCollectionItem;
   ANota: TNotaFiscal;
-  NumNFSe, NumRps, SerieRps: String;
+  NumNFSe, NumRps, SerieRps, xml: String;
   DataAut: TDateTime;
   AResumo: TNFSeResumoCollectionItem;
 begin
@@ -2671,6 +2709,11 @@ begin
 
         AuxNode := ANode.Childrens.FindAnyNs('NFSe');
         ANota := CarregarXmlNfse(ANota, AuxNode.OuterXml);
+        xml := Response.ArquivoRetorno;
+
+        if Pos('<e101101>', xml) > 0 then
+          ANota.NFSe.SituacaoNfse := snCancelado;
+
         SalvarXmlNfse(ANota);
 
         AResumo.NomeArq := ANota.NomeArq;
@@ -2803,6 +2846,7 @@ var
   ANodeArray: TACBrXmlNodeArray;
   AErro: TNFSeEventoCollectionItem;
   I: Integer;
+  xml: string;
 begin
   Document := TACBrXmlDocument.Create;
 
@@ -2818,11 +2862,21 @@ begin
         Exit
       end;
 
+      xml := RetornarConteudoEntre(Response.ArquivoRetorno, '<ListaNfse>', '</ListaNfse>', True);
+      xml := StringReplace(xml, '<Pagina>1</Pagina>', '', [rfReplaceAll]);
+      Response.ArquivoRetorno := xml;
+
       Document.LoadFromXml(Response.ArquivoRetorno);
 
       ProcessarMensagemErros(Document.Root, Response);
 
-      ANode := Document.Root.Childrens.FindAnyNs('ListaNfse');
+      // 1. Primeiro verifica se o próprio Root já é a ListaNfse
+      if Document.Root.Name = 'ListaNfse' then
+        ANode := Document.Root
+      else
+        // 2. Se não for, procura nos filhos (comportamento antigo que evita quebrar outros fluxos)
+        ANode := Document.Root.Childrens.FindAnyNs('ListaNfse');
+
       if not Assigned(ANode) then
       begin
         AErro := Response.Erros.New;
@@ -3632,7 +3686,7 @@ procedure TACBrNFSeProviderISSNetAPIPropria.TratarRetornoEnviarEvento(
 var
   Document: TACBrXmlDocument;
   ANode, AuxNode: TACBrXmlNode;
-  IdAttr, nomeArq: string;
+  nomeArq: string;
   AErro: TNFSeEventoCollectionItem;
 begin
   Document := TACBrXmlDocument.Create;
@@ -3651,7 +3705,15 @@ begin
 
       ProcessarMensagemErros(Document.Root, Response);
 
-      ANode := Document.Root.Childrens.FindAnyNs('Evento');
+      ANode := Document.Root.Childrens.FindAnyNs('ListaEvento');
+
+      if Assigned(ANode) then
+        ANode := ANode.Childrens.FindAnyNs('evento')
+      else
+        ANode := Document.Root.Childrens.FindAnyNs('evento');
+
+      if not Assigned(ANode) then
+        ANode := Document.Root.Childrens.FindAnyNs('Evento');
 
       if not Assigned(ANode) then
       begin
@@ -3665,9 +3727,9 @@ begin
 
       if not Assigned(AuxNode) then Exit;
 
-      Response.idEvento := ObterConteudoTag(ANode.Attributes.Items[IdAttr]);
-      Response.DataCanc := ObterConteudoTag(ANode.Childrens.FindAnyNs('dhProc'), tcDatHor);
-      Response.NumeroNota := ObterConteudoTag(ANode.Childrens.FindAnyNs('nDFe'), tcStr);
+      Response.idEvento := ObterConteudoTag(AuxNode.Attributes.Items['Id']);
+      Response.DataCanc := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('dhProc'), tcDatHor);
+      Response.NumeroNota := ObterConteudoTag(AuxNode.Childrens.FindAnyNs('nDFSe'), tcStr);
 
       if Response.DataCanc > 0 then
       begin

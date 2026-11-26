@@ -42,7 +42,7 @@ uses
   ACBrNFe.Classes,
   ACBrDFeComum.Proc,
   ACBrDFe.Conversao,
-  pcnConversaoNFe;
+  ACBrNFe.Conversao;
 
 type
   { TNFeIniWriter }
@@ -51,7 +51,7 @@ type
   private
     FNFe: TNFe;
     FpGerarGrupoIBSCBSTot: Boolean;
-    FModeloDF: TpcnModeloDF;
+    FModeloDF: TModeloDF;
 
     procedure Gerar_Identificacao(AINIRec: TMemIniFile; Ide: TIde);
     procedure Gerar_NFReferenciada(AINIRec: TMemIniFile; NFref: TNFrefCollection);
@@ -123,7 +123,7 @@ type
     function GravarIni: string;
 
     property NFe: TNFe read FNFe write FNFe;
-    property ModeloDF: TpcnModeloDF read FModeloDF write FModeloDF;
+    property ModeloDF: TModeloDF read FModeloDF write FModeloDF;
   end;
 
 
@@ -188,6 +188,7 @@ begin
     Gerar_Duplicata(INIRec, FNFe.Cobr.Dup);
     Gerar_Pagamento(INIRec, FNFe.pag);
     Gerar_InfIntermediario(INIRec, FNFe.infIntermed);
+    Gerar_pgtoVinc(INIRec, FNFe.pgtoVinc.pgto);
     Gerar_DadosAdicionais(INIRec, FNFe.InfAdic);
     Gerar_InfAdicionaisContribuinte(INIRec, FNFe.InfAdic.obsCont);
     Gerar_InfAdicionaisFisco(INIRec, FNFe.InfAdic.obsFisco);
@@ -231,16 +232,16 @@ begin
   AINIRec.WriteString('Identificacao', 'dPrevEntrega', DateToStr(Ide.dPrevEntrega));
   AINIRec.WriteString('Identificacao', 'tpNF', tpNFToStr(Ide.tpNF));
   AINIRec.WriteString('Identificacao', 'idDest',
-    DestinoOperacaoToStr(TpcnDestinoOperacao(Ide.idDest)));
+    DestinoOperacaoToStr(Ide.idDest));
   AINIRec.WriteInteger('Identificacao', 'cMunFG', Ide.cMunFG);
   AINIRec.WriteString('Identificacao', 'tpAmb', TipoAmbienteToStr(Ide.tpAmb));
   AINIRec.WriteString('Identificacao', 'tpImp', TpImpToStr(Ide.tpImp));
   AINIRec.WriteString('Identificacao', 'tpemis', TipoEmissaoToStr(Ide.tpemis));
   AINIRec.WriteString('Identificacao', 'finNFe', FinNFeToStr(Ide.finNFe));
   AINIRec.WriteString('Identificacao', 'indFinal', ConsumidorFinalToStr(
-    TpcnConsumidorFinal(Ide.indFinal)));
+    Ide.indFinal));
   AINIRec.WriteString('Identificacao', 'indPres',
-    PresencaCompradorToStr(TpcnPresencaComprador(Ide.indPres)));
+    PresencaCompradorToStr(Ide.indPres));
   AINIRec.WriteString('Identificacao', 'indIntermed',
     indIntermedToStr(TindIntermed(Ide.indIntermed)));
   AINIRec.WriteString('Identificacao', 'procEmi', procEmiToStr(Ide.procEmi));
@@ -326,7 +327,9 @@ begin
   AINIRec.WriteString('Emitente', 'IM', Emit.IM);
   AINIRec.WriteString('Emitente', 'CNAE', Emit.CNAE);
   AINIRec.WriteString('Emitente', 'CRT', CRTToStr(Emit.CRT));
+  AINIRec.WriteString('Emitente', 'tpRegimeIBSCBS', tpRegimeIBSCBSToStr(Emit.tpRegimeIBSCBS));
   AINIRec.WriteString('Emitente', 'ISUFEmit', Emit.ISUFEmit);
+
   AINIRec.WriteString('Emitente', 'xLgr', Emit.EnderEmit.xLgr);
   AINIRec.WriteString('Emitente', 'nro', Emit.EnderEmit.nro);
   AINIRec.WriteString('Emitente', 'xCpl', Emit.EnderEmit.xCpl);
@@ -507,6 +510,8 @@ begin
   AINIRec.WriteFloat(sSecao, 'qCom', Prod.qCom);
   AINIRec.WriteFloat(sSecao, 'vUnCom', Prod.vUnCom);
   AINIRec.WriteFloat(sSecao, 'vProd', Prod.vProd);
+  AINIRec.WriteFloat(sSecao, 'vUnComLiq', Prod.vUnComLiq);
+  AINIRec.WriteFloat(sSecao, 'vProdLiq', Prod.vProdLiq);
   AINIRec.WriteString(sSecao, 'cEANTrib', Prod.cEANTrib);
   AINIRec.WriteString(sSecao, 'cBarraTrib', Prod.cBarraTrib);
   AINIRec.WriteString(sSecao, 'uTrib', Prod.uTrib);
@@ -523,6 +528,7 @@ begin
   AINIRec.WriteString(sSecao, 'nRECOPI', Prod.nRECOPI);
   // Reforma Tributária
   AINIRec.WriteString(sSecao, 'indBemMovelUsado', TIndicadorExToStr(Prod.indBemMovelUsado));
+  AINIRec.WriteString(sSecao, 'cAtivSN', cAtivSNToStr(Prod.cAtivSN));
 end;
 
 procedure TNFeIniWriter.Gerar_NVE(AINIRec: TMemIniFile; NVE: TNVECollection;
@@ -869,7 +875,6 @@ begin
 
   // Reforma Tributária
   //Usar string até a publicação de uma tabela de CSTs oficial para o IS
-  //if Imposto.ISel.CSTIS <> cstisNenhum then
   if Imposto.ISel.CSTIS <> EmptyStr then
     Gerar_ISel(AINIRec, Imposto.ISel, Idx);
 
@@ -950,6 +955,7 @@ begin
   AINIRec.WriteFloat(sSecao, 'qBCMonoRet', ICMS.qBCMonoRet);
   AINIRec.WriteFloat(sSecao, 'vICMSMonoOp', ICMS.vICMSMonoOp);
   AINIRec.WriteString(sSecao, 'indDeduzDeson', TIndicadorExToStr(ICMS.indDeduzDeson));
+  AINIRec.WriteFloat(sSecao, 'vICMSPrevisto', ICMS.vICMSPrevisto);
 end;
 
 procedure TNFeIniWriter.Gerar_ImpostoICMSUFDest(AINIRec: TMemIniFile;
@@ -1162,6 +1168,7 @@ end;
 
 procedure TNFeIniWriter.Gerar_Total(AINIRec: TMemIniFile; Total: TTotal);
 begin
+  AINIRec.WriteFloat('Total', 'vProdLiqTot', Total.vProdLiqTot);
   AINIRec.WriteFloat('Total', 'vBC', Total.ICMSTot.vBC);
   AINIRec.WriteFloat('Total', 'vICMS', Total.ICMSTot.vICMS);
   AINIRec.WriteFloat('Total', 'vICMSDeson', Total.ICMSTot.vICMSDeson);

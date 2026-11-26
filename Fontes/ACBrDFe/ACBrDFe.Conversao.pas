@@ -42,7 +42,8 @@ uses
 type
   // Tipos que não tem funções de conversão
   TModelosDFe = (mdfBPe, mdfBPeTM, mdfBPeTA, mdfCTe, mdfCTeOS, mdfCTeSimp,
-                 mdfGTVe, mdfNF3e, mdfNFAg, mdfNFCom, mdfNFe, mdfNFCe, mdfNFGas);
+                 mdfGTVe, mdfNF3e, mdfNFAg, mdfNFCom, mdfNFe, mdfNFeABI,
+                 mdfNFCe, mdfNFGas);
 
   TACBrTipoCampo = (tcStr, tcInt, tcInt64, tcDat, tcDatHor, tcEsp, tcDe1, tcDe2,
                     tcDe3, tcDe4, tcDe5, tcDe6, tcDe7, tcDe8, tcDe10, tcHor, tcDatCFe,
@@ -124,7 +125,8 @@ type
                   teAceiteDebitoApuracaoNotaCredito, teImobilizacaoItem,
                   teSolicApropCredCombustivel, teSolicApropCredBensServicos,
                   teManifPedTransfCredIBSSucessao, teManifPedTransfCredCBSSucessao,
-                  teAtualizacaoDataPrevisaoEntrega, teVinculoPgto, teCancVinculoPgto);
+                  teAtualizacaoDataPrevisaoEntrega, teVinculoPgto, teCancVinculoPgto,
+                  teApropCredIndNFeABI, teDesfazAlienacNFeABI);
 
 const
   TACBrTipoEventoArrayStrings: array[TACBrTipoEvento] of string = ('-99999', '110110',
@@ -141,7 +143,7 @@ const
     '110190', '110191', '110192', '110193', '110750', '110751', '510630',
     '110001', '112110', '112120', '112130', '112140', '211110', '211120',
     '211124', '211128', '211130', '211140', '211150', '212110', '212120',
-    '112150', '110300', '110301');
+    '112150', '110300', '110301', '211310', '112320');
 
   TACBrTipoEventoDescricaoArrayStrings: array[TACBrTipoEvento] of string = ('NaoMapeado',
     'CCe', 'Cancelamento', 'ManifDestConfirmacao', 'ManifDestCiencia',
@@ -175,7 +177,8 @@ const
     'AceiteDebitoApuracaoNotaCredito', 'ImobilizacaoItem',
     'SolicApropCredCombustivel', 'SolicApropCredBensServicos',
     'ManifPedTransfCredIBSSucessao', 'ManifPedTransfCredCBSSucessao',
-    'AtualizacaoDataPrevisaoEntrega', 'VinculoPagamento', 'CancVinculoPgto');
+    'AtualizacaoDataPrevisaoEntrega', 'VinculoPagamento', 'CancVinculoPgto',
+    'ApropCredIndNFeABI', 'DesfazAlienacNFeABI');
 
 type
   TStrToTpEvento = function (out ok: boolean; const s: string): TACBrTipoEvento;
@@ -256,18 +259,19 @@ type
   TCSTIcms = (cstVazio, cst00, cst10, cst20, cst30, cst40, cst41, cst45, cst50,
     cst51, cst60, cst70, cst80, cst81, cst90, cstICMSOutraUF, cstICMSSN,
     cstPart10, cstPart90, cstRep41, cstRep60, cst02, cst15, cst53, cst61, cst01,
-    cst12, cst13, cst14, cst21, cst72, cst73, cst74, cstPart20); //80 e 81 apenas para CTe
+    cst12, cst13, cst14, cst21, cst72, cst73, cst74, cstPart20,
+    cstICMSPrevisto); //80 e 81 apenas para CTe
 
 const
   TCSTIcmsArrayStringsEnt: array[TCSTIcms] of string = ('', '00', '10', '20', '30',
     '40', '41', '45', '50', '51', '60', '70', '80', '81', '90', '91', 'SN',
     '10part', '90part', '41rep', '60rep', '02', '15', '53', '61', '01', '12',
-    '13', '14', '21', '72', '73', '74', '20part');
+    '13', '14', '21', '72', '73', '74', '20part', 'IP');
 
   TCSTIcmsArrayStringsSai: array[TCSTIcms] of string = ('', '00', '10', '20', '30',
     '40', '41', '45', '50', '51', '60', '70', '80', '81', '90', '90', 'SN',
     '10', '90', '41', '60', '02', '15', '53', '61', '01', '12', '13', '14', '21',
-    '72', '73', '74', '20');
+    '72', '73', '74', '20', 'IP');
 
   TCSTIcmsDescricaoArrayStrings: array[TCSTIcms] of string = ('VAZIO',
     '00 - TRIBUTAÇÃO NORMAL DO ICMS',
@@ -302,7 +306,8 @@ const
     '72',
     '73',
     '74',
-    '20');
+    '20',
+    'IP - Valor do ICMS a incidir no momento do fornecimento futuro.');
 
 type
   // NFe e SAT
@@ -482,10 +487,10 @@ const
 
 type
   // CTe e MDFe
-  TTipoNavegacao = (tnInterior, tnCabotagem);
+  TTipoNavegacao = (tnInterior, tnCabotagem, tnNenhum);
 
 const
-  TTipoNavegacaoArrayStrings: array[TTipoNavegacao] of string = ('0', '1');
+  TTipoNavegacaoArrayStrings: array[TTipoNavegacao] of string = ('0', '1', '');
 
 type
   // CTe e NFe
@@ -627,10 +632,45 @@ const
   TtpPagAntArrayStrings: array[TtpPagAnt] of string = ('', '1', '2', '3');
 
 type
+  TACBrObterTipo = (aotNenhum, aotListaChaves, aotDownloadXml);
+
+const
+  TACBrObterTipoArrayStrings: array[TACBrObterTipo] of string = ('Nenhum',
+    'ListaChaves', 'DownloadXml');
+
+type
   TtpALCZFMCBS = (tpALCZFMCBSnOpInd, tpALCZFMCBSOpInd);
 
 const
   TtpALCZFMCBSArrayStrings: array[TtpALCZFMCBS] of string = ('1', '2');
+
+type
+  {
+   000 = Tributado com Imposto Seletivo
+   100 = Imunidade
+   200 = Não ocorrencia do Fato Gerador
+   300 = Devolução
+   400 = Suspensão
+   500 = Aliquota zero
+   600 = Isenção
+  }
+  TCSTIS = (cstisNenhum,
+            cstis000, cstis100, cstis200, cstis300, cstis400, cstis500, cstis600);
+
+const
+  TCSTISArrayStrings: array[TCSTIS] of string = ('',
+    '000', '100', '200', '300', '400','500', '600');
+
+type
+  TtpRegimeIBSCBS = (trNenhum, trSNRegimeRegular,
+                     trNormalPendenteCRT1SemRegimeRegular,
+                     trNormalPendenteCRT2SemRegimeRegular,
+                     trNormalPendenteCRT12RegimeRegular);
+
+const
+  TtpRegimeIBSCBSArrayStrings: array[TtpRegimeIBSCBS] of string = ('', '1', '2',
+    '3', '4');
+
 {
   Declaração das funções de conversão
 }
@@ -647,6 +687,9 @@ function StrToTpImp(const s: string): TACBrTipoImpressao;
 function TipoEmissaoToStr(const t: TACBrTipoEmissao): string;
 function TryStrToTipoEmissao(const s: string; out Value: TACBrTipoEmissao): Boolean;
 function StrToTipoEmissao(const s: string): TACBrTipoEmissao;
+
+function ObterTipoToStr(const t: TACBrObterTipo): string;
+function StrToObterTipo(const s: string): TACBrObterTipo;
 
 function TipoAmbienteToStr(const t: TACBrTipoAmbiente): string;
 function TryStrToTipoAmbiente(const s: string; out Value: TACBrTipoAmbiente): Boolean;
@@ -814,6 +857,13 @@ function tpALCZFMCBSToStr(const t: TtpALCZFMCBS): string;
 function TryStrTotpALCZFMCBS(const s: string; out Value: TtpALCZFMCBS): Boolean;
 function StrTotpALCZFMCBS(const s: string): TtpALCZFMCBS;
 
+function CSTISToStr(const t: TCSTIS): string;
+function TryStrToCSTIS(const s: string; out Value: TCSTIS): Boolean;
+function StrToCSTIS(const s: string): TCSTIS;
+
+function tpRegimeIBSCBSToStr(const t: TtpRegimeIBSCBS): string;
+function StrTotpRegimeIBSCBS(const s: string): TtpRegimeIBSCBS;
+
 var
   StrToTpEventoDFeList: array of TStrToTpEventoDFe;
 
@@ -903,6 +953,31 @@ function StrToTipoEmissao(const s: string): TACBrTipoEmissao;
 begin
   if not TryStrToTipoEmissao(s, Result) then
     raise EACBrException.CreateFmt('Valor string inválido para TACBrTipoEmissao: %s', [s]);
+end;
+
+function ObterTipoToStr(const t: TACBrObterTipo): string;
+begin
+  Result := TACBrObterTipoArrayStrings[t];
+end;
+
+function StrToObterTipo(const s: string): TACBrObterTipo;
+var
+  idx: TACBrObterTipo;
+begin
+  if Trim(s) = '' then
+  begin
+    Result := aotNenhum;
+    Exit;
+  end;
+
+  for idx := Low(TACBrObterTipoArrayStrings) to High(TACBrObterTipoArrayStrings) do
+    if SameText(TACBrObterTipoArrayStrings[idx], Trim(s)) then
+    begin
+      Result := idx;
+      Exit;
+    end;
+
+  raise EACBrException.CreateFmt('Valor string invalido para TACBrObterTipo: %s', [s]);
 end;
 
 function TipoAmbienteToStr(const t: TACBrTipoAmbiente): string;
@@ -1947,8 +2022,6 @@ begin
     raise EACBrException.CreateFmt('Valor string inválido para TIndAceitacao: %s', [s]);
 end;
 
-
-
 function TpCredPresIBSZFMToStr(const t: TTpCredPresIBSZFM): string;
 begin
   Result := TTpCredPresIBSZFMArrayStrings[t];
@@ -2012,6 +2085,53 @@ function StrTotpALCZFMCBS(const s: string): TtpALCZFMCBS;
 begin
   if not TryStrTotpALCZFMCBS(s, Result) then
      raise EACBrException.CreateFmt('Valor string inválido para TtpALCZFMCBS: %s', [s]);
+end;
+
+function CSTISToStr(const t: TCSTIS): string;
+begin
+  Result := TCSTISArrayStrings[t];
+end;
+
+function TryStrToCSTIS(const s: string; out Value: TCSTIS): Boolean;
+var
+  idx: TCSTIS;
+begin
+  Result := False;
+  for idx := Low(TCSTISArrayStrings) to High(TCSTISArrayStrings) do
+  begin
+    if TCSTISArrayStrings[idx] = s then
+    begin
+      Value := idx;
+      Result := True;
+      Exit;
+    end;
+  end;
+end;
+
+function StrToCSTIS(const s: string): TCSTIS;
+begin
+  if not TryStrToCSTIS(s, Result) then
+    raise EACBrException.CreateFmt('Valor string inválido para TCSTIS: %s', [s]);
+end;
+
+function tpRegimeIBSCBSToStr(const t: TtpRegimeIBSCBS): string;
+begin
+  Result := TtpRegimeIBSCBSArrayStrings[t];
+end;
+
+function StrTotpRegimeIBSCBS(const s: string): TtpRegimeIBSCBS;
+var
+  idx: TtpRegimeIBSCBS;
+begin
+  for idx:= Low(TtpRegimeIBSCBSArrayStrings) to High(TtpRegimeIBSCBSArrayStrings) do
+  begin
+    if(TtpRegimeIBSCBSArrayStrings[idx] = s)then
+    begin
+      Result := idx;
+      exit;
+    end;
+  end;
+  raise EACBrException.CreateFmt('Valor string inválido para TtpRegimeIBSCBS: %s', [s]);
 end;
 
 end.

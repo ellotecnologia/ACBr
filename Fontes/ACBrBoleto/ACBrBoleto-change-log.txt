@@ -48,6 +48,56 @@ Símbolo : Significado
 [+]     : Novo recurso
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
+23/11/2026
+-- ACBrBoletoW_Bradesco.pas, ACBrBoletoRet_Bradesco.pas --
+[-] Portal Developers: ajustados desconto, abatimento, sacador avalista e retorno do registro do boleto sem QRCode, e data do desconto do boleto híbrido.
+	[ACBR-10241] https://www.projetoacbr.com.br/forum/topic/96018-api-boleto-comum-%E2%80%94-http-422-e-ejsonparserexception/
+	Por: Daniel de Morais InfoCotidiano
+
+17/11/2026
+-- ACBrBoletoRet_Bradesco.pas --
+[-] Ajustado o LerRetorno para tratar retornos que não são JSON (ex.: HTTP 422 em text/plain "Erro na conversão de campos"), gerando a rejeição com o código HTTP e o texto devolvido pelo banco, em vez de gerar EJsonParserException e deixar a lista de rejeições vazia.
+	[ACBR-10241] https://www.projetoacbr.com.br/forum/topic/96018-api-boleto-comum-—-http-422-e-ejsonparserexception/
+	Por: Daniel de Morais
+
+28/10/2026
+-- ACBrBoletoRet_BancoBrasil_API, ACBrBoletoW_BancoBrasil_API --
+[*] Ajustado a propriedade indicadorAceiteTituloVencido para ser enviado S ou N, e mapeado retorno CNPJCPF Sacado
+	[ACBR-9741] https://www.projetoacbr.com.br/forum/topic/93745-api-boleto-bb-indicadoraceitetitulovencido/
+	Por: Valter Patrick / Thiago Balbino
+
+
+20/10/2026
+-- ACBrBoletoW_C6.pas --
+[*] Ajustadas as validações da carteira (15 e 16 em produção e 21 em homologação), o envio de até 4 linhas de instruções de 80 caracteres e o envio do our_number somente quando informado (> 0).
+	[ACBR-10085] https://www.projetoacbr.com.br/forum/topic/95460-ajuste-no-c6-bank-na-unit-acbrboletow_c6pas-api-v1-retorna-our_number-0000000000-desde-que-o-requisicaojson-passou-a-enviar-o-campo/
+	Por: Jhonlenon Ribeiro / Daniel de Morais
+
+19/10/2026
+-- ACBrBoletoW_Itau_API --
+[*] Ajustado para enviar quantidade_maximo_parcial somente quando houver pagamento parcial. 
+	[ACBR-10074] https://www.projetoacbr.com.br/forum/topic/95431-acbrlibboleto-linux-arm64-ita%C3%BA-api-v2-recusa-quantidade_maximo_parcial-0-desde-17102026-pedido-de-build-corrigida/
+	Por: EXATA.Sistemas
+
+08/10/2026
+-- ACBrBancoBanrisul.pas --
+[*] Adicionado a condição LerNossoNumeroCompleto para que retorne o DV do NossoNumero CNAB240 quando true;
+	[ACBR-10011] https://www.projetoacbr.com.br/forum/topic/95269-leitura-arquivo-cnab240-banrisul-n%C3%A3o-est%C3%A1-pegando-todo-nosso-nro/#comment-623197
+	Por: Daniel de Morais
+	
+30/09/2026
+-- ACBrBoletoW_Bradesco.pas --
+[-] Ajustada a propriedade qtdDecurPrz para enviar 00 quando não informada no Sandbox. Em produção, a propriedade não é obrigatória conforme manual e não temos relatos de rejeições.
+    Removido a propriedade dataLimitePgt10, pois este é um campo de "retorno" e não de envio para registro.
+	[ACBR-8109] https://www.projetoacbr.com.br/forum/topic/85800-api-bradesco-campo-não-obrigatórios/
+	Por: Daniel de Morais
+
+28/09/2026
+-- ACBrBoletoW_C6.pas --
+[*] Ajustado carteira para envio do nossonumero
+	[ACBR-9389] https://www.projetoacbr.com.br/forum/topic/92331-melhoria-no-registro-de-boleto-c6-bank/
+	Por: Valter Patrick
+
 16/09/2026
 -- Particularidades --
 [-] Ajustado Santander, carteira, modalidade, inter ajustado a orientação para pegar o codigo de operação.

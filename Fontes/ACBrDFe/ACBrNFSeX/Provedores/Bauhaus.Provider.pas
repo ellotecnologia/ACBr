@@ -361,7 +361,7 @@ begin
             if TACBrNFSeX(FAOwner).Configuracoes.Arquivos.NomeLongoNFSe then
               NomeXml := GerarNomeNFSe(TACBrNFSeX(FAOwner).Configuracoes.WebServices.UFCodigo,
                                       Response.Data,
-                                      OnlyNumber(CNPJ),
+                                      OnlyCPFCNPJAlphaNum(CNPJ),
                                       StrToInt64Def(Response.NumeroNota, 0))
             else
               NomeXml := Response.NumeroNota + Response.SerieNota;
@@ -507,7 +507,7 @@ begin
               if TACBrNFSeX(FAOwner).Configuracoes.Arquivos.NomeLongoNFSe then
                 NomeXml := GerarNomeNFSe(TACBrNFSeX(FAOwner).Configuracoes.WebServices.UFCodigo,
                                         Response.Data,
-                                        OnlyNumber(CNPJ),
+                                        OnlyCPFCNPJAlphaNum(CNPJ),
                                         StrToInt64Def(Response.NumeroNota, 0))
               else
                 NomeXml := Response.NumeroNota + Response.SerieNota;
@@ -766,6 +766,8 @@ procedure TACBrNFSeXWebserviceBauhaus.SetHeaders(aHeaderReq: THTTPHeader);
 begin
   aHeaderReq.AddHeader('Authorization',
              TConfiguracoesNFSe(FPConfiguracoes).Geral.Emitente.WSChaveAutoriz);
+
+  ReqHeaders := aHeaderReq.Text;
 end;
 
 function TACBrNFSeXWebserviceBauhaus.GerarNFSe(const ACabecalho, AMSG: String): string;

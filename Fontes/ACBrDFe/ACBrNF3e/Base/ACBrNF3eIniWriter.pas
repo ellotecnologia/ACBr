@@ -599,6 +599,8 @@ begin
   AINIRec.WriteInteger(sSecao, 'qFaturada', Prod.qFaturada);
   AINIRec.WriteFloat(sSecao, 'vItem', Prod.vItem);
   AINIRec.WriteFloat(sSecao, 'vProd', Prod.vProd);
+  AINIRec.WriteFloat(sSecao, 'vItemLiq', Prod.vItemLiq);
+  AINIRec.WriteFloat(sSecao, 'vProdLiq', Prod.vProdLiq);
   AINIRec.WriteString(sSecao, 'indDevolucao', TIndicadorToStr(Prod.indDevolucao));
   AINIRec.WriteString(sSecao, 'indPrecoACL', TIndicadorToStr(Prod.indPrecoACL));
 
@@ -665,6 +667,7 @@ begin
   AINIRec.WriteFloat(sSecao, 'vBCEfet', ICMS.vBCEfet);
   AINIRec.WriteFloat(sSecao, 'pICMSEfet', ICMS.pICMSEfet);
   AINIRec.WriteFloat(sSecao, 'vICMSEfet', ICMS.vICMSEfet);
+  AINIRec.WriteFloat(sSecao, 'vICMSPrevisto', ICMS.vICMSPrevisto);
 end;
 
 procedure TNF3eIniWriter.Gerar_PIS(AINIRec: TMemIniFile; PIS: TPIS; Idx1,
@@ -757,6 +760,7 @@ begin
   AINIRec.WriteFloat(sSecao, 'vCOFINS', gProcRef.vCOFINS);
   AINIRec.WriteFloat(sSecao, 'vCOFINSEfet', gProcRef.vCOFINSEfet);
 
+  Gerar_gIBSCBSSemProcJur(AINIRec, gProcRef.gIBSCBS, Idx1, Idx2);
   Gerar_gProc(AINIRec, gProcRef.gProc, Idx1, Idx2);
 end;
 
@@ -805,6 +809,7 @@ begin
   sSecao := 'total';
 
   AINIRec.WriteFloat(sSecao, 'vProd', Total.vProd);
+  AINIRec.WriteFloat(sSecao, 'vProdLiq', Total.vProdLiq);
   AINIRec.WriteFloat(sSecao, 'vBC', Total.vBC);
   AINIRec.WriteFloat(sSecao, 'vICMS', Total.vICMS);
   AINIRec.WriteFloat(sSecao, 'vICMSDeson', Total.vICMSDeson);

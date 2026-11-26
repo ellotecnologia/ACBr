@@ -44,6 +44,208 @@ Símbolo : Significado
 [*]     : Recurso modificado/melhorado
 [-]     : Correção de Bug (assim esperamos)
 
+25/11/2026
+-- ACBrNFe.EnvEvento --
+[-] ACBR-10238: Correção nos tamanhos mínimos e máximos dos campos: dPrevEntrega e indAceitacao,
+    imposta uma condição para executar o Gerar_DFeReferenciado e correção na geração da tag indAceitacao
+    da função: Gerar_Evento_AceiteDebitoApuracaoNotaCredito
+   Por: Franklin
+-- ACBrNFe.EnvEvento, ACBrNFe.EventoClass, ACBrNFe.RetEnvEvento --
+[-] Ajuste visando a correta geração do XML do evento quando alimentado a partir de outro XML.
+   Por: Diego Folieni
+   Veja: https://www.projetoacbr.com.br/forum/topic/96179-erro-ao-enviar-o-evento-110300-vincula%C3%A7%C3%A3o-da-transa%C3%A7%C3%A3o-de-pagamento-do-df-e/
+
+24/11/2026
+-- ACBrNFeDANFEFR, ACBrNFeDANFEFRDM --
+[+] ACBR-10250 / ACBR-10270 - DANFE RTC (Fast): imprime o código do produto (ImprimeCodigoProduto) e o EAN (nova propriedade ExibeEAN) antes da descrição.
+   FR3 RTC retrato e paisagem atualizados.
+   Por: Daniel de Morais InfoCotidiano
+
+24/11/2026
+-- ACBrNFeDANFeFPDF, ACBrNFeDANFeFPDFRTC --
+[+] ACBR-10270 - Nova propriedade ExibeEAN (padrão False) no ACBrNFeDANFeFPDF. 
+   O DANFE da Reforma Tributária (FPDF) passa a imprimir o código do produto (ImprimeCodigoProduto) e o EAN (ExibeEAN) antes da descrição, no formato "código - EAN - descrição".
+   Por: Daniel de Morais InfoCotidiano
+
+24/11/2026
+-- ACBrNFeWebServices --
+[*] ACBr-9807: Movido para dentro do IF a chamada a função GerarPathDistribuicao para
+    não criar as pastas quando o valor da propriedade Arquivos.Salvar for False.
+   Por: Alex Heinen
+
+23/11/2026
+-- ACBrNFe.Classes --
+[*] Removido o comentário do IBSCBSTot.Assign na procedure TTotal.Assign.
+   Por: Italo Giurizzato Junior
+-- ACBrNFeDANFeRLClass, ACBrNFeDANFeRLRetratoRTC, ACBrNFeDANFeRLPaisagemRTC --
+[+] ACBR-10270 - A propriedade ExibeEAN passa a imprimir o EAN no DANFE da Reforma Tributária (Fortes, retrato e paisagem). O DANFE padrão não foi alterado.
+   Por: Daniel de Morais InfoCotidiano
+-- ACBrNFe.XmlWriter --
+[*] Acrescentado as linhas if not FpGerarGrupoPIS then Exit; e if not FpGerarGrupoCOFINS then Exit; dentro das procedures GerarDetImpostoPIS e
+    GerarDetImpostoCOFINS e removendo do segundo IF a condição: FpGerarGrupoPIS e FpGerarGrupoCOFINS das procedures mencionadas.
+    Hoje o valor True atribuído as propriedades: FpGerarGrupoPIS e FpGerarGrupoCOFINS não são alterados, mas futuramente poderão ser.
+   Por: Italo Giurizzato Junior
+
+19/11/2026
+-- ACBrDFeDANFeReport, ACBrNFeDANFeRLRetratoRTC, ACBrNFeDANFeRLPaisagemRTC --
+[+] ACBR-10250 - Nova propriedade ImprimeCodigoProduto (padrão True) que imprime o código do produto (cProd) antes da descrição, no formato "código - descrição", no DANFE da Reforma Tributária (Fortes, retrato e paisagem).
+   Reduzida a largura da descrição e das informações adicionais do item no DANFE da Reforma Tributária (Fortes) para o texto não ultrapassar a linha da coluna.
+   Por: Daniel de Morais InfoCotidiano
+
+18/11/2026
+-- ACBrNFe.XmlWriter --
+[*] ACBR-10244 - Criado propriedades privadas para definir se deve ou não gerar o grupo ICMS.
+   Por: Italo Giurizzato Junior
+-- ACBrDANFCeFortesFr --
+[+] ACBR-9753 - Adiciona novo impresso para os eventos da NFC-e no motor Fortes Report.
+   Por: Diego Folieni
+   Veja: https://www.projetoacbr.com.br/forum/topic/96091-disponibilizado-impresso-de-evento-para-nfc-e-no-fortes-report/ 
+-- ACBrNFe.Conversao/pcnConversaoNFe --
+[*] Correção ortográfica no enumerado caOperacoesIndustrializacaoZFM que estava como caOperacoesIdustrializacaoZFM.
+-- ACBrNFe.IniReader --
+[*] Trocado o texto fixo "emit" pela variável sSecao pois o nome da seção pode ser Emitente ou emit ao fazer a leitura.
+   Por: Italo Giurizzato Junior
+
+17/11/2026
+-- ACBrNFe.XmlWriter --
+[*] ACBR-10236 - Alteração visando gerar o grupo ICMSPrevistoPagtoAntecip também para o
+    CRT 1 e 4 (Simples Nacional e MEI).
+   Por: Compusofts
+-- Diversos --
+[*] ACBR-10159 - Ajustes para atender a NT 2026/005 versão 1.00
+   Por: Italo Giurizzato Junior
+-- ACBrNFe.Conversao --
+[-] Corrige Access Violation (Lazarus) na função BandeiraCartaoToDescStr quando o enumerado TBandeiraCartao estiver inválido.
+   Exemplo: TBandeiraCartao(-1);
+   Por: Victor H Gonzales - Pandaaa
+
+13/11/2026
+-- ACBrNFe.Consts --
+[*] A constante DSC_VICMSPREVISTO foi movida para a unit ACBrDFeConsts, uma vez que ela
+    poderá ser utilizada por diversos DF-e.
+   Por: Italo Giurizzato Junior
+
+12/11/2026
+-- ACBrNFe.Classes --
+[*] ACBR-10191 - descomentado a linha de atribuição do IBSCBS do Assing da classe TImposto.
+   Por: Italo Giurizzato Junior
+-- ACBrNFe.Classes --
+[*] ACBR-10195 - Alterado o tipo da propriedade vUnComLiq para Double.
+   Por: Dinarte Moscon
+
+11/11/2026
+-- ACBrNFe.XmlWriter --
+[*] Adiciona condição para geração do grupo de ICMSPrevisto quando nota de débito.
+   Por: Marcos Peixoto
+
+09/11/2026
+-- ACBrNFe.JSONReader/ACBrNFe.JSONWriter/ACBrNFe.XmlReader --
+[*] ACBR-9950 - Ajustes nas units de leitura e escria em JSON e uma correção na 
+    unit que faz a leitura do XML, visando a NT 2026/008 v1.01
+   Por: Italo Giurizzato Junior
+-- Diversos --
+[*] ACBR-9950 - Adequa o componente a nota técnica 2026.008 v1.01
+   Por: Italo Giurizzato Junior
+
+03/11/2026
+-- ACBrNFe.ValidarRegrasdeNegocio --
+[-] Ajuste nas regras 865 e 904 para o meio de pagamento 91 (Pagamento Posterior), conforme NT 2025.001 v1.03.
+   Por: Daniel Morais InfoCotidiano
+
+30/10/2026
+-- ACBrNFe.Conversao/pcnConversaoNFe --
+[-] Correção para emitir o evento de Vinculação de Pagamento
+   Por: Italo Giurizzato Junior
+
+28/10/2026
+-- Diversos --
+[*] ACBR-9954 - Adequa o componente a nota técnica 2026.006 v1.00
+   Por: Italo Giurizzato Junior
+   Veja: https://www.projetoacbr.com.br/forum/topic/95147-publicada-nota-t%C3%A9cnica-adicionando-grupo-para-o-splitpayment-na-nfe-e-na-nfce-nt-2026006-v100/
+[*] ACBR-9982 - Adequa o componente a nota técnica 2026.007 v1.10
+   Por: douglaslimber / Italo Giurizzato Junior
+   Veja: https://www.projetoacbr.com.br/forum/topic/93973-publicada-nota-t%C3%A9cnica-que-permite-emiss%C3%A3o-de-nf-e-sem-informar-a-ie-do-emitente-nt2026007-v100/
+[*] Substitui as ocorrências de pcnConversaoNFe para ACBrNFe.Conversao.
+   Por: Italo Giurizzato Junior
+
+28/10/2026
+-- Diversos DANFe FPDF --
+[+] #ACBR-9948 - DANFE no leiaute da Reforma Tributária (NT 2026.010 v1.00), modelo retrato e paisagem (ACBR-9988/ACBR-9989).
+   Por: Celso M Junior
+
+28/10/2026
+-- ACBrDFeDANFeReport, ACBrNFeDANFEClass --
+[+] #ACBR-9948 - DANFE no leiaute da Reforma Tributária (NT 2026.010 v1.00), modelo retrato e paisagem (ACBR-9986/ACBR-9987).
+   Por: Daniel de Morais InfoCodidiano
+
+26/10/2026
+-- Diversos --
+[+] ACBR-9000 - ObterDFe - Implementados métodos SAE NFC-e SEFAZ-SP - NFCeListagemChaves e NFCeDownloadXML
+   Por: Renato Rubinho
+   Veja: https://www.projetoacbr.com.br/forum/topic/90552-sefaz-de-sp-disponibiliza-web-service-para-download-dos-xmls-das-nfc-es
+
+21/10/2026
+-- ACBrNFe.EnvEvento --
+[-] Adiciona leitura do elemento cCredPress no INI e no XML para o evento de solicitação de apropriação de crédito presumido.
+   Por: Dalmark Systems
+   Veja: https://www.projetoacbr.com.br/forum/topic/95490-acbrlib-evento-211110-%E2%80%93-ccredpres-n%C3%A3o-%C3%A9-lido-do-ini/ 
+
+15/10/2026
+-- ACBrNFeServicos --
+[-] A URL do QrCode da NF-e com DANFe Simplificado Tipo 2 para o ambiente de homologação de SP foi atualizada.
+   Por: Diego Folieni
+   Veja: https://www.projetoacbr.com.br/forum/topic/95378-danfe-simplificado-tipo-2-erro-valida%C3%A7%C3%A3o-e-url-qrcode/ 
+-- ACBrNFeDANFeESCPOS --
+[-] Ajuste para impressao qrCode Lateral DANFe Simplificado Tipo2
+   Por: Daniel de Morais
+
+14/10/2026
+-- ACBrNFeDANFeRLRetrato --
+[-] Ajuste para a quebra de linha da propriedade RLMemoInfAd (infAdProd )
+   Por: Daniel de Morais
+   Veja: https://www.projetoacbr.com.br/forum/topic/95345-campo-do-infadprod-n%C3%A3o-respeitando-as-margens/
+
+30/09/2026
+-- ACBrNFeWebServices --
+[-] Ajuste visando evitar erro de UTF-8 ao consultar recibo.
+   Por: Diego Folieni
+   Veja: https://www.projetoacbr.com.br/forum/topic/94963-erro-ao-executar-o-comando-acbrnfewebservicesreciboexecutar/ 
+-- ACBrNFe.XmlWriter --
+[-] Ajuste para que sejam gerados os grupos de PIS e COFINS quando nota de pagamento antecipado.
+   Por: Diego Folieni
+   Veja: https://www.projetoacbr.com.br/forum/topic/94786-nfe-finalidade-6nota-de-d%C3%A9bito-tipo-de-d%C3%A9bito-06-pagamento-antecipado/ 
+
+29/09/2026
+-- ACBrNFeServicos --
+[-] ACBR-9846 - Corrige a URL de Consulta para o ambiente de produção de NFe.
+   Por: umclic
+   Veja: https://www.projetoacbr.com.br/forum/topic/94714-acbr-9846-endereco-do-site-da-uf-da-consulta-por-chave-de-acesso-diverge-do-previsto/
+
+24/09/2026
+-- ACBrDANFCeFortesFr (pas/dfm/lfm) --
+[+] ACBR-9424 - Disponibiliza o DANFe Simplificado Tipo 2 no motor de impressão Fortes Report.
+   Por: Alexandre de Paula
+   Veja: https://www.projetoacbr.com.br/forum/topic/94858-danfe-simplificado-tipo-2-sendo-disponibilizado-nos-motores-de-relat%C3%B3rio-do-acbr/ 
+   
+23/09/2026
+-- ACBrNFe.Consts --
+[-] Adiciona as constantes DSC_PESOB_TON e DSC_PESOL_TON.
+   Por: Diego Folieni
+
+22/09/2026
+-- ACBrNFe.Conversao/ACBrNFe.XmlWriter/pcnConversaoNFe --
+[-] ACBR-9863 - Ajuste para informar corretamente o tipo de Nota de Débito, pois não estava gerando
+    corretamente o grupo gEstornoCred.
+   Por: Italo Giurizzato Junior/Paulo Hildebrand Neto
+
+18/09/2026
+-- ACBrNFeServicos.ini --
+[-] ACBR-9424 - Altera a URL de consulta e a URL de QR Code para correta emissão de NF-e Varejo em homologação para SP.
+   Por: Diego Folieni
+-- ACBrNFe/ACBrNFCeDANFeFPDF --
+[+] ACBR-9424 - Disponibiliza o DANFe Simplificado Tipo 2 no motor de impressão FPDF.
+   Por: Diego Folieni
+   Veja: https://www.projetoacbr.com.br/forum/topic/94858-danfe-simplificado-tipo-2-sendo-disponibilizado-nos-motores-de-relat%C3%B3rio-do-acbr/ 
 
 04/09/2026
 -- ACBrNFeDANFEFRDM --

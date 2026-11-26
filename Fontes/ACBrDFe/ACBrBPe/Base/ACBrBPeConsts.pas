@@ -82,6 +82,7 @@ resourcestring
   DSC_TPVEICULO = 'Tipo de Veículo Transportado';
   DSC_SITVEICULO = 'Situação do Veículo Transportado';
   DSC_VBP = 'Valor do Bilhete de Passagem';
+  DSC_VBPLIQ = 'Valor Líquido total do Bilhete SEM tributos';
   DSC_VDESCONTO = 'Valor do Desconto';
   DSC_VPGTO = 'Valor Pago';
   DSC_VTROCO = 'Valor do Troco';
@@ -131,6 +132,8 @@ resourcestring
   DSC_TPINTEGRA = 'Tipo de Integração para pagamento';
   DSC_TBAND = 'Bandeira da Operadora de Cartão';
   DSC_CAUT = 'Número da Autorização';
+
+  DSC_CHBPEREF = 'Chave de acesso do BPe Referenciado para cobrar multa e juros';
 
 implementation
 

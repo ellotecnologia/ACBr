@@ -56,6 +56,7 @@ type
     procedure Ler_ProtBPe(const ANode: TACBrXmlNode);
     procedure Ler_InfBPe(const ANode: TACBrXmlNode);
     procedure Ler_Ide(const ANode: TACBrXmlNode);
+    procedure Ler_gMultaJuros(const ANode: TACBrXmlNode; gMultaJuros: TgMultaJuros);
 
     procedure Ler_Emit(const ANode: TACBrXmlNode);
     procedure Ler_EnderEmit(const ANode: TACBrXmlNode);
@@ -276,6 +277,15 @@ begin
 
   // Reforma Tritutária
   Ler_gCompraGovReduzido(ANode.Childrens.Find('gCompraGov'), BPe.Ide.gCompraGov);
+  Ler_gMultaJuros(ANode.Childrens.Find('gMultaJuros'), BPe.Ide.gMultaJuros);
+end;
+
+procedure TBPeXmlReader.Ler_gMultaJuros(const ANode: TACBrXmlNode;
+  gMultaJuros: TgMultaJuros);
+begin
+  if not Assigned(ANode) then Exit;
+
+  gMultaJuros.chBPeRef := ObterConteudo(ANode.Childrens.Find('chBPeRef'), tcStr);
 end;
 
 procedure TBPeXmlReader.Ler_Emit(const ANode: TACBrXmlNode);
@@ -297,6 +307,7 @@ begin
   Ler_EnderEmit(ANode.Childrens.Find('enderEmit'));
 
   BPe.Emit.TAR := ObterConteudo(ANode.Childrens.Find('TAR'), tcStr);
+  BPe.Emit.tpRegimeIBSCBS := StrTotpRegimeIBSCBS(ObterConteudo(ANode.Childrens.Find('tpRegimeIBSCBS'), tcStr));
 end;
 
 procedure TBPeXmlReader.Ler_EnderEmit(const ANode: TACBrXmlNode);
@@ -464,6 +475,7 @@ begin
   if not Assigned(ANode) then Exit;
 
   BPe.infValorBPe.vBP := ObterConteudo(ANode.Childrens.Find('vBP'), tcDe2);
+  BPe.infValorBPe.vBPLiq := ObterConteudo(ANode.Childrens.Find('vBPLiq'), tcDe2);
   BPe.infValorBPe.vDesconto := ObterConteudo(ANode.Childrens.Find('vDesconto'), tcDe2);
   BPe.infValorBPe.vPgto := ObterConteudo(ANode.Childrens.Find('vPgto'), tcDe2);
   BPe.infValorBPe.vTroco := ObterConteudo(ANode.Childrens.Find('vTroco'), tcDe2);
@@ -620,6 +632,7 @@ begin
       nContFim := ObterConteudo(ADetNodes[i].Childrens.Find('nContFim'), tcStr);
       qPass := ObterConteudo(ADetNodes[i].Childrens.Find('qPass'), tcStr);
       vBP := ObterConteudo(ADetNodes[i].Childrens.Find('vBP'), tcDe2);
+      vBPLiq := ObterConteudo(ADetNodes[i].Childrens.Find('vBPLiq'), tcDe2);
 
       ANodeNivel3 := ADetNodes[i].Childrens.Find('imp');
 
@@ -679,6 +692,7 @@ begin
 
   BPe.Total.qPass := ObterConteudo(ANode.Childrens.Find('qPass'), tcInt);
   BPe.Total.vBP := ObterConteudo(ANode.Childrens.Find('vBP'), tcDe2);
+  BPe.Total.vBPLiq := ObterConteudo(ANode.Childrens.Find('vBPLiq'), tcDe2);
 
   AuxNode := ANode.Childrens.Find('ICMSTot');
 

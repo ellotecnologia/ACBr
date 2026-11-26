@@ -38,9 +38,11 @@ interface
 
 uses
   SysUtils, Classes,
+  ACBrBase,
   ACBrJson,
   ACBrXmlBase,
   ACBrXmlDocument,
+  ACBrDFeSSL,
   ACBrNFSeXClass,
   ACBrNFSeXConversao,
   ACBrNFSeXGravarXml,
@@ -96,7 +98,7 @@ type
 
   TACBrNFSeXWebserviceSpeedGovAPIPropria = class(TACBrNFSeXWebservicePadraoNacional)
   protected
-
+    procedure SetHeaders(aHeaderReq: THTTPHeader); override;
   public
     function ConsultarSituacao(const ACabecalho, AMSG: String): string; override;
 
@@ -120,10 +122,14 @@ type
     procedure PrepararConsultaSituacao(Response: TNFSeConsultaSituacaoResponse); override;
     procedure TratarRetornoConsultaSituacao(Response: TNFSeConsultaSituacaoResponse); override;
 
+    procedure PrepararEnviarEvento(Response: TNFSeEnviarEventoResponse); override;
+    procedure TratarRetornoEnviarEvento(Response: TNFSeEnviarEventoResponse); override;
+
     procedure ProcessarMensagemDeErros(LJson: TACBrJSONObject;
                                      Response: TNFSeWebserviceResponse;
                                      const AListTag: string = 'Erros'); override;
-
+  public
+    function GetSchemaPath: string; override;
   end;
 
 implementation
@@ -132,6 +138,7 @@ uses
   ACBrUtil.XMLHTML,
   ACBrUtil.Strings,
   ACBrUtil.Base,
+  ACBrUtil.FilesIO,
   ACBrDFe.Conversao,
   ACBrDFeException,
   ACBrNFSeX,
@@ -291,7 +298,6 @@ begin
 
   with ConfigSchemas do
   begin
-    Validar := True;
     Recepcionar := 'enviar_lote_rps_envio_v1.xsd';
     ConsultarSituacao := 'consultar_situacao_lote_rps_envio_v1.xsd';
     ConsultarLote := 'consultar_lote_rps_envio_v1.xsd';
@@ -644,6 +650,24 @@ begin
   Result := Executar('', Request, [], []);
 end;
 
+procedure TACBrNFSeXWebserviceSpeedGovAPIPropria.SetHeaders(
+  aHeaderReq: THTTPHeader);
+var
+  lDFeSSL: TDFeSSL;
+  lBody, lAssinaturaEvt: AnsiString;
+begin
+  inherited SetHeaders(aHeaderReq);
+  if Metodo = tmEnviarEvento then
+  begin
+    lBody := TACBrNFSeX(FPDFeOwner).WebService.EnviarEvento.ArquivoEnvio;
+    lDFeSSL := TACBrNFSeX(FPDFeOWner).SSL;
+    lAssinaturaEvt := lDFeSSL.GerarCMSDestacado(lBody);
+    aHeaderReq.AddHeader('X-Evento-Assinatura', lAssinaturaEvt);
+  end;
+
+  ReqHeaders := aHeaderReq.Text;
+end;
+
 function TACBrNFSeXWebserviceSpeedGovAPIPropria.TratarXmlRetornado(
   const aXML: string): string;
 var
@@ -701,6 +725,8 @@ begin
   inherited Configuracao;
 
   ConfigGeral.ServicosDisponibilizados.ConsultarSituacao := True;
+  ConfigAssinar.EnviarEvento := False;
+  ConfigSchemas.Validar := False;
 end;
 
 function TACBrNFSeProviderSpeedGovAPIPropria.CriarGeradorXml(
@@ -745,6 +771,23 @@ begin
   end;
 end;
 
+function TACBrNFSeProviderSpeedGovAPIPropria.GetSchemaPath: string;
+begin
+  {
+    Usar essa função até que o provedor faça alteração e passa a usar os novos
+    Schemas publicados pela Receita Federal.
+  }
+  with TACBrNFSeX(FAOwner).Configuracoes do
+  begin
+    if Geral.APIPropria then
+      Result := PathWithDelim(Arquivos.PathSchemas + 'PadraoNacional')
+    else
+      Result := PathWithDelim(Arquivos.PathSchemas + Geral.xProvedor);
+
+    Result := PathWithDelim(Result + VersaoNFSeToStr(Geral.Versao));
+  end;
+end;
+
 function TACBrNFSeProviderSpeedGovAPIPropria.PrepararArquivoEnvio(
   const aXml: string; aMetodo: TMetodo): string;
 begin
@@ -762,7 +805,7 @@ begin
 
       tmEnviarEvento:
         begin
-          Path := '';
+          Path := '/' + EnviarEventoResponse.InfEvento.pedRegEvento.chNFSe + '/eventos';
         end;
     else
       begin
@@ -779,40 +822,35 @@ procedure TACBrNFSeProviderSpeedGovAPIPropria.ProcessarMensagemDeErros(
   LJson: TACBrJSONObject; Response: TNFSeWebserviceResponse;
   const AListTag: string);
 var
-  JSonLista: TACBrJSONArray;
-  JSon: TACBrJSONObject;
+  lJSONArray: TACBrJSONArray;
+  lJSONObj, lAuxJSONObj: TACBrJSONObject;
 
   procedure AdicionaCollectionItem(JSonItem: TACBrJSONObject; Collection: TNFSeEventoCollection);
   var
     AItem: TNFSeEventoCollectionItem;
     Codigo: string;
   begin
+    if not(Assigned(JsonItem)) then
+      exit;
     Codigo := JSonItem.AsString['codigo_erro'];
+    if Trim(Codigo) = '' then
+      Codigo := JSonItem.AsString['codigo'];
 
     if Codigo <> '' then
     begin
       AItem := Collection.New;
       AItem.Codigo := Codigo;
       AItem.Descricao := JSonItem.AsString['mensagem'];
+      if AItem.Descricao = '' then
+        AItem.Descricao := JSonItem.AsString['descricao'];
       AItem.Correcao := JSonItem.AsString['detalhes'];
-    end
-    else
-    begin
-      Codigo := JSonItem.AsString['codigo_erro'];
-
-      if Codigo <> '' then
-      begin
-        AItem := Collection.New;
-        AItem.Codigo := Codigo;
-        AItem.Descricao := JSonItem.AsString['mensagem'];
-        AItem.Correcao := JSonItem.AsString['detalhes'];
-      end;
     end;
   end;
 
   procedure LerListaErrosAlertas(jsLista: TACBrJSONArray; Collection: TNFSeEventoCollection);
   var
     i: Integer;
+    Json: TACBrJSONObject;
   begin
     for i := 0 to jsLista.Count-1 do
     begin
@@ -822,39 +860,54 @@ var
     end;
   end;
 
-  procedure VerificaSeObjetoOuArray(aNome: string; Collection: TNFSeEventoCollection);
+begin
+  //Quando JSON de retorno vem sem elemento raiz e o erro no corpo
+  AdicionaCollectionItem(LJSON, Response.Erros);
+  if Response.Erros.Count > 0 then
+    exit;
+
+  //Quando JSON de retorno vem sem elemento raiz e um elemento "erro" no corpo
+  if LJSON.IsJSONObject('erro') then
   begin
-    // Verifica se no retorno contem um objeto ou array
-    if LJson.IsJSONArray(aNome) then
-    begin
-      JSonLista := LJson.AsJSONArray[aNome];
+    lJSONObj := LJSON.AsJSONObject['erro'];
+    AdicionaCollectionItem(lJSONObj, Response.Erros);
+    if Response.Erros.Count > 0 then
+      exit;
+  end;
 
-      if JSonLista.Count > 0 then
-        LerListaErrosAlertas(JSonLista, Collection);
-    end
-    else
-    begin
-      JSon := LJson.AsJSONObject[aNome];
+  //Quando JSON de retorno vem sem elemento raiz e um elemento "erros" no corpo
+  if LJSON.IsJSONArray('erros') then
+  begin
+    lJSONArray := LJSON.AsJSONArray['erros'];
+    LerListaErrosAlertas(lJSONArray, Response.Erros);
+    if Response.Erros.Count > 0 then
+      exit;
+  end;
 
-      if JSon <> nil then
-        AdicionaCollectionItem(JSon, Collection);
+  //Quando JSON de retorno vem com elemento raiz e um elemento no corpo
+  if LJSON.IsJSONObject('Erros') then
+  begin
+    lJSONObj := LJSON.AsJSONObject['Erros'];
+    AdicionaCollectionItem(lJSONObj, Response.Erros);
+
+    //Elemento do corpo "erros" ou "erro"
+    if lJSONObj.IsJSONObject('erro') then
+    begin
+      lAuxJSONObj := lJSONObj.AsJSONObject['erro'];
+      AdicionaCollectionItem(lAuxJSONObj, Response.Erros);
+    end else if lJSONObj.IsJSONArray('erros') then
+    begin
+      lJSONArray := lJSONObj.AsJSONArray['erros'];
+      LerListaErrosAlertas(lJSONArray, Response.Erros);
     end;
   end;
-begin
-  // Verifica se no retorno contem a lista de Erros
-  VerificaSeObjetoOuArray(AListTag, Response.Erros);
-  // Verifica se no retorno contem a lista de erros
-  VerificaSeObjetoOuArray('erros', Response.Erros);
-  // Verifica se no retorno contem a lista de erro
-  VerificaSeObjetoOuArray('erro', Response.Erros);
-  // Verifica se no retorno contem a lista de Alertas
-  VerificaSeObjetoOuArray('Alertas', Response.Alertas);
-  // Verifica se no retorno contem a lista de Alertas
-  VerificaSeObjetoOuArray('alertas', Response.Alertas);
 end;
 
 procedure TACBrNFSeProviderSpeedGovAPIPropria.TratarRetornoEmitir(
   Response: TNFSeEmiteResponse);
+var
+  lDocument: TACBrJSONObject;
+  lResumo: TNFSeResumoCollectionItem;
 begin
   if Pos('codigo_erro', Response.ArquivoRetorno) > 0 then
   begin
@@ -862,6 +915,65 @@ begin
   end;
 
   inherited TratarRetornoEmitir(Response);
+
+  if Response.Erros.Count > 0 then
+    exit;
+
+  lDocument := TACBrJsonObject.Parse(Response.ArquivoRetorno);
+  try
+    Response.Protocolo := lDocument.AsString['numero_protocolo'];
+    Response.idNota := lDocument.AsString['chave_acesso'];
+    Response.NumeroNota := lDocument.AsString['numero_nota'];
+    Response.Situacao := lDocument.AsString['status_nota'];
+    Response.DescSituacao := lDocument.AsString['mensagem'];
+
+    if Response.DescSituacao <> EmptyStr then
+    begin
+      lResumo := Response.Resumos.New;
+      lResumo.NumeroNota := Response.NumeroNota;
+      lResumo.Situacao := Response.Situacao;
+      lResumo.DescSituacao := Response.DescSituacao;
+      lResumo.Protocolo := Response.Protocolo;
+      lResumo.idNota := Response.idNota;
+    end;
+
+  finally
+    FreeAndNil(lDocument);
+  end;
+end;
+
+procedure TACBrNFSeProviderSpeedGovAPIPropria.TratarRetornoEnviarEvento(
+  Response: TNFSeEnviarEventoResponse);
+var
+  lDocument: TACBrJSONObject;
+  lResumo: TNFSeResumoCollectionItem;
+begin
+  inherited TratarRetornoEnviarEvento(Response);
+  if Response.Erros.Count > 0 then
+    exit;
+
+  lDocument := TACBrJSONObject.Parse(Response.ArquivoRetorno);
+  try
+    Response.Protocolo := lDocument.AsString['numero_protocolo'];
+    Response.idEvento := lDocument.AsString['id_evento'];
+    Response.nSeqEvento := lDocument.AsInteger['numero_sequencial'];
+    Response.Data := lDocument.AsISODateTime['data_hora_evento'];
+    Response.Situacao := lDocument.AsString['status_evento'];
+    Response.DescSituacao := lDocument.AsString['mensagem'];
+
+    if Response.DescSituacao <> EmptyStr then
+    begin
+      lResumo := Response.Resumos.New;
+      lResumo.Protocolo := Response.Protocolo;
+      lResumo.idEvento := Response.idEvento;
+      lResumo.nSeqEvento := Response.nSeqEvento;
+      lResumo.Data := Response.Data;
+      lResumo.Situacao := Response.Situacao;
+      lResumo.DescSituacao := Response.DescSituacao;
+    end;
+  finally
+    FreeAndNil(lDocument);
+  end;
 end;
 
 procedure TACBrNFSeProviderSpeedGovAPIPropria.PrepararConsultaSituacao(
@@ -877,9 +989,55 @@ begin
     Exit;
   end;
 
-  Path := '/v101/protocolo/' + Response.Protocolo;
+  Path := '/protocolo/' + Response.Protocolo;
   Response.ArquivoEnvio := Path;
   Method := 'GET';
+end;
+
+procedure TACBrNFSeProviderSpeedGovAPIPropria.PrepararEnviarEvento(
+  Response: TNFSeEnviarEventoResponse);
+var
+  AErro: TNFSeEventoCollectionItem;
+  lJSONObj: TACBrJSONObject;
+  lcCanc: String;
+begin
+  if Response.InfEvento.pedRegEvento.cMotivo <= 0 then
+  begin
+    AErro := Response.Erros.New;
+    AErro.Codigo := Cod109;
+    AErro.Descricao := ACBrStr(Desc109);
+  end;
+  if Response.InfEvento.pedRegEvento.xMotivo = EmptyStr then
+  begin
+    AErro := Response.Erros.New;
+    AErro.Codigo := Cod110;
+    AErro.Descricao := ACBrStr(Desc110);
+  end;
+  if Response.InfEvento.pedRegEvento.chNFSe = EmptyStr then
+  begin
+    AErro := Response.Erros.New;
+    AErro.Codigo := Cod118;
+    AErro.Descricao := ACBrStr(Desc118);
+  end;
+
+  if Response.Erros.Count > 0 then Exit;
+
+  lJSONObj := TACBrJSONObject.Create;
+  try
+    case Response.InfEvento.pedRegEvento.cMotivo of
+      1: lcCanc := 'erro_na_emissao';
+      2: lcCanc := 'servico_nao_prestado';
+      else lcCanc := 'outros';
+    end;
+
+    lJSONObj.AddPair('tipo_evento', 'cancelamento');
+    lJSONObj.AddPair('codigo_motivo_cancelamento', lcCanc);
+    lJSONObj.AddPair('descricao_motivo_cancelamento', Response.InfEvento.pedRegEvento.xMotivo);
+
+    Response.ArquivoEnvio := lJSONObj.ToJSON;
+  finally
+    lJSONObj.Free;
+  end;
 end;
 
 procedure TACBrNFSeProviderSpeedGovAPIPropria.TratarRetornoConsultaSituacao(
@@ -910,6 +1068,7 @@ begin
 
       Response.Data := Document.AsISODateTime['dataHoraProcessamento'];
       Response.idNota := Document.AsString['chaveAcesso'];
+
     except
       on E:Exception do
       begin

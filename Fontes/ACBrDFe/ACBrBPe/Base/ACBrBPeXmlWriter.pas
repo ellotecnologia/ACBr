@@ -85,6 +85,7 @@ type
 
     function Gerar_InfBPe: TACBrXmlNode;
     function Gerar_Ide: TACBrXmlNode;
+    function Gerar_gMultaJuros(gMultaJuros: TgMultaJuros): TACBrXmlNode;
 
     function Gerar_Emit: TACBrXmlNode;
     function Gerar_EnderEmit: TACBrXmlNode;
@@ -233,9 +234,17 @@ begin
   Result := False;
   FpGerarGrupoIBSCBSTot := False;
 
+  NrOcorrgIBSTot := 0;
+  NrOcorrgCBSTot := 0;
+  NrOcorrgMonoTot := 0;
   case ModeloDF of
     moBPe: ModelosDFe := mdfBPe;
-    moBPeTM: ModelosDFe := mdfBPeTM;
+    moBPeTM:
+      begin
+        ModelosDFe := mdfBPeTM;
+        NrOcorrgIBSTot := 1;
+        NrOcorrgCBSTot := 1;
+      end;
     moBPeTA: ModelosDFe := mdfBPeTA;
   end;
 
@@ -460,6 +469,18 @@ begin
 
   // Reforma Tributária
   Result.AppendChild(Gerar_gCompraGovReduzido(BPe.Ide.gCompraGov));
+
+  if (BPe.ide.tpBPe <> tbBPeTM) and (BPe.Ide.gMultaJuros.chBPeRef <> '') then
+    Result.AppendChild(Gerar_gMultaJuros(BPe.Ide.gMultaJuros));
+end;
+
+function TBPeXmlWriter.Gerar_gMultaJuros(
+  gMultaJuros: TgMultaJuros): TACBrXmlNode;
+begin
+  Result := FDocument.CreateElement('gMultaJuros');
+
+  Result.AppendChild(AddNode(tcStr, '#25', 'chBPeRef', 44, 44, 1,
+                                           gMultaJuros.chBPeRef, DSC_CHBPEREF));
 end;
 
 function TBPeXmlWriter.Gerar_Emit: TACBrXmlNode;
@@ -511,6 +532,9 @@ begin
 
   Result.AppendChild(AddNode(tcStr, '#104', 'ISUFEmit', 8, 9, 0,
                                               BPe.Emit.ISUFEmit, DSC_ISUFEMIT));
+
+  Result.AppendChild(AddNode(tcStr, '#104', 'tpRegimeIBSCBS', 1, 1, 0,
+             tpRegimeIBSCBSToStr(BPe.Emit.tpRegimeIBSCBS), DSC_TPREGIMEIBSCBS));
 end;
 
 function TBPeXmlWriter.Gerar_EnderEmit: TACBrXmlNode;
@@ -580,10 +604,11 @@ begin
   if BPe.Comp.IE = 'ISENTO' then
     Result.AppendChild(AddNode(tcStr, '#50', 'IE', 2, 14, 1, BPe.Comp.IE, DSC_IE))
   else
-    Result.AppendChild(AddNode(tcStr, '#50', 'IE', 2, 14, 1,
+    Result.AppendChild(AddNode(tcStr, '#50', 'IE', 2, 14, 0,
                                               OnlyNumber(BPe.Comp.IE), DSC_IE));
 
-  Result.AppendChild(Gerar_EnderComp);
+  if BPe.Comp.EnderComp.xLgr <> '' then
+    Result.AppendChild(Gerar_EnderComp);
 end;
 
 function TBPeXmlWriter.Gerar_EnderComp: TACBrXmlNode;
@@ -850,6 +875,9 @@ begin
 
   Result.AppendChild(AddNode(tcDe2, '#115', 'vBP', 1, 15, 1,
                                                  BPe.infValorBPe.vBP, DSC_VBP));
+
+  Result.AppendChild(AddNode(tcDe2, '#115', 'vBPLiq', 1, 15, 0,
+                                           BPe.infValorBPe.vBPLiq, DSC_VBPLIQ));
 
   Result.AppendChild(AddNode(tcDe2, '#116', 'vDesconto', 1, 15, 1,
                                      BPe.infValorBPe.vDesconto, DSC_VDESCONTO));
@@ -1216,6 +1244,9 @@ begin
     Result[i].AppendChild(AddNode(tcDe2, '#55', 'vBP', 1, 15, 1,
                                      BPe.detBPeTM[indice].det[i].vBP, DSC_VBP));
 
+    Result[i].AppendChild(AddNode(tcDe2, '#55', 'vBPLiq', 1, 15, 0,
+                               BPe.detBPeTM[indice].det[i].vBPLiq, DSC_VBPLIQ));
+
     Result[i].AppendChild(Gerar_ImpTM(indice, i));
 
     nodeArray := Gerar_CompValorTM(indice, i);
@@ -1401,6 +1432,9 @@ begin
   Result.AppendChild(AddNode(tcDe2, '#87', 'vBP', 1, 15, 1,
                                                        BPe.Total.vBP, DSC_VBP));
 
+  Result.AppendChild(AddNode(tcDe2, '#87', 'vBPLiq', 1, 15, 0,
+                                                 BPe.Total.vBPLiq, DSC_VBPLIQ));
+
   Result.AppendChild(Gerar_TotalICMSTotal);
 
   // Reforma Tributária
@@ -1408,7 +1442,7 @@ begin
   begin
     Result.AppendChild(Gerar_IBSCBSTot(BPe.total.IBSCBSTot));
 
-    Result.AppendChild(AddNode(tcDe2, '#250', 'vTotDFe', 1, 15, 0,
+    Result.AppendChild(AddNode(tcDe2, '#250', 'vTotDFe', 1, 15, 1,
                                                BPe.total.vTotDFe, DSC_VTOTDFE));
   end;
 end;

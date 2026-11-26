@@ -41,7 +41,7 @@ uses
   ACBrBase;
 
 const
-  ClibDM_SDKVersion = '0.0.3';
+  ClibDM_SDKVersion = '0.0.5';
   {$IFDEF MSWINDOWS}
    CTPagLib = 'libDM_SDK.dll';
   {$ELSE}
@@ -1207,6 +1207,9 @@ end;
 
 procedure TPagAPI.SetIdentification(AValue: String);
 begin
+  //TODO: ValidarAValue,na unit ACBrTEFAPITPag.pas alimenta CNPJ na linha 269
+  {nao encontrei outras ocorrencias. Poderia ser OnlyCPFCNPJAlphaNum()}
+
   fIdentification := OnlyAlphaNum(AValue);
 end;
 

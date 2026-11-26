@@ -588,8 +588,10 @@ begin
     Result[I].AppendChild(AddNode(tcDe4, '#92', 'vMedAnt', 1, 15, 1, NFGas.gMed[I].vMedAnt, 'Valor da leitura anterior'));
     Result[I].AppendChild(AddNode(tcDat, '#93', 'dMedAtu', 10, 10, 1, NFGas.gMed[I].dMedAtu, 'Data da leitura atual'));
     Result[I].AppendChild(AddNode(tcDe4, '#94', 'vMedAtu', 1, 15, 1, NFGas.gMed[I].vMedAtu, 'Valor da leitura atual'));
+    Result[I].AppendChild(AddNode(tcDat, '#91', 'dMedProx', 10, 10, 1, NFGas.gMed[I].dMedProx, 'Data da proxima leitura'));
     Result[I].AppendChild(AddNode(tcStr, '#95', 'tpEqp', 1, 1, 1, tpEqpToStr(NFGas.gMed[I].tpEqp), 'Tipo do equipamento'));
     Result[I].AppendChild(AddNode(tcStr, '#96', 'tpMedidor', 1, 1, 0, tpMedidorToStr(NFGas.gMed[I].tpMedidor), 'Tipo do medidor'));
+    Result[I].AppendChild(AddNode(tcStr, '#90', 'descPontoCons', 2, 60, 0, NFGas.gMed[I].descPontoCons, 'Descrição do ponto de consumo'));
   end;
 
   if NFGas.gMed.Count > 99 then
@@ -674,15 +676,16 @@ begin
       gTarif[I].vTarifAplic, 'Valor da tarifa aplicada'));
   end;
 
-  if gTarif.Count > 6 then
-    wAlerta('#102', 'gTarif', '', ERR_MSG_MAIOR_MAXIMO + '6');
+  if gTarif.Count > 20 then
+    wAlerta('#102', 'gTarif', '', ERR_MSG_MAIOR_MAXIMO + '20');
 end;
 
 function TNFGasXmlWriter.Gerar_det_prod(prod: Tprod): TACBrXmlNode;
 begin
   Result := FDocument.CreateElement('prod');
 
-  Result.AppendChild(AddNode(tcStr, '#110', 'indOrigemQtd', 1, 1, 1, prod.indOrigemQtd, 'Indicador da origem da quantidade faturada'));
+  Result.AppendChild(AddNode(tcStr, '#110', 'indOrigemQtd', 1, 1, 1,
+    indOrigemQtdToStr(prod.indOrigemQtd), 'Indicador da origem da quantidade faturada'));
 
   if (prod.gMedicao.nMed > 0) and (prod.gMedicao.gMedida.vMed > 0) then
     Result.AppendChild(Gerar_det_prod_gMedicao(prod.gMedicao));
@@ -699,6 +702,12 @@ begin
   Result.AppendChild(AddNode(tcDe4, '#128', 'fatorP', 1, 15, 0, prod.fatorP, 'Fator de correção de pressão'));
   Result.AppendChild(AddNode(tcDe4, '#129', 'fatorT', 1, 15, 0, prod.fatorT, 'Fator de correção de temperatura'));
   Result.AppendChild(AddNode(tcDe8, '#130', 'vProd', 1, 15, 1, prod.vProd, 'Valor do produto'));
+
+  Result.AppendChild(AddNode(tcDe10, '#130', 'vItemLiq', 1, 15, 0,
+                                                  prod.vItemLiq, DSC_VITEMLIQ));
+
+  Result.AppendChild(AddNode(tcDe10, '#130', 'vProdLiq', 1, 15, 0,
+                                                  prod.vProdLiq, DSC_VPRODLIQ));
 
   if prod.indDevolucao = tiSim then
     Result.AppendChild(AddNode(tcStr, '#131', 'indDevolucao', 1, 1, 1, '1', 'Indicador de devolução do valor do item'));
@@ -952,6 +961,13 @@ function TNFGasXmlWriter.Gerar_det_imposto(imposto: Timposto): TACBrXmlNode;
       Result.AppendChild(AddNode(tcDe2, '#228', 'vFCP', 1, 15, 0, Imposto.ICMS.vFCP, 'Valor do FCP'));
     end;
   end;
+
+  function ICMSPrevisto(ICMS: TICMS): TACBrXmlNode;
+  begin
+    Result := FDocument.CreateElement('gICMSPrevistoPagtoAntecip');
+
+    Result.AppendChild(AddNode(tcDe2, '#222', 'vICMSPrevisto', 1, 15, 0, Imposto.ICMS.vICMSPrevisto, 'Valor do ICMS'));
+  end;
 begin
   Result := FDocument.CreateElement('imposto');
 
@@ -971,6 +987,7 @@ begin
       cst60: Result.AppendChild(ICMS60(imposto.ICMS));
       cst70: Result.AppendChild(ICMS70(imposto.ICMS));
       cst90: Result.AppendChild(ICMS90(imposto.ICMS));
+      cstICMSPrevisto: Result.AppendChild(ICMSPrevisto(imposto.ICMS));
     else
       begin
         Result := nil;
@@ -1083,6 +1100,8 @@ begin
       'Indicador de devolucao do valor do item'));
   end;
 
+  Result.AppendChild(Gerar_gIBSCBSSemProcJur(gProcRef.gIBSCBS));
+
   ProcNodes := Gerar_det_gProcRef_gProc(gProcRef.gProc);
   for I := 0 to Length(ProcNodes) - 1 do
   begin
@@ -1129,6 +1148,9 @@ begin
 
   Result.AppendChild(AddNode(tcDe2, '#254', 'vProd', 1, 15, 1,
                                                        Total.vProd, DSC_VPROD));
+
+  Result.AppendChild(AddNode(tcDe2, '#254', 'vProdLiq', 1, 15, 0,
+                                                 Total.vProdLiq, DSC_VPRODLIQ));
 
   Result.AppendChild(Gerar_ICMSTot(Total));
   Result.AppendChild(Gerar_vRetTribTot(Total));
@@ -1336,7 +1358,7 @@ begin
 
     Result[i].AppendChild(AddNode(tcStr, '#387', 'CompetFat', 6, 6, 1, FormatDateTime('yyyymm', gCons[i].CompetFat), 'Competência do faturamento'));
     Result[i].AppendChild(AddNode(tcStr, '#418', 'uMed', 1, 3, 1, uMedToStr(gCons[i].uMed), 'Unidade básica de medida'));
-    Result[i].AppendChild(AddNode(tcInt, '#419', 'qtdDias', 1, 3, 1, gCons[i].qtdDias, 'Quantidade de dias de medição'));
+    Result[i].AppendChild(AddNode(tcInt, '#419', 'qtdDias', 1, 4, 1, gCons[i].qtdDias, 'Quantidade de dias de medição'));
     Result[i].AppendChild(AddNode(tcDe4, '#420', 'medDiaria', 1, 13, 0, gCons[i].medDiaria, 'Média diária'));
     Result[i].AppendChild(AddNode(tcDe4, '#421', 'consumo', 1, 13, 0, gCons[i].consumo, 'Consumo no mês'));
     Result[i].AppendChild(AddNode(tcDe4, '#422', 'vFat', 1, 13, 1, gCons[i].vFat, 'Valor faturado'));

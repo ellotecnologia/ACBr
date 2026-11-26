@@ -590,6 +590,9 @@ begin
     LerTomadorServico(AuxNode);
 
     NFSe.DataFatoGerador := ObterConteudo(AuxNode.Childrens.FindAnyNs('DataFatoGerador'), tcDat);
+	
+	if NFSe.DataFatoGerador < EncodeDate(2000, 1, 1) then
+      NFSe.DataFatoGerador := 0;
 
     LerIntermediarioServico(AuxNode);
     LerConstrucaoCivil(AuxNode);
@@ -679,8 +682,12 @@ begin
     LerDeclaracaoPrestacaoServico(AuxNode);
 
     NFSe.ChaveAcesso := ObterConteudo(AuxNode.Childrens.FindAnyNs('ChaveAcesso'), tcStr);
+
     if (NFSe.ChaveAcesso = '') then
         NFSe.ChaveAcesso := ObterConteudo(AuxNode.Childrens.FindAnyNs('ChaveADN'), tcStr);
+
+    if (NFSe.ChaveAcesso = '') then
+        NFSe.ChaveAcesso := ObterConteudo(AuxNode.Childrens.FindAnyNs('chaveAcessoNacional'), tcStr);
 
     if NFSe.ChaveAcesso = '' then
       NFSe.ChaveAcesso := NFSe.infNFSe.ID;

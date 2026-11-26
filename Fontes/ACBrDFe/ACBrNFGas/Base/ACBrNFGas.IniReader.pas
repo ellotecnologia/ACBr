@@ -339,8 +339,10 @@ begin
     Item.vMedAnt := StringToFloatDef(AINIRec.ReadString(Secao, 'vMedAnt', ''), 0);
     Item.dMedAtu := StringToDateTime(AINIRec.ReadString(Secao, 'dMedAtu', '0'));
     Item.vMedAtu := StringToFloatDef(AINIRec.ReadString(Secao, 'vMedAtu', ''), 0);
+    Item.dMedProx := StringToDateTime(AINIRec.ReadString(Secao, 'dMedProx', '0'));
     Item.tpEqp := strTotpEqp(AINIRec.ReadString(Secao, 'tpEqp', ''));
     Item.tpMedidor := StrTotpMedidor(AINIRec.ReadString(Secao, 'tpMedidor', ''));
+    Item.descPontoCons := AINIRec.ReadString(Secao, 'descPontoCons', '');
 
     Inc(Index);
   end;
@@ -385,6 +387,8 @@ begin
     Item.gNormal.Prod.fatorP := StringToFloatDef(AINIRec.ReadString(Secao, 'fatorP', ''), 0);
     Item.gNormal.Prod.fatorT := StringToFloatDef(AINIRec.ReadString(Secao, 'fatorT', ''), 0);
     Item.gNormal.Prod.vProd := StringToFloatDef(AINIRec.ReadString(Secao, 'vProd', ''), 0);
+    Item.gNormal.Prod.vItemLiq := StringToFloatDef(AINIRec.ReadString(Secao, 'vItemLiq', ''), 0);
+    Item.gNormal.Prod.vProdLiq := StringToFloatDef(AINIRec.ReadString(Secao, 'vProdLiq', ''), 0);
     Item.gNormal.Prod.indDevolucao := StrToTIndicador(AINIRec.ReadString(Secao, 'indDevolucao', ''));
     Item.gNormal.infAdProd := AINIRec.ReadString(Secao, 'infAdProd', '');
 
@@ -436,7 +440,7 @@ begin
 
   while True do
   begin
-    Secao := 'gTarif' + IntToStrZero(DetIndex, 3) + IntToStrZero(TarifIndex, 1);
+    Secao := 'gTarif' + IntToStrZero(DetIndex, 3) + IntToStrZero(TarifIndex, 2);
     Valor := AINIRec.ReadString(Secao, 'dIniTarif', 'FIM');
 
     if (Valor = 'FIM') or (Length(Valor) <= 0) then
@@ -483,6 +487,7 @@ begin
   gProcRef.vProd := StringToFloatDef(AINIRec.ReadString(Secao, 'vProd', ''), 0);
   gProcRef.indDevolucao := StrToTIndicador(AINIRec.ReadString(Secao, 'indDevolucao', ''));
 
+  Ler_gIBSCBSSemProcJur(AINIRec, gProcRef.gIBSCBS, DetIndex, -1);
   Ler_gProc(AINIRec, gProcRef.gProc, DetIndex);
 end;
 
@@ -556,6 +561,7 @@ begin
   ICMS.vICMSEfet := StringToFloatDef(AINIRec.ReadString(Secao, 'vICMSEfet', ''), 0);
   ICMS.pFCP := StringToFloatDef(AINIRec.ReadString(Secao, 'pFCP', ''), 0);
   ICMS.vFCP := StringToFloatDef(AINIRec.ReadString(Secao, 'vFCP', ''), 0);
+  ICMS.vICMSPrevisto := StringToFloatDef(AINIRec.ReadString(Secao, 'vICMSPrevisto', ''), 0);
 end;
 
 procedure TNFGasIniReader.Ler_PIS(AINIRec: TMemIniFile; PIS: TPIS; Index: Integer);
@@ -628,6 +634,7 @@ begin
   Secao := 'total';
 
   Total.vProd := StringToFloatDef(AINIRec.ReadString(Secao, 'vProd', ''), 0);
+  Total.vProdLiq := StringToFloatDef(AINIRec.ReadString(Secao, 'vProdLiq', ''), 0);
   Total.vBC := StringToFloatDef(AINIRec.ReadString(Secao, 'vBC', ''), 0);
   Total.vICMS := StringToFloatDef(AINIRec.ReadString(Secao, 'vICMS', ''), 0);
   Total.vBCST := StringToFloatDef(AINIRec.ReadString(Secao, 'vBCST', ''), 0);

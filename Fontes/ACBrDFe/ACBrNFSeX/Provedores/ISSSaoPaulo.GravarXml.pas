@@ -62,6 +62,7 @@ type
     function GerarXMLIBSCBS(IBSCBS: TIBSCBSDPS): TACBrXmlNode; override;
     function GerarXMLDestinatario(Dest: TDadosdaPessoa): TACBrXmlNode; override;
     function GerarXMLImovel(Imovel: TDadosimovel): TACBrXmlNode; override;
+    function GerarXMLgIBSCBS(gIBSCBS: TgIBSCBS): TACBrXmlNode; override;
   public
     function GerarXml: Boolean; override;
 
@@ -296,7 +297,7 @@ begin
   LNFSeNode.AppendChild(AddNode(tcStr, '#1', 'EmailTomador', 1, 75, 0,
                                                NFSe.Tomador.Contato.Email, ''));
 
-  if OnlyNumber(NFSe.Intermediario.Identificacao.CpfCnpj) <> '' then
+  if OnlyCPFCNPJAlphaNum(NFSe.Intermediario.Identificacao.CpfCnpj) <> '' then
   begin
     LNode := GerarCPFCNPJIntermediario;
     LNFSeNode.AppendChild(LNode);
@@ -490,6 +491,15 @@ begin
   Result := inherited GerarXMLIBSCBS(IBSCBS);
 
   Result.AppendChild(GerarXMLImovel(IBSCBS.imovel));
+
+  // Falta o campo indDoacao
+
+  if NFSe.Servico.Valores.tribMun.cPaisResult > 0 then
+    Result.AppendChild(AddNode(tcStr, '#1', 'cPaisResult', 2, 2, 0,
+         CodIBGEPaisToSiglaISO2(NFSe.Servico.Valores.tribMun.cPaisResult), ''));
+
+  if IBSCBS.gPgtoVinc.pgto.Count > 0 then
+    Result.AppendChild(Gerar_pgtoVinc(IBSCBS.gPgtoVinc));
 end;
 
 function TNFSeW_ISSSaoPaulo.GerarXMLImovel(Imovel: TDadosimovel): TACBrXmlNode;
@@ -513,6 +523,20 @@ begin
       else
         Result.AppendChild(GerarXMLEnderecoNacionalImovel(Imovel.ender));
   end;
+end;
+
+function TNFSeW_ISSSaoPaulo.GerarXMLgIBSCBS(gIBSCBS: TgIBSCBS): TACBrXmlNode;
+begin
+  Result := CreateElement('gIBSCBS');
+
+  Result.AppendChild(AddNode(tcStr, '#1', 'cClassTrib', 6, 6, 1,
+                                                       gIBSCBS.cClassTrib, ''));
+
+  if (gIBSCBS.gTribRegular.CSTReg <> cstNenhum) and
+     (gIBSCBS.gTribRegular.cClassTribReg <> '') and GerarTribRegular then
+    Result.AppendChild(GerarXMLgTribRegular(gIBSCBS.gTribRegular));
+
+  // Falta o gEstornoCred
 end;
 
 end.

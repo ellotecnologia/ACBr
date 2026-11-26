@@ -101,6 +101,7 @@ resourcestring
   DSC_XJUST = 'Justificativa';
   DSC_QRCODE = 'Assinatura Digital para uso em QRCODE';
   DSC_QRCODDFe = 'Texto do QR-Code para consulta';
+  DSC_NSITEAUTORIZ = 'Site autorizador';
 
   // Descrição de Dados da Pessoa Física ou Jurídica
   DSC_CRT = 'Código de Regime Tributário';
@@ -118,6 +119,7 @@ resourcestring
   DSC_XPAIS = 'Nome do País';
   DSC_FONE = 'Telefone';
   DSC_EMAIL = 'Endereço de E-mail';
+  DSC_TPEMIT = 'Tipo de Emitente';
 
   // Descrição de Informações do Contribuinte/Fisco
   DSC_XOBS = 'Observação';
@@ -150,6 +152,7 @@ resourcestring
   DSC_NSU = 'NSU específico';
 
   // Reforma Tributária
+  DSC_VBC = 'Valor da Base de Calculo';
   DSC_TPENTEGOV = 'Tipo de Ente governamental';
   DSC_PREDUTOR = 'Percentual de redução de aliquota em compra governamental';
   DSC_TPOPERGOV = 'Tipo de Operação com o ente governamental';
@@ -179,6 +182,10 @@ resourcestring
   DSC_INDDOACAO = 'Informar quando doação';
   DSC_VIBSESTCRED = 'Valor do IBS a ser estornado';
   DSC_VCBSESTCRED = 'Valor do CBS a ser estornado';
+  DSC_VIBSSN = 'Valor total de IBS SN';
+  DSC_VCBSSN = 'Valor total da CBS SN';
+  DSC_PIBSSN = 'Aliquota do IBS SN';
+  DSC_PCBSSN = 'Aliquota do CBS SN';
 
   DSC_VTOTDFE = 'Valor total do documento fiscal';
 
@@ -248,6 +255,9 @@ resourcestring
   DSC_VTRIBREGCBS = 'Valor efetivo sem a redução';
   DSC_CHDFEPAGANT = 'Chave de acesso do DF-e de antecipação de pagamento';
   DSC_NITEMPAGANT = 'Nùmero do item do DF-e de antecipação para refência direta a um item';
+
+  DSC_TPREGIMEIBSCBS = 'Tipo de Regime de Apuração do IBS e da CBS';
+  DSC_VICMSPREVISTO = 'Valor do ICMS Previsto';
 
 implementation
 
